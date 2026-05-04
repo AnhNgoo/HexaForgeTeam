@@ -4,11 +4,7 @@ using System.Collections.Generic;
 public enum PoolType
 {
     None = 0,
-    Muzzle = 1,
-    CannonExplosion = 2,
-    SpawnEffect = 3,
-    MachineGunExplosion = 4,
-    LandMineExplosion = 5,
+    Enemy = 1,
 }
 
 [System.Serializable]
