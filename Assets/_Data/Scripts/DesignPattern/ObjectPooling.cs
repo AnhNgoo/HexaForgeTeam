@@ -5,6 +5,7 @@ public enum PoolType
 {
     None = 0,
     Enemy = 1,
+    SafeZone = 2,
 }
 
 [System.Serializable]
@@ -49,6 +50,7 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
             pools.Add(poolData.pool);
         }
+        Debug.Log($"Loaded {poolDataArray.Length} pools from {poolDataPath}");
     }
 
     void InitializePools()
