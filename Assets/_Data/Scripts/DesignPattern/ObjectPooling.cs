@@ -4,6 +4,7 @@ using System.Collections.Generic;
 public enum PoolType
 {
     None = 0,
+    Enemy = 1,
     SafeZone = 2,
 }
 
