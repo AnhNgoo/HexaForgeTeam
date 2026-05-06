@@ -1,18 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyData : MonoBehaviour
+[CreateAssetMenu(fileName = "New Enemy Data", menuName = "Enemy/Enemy Data")]
+public class EnemyData : ScriptableObject
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    [Header("Stats")]
+    public float heath = 100f;
+    public float damage = 10f;
+    public float defense = 5f;
+    public float moveSpeed = 3f;
 }
