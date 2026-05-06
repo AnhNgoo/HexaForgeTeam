@@ -109,14 +109,22 @@ public class GameFlow : MonoBehaviour
 	private void OnEnable()
 	{
 		EventManager.Instance.Subscribe(GameEvent.StartGame, OnStartGame);
+        EventManager.Instance.Subscribe(GameEvent.EndGame, _ => OnEndGame);
 	}
 
 	private void OnDisable()
 	{
-		EventManager.Instance.Unsubscribe(GameEvent.StartGame, OnStartGame);
+		EventManager.Instance.Unsubscribe(GameEvent.EndGame,  _ => OnEndGame);
 	}
 
+    //Dùng cái này nếu cần truyền data
 	private void OnStartGame(object data)
+	{
+		// handle
+	}
+
+    //Dùng cái này nếu không cần truyền data
+	private void OnEndGame(object data)
 	{
 		// handle
 	}
@@ -147,6 +155,22 @@ public class GameFlow : MonoBehaviour
 - Bước 3: Thêm type vào `MenuType` enum.
 - Bước 4: Gọi `UIManager.Instance.ChangeMenu(MenuType.YourMenu)` để mở.
 
+**Cấu trúc Hierarchy (tham khảo)**
+
+```
+UIManager
+├─ EventSystem
+└─ Canvas
+	├─ MainMenu
+	│  ├─ MainMenuPanel (Image)
+	│  │  ├─ Button, Text, ... (tùy chọn)
+	│  ├─ Button, Text, ... (có thể đặt trực tiếp dưới MainMenu)
+	│  ├─ MainMenuPanel_2 (Image) (tùy chọn)
+	│  └─ ...
+	├─ SettingMenu
+	└─ ...
+```
+
 **Ví dụ tạo menu mới: MainMenu**
 
 - Bước 1: Tạo file `MainMenu.cs`.
@@ -164,35 +188,80 @@ public class MainMenu : MenuBase
 	public override MenuType menuType => MenuType.MainMenu;
 
 	[SerializeField] private Button playButton;
+    [SerializeField] private Button jumpButton;
+
+    [SerializeField] private TextMeshProGUI scoreText;
 
 	protected override void LoadComponent()
 	{
 		if (playButton == null)
-			playButton = transform.Find("PlayButton")?.GetComponent<Button>();
+			playButton = transform.Find("MainMenuPanel/PlayButton")?.GetComponent<Button>();
+
+        if (jumpButton == null)
+			jumpButton = transform.Find("MainMenuPanel/JumpButton")?.GetComponent<Button>();
+
+        if (score == null)
+            scoreText = transform.Find("MainMenuPanel/ScoreText")?.GetComponent<TextMeshProGUI>();
 	}
 
 	protected override void LoadComponentRuntime()
 	{
-		if (playButton == null)
-			playButton = transform.Find("PlayButton")?.GetComponent<Button>();
 	}
 
-	private void OnEnable()
+    private void Awake()
+    {
+        EventManager.Instance.Subscribe(GameEvent.UpdateScore, UpdateCoin);
+        EventManager.Instance.Subscribe(GameEvent.ResetScore, _ => ResetCoin);
+    }
+
+    private void Destroy()
+    {
+        EventManager.Instance.UnSubscribe(GameEvent.UpdateScore, UpdateCoin);
+        EventManager.Instance.UnSubscribe(GameEvent.ResetScore, _ => ResetCoin);
+    }
+
+	protected override void Open(object data == null)
 	{
 		if (playButton != null)
 			playButton.onClick.AddListener(OnPlayClicked);
+        if (jumpButton != null)
+			jumpButton.onClick.AddListener(OnJumpClicked);
 	}
 
-	private void OnDisable()
+	protected override void Close()
 	{
 		if (playButton != null)
 			playButton.onClick.RemoveListener(OnPlayClicked);
 	}
 
+    //Sự kiện khi nhấn playButton
 	private void OnPlayClicked()
 	{
 		// Xử lý khi ấn Play
+        UIManager.Instance.ChangeMenu(MenuType.LobbyMenu)
 	}
+
+    //Sự kiện khi nhấn jumpButton
+	private void OnJumpClicked()
+	{
+		//Gọi sự kiện để nhảy, bên play sẽ đăng ký sự kiện này cho hàm jump
+        EventManager.Instance.Notify(GameEvent.OnJump);
+	}
+
+
+    //Cập nhật sự kiện có truyền tham số
+    private void UpdateCoin(object data = null)
+    {
+        if (data is not string score) return;
+
+        scoreText = score;
+    }
+
+    //Cập nhật sự kiện không cần tham số
+    private void ResetCoin()
+    {
+        scoreText = 0;
+    }
 }
 ```
 
@@ -239,7 +308,7 @@ UIManager.Instance.ChangeMenu(MenuType.MainMenu);
 - `ObjectPooling` tự động load các `PoolData` trong Resources.
 - Cách dùng nhanh:
   - Bước 1: Tạo `PoolData` asset qua menu `Create/ScriptableObjects/PoolData`.
-  - Bước 2: Đặt asset vào `Assets/Resources/ScriptableObjects/PoolData`.
+  - Bước 2: Đặt asset vào `Assets/_Data/Resources/ScriptableObjects/PoolData`.
   - Bước 3: Trong asset, gán `PoolType`, `prefab`, `initialSize`, `maxSize`.
 
 **IPoolable (hỗ trợ khi spawn/return)**

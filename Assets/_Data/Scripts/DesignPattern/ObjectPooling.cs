@@ -4,11 +4,8 @@ using System.Collections.Generic;
 public enum PoolType
 {
     None = 0,
-    Muzzle = 1,
-    CannonExplosion = 2,
-    SpawnEffect = 3,
-    MachineGunExplosion = 4,
-    LandMineExplosion = 5,
+    Enemy = 1,
+    SafeZone = 2,
 }
 
 [System.Serializable]
@@ -53,6 +50,7 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
             pools.Add(poolData.pool);
         }
+        Debug.Log($"Loaded {poolDataArray.Length} pools from {poolDataPath}");
     }
 
     void InitializePools()
