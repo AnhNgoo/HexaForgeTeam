@@ -6,6 +6,11 @@ using UnityEngine;
 public enum GameEvent
 {
     None = 0,
+    OnMovement = 1,
+    OnDodge = 2,
+    OnJump = 3,
+    OnAttack = 4,
+    OnSlashEffect = 5,
 }
 public class EventManager : Singleton<EventManager>
 {
