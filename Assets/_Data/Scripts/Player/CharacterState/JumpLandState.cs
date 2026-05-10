@@ -34,7 +34,7 @@ public class JumpLandState : ICharacterState
     {
         character.CharacterMovement.Stop();
         character.CharacterAnimation.CrossFade("Jump_Land", 0.1f);
-        await UniTask.Delay(100);
+        await UniTask.Delay(1000);
         character.StateController.ChangeState(new IdleState(character));
     }
 }

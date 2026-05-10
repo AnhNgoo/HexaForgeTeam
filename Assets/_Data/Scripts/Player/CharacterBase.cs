@@ -75,7 +75,6 @@ public class CharacterBase : LoadComponents
     protected virtual void Update()
     {
         stateController?.currentState?.Update();
-        characterMovement.CheckGrounded();
     }
 
     protected virtual void FixedUpdate()

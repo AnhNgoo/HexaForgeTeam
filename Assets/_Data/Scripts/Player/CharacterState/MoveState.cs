@@ -33,7 +33,7 @@ public class MoveState : ICharacterState
             return;
         }
 
-        if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.Rb.velocity.y < -0.1f)
+        if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.CC.velocity.y < character.CharacterMovement.FallThreshold)
         {
             character.StateController.ChangeState(new FallState(character));
             return;
