@@ -14,6 +14,7 @@ public class IdleState : ICharacterState
     public void Enter()
     {
         character.CharacterAnimation.CrossFade("Idle", 0.1f);
+        character.CharacterMovement.Stop();
     }
 
     public void Exit()
