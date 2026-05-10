@@ -10,6 +10,7 @@ using System.Linq;
 public enum MenuType
 {
     None = 0,
+    HUDMenuTest = 1,
 }
 
 public class UIManager : Singleton<UIManager>

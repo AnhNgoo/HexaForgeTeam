@@ -6,6 +6,7 @@ public enum PoolType
     None = 0,
     Enemy = 1,
     SafeZone = 2,
+    KaelSlashEffect = 3,
 }
 
 [System.Serializable]
