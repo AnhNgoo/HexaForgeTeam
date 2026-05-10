@@ -1,21 +1,21 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterMovement : LoadComponents
 {
-    [SerializeField] private Rigidbody rb;
-    public Rigidbody Rb => rb;
+    [SerializeField] private CharacterController cc;
+    public CharacterController CC => cc;
 
     [Header("Walk Settings")]
     [SerializeField] private float walkSpeedMultiplier = 0.3f;
     [SerializeField] private float walkThreshold = 0.3f;
     public float WalkThreshold => walkThreshold;
+
     [Header("Run Settings")]
     [SerializeField] private float runSpeedMultiplier = 1f;
     [SerializeField] private float runThreshold = 0.75f;
     public float RunThreshold => runThreshold;
+
     [Header("Sprint Settings")]
     [SerializeField] private float sprintSpeedMultiplier = 1.3f;
     [SerializeField] private float sprintThreshold = 1.0f;
@@ -25,35 +25,39 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private float dodgeSpeedMultiplier = 2f;
     [SerializeField] private float dodgeDuration = 0.5f;
     public float DodgeDuration => dodgeDuration;
+
     [SerializeField] private float dodgeCooldown = 1f;
     public float DodgeCooldown => dodgeCooldown;
+
     public bool IsDodging { get; set; } = false;
     public float dodgeTimer { get; set; } = 0f;
-
-
 
     [Header("Lunge Settings")]
     [SerializeField] private float lungeDistance = 1f;
     [SerializeField] private float lungeDuration = 0.2f;
 
     [Header("Jump Settings")]
-    [SerializeField] private float jumpForce = 10f;
-    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float jumpForce = 40f;
     [SerializeField] private float airSpeedMultiplier = 1f;
+    [SerializeField] private float fallThreshold = -50f;
+    public float FallThreshold => fallThreshold;
     public bool JumpLanding { get; set; } = false;
 
-    [Header("Ground Check Settings")]
-    [SerializeField] private float groundCheckDistance = 0.1f;
-    [SerializeField] private float groundCheckRadius = 0.2f;
+    [Header("Gravity Settings")]
+    [SerializeField] private float gravity = -100f;
 
     public bool IsGrounded { get; set; } = false;
     public bool CanMoveAttack { get; set; } = false;
+
     public Vector2 MoveDirection { get; private set; }
+    private Vector3 currentMove;
+
+    private float verticalVelocity;
 
     protected override void LoadComponent()
     {
-        if (rb == null)
-            rb = GetComponent<Rigidbody>();
+        if (cc == null)
+            cc = GetComponent<CharacterController>();
     }
 
     protected override void LoadComponentRuntime()
@@ -61,23 +65,73 @@ public class CharacterMovement : LoadComponents
 
     }
 
+    private void Update()
+    {
+        ApplyGravity();
+        CheckGrounded();
+    }
+
     public void SetMoveDirection(Vector2 direction)
     {
         Vector3 forward = Camera.main.transform.forward;
         forward.y = 0f;
+
         Vector3 right = Camera.main.transform.right;
         right.y = 0f;
-        Vector3 moveDirection3D = direction.x * right.normalized + direction.y * forward.normalized;
-        MoveDirection = new Vector2(moveDirection3D.x, moveDirection3D.z);
+
+        Vector3 moveDirection3D =
+            direction.x * right.normalized +
+            direction.y * forward.normalized;
+
+        MoveDirection = new Vector2(
+            moveDirection3D.x,
+            moveDirection3D.z
+        );
+    }
+
+    private void ApplyGravity()
+    {
+        IsGrounded = cc.isGrounded;
+
+        if (IsGrounded && verticalVelocity < 0)
+        {
+            verticalVelocity = -2f;
+        }
+
+        // Gravity
+        verticalVelocity += gravity * Time.deltaTime;
+
+        // Final movement
+        Vector3 finalMove = currentMove;
+        finalMove.y = verticalVelocity;
+
+        CollisionFlags flags =
+            cc.Move(finalMove * Time.deltaTime);
+
+        // Hit ceiling
+        if ((flags & CollisionFlags.Above) != 0) // Nếu va chạm với trần nhà, đặt verticalVelocity về 0 để ngăn nhân vật tiếp tục tăng tốc lên trên
+        {
+            verticalVelocity = 0f;
+        }
+
+        // Grounded
+        IsGrounded =
+            (flags & CollisionFlags.Below) != 0; // Cập nhật grounded sau khi di chuyển để đảm bảo chính xác
     }
 
     private void Movement(Vector2 direction, float moveSpeed, float speedMultiplier)
     {
-        Vector3 moveDirection = new Vector3(direction.x, 0, direction.y);
-        Vector3 targetVelocity = moveDirection.normalized * moveSpeed * speedMultiplier;
-        rb.velocity = new Vector3(targetVelocity.x, rb.velocity.y, targetVelocity.z);
-    }
+        Vector3 moveDirection = new Vector3(
+            direction.x,
+            0,
+            direction.y
+        );
 
+        currentMove =
+            moveDirection.normalized *
+            moveSpeed *
+            speedMultiplier;
+    }
     public void Walk(Vector2 direction, float moveSpeed)
     {
         Movement(direction, moveSpeed, walkSpeedMultiplier);
@@ -100,13 +154,13 @@ public class CharacterMovement : LoadComponents
 
     public void Lunge(Vector2 direction)
     {
-        // Di chuyển nhân vật đến vị trí mục tiêu trong một khoảng thời gian ngắn
         StartCoroutine(LungeCoroutine(direction));
     }
 
     private IEnumerator LungeCoroutine(Vector2 direction)
     {
         Debug.Log("Lunge in direction: " + direction);
+
         float speed = lungeDistance / lungeDuration;
         float elapsedTime = 0f;
 
@@ -115,38 +169,32 @@ public class CharacterMovement : LoadComponents
             Movement(direction, speed, 1f);
 
             elapsedTime += Time.deltaTime;
+
             yield return null;
         }
+
         Stop();
     }
 
     public void Jump()
     {
-        if (rb == null) return;
+        if (!cc.isGrounded) return;
 
-        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+        verticalVelocity = jumpForce;
     }
 
     public void MoveAir(Vector2 direction, float moveSpeed)
     {
         Movement(direction, moveSpeed, airSpeedMultiplier);
     }
+
     public void Stop()
     {
-        if (rb == null) return;
-
-        rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+        currentMove = Vector3.zero;
     }
 
     public void CheckGrounded()
     {
-        IsGrounded = Physics.OverlapSphere(transform.position + Vector3.down * groundCheckDistance,
-                                                groundCheckRadius, groundLayer).Length > 0;
-    }
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position + Vector3.down * groundCheckDistance, groundCheckRadius);
+        IsGrounded = cc.isGrounded;
     }
 }
