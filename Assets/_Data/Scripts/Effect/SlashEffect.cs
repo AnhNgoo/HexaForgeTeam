@@ -23,16 +23,19 @@ public class SlashEffect : LoadComponents
     // }
     private void OnEnable()
     {
-        EventManager.Instance.Subscribe(GameEvent.OnSlashEffect, _ => Play());
+        EventManager.Instance?.Subscribe(GameEvent.OnSlashEffect, _ => Play());
     }
 
     private void OnDisable()
     {
-        EventManager.Instance.Unsubscribe(GameEvent.OnSlashEffect, _ => Play());
+        EventManager.Instance?.Unsubscribe(GameEvent.OnSlashEffect, _ => Play());
     }
     public void Play()
     {
-        var effect = ObjectPooling.Instance.SpawnFromPool(PoolType.KaelSlashEffect, slashPoint.position, slashPoint.rotation);
+        var effect = ObjectPooling.Instance?.SpawnFromPool(PoolType.KaelSlashEffect, slashPoint.position, slashPoint.rotation);
+
+        if (effect == null)
+            return;
 
         if (effect.TryGetComponent<VisualEffect>(out var vfx))
         {

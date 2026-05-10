@@ -20,6 +20,6 @@ public class KaelAttackStep_1 : IAttackStep
     private async void PlaySlashEffect()
     {
         await UniTask.Delay(200);
-        EventManager.Instance.Notify(GameEvent.OnSlashEffect);
+        EventManager.Instance?.Notify(GameEvent.OnSlashEffect);
     }
 }

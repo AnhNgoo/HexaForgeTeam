@@ -6,6 +6,7 @@ using Cysharp.Threading.Tasks;
 public class JumpState : ICharacterState
 {
     private bool hasJumped = false;
+    private float jumpDuration = 0.1f; //Thời gian để xác định đã nhảy hay chưa
     private CharacterBase character;
     public JumpState(CharacterBase character)
     {
@@ -36,7 +37,7 @@ public class JumpState : ICharacterState
             return;
         }
 
-        if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.Rb.velocity.y < -0.1f)
+        if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.CC.velocity.y < character.CharacterMovement.FallThreshold) //Chuyển về FallState khi đang ở trên không và bắt đầu rơi
         {
             character.StateController.ChangeState(new FallState(character));
             return;
@@ -48,13 +49,13 @@ public class JumpState : ICharacterState
                                                 0f,
                                                 character.CharacterMovement.MoveDirection.y);
 
-        if (character.CharacterMovement.MoveDirection != Vector2.zero)
+        if (character.CharacterMovement.MoveDirection != Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.MoveAir(character.CharacterMovement.MoveDirection, speed);
             character.CharacterRotate.Rotate(rotationDirection);
             return;
         }
-        if (character.CharacterMovement.MoveDirection == Vector2.zero)
+        if (character.CharacterMovement.MoveDirection == Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.Stop();
             return;
@@ -63,7 +64,7 @@ public class JumpState : ICharacterState
 
     private async void CheckJumped()
     {
-        await UniTask.Delay(500);
+        await UniTask.Delay((int)(jumpDuration * 1000));
         hasJumped = true;
     }
 }
