@@ -111,6 +111,9 @@ crashlytics-build.properties
 
 # Large source art files
 *.psd
+# But not the ones in the Monsters Ultimate Pack 01, 03 Cute Series package, which we want to keep track of
+!Assets/_Data/Package/Monsters Ultimate Pack 01 Cute Series/**/*.psd
+!Assets/_Data/Package/Monsters Ultimate Pack 03 Cute Series/**/*.psd
 *.psb
 
 ###############
@@ -119,3 +122,5 @@ crashlytics-build.properties
 
 [Aa]ssets/[Ss]amples/
 [Aa]ssets/[Ss]amples.meta
+
+*.lscache
