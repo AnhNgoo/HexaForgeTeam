@@ -21,7 +21,7 @@ public class KaelAttackStep_4 : IAttackStep
     private async void PlaySlashEffect()
     {
         await UniTask.Delay(300);
-        EventManager.Instance.Notify(GameEvent.OnSlashEffect);
+        EventManager.Instance?.Notify(GameEvent.OnSlashEffect);
     }
     private async void ShakeWhenCompleted(CharacterBase character)
     {
@@ -32,6 +32,6 @@ public class KaelAttackStep_4 : IAttackStep
                        stateInfo.normalizedTime >= timeShake &&
                        !character.CharacterAnimation.Animator.IsInTransition(0);
             });
-        CameraShake.Instance.Shake();
+        CameraShake.Instance?.Shake();
     }
 }
