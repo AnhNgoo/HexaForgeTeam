@@ -4,8 +4,14 @@ using UnityEngine;
 public class EnemyData : ScriptableObject
 {
     [Header("Stats")]
-    public float heath = 100f;
-    public float damage = 10f;
-    public float defense = 5f;
-    public float moveSpeed = 3f;
+    public float maxHealth = 100f; //Máu tối đa
+    public float damage = 10f; //Sát thương gây ra
+    public float maxDefense = 5f; //Giá trị phòng thủ tối đa, có thể giảm sát thương nhận vào
+    public float maxPoise = 50f; //Giá trị poise tối đa, khi bị tấn công sẽ giảm, nếu giảm xuống 0 sẽ bị stagger
+    public float moveSpeed = 3f; //Tốc độ di chuyển
+    [Header("State Parameters")]
+    public float staggerDuration = 2f; //Thời gian bị stagger khi poise giảm xuống 0
+    public float detectRange = 10f; //Khoảng cách phát hiện mục tiêu
+    public float loseTargetRange = 15f; //Khoảng cách mất mục tiêu
+    public float povAngle = 90f; //Góc nhìn
 }

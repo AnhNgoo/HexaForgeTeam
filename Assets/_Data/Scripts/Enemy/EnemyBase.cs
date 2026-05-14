@@ -4,8 +4,8 @@ public class EnemyBase : LoadComponents, IPoolable
 {
     //Configuration Dùng InLineEditor để chỉnh sửa thông số nhanh
     [Header("Configuration")]
-    [InlineEditor(InlineEditorObjectFieldModes.CompletelyHidden)]
-    [Searchable] public EnemyData enemyData;
+    [InlineEditor()]
+    [SerializeField] public EnemyData enemyData;
 
     //Internal Modules Dùng SerializeField để gán component trực tiếp trên editor, không cần phải kéo tay
     [Header("Internal Modules")]
@@ -20,6 +20,10 @@ public class EnemyBase : LoadComponents, IPoolable
     [FoldoutGroup("Modules")]
     [SerializeField] private EnemyEventManager _eventManager;
     [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyDamageReceiver _damageReceiver;
+    [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyPoiseSystem _poiseSystem;
+    [FoldoutGroup("Modules")]
     [SerializeField] private Collider _mainCollider;
     [FoldoutGroup("Modules")]
     [SerializeField] private Transform _myTransform;
@@ -27,8 +31,14 @@ public class EnemyBase : LoadComponents, IPoolable
 
     //Định dạng EnemyBase như một đối tượng có thể được quản lý bởi Object Pooling
     public PoolType PoolType => PoolType.Enemy;
-    //Mở cửa số EnemyEventManager để các module khác có thể đăng ký sự kiện
+    //Mở cửa số  để các module khác có thể gọi nhau thông qua EnemyBase mà không cần phải biết đến nhau
     public EnemyEventManager EventManager => _eventManager;
+    public EnemyHealth Heath => _heath;
+    public EnemyCombat Combat => _combat;
+    public EnemyDetection Detection => _detection;
+    public EnemyStateMachine StateMachine => _stateMachine;
+    public EnemyDamageReceiver DamageReceiver => _damageReceiver;
+    public EnemyPoiseSystem PoiseSystem => _poiseSystem;
 
     private void Start()
     {
@@ -37,26 +47,29 @@ public class EnemyBase : LoadComponents, IPoolable
 
     public void Initialize()
     {
-        // if (enemyData == null)
-        // {
-        //     Debug.LogError("EnemyData is not assigned on " + gameObject.name);
-        //     return;
-        // }
+        if (enemyData == null)
+        {
+            Debug.LogError("EnemyData is not assigned on " + gameObject.name);
+            return;
+        }
 
+        _eventManager.Initialize(this);
         _heath.Initialize(this);
         _combat.Initialize(this);
         _detection.Initialize(this);
         _stateMachine.Initialize(this);
-        _eventManager.Initialize(this);
+        _damageReceiver.Initialize(this);
+        _poiseSystem.Initialize(this);
     }
 
     private void ResetEnemy()
     {
         //To_Do: Reset tất cả các module về trạng thái ban đầu để chuẩn bị cho lần spawn tiếp theo
-        // _heath.ResetHealth();
+        _heath.ResetHealth();
+        _poiseSystem.ResetPoise();
         // _combat.ResetCombat();
-        // _detection.ResetDetection();
-        // _stateMachine.ResetStateMachine();
+        _detection.ResetDetection();
+        _stateMachine.ResetToDefaultState();
     }
 
     private void CacheReferences()
@@ -78,6 +91,12 @@ public class EnemyBase : LoadComponents, IPoolable
 
         if (!TryGetComponent(out _eventManager))
             Debug.LogError("EnemyEventManager component is missing on " + gameObject.name);
+
+        if (!TryGetComponent(out _damageReceiver))
+            Debug.LogError("EnemyDamageReceiver component is missing on " + gameObject.name);
+
+        if (!TryGetComponent(out _poiseSystem))
+            Debug.LogError("EnemyPoiseSystem component is missing on " + gameObject.name);
     }
 
     protected override void LoadComponent()
@@ -101,5 +120,11 @@ public class EnemyBase : LoadComponents, IPoolable
         ResetEnemy();
     }
 
-
+    #region Debug
+    [Button("Test: Đánh 1 đòn (Raw Dmg: 20, Poise Dmg: 30)", ButtonSizes.Large)]
+    public void DebugTakeHit()
+    {
+        _damageReceiver.TakeHit(20f, 30f);
+    }
+    #endregion
 }
