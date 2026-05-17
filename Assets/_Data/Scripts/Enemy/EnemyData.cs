@@ -14,4 +14,5 @@ public class EnemyData : ScriptableObject
     public float detectRange = 10f; //Khoảng cách phát hiện mục tiêu
     public float loseTargetRange = 15f; //Khoảng cách mất mục tiêu
     public float povAngle = 90f; //Góc nhìn
+    public float attackCooldown = 1.5f; //Thời gian giữa các đòn tấn công
 }

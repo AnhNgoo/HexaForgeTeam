@@ -35,6 +35,7 @@ public class EnemyDetection : MonoBehaviour
         //Kiểm tra nếu mục tiêu nằm trong khoảng cách phát hiện
         if (dstToTarget <= _enemyBase.enemyData.detectRange)
         {
+            //Xem mục tiêu đang đứng hướng nào
             Vector3 directionToTarget = (potentialTarget.position - transform.position).normalized;
             if (Vector3.Angle(transform.forward, directionToTarget) < _enemyBase.enemyData.povAngle / 2f)
             {

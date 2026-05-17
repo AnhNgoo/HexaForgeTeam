@@ -13,6 +13,7 @@ public class EnemyState_Stagger : EnemyState
         base.Enter();
         // To_Do: Thực hiện các hành động khi vào trạng thái Stagger, ví dụ: phát animation Stagger
         Debug.Log($"{_enemyBase.gameObject.name} đã vào trạng thái Stagger.");
+        _enemyBase.Combat.ForceCloseHitbox(); //Đảm bảo rằng hitbox sẽ được đóng đúng thời điểm khi vào trạng thái Stagger, tránh lỗi hitbox vẫn mở sau khi animation kết thúc
 
         //Khởi tạo CancellationTokenSource mới mỗi khi vào trạng thái 
         _cts = new CancellationTokenSource();

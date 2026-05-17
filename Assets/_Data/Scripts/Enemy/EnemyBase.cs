@@ -24,6 +24,10 @@ public class EnemyBase : LoadComponents, IPoolable
     [FoldoutGroup("Modules")]
     [SerializeField] private EnemyPoiseSystem _poiseSystem;
     [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyLocomotion _locomotion;
+    [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyAnimatorController _animatorController;
+    [FoldoutGroup("Modules")]
     [SerializeField] private Collider _mainCollider;
     [FoldoutGroup("Modules")]
     [SerializeField] private Transform _myTransform;
@@ -39,7 +43,9 @@ public class EnemyBase : LoadComponents, IPoolable
     public EnemyStateMachine StateMachine => _stateMachine;
     public EnemyDamageReceiver DamageReceiver => _damageReceiver;
     public EnemyPoiseSystem PoiseSystem => _poiseSystem;
-
+    public EnemyLocomotion Locomotion => _locomotion;
+    public EnemyAnimatorController AnimatorController => _animatorController;
+    public Transform MyTransform => _myTransform;
     private void Start()
     {
         Initialize();
@@ -60,6 +66,8 @@ public class EnemyBase : LoadComponents, IPoolable
         _stateMachine.Initialize(this);
         _damageReceiver.Initialize(this);
         _poiseSystem.Initialize(this);
+        _locomotion.Initialize(this);
+        _animatorController.Initialize(this);
     }
 
     private void ResetEnemy()
@@ -97,6 +105,11 @@ public class EnemyBase : LoadComponents, IPoolable
 
         if (!TryGetComponent(out _poiseSystem))
             Debug.LogError("EnemyPoiseSystem component is missing on " + gameObject.name);
+
+        if (!TryGetComponent(out _locomotion))
+            Debug.LogError("EnemyLocomotion component is missing on " + gameObject.name);
+
+        _animatorController = GetComponentInChildren<EnemyAnimatorController>();
     }
 
     protected override void LoadComponent()

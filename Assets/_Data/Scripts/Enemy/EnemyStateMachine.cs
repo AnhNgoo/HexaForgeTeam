@@ -10,10 +10,14 @@ public class EnemyStateMachine : MonoBehaviour
     [Header("State")]
     private EnemyState_Idle idleState;
     private EnemyState_Stagger staggerState;
+    private EnemyState_Chase chaseState;
+    private EnemyState_Attack attackState; //Có thể thêm sau nếu cần thiết
     #region Getters
     public EnemyState CurrentState => currentState;
     public EnemyState_Idle EnemyIdleState => idleState;
     public EnemyState_Stagger EnemyStaggerState => staggerState;
+    public EnemyState_Chase EnemyChaseState => chaseState;
+    public EnemyState_Attack EnemyAttackState => attackState; //Có thể thêm sau nếu cần thiết
     #endregion
 
     public void Initialize(EnemyBase enemyBase)
@@ -22,6 +26,8 @@ public class EnemyStateMachine : MonoBehaviour
         Debug.Log($"{gameObject.name} - EnemyStateMachine đã được khởi tạo!");
         idleState = new EnemyState_Idle(_enemyBase);
         staggerState = new EnemyState_Stagger(_enemyBase);
+        chaseState = new EnemyState_Chase(_enemyBase);
+        attackState = new EnemyState_Attack(_enemyBase);
         ChangeState(idleState);
         Subcribe(); // Đăng ký sự kiện khi khởi tạo để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra
     }
