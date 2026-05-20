@@ -6,32 +6,18 @@ using UnityEngine.EventSystems;
 
 public class Kael : CharacterMelee
 {
-    [SerializeField] protected GameObject kaelObject;
-    [SerializeField] protected Animator kaelAnimator;
-
+    [Header("Kael")]
+    [SerializeField] protected GameObject kaelGiantVisual;
     protected override void LoadComponent()
     {
         base.LoadComponent();
-        if (kaelObject == null)
-            kaelObject = visuals.transform.Find("Kael").gameObject;
-        if (kaelAnimator == null)
-            kaelAnimator = visuals.transform.Find("Kael").GetComponent<Animator>();
+        if (characterVisual == null)
+            characterVisual = visuals.transform.Find("Kael").gameObject;
+        if (kaelGiantVisual == null)
+            kaelGiantVisual = visuals.transform.Find("KaelGiant").gameObject;
     }
-    protected override void Awake()
+    protected override void Init(CharacterData data)
     {
-        base.Awake();
-        characterAnimation.Init(kaelAnimator);
-    }
-
-    // Override để khởi tạo các đòn tấn công riêng cho Kael
-    protected override IAttackStep[] InitAttackCombos()
-    {
-        return attackCombos = new IAttackStep[4]
-        {
-            new KaelAttackStep_1(),
-            new KaelAttackStep_2(),
-            new KaelAttackStep_3(),
-            new KaelAttackStep_4()
-        };
+        base.Init(data);
     }
 }

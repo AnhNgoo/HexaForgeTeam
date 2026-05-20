@@ -41,14 +41,13 @@ public class DodgeState : ICharacterState
             dodgeDirection = new Vector2(character.transform.forward.x, character.transform.forward.z).normalized;
 
         character.CharacterAnimation.CrossFade("Dodge", 0.1f);
-        float timer = 0f;
-        while (timer < character.CharacterMovement.DodgeDuration)
+        while (character.CharacterAnimation.GetAnimationTime("Dodge") < 1)
         {
             character.CharacterMovement.Dodge(dodgeDirection, character.CharacterData.stats.speed);
             character.CharacterRotate.Rotate(new Vector3(dodgeDirection.x, 0f, dodgeDirection.y));
-            timer += Time.deltaTime;
             await UniTask.Yield();
         }
+
         character.StateController.ChangeState(new IdleState(character));
     }
 }

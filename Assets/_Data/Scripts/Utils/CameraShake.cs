@@ -7,6 +7,11 @@ using Cinemachine;
 public class CameraShake : Singleton<CameraShake>
 {
 	[SerializeField] private CinemachineImpulseSource impulseSource;
+
+	public void SetImpulseSource(CinemachineImpulseSource source)
+	{
+		impulseSource = source;
+	}
 	public void Shake()
 	{
 		impulseSource.GenerateImpulse();
