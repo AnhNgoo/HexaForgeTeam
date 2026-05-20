@@ -150,18 +150,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   cc: {fileID: 3087871339197847750}
+  debugMode: 0
   walkSpeedMultiplier: 0.3
   walkThreshold: 0.3
   runSpeedMultiplier: 1
   runThreshold: 0.75
   sprintSpeedMultiplier: 1.3
   sprintThreshold: 1
-  dodgeSpeedMultiplier: 2
+  dodgeSpeedMultiplier: 1
   dodgeDuration: 0.5
   dodgeCooldown: 0.5
   jumpForce: 40
   airSpeedMultiplier: 1
   fallThreshold: -50
+  wallEdgeLayer:
+    serializedVersion: 2
+    m_Bits: 2559
+  radiusCheck: 0.5
+  distanceCheck: 1
   gravity: -100
 --- !u!114 &3520066543585729858
 MonoBehaviour:
@@ -217,7 +223,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9d10ae6602144654289a59cf84fb6f9a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isLockingTarget: 0
+  lockRadius: 50
+  maxScreenDistance: 3000
+  targetLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  debugMode: 0
   followTarget: {fileID: 8791990868333242387}
   lookAtTarget: {fileID: 0}
 --- !u!1001 &212801710544322096
