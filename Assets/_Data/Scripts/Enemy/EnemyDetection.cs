@@ -6,7 +6,8 @@ public class EnemyDetection : MonoBehaviour
 {
     private Transform currentTarget;
     public Transform CurrentTarget => currentTarget;
-
+    private Vector3 lastKnownTargetPosition; //Vị trí cuối cùng của mục tiêu (có thể dùng để di chuyển đến đó khi mất mục tiêu)
+    public Vector3 LastKnownTargetPosition => lastKnownTargetPosition;
     [SerializeField] private Transform Player; //Lớp của mục tiêu (ví dụ: Player)
     [SerializeField] private LayerMask obstacleLayerMask; //Lớp của chướng ngại vật (ví dụ: Tường)
 
@@ -25,7 +26,11 @@ public class EnemyDetection : MonoBehaviour
 
     private void FindTarget()
     {
-        if (currentTarget != null) return; //có mục tiêu rồi thì không tìm nữa
+        if (currentTarget != null)
+        {
+            lastKnownTargetPosition = currentTarget.position;
+            return; //có mục tiêu rồi thì không tìm nữa
+        }
         Debug.Log($"{gameObject.name} đang tìm mục tiêu...");
 
         Transform potentialTarget = Player; //Trỏ thẳng đến Player, có thể mở rộng sau này để tìm nhiều loại mục tiêu khác nhau (nên gọi thẳng từ PlayerManager)
@@ -33,11 +38,11 @@ public class EnemyDetection : MonoBehaviour
         float dstToTarget = Vector3.Distance(transform.position, potentialTarget.position);
 
         //Kiểm tra nếu mục tiêu nằm trong khoảng cách phát hiện
-        if (dstToTarget <= _enemyBase.enemyData.detectRange)
+        if (dstToTarget <= _enemyBase.Data.detectRange)
         {
             //Xem mục tiêu đang đứng hướng nào
             Vector3 directionToTarget = (potentialTarget.position - transform.position).normalized;
-            if (Vector3.Angle(transform.forward, directionToTarget) < _enemyBase.enemyData.povAngle / 2f)
+            if (Vector3.Angle(transform.forward, directionToTarget) < _enemyBase.Data.povAngle / 2f)
             {
                 //Xem có chướng ngại vật nào giữa Enemy và mục tiêu không bằng cách raycast
                 if (!Physics.Raycast(transform.position, directionToTarget, dstToTarget, obstacleLayerMask))
@@ -56,7 +61,7 @@ public class EnemyDetection : MonoBehaviour
         Debug.Log($"{gameObject.name} đang kiểm tra mất mục tiêu: {currentTarget.name}");
 
         float distanceToTarget = Vector3.Distance(transform.position, currentTarget.position);
-        if (distanceToTarget > _enemyBase.enemyData.loseTargetRange)
+        if (distanceToTarget > _enemyBase.Data.loseTargetRange)
         {
             Debug.Log($"{gameObject.name} đã mất mục tiêu: {currentTarget.name}");
             currentTarget = null;
@@ -72,22 +77,22 @@ public class EnemyDetection : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         //Chỉ khi đã khởi tạo EnemyBase và có dữ liệu enemyData mới vẽ gizmos
-        if (_enemyBase == null || _enemyBase.enemyData == null) return;
+        if (_enemyBase == null || _enemyBase.Data == null) return;
 
         //1. Vẽ hình cầu phát hiện (Màu vàng)
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, _enemyBase.enemyData.detectRange);
+        Gizmos.DrawWireSphere(transform.position, _enemyBase.Data.detectRange);
         //2.vẽ 2 tia giới hạn góc nhìn (Màu xanh)
         Gizmos.color = Color.blue;
-        float halfPOV = _enemyBase.enemyData.povAngle / 2f;
+        float halfPOV = _enemyBase.Data.povAngle / 2f;
 
         //Tính toán hướng của 2 tia
         Vector3 leftRayDirection = Quaternion.Euler(0, -halfPOV, 0) * transform.forward;
         Vector3 rightRayDirection = Quaternion.Euler(0, halfPOV, 0) * transform.forward;
 
         //Vẽ 2 tia giới hạn góc nhìn
-        Gizmos.DrawRay(transform.position, leftRayDirection * _enemyBase.enemyData.detectRange);
-        Gizmos.DrawRay(transform.position, rightRayDirection * _enemyBase.enemyData.detectRange);
+        Gizmos.DrawRay(transform.position, leftRayDirection * _enemyBase.Data.detectRange);
+        Gizmos.DrawRay(transform.position, rightRayDirection * _enemyBase.Data.detectRange);
 
         //Vẽ đường thẳng từ Enemy đến mục tiêu hiện tại (Màu đỏ)
         if (currentTarget != null)

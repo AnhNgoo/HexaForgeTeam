@@ -9,7 +9,8 @@ public class EnemyState_Idle : EnemyState
     public override void Enter()
     {
         base.Enter();
-        // To_Do: Thực hiện các hành động khi vào trạng thái Idle, ví dụ: phát animation Idle
+        _enemyBase.Locomotion.StopMoving(); // Đảm bảo rằng Enemy sẽ dừng lại khi vào trạng thái Idle
+        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.IdleHash); // Phát animation Idle khi vào trạng thái này
         Debug.Log($"{_enemyBase.gameObject.name} đã vào trạng thái Idle.");
     }
 

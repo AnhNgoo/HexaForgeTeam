@@ -17,6 +17,7 @@ public class EnemyState_Stagger : EnemyState
 
         //Khởi tạo CancellationTokenSource mới mỗi khi vào trạng thái 
         _cts = new CancellationTokenSource();
+        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.StaggerHash); // Phát animation Stagger khi vào trạng thái này
         //Tạo ra 1 task chạy ngầm để xử lý logic vỡ trạng thái, ví dụ: đếm thời gian vỡ trạng thái
         HandleStaggerRoutine(_cts.Token).Forget();
     }
@@ -24,7 +25,7 @@ public class EnemyState_Stagger : EnemyState
     private async UniTaskVoid HandleStaggerRoutine(CancellationToken token)
     {
         //Lấy thời gian vỡ trạng thái từ EnemyData
-        float waitTime = _enemyBase.enemyData.staggerDuration;
+        float waitTime = _enemyBase.Data.staggerDuration;
         //Dùng unitask.delay để đợi trong khoảng thời gian vỡ trạng thái, có hỗ trợ huỷ bỏ bằng token
         await UniTask.Delay(System.TimeSpan.FromSeconds(waitTime), cancellationToken: token);
         //Sau khi đợi xong, kiểm tra nếu token chưa bị huỷ thì chuyển về trạng thái Idle

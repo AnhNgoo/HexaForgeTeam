@@ -5,7 +5,7 @@ public class EnemyBase : LoadComponents, IPoolable
     //Configuration Dùng InLineEditor để chỉnh sửa thông số nhanh
     [Header("Configuration")]
     [InlineEditor()]
-    [SerializeField] public EnemyData enemyData;
+    [SerializeField] private EnemyData enemyData;
 
     //Internal Modules Dùng SerializeField để gán component trực tiếp trên editor, không cần phải kéo tay
     [Header("Internal Modules")]
@@ -36,6 +36,7 @@ public class EnemyBase : LoadComponents, IPoolable
     //Định dạng EnemyBase như một đối tượng có thể được quản lý bởi Object Pooling
     public PoolType PoolType => PoolType.Enemy;
     //Mở cửa số  để các module khác có thể gọi nhau thông qua EnemyBase mà không cần phải biết đến nhau
+    public EnemyData Data => enemyData;
     public EnemyEventManager EventManager => _eventManager;
     public EnemyHealth Heath => _heath;
     public EnemyCombat Combat => _combat;
@@ -46,6 +47,7 @@ public class EnemyBase : LoadComponents, IPoolable
     public EnemyLocomotion Locomotion => _locomotion;
     public EnemyAnimatorController AnimatorController => _animatorController;
     public Transform MyTransform => _myTransform;
+    public Collider MainCollider => _mainCollider;
     private void Start()
     {
         Initialize();

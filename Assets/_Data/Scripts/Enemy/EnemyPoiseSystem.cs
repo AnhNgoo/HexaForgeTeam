@@ -21,8 +21,8 @@ public class EnemyPoiseSystem : MonoBehaviour
         }
 
         currentPoise += poiseDamage;
-        Debug.Log($"{gameObject.name} đã bị đánh, sát thương poise: {poiseDamage}, Poise hiện tại: {currentPoise}/{_enemyBase.enemyData.maxPoise}");
-        if (currentPoise >= _enemyBase.enemyData.maxPoise)
+        Debug.Log($"{gameObject.name} đã bị đánh, sát thương poise: {poiseDamage}, Poise hiện tại: {currentPoise}/{_enemyBase.Data.maxPoise}");
+        if (currentPoise >= _enemyBase.Data.maxPoise)
         {
             // Gọi sự kiện vỡ trạng thái
             _enemyBase.EventManager.CallStagger();

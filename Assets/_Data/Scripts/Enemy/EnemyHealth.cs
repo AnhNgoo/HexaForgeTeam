@@ -10,7 +10,7 @@ public class EnemyHealth : MonoBehaviour
     {
         _enemyBase = enemyBase;
         Debug.Log($"{gameObject.name} - EnemyHealth đã được khởi tạo!");
-        currentHealth = _enemyBase.enemyData.maxHealth;
+        currentHealth = _enemyBase.Data.maxHealth;
     }
 
     public void TakeDamage(float damageAmount)
@@ -27,6 +27,6 @@ public class EnemyHealth : MonoBehaviour
 
     public void ResetHealth()
     {
-        currentHealth = _enemyBase.enemyData.maxHealth;
+        currentHealth = _enemyBase.Data.maxHealth;
     }
 }

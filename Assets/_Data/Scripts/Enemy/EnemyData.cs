@@ -9,6 +9,7 @@ public class EnemyData : ScriptableObject
     public float maxDefense = 5f; //Giá trị phòng thủ tối đa, có thể giảm sát thương nhận vào
     public float maxPoise = 50f; //Giá trị poise tối đa, khi bị tấn công sẽ giảm, nếu giảm xuống 0 sẽ bị stagger
     public float moveSpeed = 3f; //Tốc độ di chuyển
+    public float patrolSpeed = 2f; //Tốc độ di chuyển khi đi tuần tra
     [Header("State Parameters")]
     public float staggerDuration = 2f; //Thời gian bị stagger khi poise giảm xuống 0
     public float detectRange = 10f; //Khoảng cách phát hiện mục tiêu

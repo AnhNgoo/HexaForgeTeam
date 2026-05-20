@@ -16,7 +16,7 @@ public class EnemyDamageReceiver : MonoBehaviour
     public void TakeHit(float rawDamage, float poiseDamage)
     {
         //To_Do: Tính toán sát thương cuối cùng dựa trên các yếu tố như phòng thủ, trạng thái, v.v.
-        finalDamage = Mathf.Max(0, rawDamage - _enemyBase.enemyData.maxDefense);
+        finalDamage = Mathf.Max(0, rawDamage - _enemyBase.Data.maxDefense);
         _enemyBase.Heath.TakeDamage(finalDamage);
 
         //Gọi hệ thống poise để xử lý sát thương poise

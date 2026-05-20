@@ -7,6 +7,8 @@ public class EnemyState_Chase : EnemyState
     public override void Enter()
     {
         base.Enter();
+        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash); // Phát animation chạy khi vào trạng thái này
+        _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.moveSpeed); // Đặt tốc độ di chuyển khi truy đuổi
         Debug.Log($"{_enemyBase.gameObject.name} đã vào trạng thái Chase.");
     }
 
@@ -17,7 +19,7 @@ public class EnemyState_Chase : EnemyState
 
         if (playerTransform == null)
         {
-            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyIdleState);
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
             return;
         }
 
