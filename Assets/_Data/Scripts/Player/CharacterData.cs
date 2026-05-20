@@ -14,4 +14,5 @@ public class CharacterStats
     public float health;
     public float speed;
     public float stamina;
+    [Range(100f, 200f)] public float attackSpeed;
 }
