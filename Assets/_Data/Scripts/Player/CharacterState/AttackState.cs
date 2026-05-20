@@ -12,12 +12,12 @@ public class AttackState : ICharacterState
     }
     public void Enter()
     {
-
+        character.CharacterAnimation.EnableRootMotion();
     }
 
     public void Exit()
     {
-
+        character.CharacterAnimation.DisableRootMotion();
     }
 
     public void FixedUpdate()

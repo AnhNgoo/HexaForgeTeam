@@ -1,45 +1,41 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.VFX;
 
 public class SlashEffect : LoadComponents
 {
-    [SerializeField] private Transform slashPoint;
+    [SerializeField] private PoolType poolType;
+
+    [Header("Hướng nghiêng của các hiệu ứng chém")]
+    [SerializeField] private List<float> rotationZValues; // Các góc quay Z khác nhau cho hiệu ứng chém
 
     protected override void LoadComponent()
     {
-        if (slashPoint == null)
-            slashPoint = transform.Find("SlashPoint").transform;
     }
 
     protected override void LoadComponentRuntime()
     {
     }
 
-    // private void Start()
-    // {
-    //     EventManager.Instance.Subscribe(GameEvent.OnSlashEffect, _ => Play());
-    // }
     private void OnEnable()
     {
-        EventManager.Instance?.Subscribe(GameEvent.OnSlashEffect, _ => Play());
+        EventManager.Instance?.Subscribe(GameEvent.OnPlaySlashEffect, Play);
     }
 
     private void OnDisable()
     {
-        EventManager.Instance?.Unsubscribe(GameEvent.OnSlashEffect, _ => Play());
+        EventManager.Instance?.Unsubscribe(GameEvent.OnPlaySlashEffect, Play);
     }
-    public void Play()
+    private void Play(object data)
     {
-        var effect = ObjectPooling.Instance?.SpawnFromPool(PoolType.KaelSlashEffect, slashPoint.position, slashPoint.rotation);
+        if (data is not int index) return;
 
-        if (effect == null)
-            return;
+        float rotationZ = rotationZValues[index - 1];
+        Quaternion rotation = Quaternion.Euler(transform.eulerAngles.x, transform.eulerAngles.y, rotationZ);
+        transform.rotation = rotation; //Nghiêng hiệu ứng theo hướng chém
 
-        if (effect.TryGetComponent<VisualEffect>(out var vfx))
-        {
-            vfx.Play();
-        }
+        ObjectPooling.Instance?.SpawnFromPool(poolType, transform.position, transform.rotation, transform);
+
     }
 }

@@ -16,6 +16,7 @@ public class JumpState : ICharacterState
     {
         character.CharacterAnimation.CrossFade("Jump", 0.1f);
         character.CharacterMovement.Jump();
+        character.CharacterMovement.CanWallJump = true; //Cho phép wall jump sau khi nhảy
         CheckJumped();
     }
 
