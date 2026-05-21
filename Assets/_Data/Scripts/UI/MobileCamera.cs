@@ -100,6 +100,13 @@ public class MobileCamera : LoadComponents
         pov.m_VerticalAxis.Value = targetYAxis;
     }
 
+    public void SetAxis(float horizontal, float vertical)
+    {
+        targetXAxis = horizontal;
+        targetYAxis = Mathf.Clamp(vertical, -70f, 70f);
+        ApplyCamera();
+    }
+
     public void SetSensitivity(float horizontal, float vertical)
     {
         horizontalSensitivity = horizontal;

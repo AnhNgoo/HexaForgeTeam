@@ -9,6 +9,8 @@ public class EnemyEventManager : MonoBehaviour
     public event Action<float> OnTakeDamage;
     //Kênh báo tử
     public event Action OnDead;
+    //Kênh báo vỡ trạng thái
+    public event Action OnStagger;
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
@@ -23,5 +25,10 @@ public class EnemyEventManager : MonoBehaviour
     public void CallDead()
     {
         OnDead?.Invoke();
+    }
+
+    public void CallStagger()
+    {
+        OnStagger?.Invoke();
     }
 }

@@ -10,9 +10,9 @@ public class AvoidObstacleForCamera : LoadComponents
     [SerializeField] private LayerMask obstacleLayer;
 
     [Header("Settings")]
-    public float originalCameraDistance = 5f;
+    public float originalCameraDistance = 10f;
     public float minCameraDistance = 0.5f;
-    public float maxCameraDistance = 5f;
+    public float maxCameraDistance = 10f;
     public float shrinkSpeed = 20f;
     public float expandSpeed = 20f;
     [FormerlySerializedAs("hitPadding")] public float obstacleClearance = 0.1f;
@@ -22,15 +22,6 @@ public class AvoidObstacleForCamera : LoadComponents
 
     protected override void LoadComponent()
     {
-        if (virtualCamera == null)
-        {
-            virtualCamera = GetComponent<CinemachineVirtualCamera>();
-        }
-
-        if (transposer == null && virtualCamera != null)
-        {
-            transposer = virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
-        }
     }
 
     protected override void LoadComponentRuntime()
@@ -38,8 +29,13 @@ public class AvoidObstacleForCamera : LoadComponents
 
     }
 
-    private void Start()
+    public void Init(CinemachineVirtualCamera virtualCamera)
     {
+        if (virtualCamera != null)
+        {
+            this.virtualCamera = virtualCamera;
+            transposer = this.virtualCamera.GetCinemachineComponent<CinemachineFramingTransposer>();
+        }
         if (transposer != null)
         {
             transposer.m_CameraDistance = originalCameraDistance;
