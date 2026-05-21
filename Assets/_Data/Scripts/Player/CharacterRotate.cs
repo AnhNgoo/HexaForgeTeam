@@ -14,4 +14,11 @@ public class CharacterRotate : MonoBehaviour
         Quaternion targetRotation = Quaternion.LookRotation(direction);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
     }
+
+    public void LookAt(Vector3 targetPosition)
+    {
+        Vector3 direction = targetPosition - transform.position;
+        direction.y = 0f; // Giữ nguyên trục Y để chỉ xoay trên mặt phẳng
+        Rotate(direction);
+    }
 }

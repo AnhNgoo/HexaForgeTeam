@@ -1,122 +1,46 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using Sirenix.OdinInspector;
 
 public class CharacterMelee : CharacterBase
 {
-    [SerializeField] protected float timeCanAttack = 0.7f;
-    [SerializeField] protected float comboResetDelay = 1f;
-    [ReadOnly] protected int currentComboIndex = 0;
-    protected IAttackStep[] attackCombos;
+    protected Coroutine trailSlashEffectCoroutine;
 
-    protected bool isComboWindowOpen = false;
-    protected Coroutine comboCoroutine;
-
-    protected override void Awake()
+    protected override void Init(CharacterData data)
     {
-        base.Awake();
-        attackCombos = InitAttackCombos();
-        if (attackCombos == null)
-            Debug.LogWarning("Bạn chưa khởi tạo đòn tấn công nào cho character này! Hãy override InitAttackCombos() để khởi tạo.");
+        base.Init(data);
+        characterCombat?.Init(this, InitAttackCombos());
     }
 
-    #region Init Attack Combos
-    /// <summary>
-    /// Khởi tạo các đòn tấn công, bắt buộc phải override
-    /// </summary>
-    /// <returns></returns>
-    protected virtual IAttackStep[] InitAttackCombos()
+    // Override để khởi tạo các đòn tấn công riêng cho Kael
+    protected override IAttackStep[] InitAttackCombos()
     {
-        return null;
-    }
-
-    #endregion
-
-    #region Attack
-    protected override void OnAttack()
-    {
-        if (!CheckConditionAttack())
-            return;
-
-        if (!CanAttack)
-            return;
-
-        if (!IsAttacking)
-            stateController.ChangeState(new AttackState(this));
-
-        CanAttack = false;
-        if (isComboWindowOpen)
+        return new IAttackStep[4]
         {
-            currentComboIndex++;
-            if (currentComboIndex >= attackCombos.Length)
-            {
-                currentComboIndex = 0;
-            }
+            new AttackMeleeStep_1(),
+            new AttackMeleeStep_2(),
+            new AttackMeleeStep_3(),
+            new AttackMeleeStep_4()
+        };
+    }
+
+    public virtual void PlaySlashEffect(int index)
+    {
+        EventManager.Instance?.Notify(GameEvent.OnPlaySlashEffect, index);
+    }
+
+    public virtual void PlayTrailSlashEffect()
+    {
+        if (trailSlashEffectCoroutine != null)
+        {
+            StopCoroutine(trailSlashEffectCoroutine);
         }
-        else
-        {
-            currentComboIndex = 0;
-        }
-
-        if (comboCoroutine != null)
-        {
-            StopCoroutine(comboCoroutine);
-            comboCoroutine = null;
-        }
-
-        comboCoroutine = StartCoroutine(AttackRoutine(currentComboIndex));
+        trailSlashEffectCoroutine = StartCoroutine(PlayTrailSlashEffectCoroutine());
     }
-
-    protected virtual IEnumerator AttackRoutine(int comboIndex)
+    protected virtual IEnumerator PlayTrailSlashEffectCoroutine()
     {
-        if (attackCombos.Length == 0)
-            yield break;
-
-        // Đảm bảo comboIndex nằm trong phạm vi của attackCombos
-        comboIndex = Mathf.Clamp(comboIndex, 0, attackCombos.Length - 1);
-        IAttackStep attackStep = attackCombos[comboIndex];
-
-        CanAttack = false;
-        IsAttacking = true;
-        isComboWindowOpen = false;
-
-        //Thực hiện đòn tấn công
-        attackStep.Attack(this);
-
-        // Đợi cho đến khi animation bắt đầu
-        yield return new WaitUntil(() =>
-            !characterAnimation.Animator.IsInTransition(0) &&
-            characterAnimation.Animator.GetCurrentAnimatorStateInfo(0).IsName(attackStep.AttackStateName));
-
-        // Đợi cho đến khi animation hoàn thành
-        yield return new WaitUntil(() =>
-        {
-            AnimatorStateInfo stateInfo = characterAnimation.Animator.GetCurrentAnimatorStateInfo(0);
-            return stateInfo.IsName(attackStep.AttackStateName) &&
-                   stateInfo.normalizedTime >= timeCanAttack &&
-                   !characterAnimation.Animator.IsInTransition(0);
-        });
-
-        //Cho phép tấn công ở kiểu đánh tiếp theo
-        CanAttack = true;
-        isComboWindowOpen = true;
-
-        //Nếu qua thời gian này thì phải đánh lại từ đầu
-        yield return new WaitForSeconds(comboResetDelay);
-
-        if (isComboWindowOpen)
-            ResetCombo();
+        EventManager.Instance?.Notify(GameEvent.OnEnableTrailSlashEffect);
+        float delay = characterCombat != null ? characterCombat.NextAttackTime : 0.7f;
+        yield return new WaitForSeconds(delay);
+        EventManager.Instance?.Notify(GameEvent.OnDisableTrailSlashEffect);
     }
-
-    protected virtual void ResetCombo()
-    {
-        isComboWindowOpen = false;
-        currentComboIndex = 0;
-        IsAttacking = false;
-        CanAttack = true;
-        stateController.ChangeState(new IdleState(this));
-    }
-
-    #endregion
 }

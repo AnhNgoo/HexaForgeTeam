@@ -5,7 +5,6 @@ using UnityEngine;
 public class IdleState : ICharacterState
 {
     private CharacterBase character;
-
     public IdleState(CharacterBase character)
     {
         this.character = character;
@@ -14,6 +13,7 @@ public class IdleState : ICharacterState
     public void Enter()
     {
         character.CharacterAnimation.CrossFade("Idle", 0.1f);
+        character.CharacterMovement.Stop();
     }
 
     public void Exit()
@@ -28,6 +28,8 @@ public class IdleState : ICharacterState
 
     public void Update()
     {
+        character.LookAtTarget();
+
         if (character.CharacterMovement.MoveDirection != Vector2.zero)
         {
             character.StateController.ChangeState(new MoveState(character));
