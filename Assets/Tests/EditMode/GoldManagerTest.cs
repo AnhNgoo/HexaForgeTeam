@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-public class GoldManagerTests
+public class GoldManagerTest
 {
     private GameObject goldManagerObject;
     private Component goldManager;
