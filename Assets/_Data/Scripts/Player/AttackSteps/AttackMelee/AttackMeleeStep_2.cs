@@ -5,19 +5,19 @@ using Cysharp.Threading.Tasks;
 
 public class AttackMeleeStep_2 : AttackStepBase
 {
-    public override string AttackStateName => "Attack_2";
-    public override float TimeTriggerAttack => 0.3f;
-
-    public override void StartAttack(CharacterBase character)
+    public AttackMeleeStep_2(CharacterBase character) : base(character)
     {
-        character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
-        if (character is CharacterMelee characterMelee)
-            characterMelee.PlayTrailSlashEffect();
+        if (character is CharacterMelee meleeCharacter)
+        {
+            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => meleeCharacter.meleeAttackEffect_2.SetActive(true));
+            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeEndAttack, () => meleeCharacter.meleeAttackEffect_2.SetActive(false));
+        }
     }
 
-    protected override void TriggerAttack(CharacterBase character)
+    public override string AttackStateName => "Attack_2";
+    public override float TimeTriggerAttack => 0.2f;
+    public override void Attack(CharacterBase character)
     {
-        if (character is CharacterMelee characterMelee)
-            characterMelee.PlaySlashEffect(2);
+        base.Attack(character);
     }
 }

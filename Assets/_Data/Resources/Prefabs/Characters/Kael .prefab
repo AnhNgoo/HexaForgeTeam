@@ -120,6 +120,11 @@ MonoBehaviour:
   characterWeapon: {fileID: 5622718792372774388}
   characterCombat: {fileID: 2291106269774372542}
   characterCamera: {fileID: 3546855327564067317}
+  effectsContainer: {fileID: 0}
+  punchEffect_1: {fileID: 0}
+  punchEffect_2: {fileID: 0}
+  punchEffect_3: {fileID: 0}
+  punchEffect_4: {fileID: 0}
   attackSpeedMultiplier: 0.01
   attackParameterName: AttackSpeed
   kaelGiantVisual: {fileID: 3526121568674136074}
@@ -137,6 +142,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   animator: {fileID: 0}
   animatorRootMotion: {fileID: 0}
+  animationEvents: {fileID: 0}
 --- !u!114 &474030527805132030
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -208,7 +214,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44fef4bae9f8e704a8a6dec4280d1e21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nextAttackTime: 0.7
+  debugMode: 1
+  forwardAttackOffset: 1.5
+  attackHitBoxRadius: 1
+  nextAttackTime: 0.9
   comboResetDelay: 0.4
   finalAttackTime: 1
 --- !u!114 &3546855327564067317
