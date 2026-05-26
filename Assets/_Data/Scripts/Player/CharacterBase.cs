@@ -10,7 +10,7 @@ using Cysharp.Threading.Tasks;
 [RequireComponent(typeof(CharacterRotate))]
 [RequireComponent(typeof(CharacterWeapon))]
 [RequireComponent(typeof(CharacterCombat))]
-[RequireComponent(typeof(CharacterCamera))]
+[RequireComponent(typeof(CharacterLockTarget))]
 public class CharacterBase : LoadComponents
 {
     [Header("Character Data")]
@@ -32,8 +32,15 @@ public class CharacterBase : LoadComponents
     public CharacterWeapon CharacterWeapon => characterWeapon;
     [SerializeField] protected CharacterCombat characterCombat;
     public CharacterCombat CharacterCombat => characterCombat;
-    [SerializeField] protected CharacterCamera characterCamera;
-    public CharacterCamera CharacterCamera => characterCamera;
+    [SerializeField] protected CharacterLockTarget characterLockTarget;
+    public CharacterLockTarget CharacterLockTarget => characterLockTarget;
+
+    [Header("Character Effect General")]
+    [SerializeField] protected GameObject effectsContainer;
+    public GameObject punchEffect_1;
+    public GameObject punchEffect_2;
+    public GameObject punchEffect_3;
+    public GameObject punchEffect_4;
 
     [Header("Character Base Settings")]
     [SerializeField] protected float attackSpeedMultiplier = 0.01f;
@@ -43,8 +50,6 @@ public class CharacterBase : LoadComponents
 
     public Vector2 JoystickInput { get; private set; } // Lưu trữ input từ joystick
     private Cooldown dodgeCooldown = new Cooldown();
-    public bool IsAttacking { get; set; } = false;
-    public bool CanAttack { get; set; } = true;
     public bool IsHealthRecovering { get; set; } = false;
 
     protected override void LoadComponent()
@@ -61,13 +66,32 @@ public class CharacterBase : LoadComponents
             characterWeapon = GetComponent<CharacterWeapon>();
         if (characterCombat == null)
             characterCombat = GetComponent<CharacterCombat>();
-        if (characterCamera == null)
-            characterCamera = GetComponent<CharacterCamera>();
+        if (characterLockTarget == null)
+            characterLockTarget = GetComponent<CharacterLockTarget>();
+
+        LoadEffects();
     }
 
     protected override void LoadComponentRuntime()
     {
 
+    }
+
+    protected virtual void LoadEffects()
+    {
+        if (effectsContainer == null)
+            effectsContainer = transform.Find("Effects")?.gameObject;
+        if (effectsContainer == null)
+            return;
+
+        if (punchEffect_1 == null)
+            punchEffect_1 = effectsContainer.transform.Find("PunchEffect_1")?.gameObject;
+        if (punchEffect_2 == null)
+            punchEffect_2 = effectsContainer.transform.Find("PunchEffect_2")?.gameObject;
+        if (punchEffect_3 == null)
+            punchEffect_3 = effectsContainer.transform.Find("PunchEffect_3")?.gameObject;
+        if (punchEffect_4 == null)
+            punchEffect_4 = effectsContainer.transform.Find("PunchEffect_4")?.gameObject;
     }
     #region Init Character
 
@@ -75,6 +99,8 @@ public class CharacterBase : LoadComponents
     protected override void Awake()
     {
         base.Awake();
+        characterAnimation.Init(characterVisual);
+        AddAnimationEvents();
         Init(characterData);
     }
     [Button("Init Character Data")]
@@ -82,8 +108,8 @@ public class CharacterBase : LoadComponents
     {
         if (data != null)
             characterData = Instantiate(data);
-        characterAnimation.Init(characterVisual);
-        characterCamera.SetFollowTarget();
+
+        characterLockTarget.SetFollowTarget();
     }
 
     // Điều chỉnh tốc độ animation tấn công dựa trên tốc độ tấn công của character
@@ -145,7 +171,10 @@ public class CharacterBase : LoadComponents
              !characterMovement.IsGrounded ||
              characterMovement.IsDodging ||
              characterMovement.JumpLanding ||
-             IsAttacking)
+            characterCombat.IsAttacking ||
+            IsHealthRecovering ||
+            characterMovement.IsLunging
+            )
             return;
 
         dodgeCooldown.StartCooldown(characterMovement.DodgeCooldown);
@@ -159,7 +188,8 @@ public class CharacterBase : LoadComponents
         if (!characterMovement.IsGrounded ||
              characterMovement.IsDodging ||
              characterMovement.JumpLanding ||
-             IsAttacking)
+             characterCombat.IsAttacking ||
+             IsHealthRecovering)
             return;
 
         stateController.ChangeState(new JumpState(this));
@@ -170,26 +200,27 @@ public class CharacterBase : LoadComponents
         if (!characterMovement.WallEdge ||
              characterMovement.IsDodging ||
              characterMovement.JumpLanding ||
-             IsAttacking ||
-             !characterMovement.CanWallJump)
+             characterCombat.IsAttacking ||
+             !characterMovement.CanWallJump ||
+             IsHealthRecovering)
             return;
 
         stateController.ChangeState(new WallJumpState(this));
     }
-
 
     private void OnHealthRecovery()
     {
         if (IsHealthRecovering ||
              characterMovement.IsDodging ||
              characterMovement.JumpLanding ||
-             IsAttacking)
+             characterCombat.IsAttacking ||
+             !characterMovement.IsGrounded)
             return;
 
         stateController.ChangeState(new HealthRecoveryState(this));
     }
     #region Attack 
-    protected virtual void OnAttack()
+    protected virtual async void OnAttack()
     {
         characterCombat?.TryAttack();
     }
@@ -198,7 +229,8 @@ public class CharacterBase : LoadComponents
     {
         if (characterMovement.IsDodging ||
              characterMovement.JumpLanding ||
-             characterMovement.CC.velocity.y < characterMovement.FallThreshold)
+             characterMovement.CC.velocity.y < characterMovement.FallThreshold ||
+             IsHealthRecovering)
             return false;
         return true;
     }
@@ -215,15 +247,22 @@ public class CharacterBase : LoadComponents
 
     protected virtual void OnLockTarget()
     {
-        if (CharacterCamera == null)
+        if (CharacterLockTarget == null)
             return;
-        CharacterCamera.ToggleLockTarget();
+        CharacterLockTarget.ToggleLockTarget();
     }
 
     public virtual void LookAtTarget()
     {
-        if (!characterCamera.IsLockingTarget)
+        if (!characterLockTarget.IsLockingTarget)
             return;
-        characterRotate.LookAt(characterCamera.LookAtTarget.position);
+        characterRotate.LookAt(characterLockTarget.Target.position);
     }
+
+
+    #region AddAnimationEvents
+    protected virtual void AddAnimationEvents()
+    {
+    }
+    #endregion
 }

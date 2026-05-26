@@ -5,7 +5,13 @@ using Cysharp.Threading.Tasks;
 public abstract class AttackStepBase : IAttackStep
 {
     public abstract string AttackStateName { get; }
-    public virtual float TimeTriggerAttack { get; }
+    public virtual float TimeTriggerAttack { get; } = 0.2f;
+    public virtual float TimeEndAttack { get; } = 0.7f;
+
+    public AttackStepBase(CharacterBase character)
+    {
+        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => character.CharacterCombat.AttackHitBox());
+    }
 
     /// <summary>
     /// Gọi ngay lúc chạy animation
@@ -15,29 +21,7 @@ public abstract class AttackStepBase : IAttackStep
     public virtual void Attack(CharacterBase character)
     {
         character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
-        StartAttack(character);
-        AwaitTriggerAttack(character);
+        character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
+        DebugNote.Red("Ở base");
     }
-
-    public virtual async void AwaitTriggerAttack(CharacterBase character)
-    {
-        await UniTask.WaitUntil(() =>
-            {
-                return character.CharacterAnimation.GetAnimationTime(AttackStateName) >= TimeTriggerAttack &&
-                       !character.CharacterAnimation.Animator.IsInTransition(0);
-            });
-        TriggerAttack(character);
-    }
-
-    /// <summary>
-    /// Chay ngay lúc chạy animation, dùng để gọi các hiệu ứng chung của tất cả các bước tấn công, như hiệu ứng vệt kiếm, hiệu ứng âm thanh, v.v... Các bước tấn công cụ thể sẽ override để gọi hiệu ứng riêng của chúng
-    /// </summary>
-    /// <param name="character"></param>
-    public abstract void StartAttack(CharacterBase character);
-
-    /// <summary>
-    /// Chạy khi animation đến đúng thời điểm trigger va chạm
-    /// </summary>
-    /// <param name="character"></param>
-    protected abstract void TriggerAttack(CharacterBase character);
 }

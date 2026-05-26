@@ -12,7 +12,13 @@ public class AttackState : ICharacterState
     }
     public void Enter()
     {
-        character.CharacterAnimation.EnableRootMotion();
+        bool canEnableRootMotion = true;
+        if (character is CharacterMelee characterMelee)
+            canEnableRootMotion = !characterMelee.CheckForNearEnemy();
+
+        if (canEnableRootMotion)
+            character.CharacterAnimation.EnableRootMotion();
+        character.CharacterMovement.Stop();
     }
 
     public void Exit()
