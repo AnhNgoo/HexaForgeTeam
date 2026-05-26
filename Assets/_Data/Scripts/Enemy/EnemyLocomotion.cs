@@ -27,6 +27,19 @@ public class EnemyLocomotion : MonoBehaviour
     {
         _enemyBase = enemyBase;
         Debug.Log($"{gameObject.name} - EnemyLocomotion đã được khởi tạo!");
+
+        if (_navMeshAgent == null)
+            _navMeshAgent = GetComponent<NavMeshAgent>();
+
+        if (_navMeshAgent == null)
+        {
+            Debug.LogError($"NavMeshAgent component is missing on {gameObject.name}");
+            return;
+        }
+
+        // Make sure the agent is actually placed on a NavMesh before any Stop/Move calls.
+        EnsureAgentOnNavMesh();
+
         if (isPatroller && (wayPoints == null || wayPoints.Length == 0))
         {
             Debug.LogWarning($"{gameObject.name} được đặt là patroller nhưng không có điểm tuần tra nào được gán!");
@@ -45,12 +58,14 @@ public class EnemyLocomotion : MonoBehaviour
 
     public void SetSpeed(float speed)
     {
+        if (!CanUseAgent()) return;
         _navMeshAgent.speed = speed;
     }
 
     //Hàm di chuyển đến vị trí mục tiêu
     public void MoveToTarget(Vector3 targetPosition)
     {
+        if (!CanUseAgent()) return;
         _navMeshAgent.isStopped = false;
         _navMeshAgent.SetDestination(targetPosition);
     }
@@ -58,6 +73,7 @@ public class EnemyLocomotion : MonoBehaviour
     //Hàm dừng di chuyển
     public void StopMoving()
     {
+        if (!CanUseAgent()) return;
         _navMeshAgent.isStopped = true;
     }
 
@@ -84,5 +100,33 @@ public class EnemyLocomotion : MonoBehaviour
         currentWaypointIndex = (currentWaypointIndex + 1) % wayPoints.Length;
         return target;
 
+    }
+
+    private bool CanUseAgent()
+    {
+        if (_navMeshAgent == null)
+        {
+            _navMeshAgent = GetComponent<NavMeshAgent>();
+            if (_navMeshAgent == null) return false;
+        }
+
+        if (_navMeshAgent.isOnNavMesh)
+            return true;
+
+        // Try to place agent on NavMesh; if it still fails, skip navmesh calls this frame.
+        EnsureAgentOnNavMesh();
+        return _navMeshAgent.isOnNavMesh;
+    }
+
+    private void EnsureAgentOnNavMesh(float maxDistance = 2f)
+    {
+        if (_navMeshAgent == null || _navMeshAgent.isOnNavMesh)
+            return;
+
+        // Sample the nearest navmesh point and warp there.
+        if (NavMesh.SamplePosition(transform.position, out var hit, maxDistance, NavMesh.AllAreas))
+        {
+            _navMeshAgent.Warp(hit.position);
+        }
     }
 }
