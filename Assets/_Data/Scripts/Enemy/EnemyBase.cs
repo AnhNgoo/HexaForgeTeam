@@ -28,6 +28,8 @@ public class EnemyBase : LoadComponents, IPoolable
     [FoldoutGroup("Modules")]
     [SerializeField] private EnemyAnimatorController _animatorController;
     [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyLootDropper _lootDropper;
+    [FoldoutGroup("Modules")]
     [SerializeField] private Collider _mainCollider;
     [FoldoutGroup("Modules")]
     [SerializeField] private Transform _myTransform;
@@ -46,6 +48,7 @@ public class EnemyBase : LoadComponents, IPoolable
     public EnemyPoiseSystem PoiseSystem => _poiseSystem;
     public EnemyLocomotion Locomotion => _locomotion;
     public EnemyAnimatorController AnimatorController => _animatorController;
+    public EnemyLootDropper LootDropper => _lootDropper;
     public Transform MyTransform => _myTransform;
     public Collider MainCollider => _mainCollider;
     private void Start()
@@ -70,6 +73,7 @@ public class EnemyBase : LoadComponents, IPoolable
         _poiseSystem.Initialize(this);
         _locomotion.Initialize(this);
         _animatorController.Initialize(this);
+        _lootDropper.Initialize(this);
     }
 
     private void ResetEnemy()
@@ -110,6 +114,8 @@ public class EnemyBase : LoadComponents, IPoolable
 
         if (!TryGetComponent(out _locomotion))
             Debug.LogError("EnemyLocomotion component is missing on " + gameObject.name);
+        if (!TryGetComponent(out _lootDropper))
+            Debug.LogError("EnemyLootDropper component is missing on " + gameObject.name);
 
         _animatorController = GetComponentInChildren<EnemyAnimatorController>();
     }
