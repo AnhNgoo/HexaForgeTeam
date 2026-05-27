@@ -7,8 +7,11 @@ public class PunchStep_1 : AttackStepBase
 {
     public PunchStep_1(CharacterBase character) : base(character)
     {
-        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => character.punchEffect_1.SetActive(true));
-        character.CharacterAnimation.AddEvent(AttackStateName, TimeEndAttack, () => character.punchEffect_1.SetActive(false));
+        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
+                                                                                        character.punchEffect_1,
+                                                                                         character.punchEffectPoint_1.transform.position,
+                                                                                         character.punchEffectPoint_1.transform.rotation,
+                                                                                          character.punchEffectPoint_1.transform));
     }
 
     public override string AttackStateName => "Punch_1";

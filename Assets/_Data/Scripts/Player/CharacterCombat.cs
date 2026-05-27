@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-
+using Sirenix.OdinInspector;
 public class CharacterCombat : LoadComponents
 {
     [SerializeField] private bool debugMode = true;
@@ -20,7 +20,7 @@ public class CharacterCombat : LoadComponents
     private bool isComboWindowOpen = false;
     public bool IsAttacking { get; set; } = false;
     public bool CanAttack { get; set; } = true;
-    public bool FirstAttack => currentComboIndex == 0; //Đòn tấn công đầu tiên trong chuỗi combo
+    public bool FirstAttack { get; set; } = true;
     private Coroutine comboCoroutine;
     private Cooldown cooldownAttackTimer = new Cooldown();
 
@@ -60,7 +60,7 @@ public class CharacterCombat : LoadComponents
             return;
 
         if (!IsAttacking)
-            characterBase.StateController.ChangeState(new AttackState(characterBase));
+            characterBase.StateController.ChangeState(new CombatState(characterBase));
 
         IAttackStep[] activeCombos = GetActiveCombos();
         if (activeCombos == null || activeCombos.Length == 0)
@@ -79,6 +79,8 @@ public class CharacterCombat : LoadComponents
         {
             currentComboIndex = 0;
         }
+
+        FirstAttack = currentComboIndex == 0;
 
         if (comboCoroutine != null)
         {
@@ -129,6 +131,7 @@ public class CharacterCombat : LoadComponents
         yield return new WaitForSeconds(delay);
 
         isComboWindowOpen = false;
+        FirstAttack = true;
     }
 
     // Lấy combo đang sử dụng, ưu tiên combo vũ khí nếu có, nếu không thì dùng combo tay không
