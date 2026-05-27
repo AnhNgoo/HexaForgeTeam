@@ -120,7 +120,7 @@ Transform:
   m_GameObject: {fileID: 4550546556791809146}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalPosition: {x: 0, y: -1, z: 0.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -152,6 +152,37 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7054805577676618609}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5084157512644836135
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4136157647093707730}
+  m_Layer: 3
+  m_Name: AuraEffect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4136157647093707730
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5084157512644836135}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -426,7 +457,8 @@ MonoBehaviour:
   meleeAttackEffect_4: 13
   debugMode: 1
   kaelGiantVisual: {fileID: 3526121568674136074}
-  earthBreakerEffectPoint: {fileID: 0}
+  earthBreakerEffectPoint: {fileID: 4550546556791809146}
+  auraEffect: {fileID: 5084157512644836135}
   skill2Effect: {fileID: 0}
 --- !u!114 &2656642894720648603
 MonoBehaviour:
@@ -556,8 +588,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1a483de526985c42a31b3c2dab4cbe6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  skillData1: {fileID: 0}
-  skillData2: {fileID: 0}
+  skillData1: {fileID: 11400000, guid: 4cf382e5ae78f594eb9f6b68a89b964e, type: 2}
+  skillData2: {fileID: 11400000, guid: 4cf382e5ae78f594eb9f6b68a89b964e, type: 2}
 --- !u!1 &9103724998075304118
 GameObject:
   m_ObjectHideFlags: 0
@@ -596,6 +628,7 @@ Transform:
   - {fileID: 2059778187971305871}
   - {fileID: 1354218866630775277}
   - {fileID: 344099900580566033}
+  - {fileID: 4136157647093707730}
   m_Father: {fileID: 8791990868333242387}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &212801710544322096
