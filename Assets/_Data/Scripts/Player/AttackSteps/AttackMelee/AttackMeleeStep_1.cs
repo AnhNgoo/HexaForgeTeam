@@ -9,8 +9,12 @@ public class AttackMeleeStep_1 : AttackStepBase
     {
         if (character is CharacterMelee meleeCharacter)
         {
-            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => meleeCharacter.meleeAttackEffect_1.SetActive(true));
-            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeEndAttack, () => meleeCharacter.meleeAttackEffect_1.SetActive(false));
+            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
+                                                                                        meleeCharacter.meleeAttackEffect_1,
+                                                                                        meleeCharacter.meleeAttackEffectPoint_1.transform.position,
+                                                                                        meleeCharacter.meleeAttackEffectPoint_1.transform.rotation,
+                                                                                         meleeCharacter.meleeAttackEffectPoint_1.transform));
+
         }
     }
 
