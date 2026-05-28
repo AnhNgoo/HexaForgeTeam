@@ -38,7 +38,7 @@ public class EnemyState_Suspicion : EnemyState
         await UniTask.Delay(1000, cancellationToken: token); // Chờ 1 giây sau khi xoay sang trái
 
         _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.TurnRightHash); // Bắt đầu xoay sang phải
-        await RotateTransformOverTime(45f, 1f, token); // Vừa phát animation vừa xoay 45 độ sang phải trong 2 giây (từ -45 độ sang +45 độ)
+        await RotateTransformOverTime(90f, 1f, token); // Vừa phát animation vừa xoay 90 độ sang phải trong 1 giây
         await UniTask.Delay(1000, cancellationToken: token); // Chờ 1 giây sau khi xoay sang phải
 
         // Nếu sau 3 giây vẫn chưa tìm thấy mục tiêu, quay về trạng thái mặc định
