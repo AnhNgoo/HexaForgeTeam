@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class MoveState : ICharacterState
 {
-    private float strafeThreshold = 0.6f; // Ngưỡng để xác định di chuyển chéo hay thẳng
+    private float strafeThreshold = 0.8f; // Ngưỡng để xác định di chuyển chéo hay thẳng
     private CharacterBase character;
     public MoveState(CharacterBase character)
     {
@@ -43,13 +43,13 @@ public class MoveState : ICharacterState
             return;
         }
 
-        if (!character.CharacterCamera.IsLockingTarget)
+        if (!character.CharacterLockTarget.IsLockingTarget)
         {
             MoveNormal();
             return;
         }
 
-        if (character.CharacterCamera.IsLockingTarget)
+        if (character.CharacterLockTarget.IsLockingTarget)
         {
             MoveLockTarget();
             return;
@@ -93,10 +93,9 @@ public class MoveState : ICharacterState
 
     private void MoveLockTarget()
     {
-        float x = character.JoystickInput.x;
-        float xAbs = Mathf.Abs(x);
-        float y = character.JoystickInput.y;
-        float yAbs = Mathf.Abs(y);
+        float x = character.JoystickInput.x; // Hướng đi ngang
+        float y = character.JoystickInput.y; // Hướng đi dọc
+        float yAbs = Mathf.Abs(y); // Ngưỡng y để xác định di chuyển chéo hay thẳng
         float speed = character.CharacterData.stats.speed;
 
         if (x < 0 && yAbs < strafeThreshold)

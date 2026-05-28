@@ -11,12 +11,16 @@ public class EnemyAnimatorController : MonoBehaviour
     [SerializeField] private int chaseHash;
     [SerializeField] private int staggerHash;
     [SerializeField] private int dieHash;
+    [SerializeField] private int turnleftHash;
+    [SerializeField] private int turnrightHash;
 
     #region Getters
     public int IdleHash => idleHash;
     public int ChaseHash => chaseHash;
     public int StaggerHash => staggerHash;
     public int DieHash => dieHash;
+    public int TurnLeftHash => turnleftHash;
+    public int TurnRightHash => turnrightHash;
     #endregion
 
     public void Initialize(EnemyBase enemyBase)
@@ -27,6 +31,8 @@ public class EnemyAnimatorController : MonoBehaviour
         chaseHash = Animator.StringToHash("Chase");
         dieHash = Animator.StringToHash("Die");
         staggerHash = Animator.StringToHash("Take Damage");
+        turnleftHash = Animator.StringToHash("Turn Left");
+        turnrightHash = Animator.StringToHash("Turn Right");
         Debug.Log($"{gameObject.name} - EnemyAnimatorController đã được khởi tạo!");
     }
 

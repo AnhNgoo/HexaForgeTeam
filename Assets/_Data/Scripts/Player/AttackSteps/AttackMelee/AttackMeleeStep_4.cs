@@ -5,19 +5,21 @@ using Cysharp.Threading.Tasks;
 
 public class AttackMeleeStep_4 : AttackStepBase
 {
-    public override string AttackStateName => "Attack_4";
-    public override float TimeTriggerAttack => 0.3f;
-    public override void StartAttack(CharacterBase character)
+    public AttackMeleeStep_4(CharacterBase character) : base(character)
     {
-        character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
-        if (character is CharacterMelee characterMelee)
-            characterMelee.PlayTrailSlashEffect();
+        if (character is CharacterMelee meleeCharacter)
+        {
+            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
+                                                                                        meleeCharacter.meleeAttackEffect_4,
+                                                                                        meleeCharacter.meleeAttackEffectPoint_4.transform.position,
+                                                                                        meleeCharacter.meleeAttackEffectPoint_4.transform.rotation));
+        }
     }
 
-    protected override void TriggerAttack(CharacterBase character)
+    public override string AttackStateName => "Attack_4";
+    public override float TimeTriggerAttack => 0.4f;
+    public override void Attack(CharacterBase character)
     {
-        if (character is CharacterMelee characterMelee)
-            characterMelee.PlaySlashEffect(4);
-        CameraShake.Instance?.Shake();
+        base.Attack(character);
     }
 }

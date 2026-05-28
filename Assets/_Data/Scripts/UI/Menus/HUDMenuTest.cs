@@ -15,6 +15,7 @@ public class HUDMenuTest : MenuBase
     [SerializeField] private EventTouch btn_Attack;
     [SerializeField] private EventTouch btn_LockTarget;
     [SerializeField] private EventTouch btn_HealthRecovery;
+    [SerializeField] private EventTouch btn_Skill_1;
 
 
     protected override void LoadComponent()
@@ -31,6 +32,8 @@ public class HUDMenuTest : MenuBase
             btn_LockTarget = transform.Find("Btn_LockTarget").GetComponent<EventTouch>();
         if (btn_HealthRecovery == null)
             btn_HealthRecovery = transform.Find("Btn_HealthRecovery").GetComponent<EventTouch>();
+        if (btn_Skill_1 == null)
+            btn_Skill_1 = transform.Find("Btn_Skill_1").GetComponent<EventTouch>();
     }
 
     protected override void LoadComponentRuntime()
@@ -46,6 +49,7 @@ public class HUDMenuTest : MenuBase
         btn_Attack.onPointerDown.AddListener(OnAttackButtonClicked);
         btn_LockTarget.onPointerDown.AddListener(OnLockTargetButtonClicked);
         btn_HealthRecovery.onPointerDown.AddListener(OnHealthRecoveryButtonClicked);
+        btn_Skill_1.onPointerDown.AddListener(OnSkill_1ButtonClicked);
     }
     public override void Close()
     {
@@ -55,7 +59,9 @@ public class HUDMenuTest : MenuBase
         btn_Attack.onPointerDown.RemoveListener(OnAttackButtonClicked);
         btn_LockTarget.onPointerDown.RemoveListener(OnLockTargetButtonClicked);
         btn_HealthRecovery.onPointerDown.RemoveListener(OnHealthRecoveryButtonClicked);
+        btn_Skill_1.onPointerDown.RemoveListener(OnSkill_1ButtonClicked);
     }
+
 
     private void Update()
     {
@@ -86,4 +92,8 @@ public class HUDMenuTest : MenuBase
         EventManager.Instance?.Notify(GameEvent.OnHealthRecovery);
     }
 
+    private void OnSkill_1ButtonClicked()
+    {
+        EventManager.Instance?.Notify(GameEvent.OnSkill_1);
+    }
 }

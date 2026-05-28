@@ -21,5 +21,8 @@ public class EnemyDamageReceiver : MonoBehaviour
 
         //Gọi hệ thống poise để xử lý sát thương poise
         _enemyBase.PoiseSystem.TakePoiseDamage(poiseDamage);
+
+        //Gọi đồng đội xung quanh khi bị tấn công
+        _enemyBase.Detection.AlertNearbyAllies(GameObject.FindGameObjectWithTag("Player").transform); //Gọi hàm cảnh báo đồng bọn khi bị tấn công, có thể mở rộng sau này để truyền thông tin về mục tiêu cho các Enemy khác trong bán kính cảnh báo thay vì chỉ đơn giản là truyền vị trí của player (ví dụ: truyền trạng thái hiện tại của player như đang tấn công, đang phòng thủ, v.v.) để đồng bọn có thể phản ứng phù hợp hơn thay vì chỉ đơn giản là phát hiện mục tiêu như nhau với cùng một trạng thái.
     }
 }

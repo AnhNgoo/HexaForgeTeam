@@ -22,11 +22,15 @@ public class EnemyState_Chase : EnemyState
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
             return;
         }
-
+        float maxRangeInArsenal = 0f;
+        foreach (var atk in _enemyBase.Combat.AttackArsenal)
+        {
+            if (atk.maxAttackRange > maxRangeInArsenal) maxRangeInArsenal = atk.maxAttackRange;
+        }
         //Tính toán khoảng cách đến người chơi để quyết định có tiếp tục truy đuổi hay không
         float distanceToPlayer = Vector3.Distance(_enemyBase.MyTransform.position, playerTransform.position);
         //Tính khoảng cách xem nên chuyển sang trạng thái tấn công hay tiếp tục truy đuổi
-        if (distanceToPlayer > 2f)
+        if (distanceToPlayer > maxRangeInArsenal)
         {
             _enemyBase.Locomotion.MoveToTarget(playerTransform.position);
         }

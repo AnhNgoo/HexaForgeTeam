@@ -10,6 +10,12 @@ public enum PoolType
     SafeZone = 2,
     SlashEffect_1 = 3,
     LockTargetMarker = 4,
+    HitEffect_1 = 9,
+    HitEffect_2 = 10,
+    Earthquake_1 = 13,
+    EarthBreaker_2 = 14,
+    AuraEffect_1 = 15,
+    AuraEffect_2 = 16,
 }
 
 [System.Serializable]
@@ -19,6 +25,7 @@ public class Pool
     public GameObject prefab;
     public int initialSize = 10;
     public int maxSize = 50;
+    [System.NonSerialized]
     public Transform parent;
 }
 public class ObjectPooling : Singleton<ObjectPooling>
@@ -222,6 +229,6 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
     internal void ReturnToPool(PoolType poolType, object gameObject)
     {
-        throw new NotImplementedException();
+
     }
 }
