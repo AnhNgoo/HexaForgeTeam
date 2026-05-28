@@ -7,6 +7,7 @@ using System.Reflection;
 
 [TestReport]
 [Category("Integration")]
+[Category("Enemy")]
 public class EnemyDamageDeathTests
 {
     private EnemyTestWorld _world;
@@ -27,6 +28,7 @@ public class EnemyDamageDeathTests
 
     [UnityTest]
     [Category("P0")]
+    [Description("TC EN-INT-003: Enemy nhận sát thương đủ lớn sẽ chết (Dead) và tắt collider chính.")]
     [TestCaseMeta(
         id: "EN-INT-003",
         title: "Nhận sát thương dẫn tới Dead + disable collider",

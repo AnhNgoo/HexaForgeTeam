@@ -7,6 +7,7 @@ using UnityEngine.TestTools;
 
 [TestReport]
 [Category("Integration")]
+[Category("Character")]
 public class PlayerMovementTests
 {
     private PlayerTestWorld _world;
@@ -27,6 +28,7 @@ public class PlayerMovementTests
 
     [UnityTest]
     [Category("P0")]
+    [Description("TC PL-INT-001: Gửi input di chuyển để kiểm tra state Idle → Move → Idle của Kael.")]
     [TestCaseMeta(
         id: "PL-INT-001",
         title: "Player Idle → Move → Idle theo input",
@@ -49,6 +51,7 @@ public class PlayerMovementTests
 
     [UnityTest]
     [Category("P1")]
+    [Description("TC PL-INT-002: MoveDirection được tính theo hướng camera sau khi gửi OnMovement.")]
     [TestCaseMeta(
         id: "PL-INT-002",
         title: "MovementInput tính hướng di chuyển theo camera",

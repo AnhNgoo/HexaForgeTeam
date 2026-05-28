@@ -1,6 +1,6 @@
 using System;
 using System.Collections;
-using System.IO;
+using System.Collections.Generic;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -8,8 +8,8 @@ using UnityEngine.SceneManagement;
 
 internal sealed class PlayerTestWorld
 {
-    internal Scene Scene { get; }
-    internal PhysicsScene PhysicsScene { get; }
+    internal Scene Scene { get; private set; }
+    internal PhysicsScene PhysicsScene { get; private set; }
 
     internal GameObject EventManagerGo { get; private set; }
     internal GameObject MainCameraGo { get; private set; }
@@ -18,51 +18,56 @@ internal sealed class PlayerTestWorld
 
     internal Component Kael { get; private set; }
 
-    private readonly string _sceneName;
+    private readonly string _scenePath;
+    private readonly List<GameObject> _spawned = new();
 
-    internal PlayerTestWorld(string sceneNamePrefix = "PlayerTestScene")
+    internal PlayerTestWorld(string sceneNamePrefix = "PlayerTestScene", string scenePath = TestSceneLoader.DefaultScenePath)
     {
-        _sceneName = $"{sceneNamePrefix}_{Guid.NewGuid():N}";
+        _scenePath = scenePath;
+    }
+
+    internal IEnumerator BuildDefaultWorld(Vector3? cameraPos = null)
+    {
+        yield return TestSceneLoader.LoadScene(_scenePath);
 
         // Use default physics scene because production code uses Physics.* static APIs.
-        // A local physics scene would require PhysicsScene.* APIs in production to stay visible.
-        var createParams = new CreateSceneParameters(LocalPhysicsMode.None);
-        Scene = SceneManager.CreateScene(_sceneName, createParams);
+        Scene = SceneManager.GetActiveScene();
         SceneManager.SetActiveScene(Scene);
         PhysicsScene = Physics.defaultPhysicsScene;
 
         Assert.IsTrue(Scene.IsValid());
         Assert.IsTrue(PhysicsScene.IsValid());
-    }
 
-    internal IEnumerator BuildDefaultWorld(Vector3? cameraPos = null)
-    {
-        EventManagerGo = new GameObject("EventManager");
-        PlayerTestUtils.AddComponent(EventManagerGo, "EventManager");
-        SceneManager.MoveGameObjectToScene(EventManagerGo, Scene);
-        EventManagerGo.SetActive(true);
+        var eventManager = FindComponentByTypeName("EventManager");
+        EventManagerGo = eventManager != null ? eventManager.gameObject : (GameObject.Find("EventManager") ?? FindGameObjectWithComponent("EventManager"));
+        Assert.IsNotNull(EventManagerGo, "Could not find EventManager in scene. Ensure GameDemo scene contains it.");
 
-        MainCameraGo = new GameObject("Main Camera");
-        MainCameraGo.tag = "MainCamera";
-        var cam = MainCameraGo.AddComponent<Camera>();
-        SceneManager.MoveGameObjectToScene(MainCameraGo, Scene);
+        MainCameraGo = Camera.main != null ? Camera.main.gameObject : (GameObject.FindWithTag("MainCamera") ?? GameObject.Find("Camera") ?? GameObject.Find("Main Camera"));
+        Assert.IsNotNull(MainCameraGo, "Could not find Main Camera in scene.");
 
-        cam.transform.position = cameraPos ?? new Vector3(0f, 6f, -10f);
-        cam.transform.LookAt(Vector3.zero);
+        if (cameraPos.HasValue)
+            MainCameraGo.transform.position = cameraPos.Value;
 
-        GroundGo = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        GroundGo.name = "Ground";
-        SceneManager.MoveGameObjectToScene(GroundGo, Scene);
-        GroundGo.transform.position = Vector3.zero;
+        Kael = FindComponentByTypeName("Kael");
+        if (Kael != null)
+        {
+            PlayerGo = Kael.gameObject;
+        }
+        else
+        {
+            PlayerGo = GameObject.Find("Kael") ?? FindGameObjectWithComponent("Kael");
+            Assert.IsNotNull(PlayerGo, "Could not find Kael GameObject in scene.");
 
-        PlayerGo = BuildKaelPlayer();
-        SceneManager.MoveGameObjectToScene(PlayerGo, Scene);
-        PlayerGo.SetActive(true);
+            var kaelType = PlayerTestUtils.FindType("Kael");
+            if (kaelType != null)
+            {
+                Kael = PlayerGo.GetComponent(kaelType)
+                       ?? PlayerGo.GetComponentInChildren(kaelType, includeInactive: true);
+            }
+        }
 
-        Kael = PlayerGo.GetComponent(PlayerTestUtils.FindType("Kael"));
-        Assert.IsNotNull(Kael);
+        Assert.IsNotNull(Kael, "Could not find Kael component in scene.");
 
-        // let Awake/OnEnable/Start run
         yield return null;
     }
 
@@ -76,11 +81,11 @@ internal sealed class PlayerTestWorld
     {
         // For deterministic tests: turn off global auto simulation and manually simulate this scene's PhysicsScene.
         // Note: CharacterController movement happens in scripts; this is mainly for collisions/grounding when needed.
-        bool prevAuto = Physics.autoSimulation;
+        var prevMode = Physics.simulationMode;
         var prevFixed = Time.fixedDeltaTime;
         try
         {
-            Physics.autoSimulation = false;
+            Physics.simulationMode = SimulationMode.Script;
             Time.fixedDeltaTime = fixedDeltaTime;
             for (int i = 0; i < steps; i++)
             {
@@ -90,7 +95,7 @@ internal sealed class PlayerTestWorld
         }
         finally
         {
-            Physics.autoSimulation = prevAuto;
+            Physics.simulationMode = prevMode;
             Time.fixedDeltaTime = prevFixed;
         }
     }
@@ -101,7 +106,7 @@ internal sealed class PlayerTestWorld
         target.name = "Target";
         target.layer = layerIndex;
         target.transform.position = position;
-        SceneManager.MoveGameObjectToScene(target, Scene);
+        _spawned.Add(target);
         return target;
     }
 
@@ -115,37 +120,41 @@ internal sealed class PlayerTestWorld
         PlayerTestUtils.SetField(characterCamera, "obstacleLayer", (LayerMask)obstacleLayerMask, BindingFlags.Instance | BindingFlags.NonPublic);
     }
 
-    internal IEnumerator CaptureScreenshot(string fileName)
+    internal IEnumerator DisposeWorld()
     {
-        // Saves under project root /TestScreenshots so you can open it after tests.
-        var root = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-        var dir = Path.Combine(root, "TestScreenshots");
-        Directory.CreateDirectory(dir);
+        foreach (var go in _spawned)
+        {
+            if (go != null)
+                UnityEngine.Object.Destroy(go);
+        }
 
-        var path = Path.Combine(dir, fileName);
-        ScreenCapture.CaptureScreenshot(path);
-        Debug.Log($"[PlayerTestWorld] Screenshot saved: {path}");
-
-        // Give Unity a few frames to flush.
-        yield return null;
-        yield return null;
+        _spawned.Clear();
         yield return null;
     }
 
-    internal IEnumerator DisposeWorld()
+    private static GameObject FindGameObjectWithComponent(string typeName)
     {
-        if (PlayerGo != null) UnityEngine.Object.Destroy(PlayerGo);
-        if (GroundGo != null) UnityEngine.Object.Destroy(GroundGo);
-        if (MainCameraGo != null) UnityEngine.Object.Destroy(MainCameraGo);
-        if (EventManagerGo != null) UnityEngine.Object.Destroy(EventManagerGo);
-        yield return null;
+        var type = PlayerTestUtils.FindType(typeName);
+        if (type == null) return null;
 
-        if (Scene.IsValid())
+        // Include inactive because scene objects might be disabled during boot.
+        var comps = UnityEngine.Object.FindObjectsByType(type, FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (comps == null || comps.Length == 0) return null;
+        return ((Component)comps[0]).gameObject;
+    }
+
+    private static Component FindComponentByTypeName(string typeName)
+    {
+        // Most runtime scripts are MonoBehaviours; scanning by runtime type name avoids reflection/assembly timing issues.
+        var behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var b in behaviours)
         {
-            var unload = SceneManager.UnloadSceneAsync(Scene);
-            if (unload != null)
-                yield return unload;
+            if (b == null) continue;
+            if (string.Equals(b.GetType().Name, typeName, StringComparison.Ordinal))
+                return b;
         }
+
+        return null;
     }
 
     private GameObject BuildKaelPlayer()

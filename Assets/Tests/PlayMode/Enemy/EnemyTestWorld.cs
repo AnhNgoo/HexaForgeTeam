@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.IO;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
@@ -9,8 +8,8 @@ using UnityEngine.SceneManagement;
 
 internal sealed class EnemyTestWorld
 {
-    internal Scene Scene { get; }
-    internal PhysicsScene PhysicsScene { get; }
+    internal Scene Scene { get; private set; }
+    internal PhysicsScene PhysicsScene { get; private set; }
 
     internal GameObject MainCameraGo { get; private set; }
     internal GameObject LightGo { get; private set; }
@@ -21,20 +20,11 @@ internal sealed class EnemyTestWorld
     internal Component Enemy { get; private set; }
     internal ScriptableObject EnemyData { get; private set; }
 
-    private readonly string _sceneName;
+    private readonly string _scenePath;
 
-    internal EnemyTestWorld(string sceneNamePrefix = "EnemyTestScene")
+    internal EnemyTestWorld(string sceneNamePrefix = "EnemyTestScene", string scenePath = TestSceneLoader.DefaultScenePath)
     {
-        _sceneName = $"{sceneNamePrefix}_{Guid.NewGuid():N}";
-
-        // Use default physics scene because production code uses Physics.* static APIs.
-        var createParams = new CreateSceneParameters(LocalPhysicsMode.None);
-        Scene = SceneManager.CreateScene(_sceneName, createParams);
-        SceneManager.SetActiveScene(Scene);
-        PhysicsScene = Physics.defaultPhysicsScene;
-
-        Assert.IsTrue(Scene.IsValid());
-        Assert.IsTrue(PhysicsScene.IsValid());
+        _scenePath = scenePath;
     }
 
     internal IEnumerator BuildDefaultWorld(
@@ -42,39 +32,57 @@ internal sealed class EnemyTestWorld
         Vector3? playerPos = null,
         Vector3? enemyPos = null)
     {
-        MainCameraGo = new GameObject("Main Camera");
-        MainCameraGo.tag = "MainCamera";
-        var cam = MainCameraGo.AddComponent<Camera>();
-        SceneManager.MoveGameObjectToScene(MainCameraGo, Scene);
+        yield return TestSceneLoader.LoadScene(_scenePath);
 
-        cam.transform.position = cameraPos ?? new Vector3(0f, 6f, -10f);
-        cam.transform.LookAt(Vector3.zero);
+        // Use default physics scene because production code uses Physics.* static APIs.
+        Scene = SceneManager.GetActiveScene();
+        SceneManager.SetActiveScene(Scene);
+        PhysicsScene = Physics.defaultPhysicsScene;
 
-        LightGo = new GameObject("Directional Light");
-        var light = LightGo.AddComponent<Light>();
-        light.type = LightType.Directional;
-        LightGo.transform.eulerAngles = new Vector3(50f, -30f, 0f);
-        SceneManager.MoveGameObjectToScene(LightGo, Scene);
+        Assert.IsTrue(Scene.IsValid());
+        Assert.IsTrue(PhysicsScene.IsValid());
 
-        GroundGo = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        GroundGo.name = "Ground";
-        GroundGo.transform.position = Vector3.zero;
-        SceneManager.MoveGameObjectToScene(GroundGo, Scene);
+        MainCameraGo = Camera.main != null ? Camera.main.gameObject : (GameObject.FindWithTag("MainCamera") ?? GameObject.Find("Camera") ?? GameObject.Find("Main Camera"));
+        Assert.IsNotNull(MainCameraGo, "Could not find Main Camera in scene.");
+        if (cameraPos.HasValue)
+            MainCameraGo.transform.position = cameraPos.Value;
 
-        PlayerGo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-        PlayerGo.name = "Player_Test";
-        PlayerGo.tag = "Player";
-        PlayerGo.transform.position = playerPos ?? new Vector3(0f, 1f, 1.5f);
-        SceneManager.MoveGameObjectToScene(PlayerGo, Scene);
+        var kaelComp = FindComponentByTypeName("Kael");
+        PlayerGo = kaelComp != null ? kaelComp.gameObject : (GameObject.Find("Kael") ?? GameObject.FindWithTag("Player") ?? FindGameObjectWithComponent("Kael"));
+        Assert.IsNotNull(PlayerGo, "Could not find Player (Kael) in scene.");
+        if (playerPos.HasValue)
+            PlayerGo.transform.position = playerPos.Value;
 
-        EnemyGo = BuildEnemy(enemyPos ?? new Vector3(0f, 1f, 0f));
-        SceneManager.MoveGameObjectToScene(EnemyGo, Scene);
-        EnemyGo.SetActive(true);
+        EnemyGo = FindEnemyGameObject();
+        Assert.IsNotNull(EnemyGo, "Could not find an EnemyBase in scene.");
+        if (enemyPos.HasValue)
+            EnemyGo.transform.position = enemyPos.Value;
 
-        Enemy = EnemyGo.GetComponent(EnemyTestUtils.FindType("EnemyBase"));
+        var enemyBaseComp = FindComponentByTypeName("EnemyBase");
+        if (enemyBaseComp != null)
+            Enemy = enemyBaseComp;
+        else
+        {
+            var enemyBaseType = EnemyTestUtils.FindType("EnemyBase");
+            Enemy = enemyBaseType != null
+                ? (EnemyGo.GetComponent(enemyBaseType) ?? EnemyGo.GetComponentInChildren(enemyBaseType, includeInactive: true))
+                : null;
+        }
         Assert.IsNotNull(Enemy, "EnemyBase component missing.");
 
-        // let Awake/OnEnable/Start run
+        // Try to read existing EnemyData from EnemyBase.
+        var enemyDataObj = EnemyTestUtils.GetField<object>(Enemy, "enemyData", BindingFlags.Instance | BindingFlags.NonPublic);
+        EnemyData = enemyDataObj as ScriptableObject;
+
+        // Fallback: create and inject if missing.
+        if (EnemyData == null)
+        {
+            var enemyDataType = EnemyTestUtils.FindType("EnemyData");
+            Assert.IsNotNull(enemyDataType, "Could not find EnemyData type.");
+            EnemyData = ScriptableObject.CreateInstance(enemyDataType!);
+            EnemyTestUtils.SetField(Enemy, "enemyData", EnemyData, BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
         yield return null;
     }
 
@@ -84,37 +92,10 @@ internal sealed class EnemyTestWorld
             yield return null;
     }
 
-    internal IEnumerator CaptureScreenshot(string fileName)
-    {
-        var root = Path.GetFullPath(Path.Combine(Application.dataPath, ".."));
-        var dir = Path.Combine(root, "TestScreenshots");
-        Directory.CreateDirectory(dir);
-
-        var path = Path.Combine(dir, fileName);
-        ScreenCapture.CaptureScreenshot(path);
-        Debug.Log($"[EnemyTestWorld] Screenshot saved: {path}");
-
-        // Give Unity a few frames to flush.
-        yield return null;
-        yield return null;
-        yield return null;
-    }
-
     internal IEnumerator DisposeWorld()
     {
-        if (EnemyGo != null) UnityEngine.Object.Destroy(EnemyGo);
-        if (PlayerGo != null) UnityEngine.Object.Destroy(PlayerGo);
-        if (GroundGo != null) UnityEngine.Object.Destroy(GroundGo);
-        if (LightGo != null) UnityEngine.Object.Destroy(LightGo);
-        if (MainCameraGo != null) UnityEngine.Object.Destroy(MainCameraGo);
+        // World is the loaded scene; we rely on reloading in next SetUp.
         yield return null;
-
-        if (Scene.IsValid())
-        {
-            var unload = SceneManager.UnloadSceneAsync(Scene);
-            if (unload != null)
-                yield return unload;
-        }
     }
 
     private GameObject BuildEnemy(Vector3 position)
@@ -181,6 +162,48 @@ internal sealed class EnemyTestWorld
         EnemyTestUtils.InvokeLoadComponent(enemyBase);
 
         return root;
+    }
+
+    private static GameObject FindGameObjectWithComponent(string typeName)
+    {
+        var type = EnemyTestUtils.FindType(typeName);
+        if (type == null) return null;
+
+        var comps = UnityEngine.Object.FindObjectsByType(type, FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (comps == null || comps.Length == 0) return null;
+        return ((Component)comps[0]).gameObject;
+    }
+
+    private static Component FindComponentByTypeName(string typeName)
+    {
+        var behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+        foreach (var b in behaviours)
+        {
+            if (b == null) continue;
+            if (string.Equals(b.GetType().Name, typeName, StringComparison.Ordinal))
+                return b;
+        }
+
+        return null;
+    }
+
+    private static GameObject FindEnemyGameObject()
+    {
+        var enemyBaseType = EnemyTestUtils.FindType("EnemyBase");
+        if (enemyBaseType == null) return null;
+
+        var comps = UnityEngine.Object.FindObjectsByType(enemyBaseType, FindObjectsInactive.Include, FindObjectsSortMode.None);
+        if (comps == null || comps.Length == 0) return null;
+
+        // Prefer something named like Enemy_* (bat, etc.) to match scene layout.
+        foreach (var c in comps)
+        {
+            var go = ((Component)c).gameObject;
+            if (go != null && go.name.StartsWith("Enemy_", StringComparison.OrdinalIgnoreCase))
+                return go;
+        }
+
+        return ((Component)comps[0]).gameObject;
     }
 
     internal void SetEnemyDataField(string fieldName, object value)

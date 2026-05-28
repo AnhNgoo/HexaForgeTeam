@@ -6,6 +6,7 @@ using System.Reflection;
 
 [TestReport]
 [Category("Integration")]
+[Category("Enemy")]
 public class EnemyDeadEventTests
 {
     private EnemyTestWorld _world;
@@ -26,6 +27,7 @@ public class EnemyDeadEventTests
 
     [UnityTest]
     [Category("P0")]
+    [Description("TC EN-TEC-002: Gây sát thương cực lớn để xác nhận event OnDead và state Dead hoạt động đúng.")]
     [TestCaseMeta(
         id: "EN-TEC-002",
         title: "Event-driven: chết khi nhận sát thương cực lớn",

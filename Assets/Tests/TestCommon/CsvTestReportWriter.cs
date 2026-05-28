@@ -11,8 +11,14 @@ internal static class CsvTestReportWriter
 {
     private const string DefaultTesterName = "Huỳnh Ngọc Thanh Phước";
 
+    internal const string GroupEnemy = "Enemy";
+    internal const string GroupGold = "Gold";
+    internal const string GroupPlayer = "Player";
+    internal const string GroupOther = "Other";
+
     internal static readonly string[] Headers =
     {
+        "Nhóm",
         "Mã TC",
         "Tiêu đề testcase",
         "Kết quả mong đợi",
@@ -45,9 +51,17 @@ internal static class CsvTestReportWriter
         var dir = GetReportDirectory();
         Directory.CreateDirectory(dir);
 
-        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture);
-        var platform = Application.platform.ToString();
-        return Path.Combine(dir, $"BaoCaoKiemThu_{platform}_{timestamp}.csv");
+        // Fixed name so the file is easy to import to Excel and persists across runs.
+        return Path.Combine(dir, "All.csv");
+    }
+
+    internal static string GetGroupReportPath(string group)
+    {
+        var dir = GetReportDirectory();
+        Directory.CreateDirectory(dir);
+
+        var normalized = NormalizeGroup(group);
+        return Path.Combine(dir, $"{normalized}.csv");
     }
 
     internal static void WriteHeaderIfNew(string path)
@@ -72,6 +86,7 @@ internal static class CsvTestReportWriter
 
     internal static List<string> BuildRow(ITest test, DateTime startTime, object result)
     {
+        string group = DetermineGroup(test);
         string id = GetProp(test, TestCaseMetaAttribute.KeyId, defaultValue: test.Name);
         string title = GetProp(test, TestCaseMetaAttribute.KeyTitle, defaultValue: test.Name);
         string expected = GetProp(test, TestCaseMetaAttribute.KeyExpected, defaultValue: "");
@@ -102,6 +117,7 @@ internal static class CsvTestReportWriter
 
         return new List<string>
         {
+            group,
             id,
             title,
             expected,
@@ -112,6 +128,67 @@ internal static class CsvTestReportWriter
             steps,
             notes,
         };
+    }
+
+    private static string DetermineGroup(ITest test)
+    {
+        if (HasCategory(test, GroupEnemy)) return GroupEnemy;
+        if (HasCategory(test, GroupGold)) return GroupGold;
+
+        // Tests currently use Category("Character") for the player suite,
+        // but the user wants a stable file name: Player.csv.
+        if (HasCategory(test, "Character")) return GroupPlayer;
+        if (HasCategory(test, GroupPlayer)) return GroupPlayer;
+
+        var name = (test.FullName ?? test.Name) ?? string.Empty;
+        if (name.IndexOf(GroupEnemy, StringComparison.OrdinalIgnoreCase) >= 0) return GroupEnemy;
+        if (name.IndexOf(GroupGold, StringComparison.OrdinalIgnoreCase) >= 0) return GroupGold;
+        if (name.IndexOf("Player", StringComparison.OrdinalIgnoreCase) >= 0) return GroupPlayer;
+        return GroupPlayer;
+    }
+
+    private static string NormalizeGroup(string group)
+    {
+        if (string.IsNullOrWhiteSpace(group))
+            return GroupOther;
+
+        var g = group.Trim();
+        if (g.Equals("Character", StringComparison.OrdinalIgnoreCase))
+            return GroupPlayer;
+
+        if (g.Equals(GroupEnemy, StringComparison.OrdinalIgnoreCase)) return GroupEnemy;
+        if (g.Equals(GroupGold, StringComparison.OrdinalIgnoreCase)) return GroupGold;
+        if (g.Equals(GroupPlayer, StringComparison.OrdinalIgnoreCase)) return GroupPlayer;
+
+        return GroupOther;
+    }
+
+    private static bool HasCategory(ITest test, string category)
+    {
+        try
+        {
+            var props = test.Properties;
+            if (props == null) return false;
+            if (!props.ContainsKey("Category")) return false;
+
+            var values = props.Get("Category");
+            if (values is System.Collections.IEnumerable enumerable)
+            {
+                foreach (var v in enumerable)
+                {
+                    if (v == null) continue;
+                    if (string.Equals(v.ToString(), category, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+            }
+            else if (values != null)
+            {
+                return string.Equals(values.ToString(), category, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+        catch { }
+
+        return false;
     }
 
     private static (string statusName, string label, string message) GetResultInfo(object result)

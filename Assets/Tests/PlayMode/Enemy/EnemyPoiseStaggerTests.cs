@@ -7,6 +7,7 @@ using System.Reflection;
 
 [TestReport]
 [Category("Integration")]
+[Category("Enemy")]
 public class EnemyPoiseStaggerTests
 {
     private EnemyTestWorld _world;
@@ -27,6 +28,7 @@ public class EnemyPoiseStaggerTests
 
     [UnityTest]
     [Category("P1")]
+    [Description("TC EN-INT-004: Khi poise bị phá vỡ, Enemy vào Stagger và tự quay về Idle sau staggerDuration.")]
     [TestCaseMeta(
         id: "EN-INT-004",
         title: "Vỡ poise → Stagger và tự hồi về state mặc định",

@@ -5,6 +5,7 @@ using System.Reflection;
 
 [TestReport]
 [Category("Integration")]
+[Category("Enemy")]
 public class EnemyInitializationTests
 {
     private EnemyTestWorld _world;
@@ -25,6 +26,7 @@ public class EnemyInitializationTests
 
     [UnityTest]
     [Category("P0")]
+    [Description("TC EN-INT-001: Kiểm tra Enemy khởi tạo vào state mặc định (thường là Idle).")]
     [TestCaseMeta(
         id: "EN-INT-001",
         title: "Enemy khởi tạo vào state mặc định",

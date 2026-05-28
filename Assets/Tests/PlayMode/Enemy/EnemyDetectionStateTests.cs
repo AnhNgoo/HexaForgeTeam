@@ -6,6 +6,7 @@ using System.Reflection;
 
 [TestReport]
 [Category("Integration")]
+[Category("Enemy")]
 public class EnemyDetectionStateTests
 {
     private EnemyTestWorld _world;
@@ -26,6 +27,7 @@ public class EnemyDetectionStateTests
 
     [UnityTest]
     [Category("P0")]
+    [Description("TC EN-INT-002: Khi Player ở gần trong phạm vi detect, Enemy chuyển từ Idle sang Attack.")]
     [TestCaseMeta(
         id: "EN-INT-002",
         title: "Detection dẫn state Idle → Attack khi Player ở gần",

@@ -43,6 +43,15 @@ public sealed class TestReportAttribute : Attribute, ITestAction
         var row = CsvTestReportWriter.BuildRow(test, start, result);
         CsvTestReportWriter.AppendRow(reportPath, row);
 
+        // Also write to a stable per-suite CSV for Excel import.
+        // File names are fixed: Enemy.csv / Player.csv / Gold.csv.
+        if (row != null && row.Count > 0)
+        {
+            var group = row[0];
+            var groupPath = CsvTestReportWriter.GetGroupReportPath(group);
+            CsvTestReportWriter.AppendRow(groupPath, row);
+        }
+
         if (test.IsSuite == false && test.Parent != null)
         {
             // Light logging so user can find the report.

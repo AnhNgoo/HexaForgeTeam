@@ -6,6 +6,7 @@ using System.Reflection;
 
 [TestReport]
 [Category("Integration")]
+[Category("Enemy")]
 public class EnemyStaggerDurationTests
 {
     private EnemyTestWorld _world;
@@ -26,6 +27,7 @@ public class EnemyStaggerDurationTests
 
     [UnityTest]
     [Category("P1")]
+    [Description("TC EN-TEC-003: Xác nhận state Stagger kết thúc đúng sau staggerDuration và quay về Idle.")]
     [TestCaseMeta(
         id: "EN-TEC-003",
         title: "Time-based: Stagger kết thúc sau staggerDuration",

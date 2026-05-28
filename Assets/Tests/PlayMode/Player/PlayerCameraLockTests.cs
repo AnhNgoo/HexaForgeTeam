@@ -7,6 +7,7 @@ using UnityEngine.TestTools;
 
 [TestReport]
 [Category("Integration")]
+[Category("Character")]
 public class PlayerCameraLockTests
 {
     private PlayerTestWorld _world;
@@ -27,6 +28,7 @@ public class PlayerCameraLockTests
 
     [UnityTest]
     [Category("P0")]
+    [Description("TC PL-INT-003: Bật/tắt camera lock và kiểm tra chọn đúng target trong layer mask.")]
     [TestCaseMeta(
         id: "PL-INT-003",
         title: "CameraLock lock/unlock và chọn đúng target",

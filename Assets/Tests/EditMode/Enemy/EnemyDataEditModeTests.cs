@@ -6,6 +6,7 @@ using UnityEngine;
 
 [TestReport]
 [Category("EditMode")]
+[Category("Enemy")]
 public class EnemyDataEditModeTests
 {
     private static Type FindType(string typeName)
@@ -29,6 +30,7 @@ public class EnemyDataEditModeTests
 
     [Test]
     [Category("P1")]
+    [Description("TC EN-DATA-001: Kiểm tra giá trị mặc định của EnemyData không âm (các thông số cơ bản phải >= 0).")]
     [TestCaseMeta(
         id: "EN-DATA-001",
         title: "EnemyData giá trị mặc định không âm",
@@ -57,6 +59,7 @@ public class EnemyDataEditModeTests
 
     [Test]
     [Category("P1")]
+    [Description("TC EN-DATA-002: Kiểm tra AttackDataSO có các thông số mặc định không âm để tránh lỗi cân bằng/thiết kế.")]
     [TestCaseMeta(
         id: "EN-DATA-002",
         title: "AttackDataSO giá trị mặc định không âm",
