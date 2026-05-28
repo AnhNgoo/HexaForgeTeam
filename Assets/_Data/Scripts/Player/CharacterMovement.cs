@@ -1,10 +1,12 @@
 using System.Collections;
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class CharacterMovement : LoadComponents
 {
     [SerializeField] private CharacterController cc;
     public CharacterController CC => cc;
+    [SerializeField] private bool debugMode = false;
 
     [Header("Walk Settings")]
     [SerializeField] private float walkSpeedMultiplier = 0.3f;
@@ -22,19 +24,17 @@ public class CharacterMovement : LoadComponents
     public float SprintThreshold => sprintThreshold;
 
     [Header("Dodge Settings")]
-    [SerializeField] private float dodgeSpeedMultiplier = 2f;
+    [SerializeField] private float dodgeSpeedMultiplier = 1f;
     [SerializeField] private float dodgeDuration = 0.5f;
     public float DodgeDuration => dodgeDuration;
-
     [SerializeField] private float dodgeCooldown = 1f;
     public float DodgeCooldown => dodgeCooldown;
-
     public bool IsDodging { get; set; } = false;
     public float dodgeTimer { get; set; } = 0f;
 
     [Header("Lunge Settings")]
-    [SerializeField] private float lungeDistance = 1f;
-    [SerializeField] private float lungeDuration = 0.2f;
+    [SerializeField] private float lungeSpeedMultiplier = 10f;
+    public bool IsLunging { get; set; } = false;
 
     [Header("Jump Settings")]
     [SerializeField] private float jumpForce = 40f;
@@ -43,14 +43,20 @@ public class CharacterMovement : LoadComponents
     public float FallThreshold => fallThreshold;
     public bool JumpLanding { get; set; } = false;
 
+    [Header("Wall Edge Settings")]
+    [SerializeField] private LayerMask wallEdgeLayer;
+    [SerializeField] private float radiusCheck = 0.5f;
+    [SerializeField] private float distanceCheck = 1f;
+    public bool WallEdge { get; set; } = false;
+    public bool CanWallJump { get; set; } = true;
+
     [Header("Gravity Settings")]
     [SerializeField] private float gravity = -100f;
 
     public bool IsGrounded { get; set; } = false;
     public bool CanMoveAttack { get; set; } = false;
-
     public Vector2 MoveDirection { get; private set; }
-    private Vector3 currentMove;
+    private Vector3 CurrentMove;
 
     private float verticalVelocity;
 
@@ -69,6 +75,7 @@ public class CharacterMovement : LoadComponents
     {
         ApplyGravity();
         CheckGrounded();
+        CheckWallEdge();
     }
 
     public void SetMoveDirection(Vector2 direction)
@@ -102,7 +109,7 @@ public class CharacterMovement : LoadComponents
         verticalVelocity += gravity * Time.deltaTime;
 
         // Final movement
-        Vector3 finalMove = currentMove;
+        Vector3 finalMove = CurrentMove;
         finalMove.y = verticalVelocity;
 
         CollisionFlags flags =
@@ -127,7 +134,7 @@ public class CharacterMovement : LoadComponents
             direction.y
         );
 
-        currentMove =
+        CurrentMove =
             moveDirection.normalized *
             moveSpeed *
             speedMultiplier;
@@ -152,34 +159,19 @@ public class CharacterMovement : LoadComponents
         Movement(direction, moveSpeed, dodgeSpeedMultiplier);
     }
 
-    public void Lunge(Vector2 direction)
+    public void Lunge(Vector2 direction, float moveSpeed)
     {
-        StartCoroutine(LungeCoroutine(direction));
+        Movement(direction, moveSpeed, lungeSpeedMultiplier);
     }
-
-    private IEnumerator LungeCoroutine(Vector2 direction)
-    {
-        Debug.Log("Lunge in direction: " + direction);
-
-        float speed = lungeDistance / lungeDuration;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < lungeDuration)
-        {
-            Movement(direction, speed, 1f);
-
-            elapsedTime += Time.deltaTime;
-
-            yield return null;
-        }
-
-        Stop();
-    }
-
     public void Jump()
     {
         if (!cc.isGrounded) return;
 
+        verticalVelocity = jumpForce;
+    }
+
+    public void WallJump()
+    {
         verticalVelocity = jumpForce;
     }
 
@@ -190,11 +182,36 @@ public class CharacterMovement : LoadComponents
 
     public void Stop()
     {
-        currentMove = Vector3.zero;
+        CurrentMove = Vector3.zero;
     }
 
-    public void CheckGrounded()
+    private void CheckGrounded()
     {
         IsGrounded = cc.isGrounded;
     }
+
+    private void CheckWallEdge()
+    {
+        if (IsGrounded)
+        {
+            WallEdge = false;
+            return;
+        }
+
+        WallEdge = Physics.CheckSphere(
+            transform.position + transform.forward * distanceCheck,
+            radiusCheck,
+            wallEdgeLayer
+        );
+    }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        if (!debugMode)
+            return;
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position + transform.forward * distanceCheck, radiusCheck);
+    }
+#endif
 }

@@ -1,12 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
+using System;
 
 public enum PoolType
 {
     None = 0,
     Enemy = 1,
     SafeZone = 2,
-    KaelSlashEffect = 3,
+    SlashEffect_1 = 3,
+    LockTargetMarker = 4,
+    HitEffect_1 = 9,
+    HitEffect_2 = 10,
+    Earthquake_1 = 13,
+    EarthBreaker_2 = 14,
+    AuraEffect_1 = 15,
+    AuraEffect_2 = 16,
 }
 
 [System.Serializable]
@@ -16,6 +25,7 @@ public class Pool
     public GameObject prefab;
     public int initialSize = 10;
     public int maxSize = 50;
+    [System.NonSerialized]
     public Transform parent;
 }
 public class ObjectPooling : Singleton<ObjectPooling>
@@ -102,6 +112,7 @@ public class ObjectPooling : Singleton<ObjectPooling>
         return obj;
     }
 
+    #region SpawnFromPool
     public GameObject SpawnFromPool(PoolType poolType, Vector3 position, Quaternion rotation, Transform parent = null)
     {
         if (!poolDictionary.ContainsKey(poolType))
@@ -144,6 +155,47 @@ public class ObjectPooling : Singleton<ObjectPooling>
         return obj;
     }
 
+    public GameObject SpawnFromPool(PoolType poolType, Transform parent = null)
+    {
+        if (!poolDictionary.ContainsKey(poolType))
+        {
+            return null;
+        }
+
+        GameObject obj = null;
+
+        if (poolDictionary[poolType].Count > 0)
+        {
+            obj = poolDictionary[poolType].Dequeue();
+        }
+        else
+        {
+            if (activeCount[poolType] < poolSettings[poolType].maxSize)
+            {
+                obj = CreateNewObject(poolSettings[poolType]);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        Transform targetParent = parent != null
+            ? parent
+            : (poolSettings[poolType].parent != null ? poolSettings[poolType].parent : transform);
+
+        obj.transform.SetParent(targetParent);
+        obj.SetActive(true);
+
+        activeCount[poolType]++;
+
+        IPoolable poolable = obj.GetComponent<IPoolable>();
+        poolable?.OnSpawnFromPool();
+
+        return obj;
+    }
+
+    #endregion
     public void ReturnToPool(PoolType poolType, GameObject obj)
     {
         if (!poolDictionary.ContainsKey(poolType))
@@ -173,5 +225,10 @@ public class ObjectPooling : Singleton<ObjectPooling>
         int total = available + active;
 
         return $"{poolType}: Total={total}, Active={active}, Available={available}";
+    }
+
+    internal void ReturnToPool(PoolType poolType, object gameObject)
+    {
+
     }
 }

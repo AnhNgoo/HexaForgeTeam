@@ -10,7 +10,13 @@ public enum GameEvent
     OnDodge = 2,
     OnJump = 3,
     OnAttack = 4,
-    OnSlashEffect = 5,
+    OnEnableTrailSlashEffect = 5,
+    OnDisableTrailSlashEffect = 6,
+    OnPlaySlashEffect = 7,
+    OnLockTarget = 8,
+    OnWallJump = 9,
+    OnHealthRecovery = 10,
+    OnSkill_1 = 11,
 }
 public class EventManager : Singleton<EventManager>
 {

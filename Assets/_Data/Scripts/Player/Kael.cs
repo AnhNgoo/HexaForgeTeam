@@ -3,35 +3,48 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using UnityEngine.EventSystems;
-
 public class Kael : CharacterMelee
 {
-    [SerializeField] protected GameObject kaelObject;
-    [SerializeField] protected Animator kaelAnimator;
-
+    [Header("Kael")]
+    [SerializeField] protected GameObject kaelGiantVisual;
+    public GameObject earthBreakerEffectPoint;
+    public GameObject auraEffect;
+    public GameObject skill2Effect;
     protected override void LoadComponent()
     {
         base.LoadComponent();
-        if (kaelObject == null)
-            kaelObject = visuals.transform.Find("Kael").gameObject;
-        if (kaelAnimator == null)
-            kaelAnimator = visuals.transform.Find("Kael").GetComponent<Animator>();
-    }
-    protected override void Awake()
-    {
-        base.Awake();
-        characterAnimation.Init(kaelAnimator);
+        if (characterVisual == null)
+            characterVisual = visuals.transform.Find("Kael").gameObject;
+        if (kaelGiantVisual == null)
+            kaelGiantVisual = visuals.transform.Find("KaelGiant").gameObject;
     }
 
-    // Override để khởi tạo các đòn tấn công riêng cho Kael
-    protected override IAttackStep[] InitAttackCombos()
+    protected override void LoadEffectPoints()
     {
-        return attackCombos = new IAttackStep[4]
-        {
-            new KaelAttackStep_1(),
-            new KaelAttackStep_2(),
-            new KaelAttackStep_3(),
-            new KaelAttackStep_4()
-        };
+        base.LoadEffectPoints();
+        if (earthBreakerEffectPoint == null)
+            earthBreakerEffectPoint = effectPoints.transform.Find("EarthBreakerEffectPoint").gameObject;
+        if (auraEffect == null)
+            auraEffect = effectPoints.transform.Find("AuraEffect").gameObject;
+    }
+    protected override void Init(CharacterData data)
+    {
+        base.Init(data);
+    }
+
+    protected override ICharacterSkill GetSkill_1()
+    {
+        if (characterSkill.SkillData1 == null)
+            Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
+
+        return new EarthBreaker(this, characterSkill.SkillData1);
+    }
+
+    protected override ICharacterSkill GetSkill_2()
+    {
+        if (characterSkill.SkillData2 == null)
+            Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
+
+        return new EarthBreaker(this, characterSkill.SkillData2);
     }
 }
