@@ -11,7 +11,7 @@ CSV report chỉ được tạo **sau khi bạn chạy test có gắn `[TestRepo
 - `Gold.csv`
 - `All.csv` (tổng hợp)
 
-Các file này sẽ **được ghi thêm dòng (append) qua nhiều lần chạy** và giữ nguyên tên (không tạo file theo timestamp).
+Các file này sẽ **bị ghi đè làm mới mỗi lần bạn bấm Run** và giữ nguyên tên (không tạo file theo timestamp).
 
 ## Vì sao bạn chưa thấy file CSV?
 - Nếu chưa chạy test (hoặc chạy test không có `[TestReport]`) thì file CSV sẽ chưa được tạo.

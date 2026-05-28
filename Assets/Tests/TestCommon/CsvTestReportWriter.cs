@@ -75,6 +75,28 @@ internal static class CsvTestReportWriter
         writer.WriteLine(string.Join(",", QuoteAll(Headers)));
     }
 
+    internal static void WriteHeaderOverwrite(string path)
+    {
+        var dir = Path.GetDirectoryName(path);
+        if (!string.IsNullOrWhiteSpace(dir))
+            Directory.CreateDirectory(dir);
+
+        // UTF-8 BOM so Excel reads Vietnamese correctly.
+        using var stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Read);
+        using var writer = new StreamWriter(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        writer.WriteLine(string.Join(",", QuoteAll(Headers)));
+    }
+
+    internal static void StartNewRunOverwrite()
+    {
+        // Create stable CSV files (easy for Excel import) and overwrite contents each run.
+        WriteHeaderOverwrite(GetReportPath());
+        WriteHeaderOverwrite(GetGroupReportPath(GroupEnemy));
+        WriteHeaderOverwrite(GetGroupReportPath(GroupPlayer));
+        WriteHeaderOverwrite(GetGroupReportPath(GroupGold));
+        WriteHeaderOverwrite(GetGroupReportPath(GroupOther));
+    }
+
     internal static void AppendRow(string path, IReadOnlyList<string> row)
     {
         WriteHeaderIfNew(path);

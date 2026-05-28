@@ -11,6 +11,7 @@ public sealed class TestReportAttribute : Attribute, ITestAction
 {
     private static readonly ConcurrentDictionary<string, DateTime> StartTimes = new();
     private static readonly ConcurrentDictionary<string, string> ReportPaths = new();
+    private static readonly ConcurrentDictionary<string, byte> RunInitialized = new();
 
     public ActionTargets Targets => ActionTargets.Test;
 
@@ -24,6 +25,13 @@ public sealed class TestReportAttribute : Attribute, ITestAction
         // Ensure one report file per test run (per assembly load) using a lazily created shared path.
         // Keyed by AppDomain-friendly name (fallback to "default").
         var domainKey = AppDomain.CurrentDomain.FriendlyName ?? "default";
+
+        // Overwrite report files once at the start of each run.
+        if (RunInitialized.TryAdd(domainKey, 0))
+        {
+            CsvTestReportWriter.StartNewRunOverwrite();
+        }
+
         ReportPaths.GetOrAdd(domainKey, _ => CsvTestReportWriter.GetReportPath());
     }
 
