@@ -4,39 +4,13 @@ public class LevelStation : MonoBehaviour
 {
     [SerializeField] private LevelUpMenu levelUpMenu;
 
-    [Header("Debug")]
-    [SerializeField] private KeyCode interactKey = KeyCode.E;
-
-    private bool playerInRange = false;
-
-    private void Update()
+    public void OnInteract()
     {
-        if (!playerInRange)
+        if (levelUpMenu == null)
             return;
 
-        if (Input.GetKeyDown(interactKey))
-        {
-            levelUpMenu.Open();
-        }
-    }
+        levelUpMenu.Open();
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Player"))
-            return;
-
-        playerInRange = true;
-
-        Debug.Log("Player đã vào vùng Level Station");
-    }
-
-    private void OnTriggerExit(Collider other)
-    {
-        if (!other.CompareTag("Player"))
-            return;
-
-        playerInRange = false;
-
-        Debug.Log("Player đã rời vùng Level Station");
+        Debug.Log("Đã mở Level Station");
     }
 }

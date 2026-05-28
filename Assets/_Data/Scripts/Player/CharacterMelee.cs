@@ -7,24 +7,28 @@ public class CharacterMelee : CharacterBase
     [SerializeField] protected float ZoffsetCheckForNearEnemy = 1.5f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
     [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
     [Header("Melee Attack Effects")]
-    public GameObject meleeAttackEffect_1;
-    public GameObject meleeAttackEffect_2;
-    public GameObject meleeAttackEffect_3;
-    public GameObject meleeAttackEffect_4;
+    public GameObject meleeAttackEffectPoint_1;
+    public PoolType meleeAttackEffect_1 = PoolType.SlashEffect_1;
+    public GameObject meleeAttackEffectPoint_2;
+    public PoolType meleeAttackEffect_2 = PoolType.SlashEffect_1;
+    public GameObject meleeAttackEffectPoint_3;
+    public PoolType meleeAttackEffect_3 = PoolType.SlashEffect_1;
+    public GameObject meleeAttackEffectPoint_4;
+    public PoolType meleeAttackEffect_4 = PoolType.Earthquake_1;
     [Header("Debug")]
     [SerializeField] protected bool debugMode = false; // Bật để hiển thị gizmo kiểm tra kẻ địch gần
 
-    protected override void LoadEffects()
+    protected override void LoadEffectPoints()
     {
-        base.LoadEffects();
-        if (meleeAttackEffect_1 == null)
-            meleeAttackEffect_1 = effectsContainer.transform.Find("MeleeAttackEffect_1")?.gameObject;
-        if (meleeAttackEffect_2 == null)
-            meleeAttackEffect_2 = effectsContainer.transform.Find("MeleeAttackEffect_2")?.gameObject;
-        if (meleeAttackEffect_3 == null)
-            meleeAttackEffect_3 = effectsContainer.transform.Find("MeleeAttackEffect_3")?.gameObject;
-        if (meleeAttackEffect_4 == null)
-            meleeAttackEffect_4 = effectsContainer.transform.Find("MeleeAttackEffect_4")?.gameObject;
+        base.LoadEffectPoints();
+        if (meleeAttackEffectPoint_1 == null)
+            meleeAttackEffectPoint_1 = effectPoints?.transform.Find("MeleeAttackEffectPoint_1")?.gameObject;
+        if (meleeAttackEffectPoint_2 == null)
+            meleeAttackEffectPoint_2 = effectPoints?.transform.Find("MeleeAttackEffectPoint_2")?.gameObject;
+        if (meleeAttackEffectPoint_3 == null)
+            meleeAttackEffectPoint_3 = effectPoints?.transform.Find("MeleeAttackEffectPoint_3")?.gameObject;
+        if (meleeAttackEffectPoint_4 == null)
+            meleeAttackEffectPoint_4 = effectPoints?.transform.Find("MeleeAttackEffectPoint_4")?.gameObject;
     }
     protected override void Init(CharacterData data)
     {
@@ -44,7 +48,7 @@ public class CharacterMelee : CharacterBase
         };
     }
 
-    protected override async void OnAttack()
+    protected override void OnAttack()
     {
         if (characterCombat.FirstAttack) // Chỉ áp sát mục tiêu nếu đây là đòn tấn công đầu tiên trong chuỗi combo
             MeleeSnapToTarget();
@@ -88,6 +92,11 @@ public class CharacterMelee : CharacterBase
         CharacterMovement.IsLunging = false;
     }
 
+    /// <summary>
+    /// Giúp kiểm tra xem trước mặt có kẻ địch nào gần không
+    /// Dùng để tắt root motion khi tấn công nếu có kẻ địch gần, tránh trường hợp nhân vật bị kéo lùi lại quá xa khi tấn công mà không trúng mục tiêu nào
+    /// </summary>
+    /// <returns></returns>
     public virtual bool CheckForNearEnemy()
     {
         Collider[] hitColliders = Physics.OverlapSphere(transform.position + transform.forward * ZoffsetCheckForNearEnemy, radiusCheckForNearEnemy);

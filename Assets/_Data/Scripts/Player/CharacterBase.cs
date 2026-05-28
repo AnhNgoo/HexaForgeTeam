@@ -11,7 +11,8 @@ using Cysharp.Threading.Tasks;
 [RequireComponent(typeof(CharacterWeapon))]
 [RequireComponent(typeof(CharacterCombat))]
 [RequireComponent(typeof(CharacterLockTarget))]
-public class CharacterBase : LoadComponents
+[RequireComponent(typeof(CharacterSkill))]
+public abstract class CharacterBase : LoadComponents
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
@@ -34,13 +35,19 @@ public class CharacterBase : LoadComponents
     public CharacterCombat CharacterCombat => characterCombat;
     [SerializeField] protected CharacterLockTarget characterLockTarget;
     public CharacterLockTarget CharacterLockTarget => characterLockTarget;
+    [SerializeField] protected CharacterSkill characterSkill;
+    public CharacterSkill CharacterSkill => characterSkill;
 
     [Header("Character Effect General")]
-    [SerializeField] protected GameObject effectsContainer;
-    public GameObject punchEffect_1;
-    public GameObject punchEffect_2;
-    public GameObject punchEffect_3;
-    public GameObject punchEffect_4;
+    [SerializeField] protected GameObject effectPoints;
+    public GameObject punchEffectPoint_1;
+    public PoolType punchEffect_1 = PoolType.HitEffect_1;
+    public GameObject punchEffectPoint_2;
+    public PoolType punchEffect_2 = PoolType.HitEffect_2;
+    public GameObject punchEffectPoint_3;
+    public PoolType punchEffect_3 = PoolType.HitEffect_2;
+    public GameObject punchEffectPoint_4;
+    public PoolType punchEffect_4 = PoolType.HitEffect_2;
 
     [Header("Character Base Settings")]
     [SerializeField] protected float attackSpeedMultiplier = 0.01f;
@@ -68,8 +75,9 @@ public class CharacterBase : LoadComponents
             characterCombat = GetComponent<CharacterCombat>();
         if (characterLockTarget == null)
             characterLockTarget = GetComponent<CharacterLockTarget>();
-
-        LoadEffects();
+        if (characterSkill == null)
+            characterSkill = GetComponent<CharacterSkill>();
+        LoadEffectPoints();
     }
 
     protected override void LoadComponentRuntime()
@@ -77,21 +85,21 @@ public class CharacterBase : LoadComponents
 
     }
 
-    protected virtual void LoadEffects()
+    protected virtual void LoadEffectPoints()
     {
-        if (effectsContainer == null)
-            effectsContainer = transform.Find("Effects")?.gameObject;
-        if (effectsContainer == null)
+        if (effectPoints == null)
+            effectPoints = transform.Find("EffectPoints")?.gameObject;
+        if (effectPoints == null)
             return;
 
-        if (punchEffect_1 == null)
-            punchEffect_1 = effectsContainer.transform.Find("PunchEffect_1")?.gameObject;
-        if (punchEffect_2 == null)
-            punchEffect_2 = effectsContainer.transform.Find("PunchEffect_2")?.gameObject;
-        if (punchEffect_3 == null)
-            punchEffect_3 = effectsContainer.transform.Find("PunchEffect_3")?.gameObject;
-        if (punchEffect_4 == null)
-            punchEffect_4 = effectsContainer.transform.Find("PunchEffect_4")?.gameObject;
+        if (punchEffectPoint_1 == null)
+            punchEffectPoint_1 = effectPoints?.transform.Find("PunchEffectPoint_1")?.gameObject;
+        if (punchEffectPoint_2 == null)
+            punchEffectPoint_2 = effectPoints?.transform.Find("PunchEffectPoint_2")?.gameObject;
+        if (punchEffectPoint_3 == null)
+            punchEffectPoint_3 = effectPoints?.transform.Find("PunchEffectPoint_3")?.gameObject;
+        if (punchEffectPoint_4 == null)
+            punchEffectPoint_4 = effectPoints?.transform.Find("PunchEffectPoint_4")?.gameObject;
     }
     #region Init Character
 
@@ -99,8 +107,6 @@ public class CharacterBase : LoadComponents
     protected override void Awake()
     {
         base.Awake();
-        characterAnimation.Init(characterVisual);
-        AddAnimationEvents();
         Init(characterData);
     }
     [Button("Init Character Data")]
@@ -109,7 +115,10 @@ public class CharacterBase : LoadComponents
         if (data != null)
             characterData = Instantiate(data);
 
+        characterAnimation.Init(characterVisual);
+        AddAnimationEvents();
         characterLockTarget.SetFollowTarget();
+        InitSkills();
     }
 
     // Điều chỉnh tốc độ animation tấn công dựa trên tốc độ tấn công của character
@@ -127,6 +136,7 @@ public class CharacterBase : LoadComponents
         EventManager.Instance?.Subscribe(GameEvent.OnAttack, _ => OnAttack());
         EventManager.Instance?.Subscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
         EventManager.Instance?.Subscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
+        EventManager.Instance?.Subscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
     }
 
     protected virtual void OnDisable()
@@ -138,7 +148,9 @@ public class CharacterBase : LoadComponents
         EventManager.Instance?.Unsubscribe(GameEvent.OnAttack, _ => OnAttack());
         EventManager.Instance?.Unsubscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
         EventManager.Instance?.Unsubscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
+        EventManager.Instance?.Unsubscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
     }
+
 
 
     protected virtual void Start()
@@ -220,7 +232,7 @@ public class CharacterBase : LoadComponents
         stateController.ChangeState(new HealthRecoveryState(this));
     }
     #region Attack 
-    protected virtual async void OnAttack()
+    protected virtual void OnAttack()
     {
         characterCombat?.TryAttack();
     }
@@ -245,6 +257,29 @@ public class CharacterBase : LoadComponents
     }
     #endregion
 
+    #region Skill
+
+    protected virtual void InitSkills()
+    {
+        characterSkill?.Init(this, GetSkill_1(), GetSkill_2());
+    }
+
+    protected virtual ICharacterSkill GetSkill_1()
+    {
+        return null;
+    }
+
+    protected virtual ICharacterSkill GetSkill_2()
+    {
+        return null;
+    }
+
+    protected virtual void OnSkill_1()
+    {
+        characterSkill?.UseSkill1();
+    }
+
+    #endregion
     protected virtual void OnLockTarget()
     {
         if (CharacterLockTarget == null)
