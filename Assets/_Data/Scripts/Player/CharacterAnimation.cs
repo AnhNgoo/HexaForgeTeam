@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class CharacterAnimation : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     public Animator Animator => animator;
     [SerializeField] private AnimatorRootMotion animatorRootMotion;
+    [SerializeField] protected AnimationEvents animationEvents;
     private string currentState;
 
     public void Init(GameObject visual)
@@ -20,15 +22,25 @@ public class CharacterAnimation : MonoBehaviour
         {
             SetAnimatorRootMotion(arm);
         }
+
+        if (visual.TryGetComponent<AnimationEvents>(out var animEvents))
+        {
+            SetAnimationEvents(animEvents);
+        }
     }
-    public void SetAnimator(Animator animator)
+    private void SetAnimator(Animator animator)
     {
         this.animator = animator;
     }
 
-    public void SetAnimatorRootMotion(AnimatorRootMotion arm)
+    private void SetAnimatorRootMotion(AnimatorRootMotion arm)
     {
         this.animatorRootMotion = arm;
+    }
+
+    private void SetAnimationEvents(AnimationEvents animationEvents)
+    {
+        this.animationEvents = animationEvents;
     }
 
     public void EnableRootMotion()
@@ -118,6 +130,17 @@ public class CharacterAnimation : MonoBehaviour
             Debug.LogWarning($"Layer '{layerName}' không tồn tại trong Animator!");
             return 0;
         }
+    }
+
+    public void AddEvent(string animationClipName, float eventTime, UnityAction function)
+    {
+        if (animationEvents == null)
+        {
+            Debug.LogWarning("AnimationEvents chưa được gán cho CharacterAnimation!");
+            return;
+        }
+
+        animationEvents.AddEvent(animationClipName, eventTime, function);
     }
     public void SetAnimationSpeed(string stateName, float speed)
     {

@@ -32,6 +32,9 @@ public class CharacterMovement : LoadComponents
     public bool IsDodging { get; set; } = false;
     public float dodgeTimer { get; set; } = 0f;
 
+    [Header("Lunge Settings")]
+    [SerializeField] private float lungeSpeedMultiplier = 10f;
+    public bool IsLunging { get; set; } = false;
 
     [Header("Jump Settings")]
     [SerializeField] private float jumpForce = 40f;
@@ -156,6 +159,10 @@ public class CharacterMovement : LoadComponents
         Movement(direction, moveSpeed, dodgeSpeedMultiplier);
     }
 
+    public void Lunge(Vector2 direction, float moveSpeed)
+    {
+        Movement(direction, moveSpeed, lungeSpeedMultiplier);
+    }
     public void Jump()
     {
         if (!cc.isGrounded) return;

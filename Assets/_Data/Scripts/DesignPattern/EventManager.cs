@@ -16,6 +16,7 @@ public enum GameEvent
     OnLockTarget = 8,
     OnWallJump = 9,
     OnHealthRecovery = 10,
+    OnSkill_1 = 11,
 }
 public class EventManager : Singleton<EventManager>
 {

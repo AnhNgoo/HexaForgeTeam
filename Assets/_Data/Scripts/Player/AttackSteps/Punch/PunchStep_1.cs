@@ -5,16 +5,18 @@ using UnityEngine.UI.Extensions;
 
 public class PunchStep_1 : AttackStepBase
 {
-    public override string AttackStateName => "Punch_1";
-    public override float TimeTriggerAttack => 0.3f;
-
-    public override void StartAttack(CharacterBase character)
+    public PunchStep_1(CharacterBase character) : base(character)
     {
-        Debug.Log("PunchStep_1");
-        character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
+        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
+                                                                                        character.punchEffect_1,
+                                                                                         character.punchEffectPoint_1.transform.position,
+                                                                                         character.punchEffectPoint_1.transform.rotation,
+                                                                                          character.punchEffectPoint_1.transform));
     }
 
-    protected override void TriggerAttack(CharacterBase character)
+    public override string AttackStateName => "Punch_1";
+    public override void Attack(CharacterBase character)
     {
+        base.Attack(character);
     }
 }
