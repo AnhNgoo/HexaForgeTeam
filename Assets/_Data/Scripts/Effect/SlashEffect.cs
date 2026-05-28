@@ -20,12 +20,12 @@ public class SlashEffect : LoadComponents
 
     private void OnEnable()
     {
-        EventManager.Instance?.Subscribe(GameEvent.OnPlaySlashEffect, Play);
+        EventManager.Subscribe(GameEvent.OnPlaySlashEffect, Play);
     }
 
     private void OnDisable()
     {
-        EventManager.Instance?.Unsubscribe(GameEvent.OnPlaySlashEffect, Play);
+        EventManager.Unsubscribe(GameEvent.OnPlaySlashEffect, Play);
     }
     private void Play(object data)
     {

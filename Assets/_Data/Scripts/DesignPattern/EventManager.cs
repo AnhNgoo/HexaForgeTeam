@@ -18,11 +18,11 @@ public enum GameEvent
     OnHealthRecovery = 10,
     OnSkill_1 = 11,
 }
-public class EventManager : Singleton<EventManager>
+public static class EventManager
 {
-    private Dictionary<GameEvent, Action<object>> eventDictionary = new Dictionary<GameEvent, Action<object>>();
+    private static Dictionary<GameEvent, Action<object>> eventDictionary = new Dictionary<GameEvent, Action<object>>();
 
-    public void Subscribe(GameEvent eventType, Action<object> listener)
+    public static void Subscribe(GameEvent eventType, Action<object> listener)
     {
         if (eventDictionary.ContainsKey(eventType))
         {
@@ -34,14 +34,14 @@ public class EventManager : Singleton<EventManager>
         }
     }
 
-    public void Unsubscribe(GameEvent eventType, Action<object> listener)
+    public static void Unsubscribe(GameEvent eventType, Action<object> listener)
     {
         if (!eventDictionary.ContainsKey(eventType)) return;
 
         eventDictionary[eventType] -= listener;
     }
 
-    public void Notify(GameEvent eventType, object data = null)
+    public static void Notify(GameEvent eventType, object data = null)
     {
         if (!eventDictionary.ContainsKey(eventType)) return;
 

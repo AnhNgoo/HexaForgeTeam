@@ -129,26 +129,26 @@ public abstract class CharacterBase : LoadComponents
     #endregion
     protected virtual void OnEnable()
     {
-        EventManager.Instance?.Subscribe(GameEvent.OnMovement, OnMovement);
-        EventManager.Instance?.Subscribe(GameEvent.OnDodge, _ => OnDodge());
-        EventManager.Instance?.Subscribe(GameEvent.OnJump, _ => OnJump());
-        EventManager.Instance?.Subscribe(GameEvent.OnWallJump, _ => OnWallJump());
-        EventManager.Instance?.Subscribe(GameEvent.OnAttack, _ => OnAttack());
-        EventManager.Instance?.Subscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
-        EventManager.Instance?.Subscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
-        EventManager.Instance?.Subscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
+        EventManager.Subscribe(GameEvent.OnMovement, OnMovement);
+        EventManager.Subscribe(GameEvent.OnDodge, _ => OnDodge());
+        EventManager.Subscribe(GameEvent.OnJump, _ => OnJump());
+        EventManager.Subscribe(GameEvent.OnWallJump, _ => OnWallJump());
+        EventManager.Subscribe(GameEvent.OnAttack, _ => OnAttack());
+        EventManager.Subscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
+        EventManager.Subscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
+        EventManager.Subscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
     }
 
     protected virtual void OnDisable()
     {
-        EventManager.Instance?.Unsubscribe(GameEvent.OnMovement, OnMovement);
-        EventManager.Instance?.Unsubscribe(GameEvent.OnDodge, _ => OnDodge());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnJump, _ => OnJump());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnWallJump, _ => OnWallJump());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnAttack, _ => OnAttack());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
+        EventManager.Unsubscribe(GameEvent.OnMovement, OnMovement);
+        EventManager.Unsubscribe(GameEvent.OnDodge, _ => OnDodge());
+        EventManager.Unsubscribe(GameEvent.OnJump, _ => OnJump());
+        EventManager.Unsubscribe(GameEvent.OnWallJump, _ => OnWallJump());
+        EventManager.Unsubscribe(GameEvent.OnAttack, _ => OnAttack());
+        EventManager.Unsubscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
+        EventManager.Unsubscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
+        EventManager.Unsubscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
     }
 
 

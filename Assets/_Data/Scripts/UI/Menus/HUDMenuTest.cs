@@ -65,35 +65,35 @@ public class HUDMenuTest : MenuBase
 
     private void Update()
     {
-        EventManager.Instance?.Notify(GameEvent.OnMovement, joystick.Direction);
+        EventManager.Notify(GameEvent.OnMovement, joystick.Direction);
     }
 
     private void OnDodgeButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnDodge);
+        EventManager.Notify(GameEvent.OnDodge);
     }
 
     private void OnJumpButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnJump);
-        EventManager.Instance?.Notify(GameEvent.OnWallJump);
+        EventManager.Notify(GameEvent.OnJump);
+        EventManager.Notify(GameEvent.OnWallJump);
     }
     private void OnAttackButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnAttack);
+        EventManager.Notify(GameEvent.OnAttack);
     }
     private void OnLockTargetButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnLockTarget);
+        EventManager.Notify(GameEvent.OnLockTarget);
     }
 
     private void OnHealthRecoveryButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnHealthRecovery);
+        EventManager.Notify(GameEvent.OnHealthRecovery);
     }
 
     private void OnSkill_1ButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnSkill_1);
+        EventManager.Notify(GameEvent.OnSkill_1);
     }
 }
