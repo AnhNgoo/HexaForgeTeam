@@ -3,7 +3,6 @@ using NUnit.Framework;
 using UnityEngine.TestTools;
 using System.Reflection;
 
-[TestReport]
 [Category("Integration")]
 [Category("Enemy")]
 public class EnemyInitializationTests

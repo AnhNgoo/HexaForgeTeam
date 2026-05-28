@@ -5,7 +5,6 @@ using UnityEngine;
 using System;
 using System.Reflection;
 
-[TestReport]
 [Category("Integration")]
 [Category("Enemy")]
 public class EnemyPoiseStaggerTests

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-[TestReport]
 [Category("EditMode")]
 [Category("Enemy")]
 public class EnemyDataEditModeTests

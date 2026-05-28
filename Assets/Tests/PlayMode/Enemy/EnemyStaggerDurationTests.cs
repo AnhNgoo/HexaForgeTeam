@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using System.Reflection;
 
-[TestReport]
 [Category("Integration")]
 [Category("Enemy")]
 public class EnemyStaggerDurationTests

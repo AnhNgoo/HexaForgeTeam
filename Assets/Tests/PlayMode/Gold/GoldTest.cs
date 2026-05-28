@@ -1,6 +1,5 @@
 using NUnit.Framework;
 
-[TestReport]
 [Category("Smoke")]
 [Category("Gold")]
 public class GoldTest

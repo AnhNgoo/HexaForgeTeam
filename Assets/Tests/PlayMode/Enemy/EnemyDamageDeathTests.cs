@@ -5,7 +5,6 @@ using UnityEngine.TestTools;
 using System;
 using System.Reflection;
 
-[TestReport]
 [Category("Integration")]
 [Category("Enemy")]
 public class EnemyDamageDeathTests

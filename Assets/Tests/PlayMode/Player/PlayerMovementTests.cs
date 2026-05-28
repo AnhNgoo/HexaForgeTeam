@@ -5,7 +5,6 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-[TestReport]
 [Category("Integration")]
 [Category("Character")]
 public class PlayerMovementTests
