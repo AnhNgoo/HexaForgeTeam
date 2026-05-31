@@ -37,33 +37,38 @@ public class EnemyDetection : MonoBehaviour
         //Liên tục tìm mục tiêu mới nếu chưa có mục tiêu hiện tại, có thể điều chỉnh tần suất gọi hàm này nếu cần để tối ưu hiệu suất (ví dụ: chỉ tìm mục tiêu mỗi 0.5 giây thay vì mỗi frame)
 
         Transform potentialTarget = Player; //Trỏ thẳng đến Player, có thể mở rộng sau này để tìm nhiều loại mục tiêu khác nhau (nên gọi thẳng từ PlayerManager)
+
+        //Tạo toạ độ mắt (nâng lên ngang ngực)
+        Vector3 eyePosition = transform.position + Vector3.up * 1f; //Điều chỉnh chiều cao của mắt nếu cần thiết
+        Vector3 targetEyePosition = potentialTarget.position + Vector3.up * 1f; //Điều chỉnh chiều cao của mắt mục tiêu nếu cần thiết
+
         //Kiểm tra khoảng cách từ Enemy đến mục tiêu
-        float dstToTarget = Vector3.Distance(transform.position, potentialTarget.position);
+        float dstToTarget = Vector3.Distance(eyePosition, targetEyePosition);
 
         //Kiểm tra nếu mục tiêu nằm trong khoảng cách phát hiện
         if (dstToTarget <= _enemyBase.Data.detectRange)
         {
             //Xem mục tiêu đang đứng hướng nào
-            Vector3 directionToTarget = (potentialTarget.position - transform.position).normalized;
+            Vector3 directionToTarget = (targetEyePosition - eyePosition).normalized;
             if (Vector3.Angle(transform.forward, directionToTarget) < _enemyBase.Data.povAngle / 2f)
             {
                 //Xem có chướng ngại vật nào giữa Enemy và mục tiêu không bằng cách raycast
                 // HƯỚNG 1: Player đứng trước mặt (Trong góc FOV)
-                if (!Physics.Raycast(transform.position, directionToTarget, dstToTarget, obstacleLayerMask))
+                if (!Physics.Raycast(eyePosition, directionToTarget, dstToTarget, obstacleLayerMask))
                 {
                     currentTarget = potentialTarget;
                     Debug.Log($"{gameObject.name} đã phát hiện mục tiêu: {currentTarget.name}");
                     AlertNearbyAllies(currentTarget); //Gọi hàm cảnh báo đồng bọn khi phát hiện mục tiêu, có thể mở rộng sau này để truyền thông tin về mục tiêu cho các Enemy khác trong bán kính cảnh báo
                 }
-                // HƯỚNG 2: Player đứng sau lưng (Ngoài góc FOV nhưng vẫn trong bán kính phát hiện) nhưng lọt vào tầm nghe thính giác (50% tầm nhìn)
-                else if (dstToTarget <= _enemyBase.Data.detectRange * 0.5f)
+                else Debug.Log($"{gameObject.name} không thể nhìn thấy mục tiêu do có chướng ngại vật chắn giữa.");
+            }                 // HƯỚNG 2: Player đứng sau lưng (Ngoài góc FOV nhưng vẫn trong bán kính phát hiện) nhưng lọt vào tầm nghe thính giác (50% tầm nhìn)
+            else if (dstToTarget <= _enemyBase.Data.detectRange * 0.5f)
+            {
+                if (!Physics.Raycast(eyePosition, directionToTarget, dstToTarget, obstacleLayerMask))
                 {
-                    if (!Physics.Raycast(transform.position, directionToTarget, dstToTarget, obstacleLayerMask))
-                    {
-                        lastKnownTargetPosition = potentialTarget.position; //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
-                        Debug.Log($"{gameObject.name} đã nghe thấy mục tiêu: {potentialTarget.name}");
-                        _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái nghi ngờ khi nghe thấy mục tiêu, có thể mở rộng sau này để có trạng thái riêng cho việc nghe thấy mục tiêu và di chuyển đến vị trí cuối cùng của mục tiêu
-                    }
+                    lastKnownTargetPosition = potentialTarget.position; //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+                    Debug.Log($"{gameObject.name} đã nghe thấy mục tiêu: {potentialTarget.name}");
+                    _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái nghi ngờ khi nghe thấy mục tiêu, có thể mở rộng sau này để có trạng thái riêng cho việc nghe thấy mục tiêu và di chuyển đến vị trí cuối cùng của mục tiêu
                 }
             }
         }
@@ -84,6 +89,16 @@ public class EnemyDetection : MonoBehaviour
         }
     }
 
+    public bool IsTargetVisible(Transform target)
+    {
+        Vector3 eyePosition = transform.position + Vector3.up * 1f; //Điều chỉnh chiều cao của mắt nếu cần thiết
+        Vector3 targetEyePosition = target.position + Vector3.up * 1f; //Điều chỉnh chiều cao của mắt mục tiêu nếu cần thiết
+        Vector3 dirToTarget = (targetEyePosition - eyePosition).normalized;
+        float dstToTarget = Vector3.Distance(eyePosition, targetEyePosition);
+
+        return !Physics.Raycast(eyePosition, dirToTarget, dstToTarget, obstacleLayerMask); //Trả về true nếu không có chướng ngại vật nào chắn giữa Enemy và mục tiêu, ngược lại trả về false
+    }
+
     public void ForceDetectTarget(Transform target)
     {
         currentTarget = target; //Ép đặt mục tiêu cho Enemy, có thể dùng trong trường hợp cần thiết như khi bị đồng bọn cảnh báo hoặc khi bị tấn công từ phía sau mà chưa kịp phát hiện mục tiêu
@@ -96,10 +111,20 @@ public class EnemyDetection : MonoBehaviour
         //Kiểm tra khoảng cách từ Enemy đến mục tiêu để quyết định có mất mục tiêu hay không
 
         float distanceToTarget = Vector3.Distance(transform.position, currentTarget.position);
+
+        //Mất mục tiêu nếu nó di chuyển ra khỏi khoảng cách mất mục tiêu, có thể mở rộng thêm điều kiện mất mục tiêu nếu cần (ví dụ: mất mục tiêu nếu có chướng ngại vật chắn giữa Enemy và mục tiêu) để tránh trường hợp Enemy vẫn giữ mục tiêu mặc dù nó đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách phát hiện
         if (distanceToTarget > _enemyBase.Data.loseTargetRange)
         {
             //Mất mục tiêu nếu nó di chuyển ra khỏi khoảng cách mất mục tiêu, có thể mở rộng thêm điều kiện mất mục tiêu nếu cần (ví dụ: mất mục tiêu nếu có chướng ngại vật chắn giữa Enemy và mục tiêu)
             currentTarget = null;
+            return;
+        }
+        //Ngay lập tức mất mục tiêu chuyển sang nghi ngờ nếu có chướng ngại vật chắn giữa Enemy và mục tiêu để tránh trường hợp Enemy vẫn giữ mục tiêu mặc dù nó đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách phát hiện
+        if (!IsTargetVisible(currentTarget))
+        {
+            lastKnownTargetPosition = currentTarget.position; //Cập nhật vị trí cuối cùng của mục tiêu trước khi mất mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+            currentTarget = null; //Mất mục tiêu nếu có chướng ngại vật chắn giữa Enemy và mục tiêu
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái nghi ngờ khi mất mục tiêu, có thể mở rộng sau này để có trạng thái riêng cho việc mất mục tiêu do có chướng ngại vật chắn giữa để phân biệt với việc mất mục tiêu do di chuyển ra khỏi khoảng cách mất mục tiêu
         }
     }
 

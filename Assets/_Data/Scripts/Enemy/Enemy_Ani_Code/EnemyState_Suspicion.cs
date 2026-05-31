@@ -33,16 +33,31 @@ public class EnemyState_Suspicion : EnemyState
     {
         _enemyBase.Locomotion.StopMoving(); // Dừng lại khi tới nơi cuối cùng biết của mục tiêu
 
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.TurnLeftHash); // Bắt đầu xoay sang trái
-        await RotateTransformOverTime(-45f, 1f, token); // Vừa phát animation vừa xoay 45 độ sang trái trong 1 giây
-        await UniTask.Delay(1000, cancellationToken: token); // Chờ 1 giây sau khi xoay sang trái
+        Vector3 dirToSound = (_enemyBase.Detection.LastKnownTargetPosition - _enemyBase.MyTransform.position).normalized; //Hướng từ Enemy đến vị trí cuối cùng biết của mục tiêu
+        dirToSound.y = 0; //Giữ nguyên trục Y để tránh nghiêng lên xuống
+        Quaternion targetRotion = Quaternion.LookRotation(dirToSound); //Hướng cần quay về để nhìn về phía vị trí cuối cùng biết của mục tiêu
 
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.TurnRightHash); // Bắt đầu xoay sang phải
-        await RotateTransformOverTime(90f, 1f, token); // Vừa phát animation vừa xoay 90 độ sang phải trong 1 giây
-        await UniTask.Delay(1000, cancellationToken: token); // Chờ 1 giây sau khi xoay sang phải
+        float angleToSound = Vector3.SignedAngle(_enemyBase.MyTransform.forward, dirToSound, Vector3.up); // Góc giữa hướng hiện tại của Enemy và hướng đến vị trí cuối cùng biết của mục tiêu, dùng SignedAngle để biết được hướng quay (trái hay phải)
+        int turnHash = angleToSound > 0 ? _enemyBase.AnimatorController.TurnRightHash : _enemyBase.AnimatorController.TurnLeftHash; // Chọn animation xoay tương ứng với hướng cần quay
+        _enemyBase.AnimatorController.PlayAnimation(turnHash); // Phát animation xoay tương ứng với hướng cần quay
 
-        // Nếu sau 3 giây vẫn chưa tìm thấy mục tiêu, quay về trạng thái mặc định
-        _enemyBase.StateMachine.ResetToDefaultState(); // Quay về trạng thái mặc định (ví dụ: Đi tuần)
+        float time = 0f;
+        Quaternion startRot = _enemyBase.MyTransform.rotation;
+        while (time < 0.5f)
+        {
+            time += Time.deltaTime;
+            _enemyBase.MyTransform.rotation = Quaternion.Slerp(startRot, targetRotion, time / 0.5f); // Quay dần dần về hướng vị trí cuối cùng biết của mục tiêu trong 0.5 giây
+            bool isCancelled = await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: token).SuppressCancellationThrow(); // Chờ đến frame tiếp theo để tiếp tục quay, đồng thời kiểm tra nếu trạng thái bị thay đổi trong khi đang quay để ngắt êm ái
+            if (isCancelled) return; // Nếu trạng thái bị thay đổi trong khi đang quay thì ngắt êm ái để tránh lỗi
+        }
+
+        _enemyBase.MyTransform.rotation = targetRotion; // Đảm bảo rằng đã quay chính xác về hướng vị trí cuối cùng biết của mục tiêu sau khi hoàn thành
+        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.IdleHash); // Chuyển về animation Idle sau khi quay xong
+
+        bool isWaitCancelled = await UniTask.Delay(2500, cancellationToken: token).SuppressCancellationThrow(); // Đợi 2.5 giây trước khi từ bỏ tìm kiếm, đồng thời kiểm tra nếu trạng thái bị thay đổi trong khi đang đợi để ngắt êm ái
+        if (isWaitCancelled) return; // Nếu trạng thái bị thay đổi trong khi đang đợi thì ngắt êm ái để tránh lỗi
+
+        _enemyBase.StateMachine.ResetToDefaultState(); // Từ bỏ tìm kiếm và trở về trạng thái mặc định (có thể là Idle hoặc Patrol tùy thuộc vào thiết kế của Enemy) nếu không tìm thấy mục tiêu sau 3 giây
     }
 
     private async UniTask RotateTransformOverTime(float angle, float duration, CancellationToken token)
