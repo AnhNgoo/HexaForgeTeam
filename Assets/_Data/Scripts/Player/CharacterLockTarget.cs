@@ -34,7 +34,7 @@ public class CharacterLockTarget : LoadComponents
     /// </summary>
     public void ToggleLockTarget()
     {
-        if (!IsLockingTarget)
+        if (!IsLockingTarget) // Nếu chưa khóa mục tiêu, tìm và khóa mục tiêu mới
         {
             if (lockTargetMarker != null)
                 ObjectPooling.Instance?.ReturnToPool(PoolType.LockTargetMarker, lockTargetMarker); // Trả marker cũ về pool nếu có

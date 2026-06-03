@@ -7,9 +7,32 @@ public class Kael : CharacterMelee
 {
     [Header("Kael")]
     [SerializeField] protected GameObject kaelGiantVisual;
+    [SerializeField] protected float kaelGiantforwardAttackOffset = 2.5f;
+    [SerializeField] protected float kaelGiantYAttackOffset = 1f;
+    [SerializeField] protected float kaelGiantAttackHitBoxRadius = 2f;
+
+    [Header("Effect Points")]
     public GameObject earthBreakerEffectPoint;
-    public GameObject auraEffect;
-    public GameObject skill2Effect;
+    public GameObject middleEffectPoint;
+    public GameObject bottomEffectPoint;
+    public GameObject kaelGiantPunchEffectPoint_1;
+    public GameObject kaelGiantPunchEffectPoint_2;
+    public GameObject kaelGiantPunchEffectPoint_3;
+    public GameObject kaelGiantPunchEffectPoint_4;
+
+    [Header("Effects")]
+    public PoolType earthBreakerEffect = PoolType.EarthBreaker_2;
+    public PoolType auraEffect_1 = PoolType.AuraEffect_1;
+    public PoolType auraEffect_2 = PoolType.AuraEffect_2;
+    public PoolType auraEffect_3 = PoolType.AuraEffect_3;
+    public PoolType auraEffect_4 = PoolType.AuraEffect_4;
+    public PoolType auraEffect_5 = PoolType.AuraEffect_5;
+    public PoolType kaelGiantAuraEffect_1 = PoolType.KaelGiantAuraEffect_1;
+    public PoolType kaelGiantPunchEffect_1 = PoolType.KaelGiantHit_1;
+    public PoolType kaelGiantPunchEffect_2 = PoolType.KaelGiantHit_2;
+
+
+    public bool IsGiantForm { get; private set; } = false;
     protected override void LoadComponent()
     {
         base.LoadComponent();
@@ -24,14 +47,34 @@ public class Kael : CharacterMelee
         base.LoadEffectPoints();
         if (earthBreakerEffectPoint == null)
             earthBreakerEffectPoint = effectPoints.transform.Find("EarthBreakerEffectPoint").gameObject;
-        if (auraEffect == null)
-            auraEffect = effectPoints.transform.Find("AuraEffect").gameObject;
+        if (middleEffectPoint == null)
+            middleEffectPoint = effectPoints.transform.Find("MiddleEffectPoint").gameObject;
+        if (bottomEffectPoint == null)
+            bottomEffectPoint = effectPoints.transform.Find("BottomEffectPoint").gameObject;
+        if (kaelGiantPunchEffectPoint_1 == null)
+            kaelGiantPunchEffectPoint_1 = effectPoints.transform.Find("KaelGiantPunchEffectPoint_1").gameObject;
+        if (kaelGiantPunchEffectPoint_2 == null)
+            kaelGiantPunchEffectPoint_2 = effectPoints.transform.Find("KaelGiantPunchEffectPoint_2").gameObject;
+        if (kaelGiantPunchEffectPoint_3 == null)
+            kaelGiantPunchEffectPoint_3 = effectPoints.transform.Find("KaelGiantPunchEffectPoint_3").gameObject;
+        if (kaelGiantPunchEffectPoint_4 == null)
+            kaelGiantPunchEffectPoint_4 = effectPoints.transform.Find("KaelGiantPunchEffectPoint_4").gameObject;
     }
     protected override void Init(CharacterData data)
     {
         base.Init(data);
     }
 
+    protected override IAttackStep[] InitPunchCombos()
+    {
+        return new IAttackStep[4]
+        {
+            new KaelPunchStep_1(this),
+            new KaelPunchStep_2(this),
+            new KaelPunchStep_3(this),
+            new KaelPunchStep_4(this)
+        };
+    }
     protected override ICharacterSkill GetSkill_1()
     {
         if (characterSkill.SkillData1 == null)
@@ -45,6 +88,28 @@ public class Kael : CharacterMelee
         if (characterSkill.SkillData2 == null)
             Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
 
-        return new EarthBreaker(this, characterSkill.SkillData2);
+        return new EarthRages(this, characterSkill.SkillData2);
+    }
+
+    public virtual void GiantForm()
+    {
+        IsGiantForm = true;
+        characterCombat.ResetCombo(); // Reset combo khi biến hình để tránh lỗi combo giữa 2 hình dạng
+        characterCombat.SetHitBox(kaelGiantforwardAttackOffset, kaelGiantYAttackOffset, kaelGiantAttackHitBoxRadius); // Cập nhật hitbox cho hình dạng khổng lồ
+        // Chuyển sang hình dạng khổng lồ  
+        characterAnimation.Init(kaelGiantVisual);
+        kaelGiantVisual.SetActive(true);
+        characterVisual.SetActive(false);
+    }
+
+    public virtual void NormalForm()
+    {
+        IsGiantForm = false;
+        characterCombat.ResetCombo(); // Reset combo khi biến hình để tránh lỗi combo giữa 2 hình dạng
+        characterCombat.ResetHitBox(); // Reset hitbox về giá trị mặc định
+        // Chuyển về hình dạng bình thường  
+        characterAnimation.Init(characterVisual);
+        kaelGiantVisual.SetActive(false);
+        characterVisual.SetActive(true);
     }
 }
