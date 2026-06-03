@@ -13,6 +13,7 @@ public class EnemyStateMachine : MonoBehaviour
     private EnemyState_Dead deadState;
     private EnemyState_Patrol patrolState;
     private EnemyState_Suspicion suspicionState;
+    private EnemyState_Return returnState;
     #region Getters
     public EnemyState CurrentState => currentState;
     public EnemyState_Idle EnemyIdleState => idleState;
@@ -22,6 +23,7 @@ public class EnemyStateMachine : MonoBehaviour
     public EnemyState_Dead EnemyDeadState => deadState;
     public EnemyState_Patrol EnemyPatrolState => patrolState;
     public EnemyState_Suspicion EnemySuspicionState => suspicionState;
+    public EnemyState_Return EnemyReturnState => returnState;
     #endregion
 
     public void Initialize(EnemyBase enemyBase)
@@ -35,7 +37,9 @@ public class EnemyStateMachine : MonoBehaviour
         deadState = new EnemyState_Dead(_enemyBase);
         patrolState = new EnemyState_Patrol(_enemyBase);
         suspicionState = new EnemyState_Suspicion(_enemyBase);
-        ResetToDefaultState(); // Đặt trạng thái mặc định khi khởi tạo, có thể là Idle hoặc Patrol tùy thuộc vào thiết kế của Enemy
+        returnState = new EnemyState_Return(_enemyBase);
+        currentState = null;
+
         Subcribe(); // Đăng ký sự kiện khi khởi tạo để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra
     }
 
@@ -61,8 +65,12 @@ public class EnemyStateMachine : MonoBehaviour
 
     private void Unsubscribe()
     {
-        _enemyBase.EventManager.OnStagger -= ActivateStunState; // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
-        _enemyBase.EventManager.OnDead -= ActivateDeadState; // Hủy đăng ký sự kiện chết để tránh lỗi, cần đảm bảo rằng lambda được hủy đúng cách nếu dùng lambda để đăng ký
+        //Kiểm tra xem _enemyBase và EventManager đã được gán hay chưa
+        if (_enemyBase != null && _enemyBase.EventManager != null)
+        {
+            _enemyBase.EventManager.OnStagger -= ActivateStunState; // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
+            _enemyBase.EventManager.OnDead -= ActivateDeadState; // Hủy đăng ký sự kiện chết để tránh lỗi, cần đảm bảo rằng lambda được hủy đúng cách nếu dùng lambda để đăng ký   
+        }
     }
     #endregion
 
@@ -70,6 +78,8 @@ public class EnemyStateMachine : MonoBehaviour
     //Hàm chuyển đổi trạng thái
     public void ChangeState(EnemyState newState)
     {
+        if (currentState == newState) return; //Nếu đang ở trạng thái muốn chuyển đến thì không làm gì để tránh lỗi chuyển trạng thái liên tục khi đã ở trong trạng thái đó
+
         if (currentState != null)
         {
             currentState.Exit();
@@ -95,7 +105,7 @@ public class EnemyStateMachine : MonoBehaviour
     //Hàm Reset trạng thái về Idle (có thể gọi sau khi kết thúc trạng thái Stagger)
     public void ResetToDefaultState()
     {
-        if (_enemyBase.Locomotion.isPatroller && _enemyBase.Locomotion.wayPoints.Length > 0)
+        if (_enemyBase.Locomotion.isPatroller)
         {
             ChangeState(patrolState);
         }
