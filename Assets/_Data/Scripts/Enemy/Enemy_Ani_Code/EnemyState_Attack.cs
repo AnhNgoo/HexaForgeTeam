@@ -15,10 +15,6 @@ public class EnemyState_Attack : EnemyState
     public override void UpdateLogic()
     {
         base.UpdateLogic();
-        if (Time.time < _attackEndTime)
-        {
-            return; //Nếu thời gian hiện tại vẫn chưa đến thời điểm kết thúc của đòn tấn công, không thực hiện logic tấn công mới để tránh lỗi spam tấn công liên tục
-        }
         Transform playerTransform = _enemyBase.Detection.CurrentTarget;
 
         if (playerTransform == null)
@@ -26,8 +22,22 @@ public class EnemyState_Attack : EnemyState
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyIdleState);
             return;
         }
+        Vector3 lookDir = (playerTransform.position - _enemyBase.MyTransform.position).normalized;
+        lookDir.y = 0; //Giữ nguyên trục Y để tránh nghiêng lên xuống
+        _enemyBase.MyTransform.rotation = Quaternion.Slerp(_enemyBase.MyTransform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 5f); //Quay về hướng người chơi với tốc độ mượt mà, có thể điều chỉnh tốc độ quay nếu cần thiết
+
+        if (Time.time < _attackEndTime) return; //Nếu đang trong thời gian của đòn tấn công hiện tại thì không thực hiện logic tấn công mới để tránh lỗi spam tấn công liên tục
+
         //Tính toán khoảng cách đến người chơi để quyết định có tiếp tục tấn công hay không
         float distanceToPlayer = Vector3.Distance(_enemyBase.MyTransform.position, playerTransform.position);
+
+        bool hasClearShot = _enemyBase.Detection.IsTargetVisible(playerTransform); //Kiểm tra xem có đường bắn thẳng đến người chơi hay không để quyết định có thực hiện tấn công tầm xa hay không, tránh trường hợp Enemy vẫn thực hiện tấn công tầm xa mặc dù người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách tấn công
+
+        if (!hasClearShot)
+        {
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState); //Nếu không có đường bắn thẳng đến người chơi, chuyển sang trạng thái Chase để tiếp tục truy đuổi
+            return;
+        }
 
         AttackDataSO chosenAttack = _enemyBase.Combat.ChooseAttack(distanceToPlayer); //Chọn đòn tấn công phù hợp dựa trên khoảng cách đến player
         if (chosenAttack != null)

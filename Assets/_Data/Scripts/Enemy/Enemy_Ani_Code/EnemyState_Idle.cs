@@ -33,10 +33,9 @@ public class EnemyState_Idle : EnemyState
 
         if (!_isTurning && Time.time >= _nextTurnTime)
         {
-            float randomAngle = Random.Range(90f, 180f); // Góc ngẫu nhiên để xoay (90-180 độ)
-            if (Random.value > 0.5f) randomAngle = -randomAngle; // Ngẫu nhiên xoay trái hoặc phải
+            float angle = (Random.value > 0.5f) ? 90f : -90f; // Chọn ngẫu nhiên giữa quay phải hoặc quay trái
 
-            PerformTurnSync(randomAngle, _idleCts.Token).Forget(); // Xoay ngay lập tức mà không cần đợi
+            PerformTurnSync(angle, _idleCts.Token).Forget(); // Xoay ngay lập tức mà không cần đợi
         }
     }
 
@@ -49,10 +48,11 @@ public class EnemyState_Idle : EnemyState
         _enemyBase.AnimatorController.PlayAnimation(turnHash);
 
         // Xoay ngay lập tức mà không cần đợi animation hoàn thành
-        float duration = 1f; // Thời gian xoay
+        float duration = 0.5f; // Thời gian xoay
         Quaternion startRot = _enemyBase.MyTransform.rotation;
         Quaternion endRot = startRot * Quaternion.Euler(0, angle, 0);
         float time = 0;
+
         while (time < duration)
         {
             time += Time.deltaTime;
