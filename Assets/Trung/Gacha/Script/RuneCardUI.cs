@@ -13,14 +13,14 @@ public class RuneCardUI :
 
     [SerializeField] private Image runeShapeImage;
 
-    [SerializeField] private TMP_Text rarityText;
 
     [SerializeField] private TMP_Text colorText;
 
     [SerializeField] private TMP_Text affixText;
+    [SerializeField] private TMP_Text runeNameText;
+    [SerializeField] private TMP_Text runeLoreText;
 
     [Header("Equip UI")]
-[SerializeField] private Image equippedImage;
 
 [SerializeField] private TMP_Text slotText;
 [SerializeField] private Image slotFrameImage;
@@ -39,6 +39,12 @@ public class RuneCardUI :
     [SerializeField] private TMP_Text useButtonText;
 
     [SerializeField] private Button deleteButton;
+[SerializeField] private GameObject backUI;
+
+private bool isRevealed;
+private bool isAnimating;
+private bool canRevealAnimation;
+
 
     [Header("Card Sprite")]
     [SerializeField] private Sprite commonSprite;
@@ -76,32 +82,20 @@ public class RuneCardUI :
 
     [SerializeField] private Sprite blueLegendarySprite;
 
-    [Header("Animation")]
-    [SerializeField] private float stampDuration = 0.38f;
-
-    [SerializeField] private float cardShakeDuration = 0.16f;
-
-    [SerializeField] private float cardShakeStrength = 6f;
-
-    [SerializeField] private float rarityTextStartScale = 4.5f;
-
-    private static readonly Color EpicColor =
-        new Color(0.7f, 0.3f, 1f);
-
     private RuneData currentRuneData;
 
     private bool isOpened;
+    private bool isSelected;
+
+[Header("Select")]
+[SerializeField] private GameObject selectedHighlight;
+
 
     private void Awake()
     {
         transform.rotation =
             Quaternion.identity;
 
-        rarityText.transform.localScale =
-            Vector3.one;
-
-        rarityText.transform.rotation =
-            Quaternion.identity;
 
         ClosePanels();
 
@@ -139,59 +133,110 @@ public class RuneCardUI :
         bool playAnimation = true)
     {
         currentRuneData = runeData;
+        isSelected = false;
 
-        rarityText.text =
-            runeData.runeRarity.ToString();
+if (selectedHighlight != null)
+{
+    selectedHighlight.SetActive(false);
+}
 
-        SetupCardImage(
-            runeData.runeRarity);
+SetupCardImage(
+    runeData.runeRarity);
 
-        SetupRuneShape(
-            runeData.runeColor,
-            runeData.runeRarity);
+SetupRuneShape(
+    runeData.runeColor,
+    runeData.runeRarity);
 
-        SetupColorText(
-            runeData.runeColor);
+SetupColorText(
+    runeData.runeColor);
 
-        SetupRarityColor(
-            runeData.runeRarity);
+SetupRuneName(
+    runeData);
 
-        SetupAffixText(
-            runeData);
+SetupRuneLore(
+    runeData);
 
-        SetupTooltip(
-            runeData);
+SetupAffixText(
+    runeData);
 
-        UpdateEquipUI();
+SetupTooltip(
+    runeData);
 
-        if (!playAnimation)
-        {
-            return;
-        }
+UpdateEquipUI();
+canRevealAnimation =
+    playAnimation;
 
-        StopAllCoroutines();
+isAnimating = false;
 
-        StartCoroutine(
-            PlayStampAnimation());
+if (canRevealAnimation)
+{
+    HideFrontUI();
+
+    if (backUI != null)
+    {
+        backUI.SetActive(true);
+    }
+
+    isRevealed = false;
+}
+else
+{
+    ShowFrontUI();
+
+    if (backUI != null)
+    {
+        backUI.SetActive(false);
+    }
+
+    isRevealed = true;
+}
     }
 
     public void OnPointerClick(
-        PointerEventData eventData)
+    PointerEventData eventData)
+{
+    if (isAnimating)
+{
+    return;
+}
+
+if (canRevealAnimation &&
+    !isRevealed)
+{
+    StartCoroutine(
+        RevealAnimation());
+
+    return;
+}
+    if (InventoryUI.Instance != null &&
+        InventoryUI.Instance.IsDeleteMode())
     {
-        isOpened = !isOpened;
+        isSelected = !isSelected;
 
-        if (tooltipPanel != null)
+        if (selectedHighlight != null)
         {
-            tooltipPanel.SetActive(
-                isOpened);
+            selectedHighlight.SetActive(
+                isSelected);
+                
         }
 
-        if (actionPanel != null)
-        {
-            actionPanel.SetActive(
-                isOpened);
-        }
+        return;
     }
+
+    isOpened = !isOpened;
+
+    if (tooltipPanel != null)
+    {
+        tooltipPanel.SetActive(
+            isOpened);
+    }
+
+    if (actionPanel != null)
+    {
+        actionPanel.SetActive(
+            isOpened);
+    }
+}
 
     private void ClosePanels()
     {
@@ -251,16 +296,6 @@ public class RuneCardUI :
             return;
         }
 
-        tooltipText.text = "";
-
-        tooltipText.text +=
-            $"<b>{runeData.runeRarity}</b>\n";
-
-        tooltipText.text +=
-            $"{GetColorName(runeData.runeColor)} Rune\n";
-
-        tooltipText.text +=
-            "────────────\n";
 
         for (int i = 0;
             i < runeData.affixes.Count;
@@ -358,16 +393,23 @@ public class RuneCardUI :
     }
 
     private void OnDeleteButton()
-    {
-        if (RuneInventory.Instance != null)
-        {
-            RuneInventory.Instance
-                .RemoveRune(
-                    currentRuneData.runeID);
-        }
+{
+    int refundGem =
+        GetRefundGemByRarity(
+            currentRuneData.runeRarity);
 
-        Destroy(gameObject);
+    GemManager.Instance
+        .AddGem(refundGem);
+
+    if (RuneInventory.Instance != null)
+    {
+        RuneInventory.Instance
+            .RemoveRune(
+                currentRuneData.runeID);
     }
+
+    Destroy(gameObject);
+}
 
     #endregion
 
@@ -561,11 +603,6 @@ public class RuneCardUI :
                 inventoryRune;
         }
 
-        if (equippedImage != null)
-{
-    equippedImage.gameObject.SetActive(
-        currentRuneData.isEquipped);
-}
 
         if (slotText != null)
         {
@@ -634,40 +671,7 @@ public class RuneCardUI :
         }
     }
 
-    private void SetupRarityColor(
-        RuneRarity runeRarity)
-    {
-        switch (runeRarity)
-        {
-            case RuneRarity.Common:
 
-                rarityText.color =
-                    Color.white;
-
-                break;
-
-            case RuneRarity.Rare:
-
-                rarityText.color =
-                    Color.cyan;
-
-                break;
-
-            case RuneRarity.Epic:
-
-                rarityText.color =
-                    EpicColor;
-
-                break;
-
-            case RuneRarity.Legendary:
-
-                rarityText.color =
-                    Color.yellow;
-
-                break;
-        }
-    }
 
     private void SetupAffixText(
         RuneData runeData)
@@ -698,121 +702,152 @@ public class RuneCardUI :
         }
     }
 
-    private string GetShortStatName(
-        RuneStatType statType)
+   private string GetShortStatName(
+    RuneStatType statType)
+{
+    switch (statType)
     {
-        switch (statType)
-        {
-            case RuneStatType.HP:
-                return "HP";
+        case RuneStatType.HP:
+            return "HP";
 
-            case RuneStatType.MP:
-                return "MP";
+        case RuneStatType.HPPercent:
+            return "HP%";
 
-            case RuneStatType.Stamina:
-                return "STA";
+        case RuneStatType.MP:
+            return "MP";
 
-            case RuneStatType.ATK:
-                return "ATK";
+        case RuneStatType.MPPercent:
+            return "MP%";
 
-            case RuneStatType.MATK:
-                return "MATK";
+        case RuneStatType.Stamina:
+            return "STA";
 
-            case RuneStatType.DEF:
-                return "DEF";
+        case RuneStatType.StaminaPercent:
+            return "STA%";
 
-            case RuneStatType.AttackSpeed:
-                return "ASPD";
+        case RuneStatType.ATK:
+            return "ATK";
 
-            case RuneStatType.CooldownReduction:
-                return "CDR";
+        case RuneStatType.ATKPercent:
+            return "ATK%";
 
-            case RuneStatType.CritChance:
-                return "CRIT";
+        case RuneStatType.MATK:
+            return "MATK";
 
-            case RuneStatType.CritDamage:
-                return "CRIT DMG";
+        case RuneStatType.MATKPercent:
+            return "MATK%";
 
-            case RuneStatType.ArmorPenetration:
-                return "ARM PEN";
+        case RuneStatType.DEF:
+            return "DEF";
 
-            case RuneStatType.MoveSpeed:
-                return "MOVE SPD";
+        case RuneStatType.DEFPercent:
+            return "DEF%";
 
-            case RuneStatType.StaminaRegen:
-                return "STA REGEN";
-        }
+        case RuneStatType.AttackSpeed:
+            return "ASPD";
 
-        return "UNKNOWN";
+        case RuneStatType.CritChance:
+            return "CRIT";
+
+        case RuneStatType.CritDamage:
+            return "CRIT DMG";
+
+        case RuneStatType.ArmorPenetration:
+            return "ARM PEN";
+
+        case RuneStatType.StaminaRegen:
+            return "STA REG";
+
     }
+
+    return "UNKNOWN";
+}
 
     private string GetFullStatName(
-        RuneStatType statType)
+    RuneStatType statType)
+{
+    switch (statType)
     {
-        switch (statType)
-        {
-            case RuneStatType.HP:
-                return "HP";
+        case RuneStatType.HP:
+            return "HP";
 
-            case RuneStatType.MP:
-                return "MP";
+        case RuneStatType.HPPercent:
+            return "HP";
 
-            case RuneStatType.Stamina:
-                return "Stamina";
+        case RuneStatType.MP:
+            return "MP";
 
-            case RuneStatType.ATK:
-                return "Attack";
+        case RuneStatType.MPPercent:
+            return "MP";
 
-            case RuneStatType.MATK:
-                return "Magic Attack";
+        case RuneStatType.Stamina:
+            return "Stamina";
 
-            case RuneStatType.DEF:
-                return "Defense";
+        case RuneStatType.StaminaPercent:
+            return "Stamina";
 
-            case RuneStatType.AttackSpeed:
-                return "Attack Speed";
+        case RuneStatType.ATK:
+            return "Attack";
 
-            case RuneStatType.CooldownReduction:
-                return "Cooldown Reduction";
+        case RuneStatType.ATKPercent:
+            return "Attack";
 
-            case RuneStatType.CritChance:
-                return "Critical Chance";
+        case RuneStatType.MATK:
+            return "Magic Attack";
 
-            case RuneStatType.CritDamage:
-                return "Critical Damage";
+        case RuneStatType.MATKPercent:
+            return "Magic Attack";
 
-            case RuneStatType.ArmorPenetration:
-                return "Armor Penetration";
+        case RuneStatType.DEF:
+            return "Defense";
 
-            case RuneStatType.MoveSpeed:
-                return "Move Speed";
+        case RuneStatType.DEFPercent:
+            return "Defense";
 
-            case RuneStatType.StaminaRegen:
-                return "Stamina Regeneration";
-        }
+        case RuneStatType.AttackSpeed:
+            return "Attack Speed";
 
-        return "Unknown";
+        case RuneStatType.CritChance:
+            return "Critical Chance";
+
+        case RuneStatType.CritDamage:
+            return "Critical Damage";
+
+        case RuneStatType.ArmorPenetration:
+            return "Armor Penetration";
+
+        case RuneStatType.StaminaRegen:
+            return "Stamina Regeneration";
+
     }
 
+    return "Unknown";
+}
     private bool IsPercentStat(
-        RuneStatType statType)
+    RuneStatType statType)
+{
+    switch (statType)
     {
-        switch (statType)
-        {
-            case RuneStatType.AttackSpeed:
-            case RuneStatType.CooldownReduction:
-            case RuneStatType.CritChance:
-            case RuneStatType.CritDamage:
-            case RuneStatType.ArmorPenetration:
-            case RuneStatType.MoveSpeed:
-            case RuneStatType.StaminaRegen:
+        case RuneStatType.HPPercent:
+        case RuneStatType.MPPercent:
+        case RuneStatType.StaminaPercent:
 
-                return true;
-        }
+        case RuneStatType.ATKPercent:
+        case RuneStatType.MATKPercent:
+        case RuneStatType.DEFPercent:
 
-        return false;
+        case RuneStatType.AttackSpeed:
+        case RuneStatType.CritChance:
+        case RuneStatType.CritDamage:
+        case RuneStatType.ArmorPenetration:
+        case RuneStatType.StaminaRegen:
+
+
+            return true;
     }
 
+    return false;
+}
     private string GetColorName(
         RuneColor runeColor)
     {
@@ -833,120 +868,300 @@ public class RuneCardUI :
 
     #endregion
 
-    #region Animation
+       public bool IsSelected()
+{
+    return isSelected;
+}
 
-    private IEnumerator PlayStampAnimation()
+public RuneData GetRuneData()
+{
+    return currentRuneData;
+}
+private int GetRefundGemByRarity(
+    RuneRarity rarity)
+{
+    switch (rarity)
     {
-        float time = 0f;
+        case RuneRarity.Common:
+            return 50;
 
-        Vector3 startScale =
-            Vector3.one *
-            rarityTextStartScale;
+        case RuneRarity.Rare:
+            return 120;
 
-        Vector3 impactScale =
-            Vector3.one * 0.72f;
+        case RuneRarity.Epic:
+            return 300;
 
-        Vector3 finalScale =
-            Vector3.one;
+        case RuneRarity.Legendary:
+            return 800;
+    }
 
-        float startRotation =
-            Random.Range(-15f, 15f);
+    return 0;
+}
+public bool IsLegendary()
+{
+    if (currentRuneData == null)
+    {
+        return false;
+    }
 
-        rarityText.transform.localScale =
-            startScale;
+    return
+        currentRuneData.runeRarity ==
+        RuneRarity.Legendary;
+}
 
-        rarityText.transform.rotation =
-            Quaternion.Euler(
-                0f,
-                0f,
-                startRotation);
+public bool IsRevealed()
+{
+    return isRevealed;
+}
 
-        while (time < stampDuration)
+public void ForceReveal()
+{
+    if (isAnimating)
+    {
+        return;
+    }
+
+    if (isRevealed)
+    {
+        return;
+    }
+
+    StartCoroutine(
+        RevealAnimation());
+}
+private void SetupRuneName(
+    RuneData runeData)
+{
+    if (runeNameText == null)
+    {
+        return;
+    }
+
+    runeNameText.text =
+        runeData.runeName;
+}
+private void SetupRuneLore(
+    RuneData runeData)
+{
+    if (runeLoreText == null)
+    {
+        return;
+    }
+
+    Debug.Log(
+        "Lore = " +
+        runeData.runeLore);
+
+    runeLoreText.text =
+        $"\"{runeData.runeLore}\"";
+}
+public void SetSelected(
+    bool value)
+{
+    isSelected = value;
+
+    if (selectedHighlight != null)
+    {
+        selectedHighlight.SetActive(
+            isSelected);
+            if (InventoryUI.Instance != null)
+{
+    InventoryUI.Instance
+        .UpdateSelectModeText();
+}
+    }
+}
+private void HideFrontUI()
+{
+    if (runeShapeImage != null)
+    {
+        runeShapeImage.gameObject.SetActive(false);
+    }
+
+    if (colorText != null)
+    {
+        colorText.gameObject.SetActive(false);
+    }
+
+    if (affixText != null)
+    {
+        affixText.gameObject.SetActive(false);
+    }
+
+    if (runeNameText != null)
+    {
+        runeNameText.gameObject.SetActive(false);
+    }
+
+    if (runeLoreText != null)
+    {
+        runeLoreText.gameObject.SetActive(false);
+    }
+
+    if (slotText != null)
+    {
+        slotText.gameObject.SetActive(false);
+    }
+
+    if (slotFrameImage != null)
+    {
+        slotFrameImage.gameObject.SetActive(false);
+    }
+}
+
+private void ShowFrontUI()
+{
+    if (runeShapeImage != null)
+    {
+        runeShapeImage.gameObject.SetActive(true);
+    }
+
+    if (colorText != null)
+    {
+        colorText.gameObject.SetActive(true);
+    }
+
+    if (affixText != null)
+    {
+        affixText.gameObject.SetActive(true);
+    }
+
+    if (runeNameText != null)
+    {
+        runeNameText.gameObject.SetActive(true);
+    }
+
+    if (runeLoreText != null)
+    {
+        runeLoreText.gameObject.SetActive(true);
+    }
+
+    UpdateEquipUI();
+}
+private IEnumerator RevealAnimation()
+{
+    isAnimating = true;
+
+    RectTransform rect =
+        transform as RectTransform;
+
+    Vector3 originalScale =
+        rect.localScale;
+
+    Vector3 originalPos =
+        rect.localPosition;
+
+    float flipTime = 0.35f;
+
+    float timer = 0f;
+
+    bool revealed = false;
+
+    while (timer < flipTime)
+    {
+        timer += Time.deltaTime;
+
+        float t =
+            timer / flipTime;
+
+        float xScale;
+
+        if (t < 0.5f)
         {
-            time += Time.deltaTime;
-
-            float t =
-                time / stampDuration;
-
-            if (t < 0.65f)
-            {
-                float lerpT =
-                    t / 0.65f;
-
-                rarityText.transform.localScale =
-                    Vector3.Lerp(
-                        startScale,
-                        impactScale,
-                        lerpT);
-            }
-            else
-            {
-                float lerpT =
-                    (t - 0.65f) / 0.35f;
-
-                rarityText.transform.localScale =
-                    Vector3.Lerp(
-                        impactScale,
-                        finalScale,
-                        lerpT);
-            }
-
-            float rotation =
+            xScale =
                 Mathf.Lerp(
-                    startRotation,
+                    1f,
                     0f,
-                    t);
-
-            rarityText.transform.rotation =
-                Quaternion.Euler(
-                    0f,
-                    0f,
-                    rotation);
-
-            yield return null;
+                    t * 2f);
         }
-
-        rarityText.transform.localScale =
-            Vector3.one;
-
-        rarityText.transform.rotation =
-            Quaternion.identity;
-
-        yield return StartCoroutine(
-            PlayCardShake());
-    }
-
-    private IEnumerator PlayCardShake()
-    {
-        float time = 0f;
-
-        Quaternion originalRotation =
-            transform.rotation;
-
-        while (time < cardShakeDuration)
+        else
         {
-            time += Time.deltaTime;
+            if (!revealed)
+            {
+                revealed = true;
 
-            float t =
-                time / cardShakeDuration;
+                if (backUI != null)
+                {
+                    backUI.SetActive(false);
+                }
 
-            float shake =
-                Mathf.Sin(t * 45f) *
-                (1f - t) *
-                cardShakeStrength;
+                ShowFrontUI();
+            }
 
-            transform.rotation =
-                Quaternion.Euler(
+            xScale =
+                Mathf.Lerp(
                     0f,
-                    0f,
-                    shake);
-
-            yield return null;
+                    1f,
+                    (t - 0.5f) * 2f);
         }
 
-        transform.rotation =
-            originalRotation;
+        rect.localScale =
+            new Vector3(
+                originalScale.x * xScale,
+                originalScale.y,
+                originalScale.z);
+
+        yield return null;
     }
 
-    #endregion
+    rect.localScale =
+        originalScale;
+
+    float slamTime = 0.08f;
+
+    timer = 0f;
+
+    while (timer < slamTime)
+    {
+        timer += Time.deltaTime;
+
+        float t =
+            timer / slamTime;
+
+        rect.localScale =
+            Vector3.Lerp(
+                originalScale * 1.18f,
+                originalScale * 0.82f,
+                t);
+
+        yield return null;
+    }
+
+    timer = 0f;
+
+    while (timer < 0.1f)
+    {
+        timer += Time.deltaTime;
+
+        float shakeX =
+            Random.Range(-4f, 4f);
+
+        float shakeY =
+            Random.Range(-4f, 4f);
+
+        rect.localPosition =
+            originalPos +
+            new Vector3(
+                shakeX,
+                shakeY,
+                0f);
+
+        yield return null;
+    }
+
+    rect.localPosition =
+        originalPos;
+
+    rect.localScale =
+        originalScale;
+
+    isRevealed = true;
+    if (GachaManager.Instance != null)
+{
+    GachaManager.Instance
+        .NotifyCardRevealed();
+}
+
+    isAnimating = false;
+}
 }
