@@ -1815,6 +1815,10 @@ PrefabInstance:
       propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 21300000, guid: 9b5d54e8067bf894fab5f1d886715df8, type: 3}
+    - target: {fileID: 2261529952701424220, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
+      propertyPath: m_Name
+      value: Back Button
+      objectReference: {fileID: 0}
     - target: {fileID: 2506528190904726762, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
       propertyPath: m_AnchorMax.y
       value: 1
@@ -2175,7 +2179,10 @@ PrefabInstance:
     - {fileID: 4819003791756853462, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
     - {fileID: 1467626785403564745, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2261529952701424220, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1826617015}
   m_SourcePrefab: {fileID: 100100000, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
 --- !u!224 &797792518 stripped
 RectTransform:
@@ -3363,6 +3370,7 @@ GameObject:
   - component: {fileID: 1104541025}
   - component: {fileID: 1104541024}
   - component: {fileID: 1104541023}
+  - component: {fileID: 1104541027}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -3399,12 +3407,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.5
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -3453,6 +3461,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1104541027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1104541022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b54d3ede7b2a1e468daf5feab4ccf2e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameplaySceneName: UI Gameplay
 --- !u!1001 &1222310035
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4806,8 +4827,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000061035156, y: 0.0036621094}
-  m_SizeDelta: {x: 1920, y: 1080}
+  m_AnchoredPosition: {x: 0.0014648438, y: 0.0036621094}
+  m_SizeDelta: {x: 2118.4, y: 1080}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1727390262
 GameObject:
@@ -5322,6 +5343,78 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7797657352272877331, guid: de12d5c338e7f8c42b6907874aa2c914, type: 3}
   m_PrefabInstance: {fileID: 1818185895}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1826617013 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2261529952701424220, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
+  m_PrefabInstance: {fileID: 797792517}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1826617015
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826617013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1826617016}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 1104541027}
+        m_TargetAssemblyTypeName: InventoryUIButtons, Assembly-CSharp
+        m_MethodName: BackToGameplay
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &1826617016 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4000344442093776501, guid: 3cf4d4f45f8b05a44aa7ba160f094ab4, type: 3}
+  m_PrefabInstance: {fileID: 797792517}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826617013}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1969486498
 PrefabInstance:
   m_ObjectHideFlags: 0
