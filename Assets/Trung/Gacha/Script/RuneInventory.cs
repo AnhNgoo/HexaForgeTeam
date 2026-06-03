@@ -2,12 +2,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-public class RuneInventory : MonoBehaviour
+public class RuneInventory :
+    MonoBehaviour,
+    IStatProvider
 {
     public static RuneInventory Instance;
 
     public List<RuneData> runes =
         new List<RuneData>();
+        [Header("Rune Hard Cap")]
+
+[SerializeField] private float maxHP = 2800f;
+[SerializeField] private float maxMP = 2800f;
+[SerializeField] private float maxStamina = 2800f;
+
+[SerializeField] private float maxATK = 110f;
+[SerializeField] private float maxMATK = 110f;
+[SerializeField] private float maxDEF = 75f;
+
+[SerializeField] private float maxHPPercent = 28f;
+[SerializeField] private float maxMPPercent = 28f;
+[SerializeField] private float maxStaminaPercent = 28f;
+
+[SerializeField] private float maxATKPercent = 24f;
+[SerializeField] private float maxMATKPercent = 24f;
+[SerializeField] private float maxDEFPercent = 24f;
+
+[SerializeField] private float maxAttackSpeed = 32f;
+
+[SerializeField] private float maxCritChance = 38f;
+[SerializeField] private float maxCritDamage = 90f;
+
+[SerializeField] private float maxArmorPenetration = 28f;
+
+[SerializeField] private float maxStaminaRegen = 45f;
 
     private void Awake()
     {
@@ -162,7 +190,7 @@ private int GetEmptySlot()
 #region Total Stats
 
 public Dictionary<RuneStatType, float>
-    GetTotalStats()
+    GetStats()
 {
     Dictionary<RuneStatType, float>
         totalStats =
@@ -199,6 +227,8 @@ public Dictionary<RuneStatType, float>
                 affix.value;
         }
     }
+    ApplyRuneHardCaps(
+    totalStats);
 
     return totalStats;
 }
@@ -207,7 +237,7 @@ private void DebugTotalStats()
 {
     Dictionary<RuneStatType, float>
         stats =
-        GetTotalStats();
+        GetStats();
 
     foreach (var stat in stats)
     {
@@ -217,4 +247,108 @@ private void DebugTotalStats()
 }
 
 #endregion
+private void ApplyRuneHardCaps(
+    Dictionary<RuneStatType, float> stats)
+{
+    ClampStat(stats, RuneStatType.HP, maxHP);
+    ClampStat(stats, RuneStatType.MP, maxMP);
+    ClampStat(stats, RuneStatType.Stamina, maxStamina);
+
+    ClampStat(stats, RuneStatType.ATK, maxATK);
+    ClampStat(stats, RuneStatType.MATK, maxMATK);
+    ClampStat(stats, RuneStatType.DEF, maxDEF);
+
+    ClampStat(stats, RuneStatType.HPPercent, maxHPPercent);
+    ClampStat(stats, RuneStatType.MPPercent, maxMPPercent);
+    ClampStat(stats, RuneStatType.StaminaPercent, maxStaminaPercent);
+
+    ClampStat(stats, RuneStatType.ATKPercent, maxATKPercent);
+    ClampStat(stats, RuneStatType.MATKPercent, maxMATKPercent);
+    ClampStat(stats, RuneStatType.DEFPercent, maxDEFPercent);
+
+    ClampStat(stats, RuneStatType.AttackSpeed, maxAttackSpeed);
+
+    ClampStat(stats, RuneStatType.CritChance, maxCritChance);
+    ClampStat(stats, RuneStatType.CritDamage, maxCritDamage);
+
+    ClampStat(stats, RuneStatType.ArmorPenetration, maxArmorPenetration);
+
+    ClampStat(stats, RuneStatType.StaminaRegen, maxStaminaRegen);
+}
+
+private void ClampStat(
+    Dictionary<RuneStatType, float> stats,
+    RuneStatType statType,
+    float maxValue)
+{
+    if (!stats.ContainsKey(statType))
+    {
+        return;
+    }
+
+    stats[statType] =
+        Mathf.Min(
+            stats[statType],
+            maxValue);
+}
+
+public float GetHardCap(
+    RuneStatType statType)
+{
+    switch (statType)
+    {
+        case RuneStatType.HP:
+            return maxHP;
+
+        case RuneStatType.MP:
+            return maxMP;
+
+        case RuneStatType.Stamina:
+            return maxStamina;
+
+        case RuneStatType.ATK:
+            return maxATK;
+
+        case RuneStatType.MATK:
+            return maxMATK;
+
+        case RuneStatType.DEF:
+            return maxDEF;
+
+        case RuneStatType.HPPercent:
+            return maxHPPercent;
+
+        case RuneStatType.MPPercent:
+            return maxMPPercent;
+
+        case RuneStatType.StaminaPercent:
+            return maxStaminaPercent;
+
+        case RuneStatType.ATKPercent:
+            return maxATKPercent;
+
+        case RuneStatType.MATKPercent:
+            return maxMATKPercent;
+
+        case RuneStatType.DEFPercent:
+            return maxDEFPercent;
+
+        case RuneStatType.AttackSpeed:
+            return maxAttackSpeed;
+
+        case RuneStatType.CritChance:
+            return maxCritChance;
+
+        case RuneStatType.CritDamage:
+            return maxCritDamage;
+
+        case RuneStatType.ArmorPenetration:
+            return maxArmorPenetration;
+
+        case RuneStatType.StaminaRegen:
+            return maxStaminaRegen;
+    }
+
+    return 0f;
+}
 }
