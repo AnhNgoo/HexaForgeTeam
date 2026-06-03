@@ -13,4 +13,5 @@ public class CharacterSkillData : ScriptableObject
     [Header("Skill Stats")]
     public int damage;
     public float cooldown;
+    public float duration;
 }
