@@ -1,17 +1,23 @@
 using UnityEngine;
 
-public class EnemyProjectile : MonoBehaviour
+public class EnemyProjectile : MonoBehaviour, IPoolable
 {
+    private EnemyBase _sourceEnemy;
     private float _damage;
     private float _speed;
     private Vector3 _direction;
     private bool _isLaunched = false;
 
-    public void Launch(float damage, float speed, Vector3 direction)
+    private PoolType _hitVFX;
+    public PoolType PoolType => PoolType.None;
+
+    public void Launch(EnemyBase sourceEnemy, float damage, float speed, Vector3 direction, PoolType hitVFX)
     {
+        _sourceEnemy = sourceEnemy;
         _damage = damage;
         _speed = speed;
         _direction = direction.normalized;
+        _hitVFX = hitVFX;
         _isLaunched = true;
 
         transform.forward = _direction; // Xoay hướng viên đạn về hướng di chuyển
@@ -30,6 +36,17 @@ public class EnemyProjectile : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             DebugNote.Green("Đạn trúng Player mất " + _damage + " máu!");
+
+            if (_hitVFX != PoolType.None)
+            {
+                ObjectPooling.Instance.SpawnFromPool(_hitVFX, transform.position, Quaternion.identity);
+            }
+
+            if (_sourceEnemy != null)
+            {
+                _sourceEnemy.ExtendLeash(_sourceEnemy.Data.maxLeashDistance + 5f);
+            }
+
             Destroy(gameObject);
         }
         // Kiểm tra nếu va chạm với lớp chướng ngại vật (Sử dụng dịch Bit để so sánh lớp sau này có thể mở rộng để kiểm tra nhiều lớp khác nhau mà không cần nhiều ||)
@@ -39,4 +56,6 @@ public class EnemyProjectile : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    public void OnSpawnFromPool() { }
+    public void OnReturnToPool() { _isLaunched = false; _sourceEnemy = null; }
 }
