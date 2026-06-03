@@ -33,15 +33,8 @@ public class HealthRecoveryState : ICharacterState
 
     public void Update()
     {
-        //Chuyển về FallState nếu đang ở trên không và bắt đầu rơi
-        if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.CC.velocity.y < character.CharacterMovement.FallThreshold)
-        {
-            character.StateController.ChangeState(new FallState(character));
-            return;
-        }
-
         //Animation idle khi uống hồi máu
-        if (character.CharacterMovement.MoveDirection == Vector2.zero)
+        if (character.CharacterInput.moveInput == Vector2.zero)
         {
             character.CharacterAnimation.CrossFadeOneshot("Idle", 0.1f);
             character.CharacterMovement.Stop();
@@ -54,8 +47,8 @@ public class HealthRecoveryState : ICharacterState
 
     private void MoveNormal()
     {
-        float xAbs = Mathf.Abs(character.JoystickInput.x);
-        float yAbs = Mathf.Abs(character.JoystickInput.y);
+        float xAbs = Mathf.Abs(character.CharacterInput.moveInput.x);
+        float yAbs = Mathf.Abs(character.CharacterInput.moveInput.y);
         float inputSpeed = Mathf.Max(xAbs, yAbs);// Giá trị lớn nhất giữa x và y của joystick để xác định tốc độ di chuyển
         float speed = character.CharacterData.stats.speed;
 
@@ -75,7 +68,6 @@ public class HealthRecoveryState : ICharacterState
     private async void StartHealthRecovery()
     {
         bool isHealthRecovered = false; // Đảm bảo chỉ hồi máu một lần trong quá trình animation
-        character.IsHealthRecovering = true;
 
         while (character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) <= healthRecoveryCompleteThreshold)
         {
@@ -86,7 +78,6 @@ public class HealthRecoveryState : ICharacterState
             }
             await UniTask.Yield();
         }
-        character.IsHealthRecovering = false;
         character.StateController.ChangeState(new IdleState(character));
     }
 }

@@ -13,7 +13,6 @@ public class WallJumpState : ICharacterState
     {
         character.CharacterAnimation.CrossFade("WallJump", 0.1f);
         character.CharacterMovement.WallJump();
-        character.CharacterMovement.CanWallJump = false; //Tắt khả năng wall jump sau khi đã thực hiện
     }
 
     public void Exit()
@@ -46,13 +45,13 @@ public class WallJumpState : ICharacterState
                                                 0f,
                                                 character.CharacterMovement.MoveDirection.y);
 
-        if (character.CharacterMovement.MoveDirection != Vector2.zero && !character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.moveInput != Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.MoveAir(character.CharacterMovement.MoveDirection, speed);
             character.CharacterRotate.Rotate(rotationDirection);
             return;
         }
-        if (character.CharacterMovement.MoveDirection == Vector2.zero && !character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.moveInput == Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.Stop();
             return;
