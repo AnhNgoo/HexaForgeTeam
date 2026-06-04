@@ -16,6 +16,7 @@ public class HUDMenuTest : MenuBase
     [SerializeField] private EventTouch btn_LockTarget;
     [SerializeField] private EventTouch btn_HealthRecovery;
     [SerializeField] private EventTouch btn_Skill_1;
+    [SerializeField] private EventTouch btn_Skill_2;
 
 
     protected override void LoadComponent()
@@ -34,6 +35,8 @@ public class HUDMenuTest : MenuBase
             btn_HealthRecovery = transform.Find("Btn_HealthRecovery").GetComponent<EventTouch>();
         if (btn_Skill_1 == null)
             btn_Skill_1 = transform.Find("Btn_Skill_1").GetComponent<EventTouch>();
+        if (btn_Skill_2 == null)
+            btn_Skill_2 = transform.Find("Btn_Skill_2").GetComponent<EventTouch>();
     }
 
     protected override void LoadComponentRuntime()
@@ -50,6 +53,7 @@ public class HUDMenuTest : MenuBase
         btn_LockTarget.onPointerDown.AddListener(OnLockTargetButtonClicked);
         btn_HealthRecovery.onPointerDown.AddListener(OnHealthRecoveryButtonClicked);
         btn_Skill_1.onPointerDown.AddListener(OnSkill_1ButtonClicked);
+        btn_Skill_2.onPointerDown.AddListener(OnSkill_2ButtonClicked);
     }
     public override void Close()
     {
@@ -60,40 +64,70 @@ public class HUDMenuTest : MenuBase
         btn_LockTarget.onPointerDown.RemoveListener(OnLockTargetButtonClicked);
         btn_HealthRecovery.onPointerDown.RemoveListener(OnHealthRecoveryButtonClicked);
         btn_Skill_1.onPointerDown.RemoveListener(OnSkill_1ButtonClicked);
+        btn_Skill_2.onPointerDown.RemoveListener(OnSkill_2ButtonClicked);
     }
 
+    private void Start()
+    {
+        EventManager.Subscribe(GameEvent.OnActiveSkill_1, OnActiveSkill_1);
+        EventManager.Subscribe(GameEvent.OnActiveSkill_2, OnActiveSkill_2);
+    }
 
+    private void OnDestroy()
+    {
+        EventManager.Unsubscribe(GameEvent.OnActiveSkill_1, OnActiveSkill_1);
+        EventManager.Unsubscribe(GameEvent.OnActiveSkill_2, OnActiveSkill_2);
+    }
     private void Update()
     {
-        EventManager.Instance?.Notify(GameEvent.OnMovement, joystick.Direction);
+        EventManager.Notify(GameEvent.OnMovement, joystick.Direction);
     }
 
     private void OnDodgeButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnDodge);
+        EventManager.Notify(GameEvent.OnDodge);
     }
 
     private void OnJumpButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnJump);
-        EventManager.Instance?.Notify(GameEvent.OnWallJump);
+        EventManager.Notify(GameEvent.OnJump);
+        EventManager.Notify(GameEvent.OnWallJump);
     }
     private void OnAttackButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnAttack);
+        EventManager.Notify(GameEvent.OnAttack);
     }
     private void OnLockTargetButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnLockTarget);
+        EventManager.Notify(GameEvent.OnLockTarget);
     }
 
     private void OnHealthRecoveryButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnHealthRecovery);
+        EventManager.Notify(GameEvent.OnHealthRecovery);
     }
 
     private void OnSkill_1ButtonClicked()
     {
-        EventManager.Instance?.Notify(GameEvent.OnSkill_1);
+        EventManager.Notify(GameEvent.OnSkill_1);
+    }
+
+    private void OnSkill_2ButtonClicked()
+    {
+        EventManager.Notify(GameEvent.OnSkill_2);
+    }
+
+    private void OnActiveSkill_1(object obj)
+    {
+        if (obj is not bool isActive) return;
+
+        btn_Skill_1.SetInteractable(isActive);
+    }
+
+    private void OnActiveSkill_2(object obj)
+    {
+        if (obj is not bool isActive) return;
+
+        btn_Skill_2.SetInteractable(isActive);
     }
 }

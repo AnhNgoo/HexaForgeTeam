@@ -20,15 +20,15 @@ public class TrailSlashEffect : LoadComponents
 
     private void OnEnable()
     {
-        EventManager.Instance?.Subscribe(GameEvent.OnEnableTrailSlashEffect, _ => Play());
-        EventManager.Instance?.Subscribe(GameEvent.OnDisableTrailSlashEffect, _ => Stop());
+        EventManager.Subscribe(GameEvent.OnEnableTrailSlashEffect, _ => Play());
+        EventManager.Subscribe(GameEvent.OnDisableTrailSlashEffect, _ => Stop());
         ResetTrailSlashEffect();
     }
 
     private void OnDisable()
     {
-        EventManager.Instance?.Unsubscribe(GameEvent.OnEnableTrailSlashEffect, _ => Play());
-        EventManager.Instance?.Unsubscribe(GameEvent.OnDisableTrailSlashEffect, _ => Stop());
+        EventManager.Unsubscribe(GameEvent.OnEnableTrailSlashEffect, _ => Play());
+        EventManager.Unsubscribe(GameEvent.OnDisableTrailSlashEffect, _ => Stop());
     }
     public void Play()
     {

@@ -8,8 +8,6 @@ public class EnemyLocomotion : MonoBehaviour
     [SerializeField] private NavMeshAgent _navMeshAgent;
     [Header("Patrol Settings")]
     public bool isPatroller; //Công tắc để tắt bật đi tuần
-    public Transform[] wayPoints; //Mảng chứa các điểm tuần tra
-    public int currentWaypointIndex; //Chỉ số điểm tuần tra hiện tại
 
     private void OnValidate()
     {
@@ -27,106 +25,69 @@ public class EnemyLocomotion : MonoBehaviour
     {
         _enemyBase = enemyBase;
         Debug.Log($"{gameObject.name} - EnemyLocomotion đã được khởi tạo!");
-
-        if (_navMeshAgent == null)
-            _navMeshAgent = GetComponent<NavMeshAgent>();
-
-        if (_navMeshAgent == null)
+        if (isPatroller)
         {
-            Debug.LogError($"NavMeshAgent component is missing on {gameObject.name}");
-            return;
-        }
-
-        // Make sure the agent is actually placed on a NavMesh before any Stop/Move calls.
-        EnsureAgentOnNavMesh();
-
-        if (isPatroller && (wayPoints == null || wayPoints.Length == 0))
-        {
-            Debug.LogWarning($"{gameObject.name} được đặt là patroller nhưng không có điểm tuần tra nào được gán!");
-            SetSpeed(_enemyBase.Data.patrolSpeed); // Đặt tốc độ di chuyển ban đầu là tốc độ tuần tra, có thể thay đổi sau này khi vào trạng thái khác
-        }
-        else if (isPatroller)
-        {
-            SetSpeed(_enemyBase.Data.patrolSpeed); // Đặt tốc độ di chuyển ban đầu là tốc độ tuần tra, có thể thay đổi sau này khi vào trạng thái khác
+            SetSpeed(_enemyBase.Data.patrolSpeed); //Đặt tốc độ di chuyển khi tuần tra, có thể điều chỉnh trong EnemyData để tạo ra sự đa dạng về hành vi di chuyển của các loại Enemy khác nhau
         }
         else
         {
-            SetSpeed(_enemyBase.Data.moveSpeed); // Đặt tốc độ di chuyển ban đầu là tốc độ di chuyển bình thường
+            SetSpeed(_enemyBase.Data.moveSpeed); //Đặt tốc độ di chuyển bình thường, có thể điều chỉnh trong EnemyData để tạo ra sự đa dạng về hành vi di chuyển của các loại Enemy khác nhau
         }
-
     }
 
     public void SetSpeed(float speed)
     {
-        if (!CanUseAgent()) return;
         _navMeshAgent.speed = speed;
     }
 
     //Hàm di chuyển đến vị trí mục tiêu
     public void MoveToTarget(Vector3 targetPosition)
     {
-        if (!CanUseAgent()) return;
         _navMeshAgent.isStopped = false;
+        _navMeshAgent.updateRotation = true;
         _navMeshAgent.SetDestination(targetPosition);
+    }
+
+    //Hàm đặt tốc độ xoay mặt tự động của NavMeshAgent    
+    public void SetAngularSpeed(float speed)
+    {
+        if (_navMeshAgent != null)
+        {
+            _navMeshAgent.angularSpeed = speed;
+        }
     }
 
     //Hàm dừng di chuyển
     public void StopMoving()
     {
-        if (!CanUseAgent()) return;
         _navMeshAgent.isStopped = true;
     }
 
-    //Hàm kiểm tra lấy điểm mốc tiếp theo 
-    public Vector3 GetNextWaypoint()
+    //Dịch chuyển an toàn cho NavMeshAgent
+    public void WarpTo(Vector3 position)
     {
-        // Nếu không có điểm tuần tra nào, trả về vị trí hiện tại
-        if (wayPoints == null || wayPoints.Length == 0) return transform.position;
-
-        //Lấy Transform của điểm tuần tra hiện tại để sử dụng trong việc di chuyển và kiểm tra khoảng cách, có thể dùng để hiển thị debug hoặc các mục đích khác nếu cần thiết
-        Transform targetTransform = wayPoints[currentWaypointIndex];
-
-        if (targetTransform != null)
+        if (_navMeshAgent.isActiveAndEnabled)
         {
-            // Ép nó nhích qua điểm tiếp theo để lần sau không bị kẹt lại ở ô lỗi này nữa
-            currentWaypointIndex = (currentWaypointIndex + 1) % wayPoints.Length; // Tăng index, nếu vượt quá số lượng điểm tuần tra thì quay lại điểm đầu tiên
-
-            return targetTransform.position; // Tạm thời đứng im tại chỗ
+            _navMeshAgent.Warp(position);
         }
-
-        // Nếu điểm tuần tra hiện tại bị null, log lỗi và tiếp tục với điểm tuần tra tiếp theo
-        Vector3 target = targetTransform.position;
-        //Tăng index, nếu vượt quá số lượng điểm tuần tra thì quay lại điểm đầu tiên
-        currentWaypointIndex = (currentWaypointIndex + 1) % wayPoints.Length;
-        return target;
-
+        else
+        {
+            transform.position = position; //Nếu NavMeshAgent không hoạt động, di chuyển trực tiếp bằng cách đặt vị trí của transform, có thể dùng để đảm bảo rằng Enemy vẫn có thể được di chuyển đến vị trí mong muốn ngay cả khi NavMeshAgent gặp sự cố hoặc bị tắt
+        }
     }
 
-    private bool CanUseAgent()
+    //Lấy một điểm ngẫu nhiên trên NavMesh xung quanh vị trí gốc
+    public Vector3 GetRandomRoamPosition(Vector3 origin, float radius)
     {
-        if (_navMeshAgent == null)
+        Vector3 randomDirection = Random.insideUnitSphere * radius; //Tạo một vector ngẫu nhiên trong một hình cầu có bán kính là radius
+        randomDirection += origin; //Dịch chuyển vector ngẫu nhiên đến xung quanh vị trí gốc
+
+        NavMeshHit hit;
+        //Quét bán kính tìm điểm hợp lệ trên mặt đất
+        if (NavMesh.SamplePosition(randomDirection, out hit, radius, 1))
         {
-            _navMeshAgent = GetComponent<NavMeshAgent>();
-            if (_navMeshAgent == null) return false;
+            return hit.position; //Trả về vị trí hợp lệ trên NavMesh nếu tìm thấy
         }
-
-        if (_navMeshAgent.isOnNavMesh)
-            return true;
-
-        // Try to place agent on NavMesh; if it still fails, skip navmesh calls this frame.
-        EnsureAgentOnNavMesh();
-        return _navMeshAgent.isOnNavMesh;
-    }
-
-    private void EnsureAgentOnNavMesh(float maxDistance = 2f)
-    {
-        if (_navMeshAgent == null || _navMeshAgent.isOnNavMesh)
-            return;
-
-        // Sample the nearest navmesh point and warp there.
-        if (NavMesh.SamplePosition(transform.position, out var hit, maxDistance, NavMesh.AllAreas))
-        {
-            _navMeshAgent.Warp(hit.position);
-        }
+        return origin; //Nếu không tìm thấy điểm hợp lệ nào, trả về vị trí gốc để tránh việc Enemy bị mắc kẹt hoặc di chuyển đến vị trí không hợp lệ
     }
 }

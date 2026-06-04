@@ -26,7 +26,6 @@ public class CharacterSkill : MonoBehaviour
 
     public void UseSkill2()
     {
-        characterBase.StateController.ChangeState(new CombatState(characterBase));
         skill2?.UseSkill();
     }
 }
