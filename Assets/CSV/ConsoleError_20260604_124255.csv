@@ -1,0 +1,1263 @@
+﻿Mã TC,Tiêu đề testcase,Kết quả mong đợi,Kết quả thực tế,Tình trạng thực thi,Mức độ nghiêm trọng của lỗi,Kiểu chạy (Thủ công / Tự động),Người kiểm thử,Ngày bắt đầu,Chi tiết bước kiểm thử,Ghi chú
+CE-001,Load gameplay scene không lỗi đỏ nếu tìm được,Scene gameplay thật load được và không phát sinh Error/Exception.,"Scene đã load=Assets/_Data/Scenes/New Scene.unity, activeScene=InitTestScene639161736863751595, số Error/Exception=1. KHÔNG ĐẠT -   Load gameplay scene phát sinh Error/Exception. Lỗi: LoadSceneAsyncInPlayMode expects a valid full path. The provided path was 'Assets/_Data/Scenes/New Scene.unity'.
+UnityEditor.SceneManagement.EditorSceneManager:LoadSceneAsyncInPlayMode (string,UnityEngine.SceneManagement.LoadSceneParameters)
+DuskBlade.Tests.ConsoleErrorTests/<LoadSceneNoError>d__15:MoveNext () (at Assets/Tests/PlayMode/ConsoleError/ConsoleErrorTests.cs:97)
+DuskBlade.Tests.ConsoleErrorTests/<RunUnity>d__37:MoveNext () (at Assets/Tests/PlayMode/ConsoleError/ConsoleErrorTests.cs:326)
+UnityEngine.SetupCoroutine:InvokeMoveNext (System.Collections.IEnumerator,intptr)
+
+  Expected: False
+  But was:  True",Fail,High,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,
+CE-002,Spawn Player không lỗi đỏ,Player prefab thật spawn không phát sinh Error/Exception.,"Player prefab=Kael _ConsoleTest, vị trí=(0.00,-1.17,0.00), số Error/Exception=0.",Pass,,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,
+CE-003,Spawn Enemy không lỗi đỏ,Enemy prefab thật spawn không phát sinh Error/Exception.,"Enemy prefab=Enemy_Bat_ConsoleTest, vị trí=(0.00,1.00,0.00), số Error/Exception=7. KHÔNG ĐẠT -   Spawn Enemy phát sinh Error/Exception. Lỗi: UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.Enter () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:16)
+EnemyStateMachine.ChangeState (EnemyState newState) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:82)
+EnemyStateMachine.ResetToDefaultState () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:100)
+EnemyStateMachine.Initialize (EnemyBase enemyBase) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:38)
+EnemyBase.Initialize () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:71)
+EnemyBase.Start () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:56)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+
+  Expected: False
+  But was:  True",Fail,High,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,
+CE-004,Player thao tác cơ bản không lỗi đỏ,"Movement, Jump, Dodge, Attack, Skill 1 nếu có không phát sinh Error/Exception.","Player prefab=Kael _ConsoleTest, chuỗi thao tác=CharacterMovement.Run/Walk, CharacterMovement.Jump, CharacterMovement.Dodge, CharacterCombat.TryAttack, CharacterSkill.UseSkill1, số Error/Exception=60. KHÔNG ĐẠT -   Player thao tác cơ bản phát sinh Error/Exception. Lỗi: NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+
+  Expected: False
+  But was:  True",Fail,High,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,
+CE-005,Enemy thao tác cơ bản không lỗi đỏ,"Enemy chạy frame, nhận damage nhỏ và gọi attack nếu có không phát sinh Error/Exception.","Enemy prefab=Enemy_Bat_ConsoleTest, damage method=EnemyHealth.TakeDamage, attack method=EnemyCombat.PerformAttack, frame chờ=20, số Error/Exception=82. KHÔNG ĐẠT -   Enemy thao tác cơ bản phát sinh Error/Exception. Lỗi: UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.Enter () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:16)
+EnemyStateMachine.ChangeState (EnemyState newState) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:82)
+EnemyStateMachine.ResetToDefaultState () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:100)
+EnemyStateMachine.Initialize (EnemyBase enemyBase) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:38)
+EnemyBase.Initialize () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:71)
+EnemyBase.Start () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:56)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+ | NullReferenceException: Object reference not set to an instance of an object
+EnemyAnimatorController.OpenHitBox () (at Assets/_Data/Scripts/Enemy/EnemyAnimatorController.cs:69)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.UpdateLogic () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:35)
+EnemyStateMachine.Update () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:51)
+
+  Expected: False
+  But was:  True",Fail,High,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,
+CE-006,Combat cơ bản không lỗi đỏ,Spawn Player/Enemy và gọi combat cơ bản không phát sinh Error/Exception.,"Player=Kael _ConsoleTest, Enemy=Enemy_Bat_ConsoleTest, khoảng cách=1.08, PlayerAttack=CharacterCombat.TryAttack, EnemyAttack=EnemyCombat.PerformAttack, damage=EnemyHealth.TakeDamage, số Error/Exception=38. KHÔNG ĐẠT -   Combat cơ bản phát sinh Error/Exception. Lỗi: UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.Enter () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:16)
+EnemyStateMachine.ChangeState (EnemyState newState) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:82)
+EnemyStateMachine.ResetToDefaultState () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:100)
+EnemyStateMachine.Initialize (EnemyBase enemyBase) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:38)
+EnemyBase.Initialize () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:71)
+EnemyBase.Start () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:56)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | NullReferenceException: Object reference not set to an instance of an object
+EnemyAnimatorController.OpenHitBox () (at Assets/_Data/Scripts/Enemy/EnemyAnimatorController.cs:69)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+PunchStep_1+<>c__DisplayClass0_0.<.ctor>b__0 () (at Assets/_Data/Scripts/Player/AttackSteps/Punch/PunchStep_1.cs:10)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+
+  Expected: False
+  But was:  True",Fail,High,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,
+CE-007,Chuỗi thao tác Player/Enemy cơ bản không lỗi đỏ,"Chuỗi spawn, movement, attack, skill, enemy damage, enemy attack không phát sinh Error/Exception.","Player=Kael _ConsoleTest, Enemy=Enemy_Bat_ConsoleTest, chuỗi thao tác=CharacterMovement.Run/Walk, CharacterCombat.TryAttack, CharacterSkill.UseSkill1, EnemyHealth.TakeDamage, EnemyCombat.PerformAttack, CharacterMovement.Dodge, frame chờ=30, số Error/Exception=108. KHÔNG ĐẠT -   Chuỗi thao tác Player/Enemy phát sinh Error/Exception. Lỗi: UnassignedReferenceException: The variable wayPoints of EnemyLocomotion has not been assigned.
+You probably need to assign the wayPoints variable of the EnemyLocomotion script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyLocomotion.GetNextWaypoint () (at Assets/_Data/Scripts/Enemy/EnemyLocomotion.cs:98)
+EnemyState_Patrol.Enter () (at Assets/_Data/Scripts/Enemy/Enemy_Ani_Code/EnemyState_Patrol.cs:16)
+EnemyStateMachine.ChangeState (EnemyState newState) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:82)
+EnemyStateMachine.ResetToDefaultState () (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:100)
+EnemyStateMachine.Initialize (EnemyBase enemyBase) (at Assets/_Data/Scripts/Enemy/EnemyStateMachine.cs:38)
+EnemyBase.Initialize () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:71)
+EnemyBase.Start () (at Assets/_Data/Scripts/Enemy/EnemyBase.cs:56)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | NullReferenceException: Object reference not set to an instance of an object
+EnemyAnimatorController.OpenHitBox () (at Assets/_Data/Scripts/Enemy/EnemyAnimatorController.cs:69)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__2 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:25)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | NullReferenceException: Object reference not set to an instance of an object
+EarthBreaker+<>c__DisplayClass0_1.<.ctor>b__1 () (at Assets/_Data/Scripts/Player/Skill/KaelSkill/EarthBreaker.cs:20)
+AnimationEvents.InvokeRegisteredAction (System.Int32 actionIndex) (at Assets/_Data/Scripts/Utils/AnimationEvents.cs:49)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | NullReferenceException: Object reference not set to an instance of an object
+EnemyAnimatorController.CloseHitBox () (at Assets/_Data/Scripts/Enemy/EnemyAnimatorController.cs:74)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+ | UnassignedReferenceException: The variable Player of EnemyDetection has not been assigned.
+You probably need to assign the Player variable of the EnemyDetection script in the inspector.
+UnityEngine.Transform.get_position () (at <37cc348edc804f4cb176b63962c716e7>:0)
+EnemyDetection.FindTarget () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:41)
+EnemyDetection.Update () (at Assets/_Data/Scripts/Enemy/EnemyDetection.cs:26)
+
+  Expected: False
+  But was:  True",Fail,High,Tự động,Huỳnh Ngọc Thanh Phước,31/05/2026,Tự động kiểm tra lỗi Console bằng Unity Test Runner.,

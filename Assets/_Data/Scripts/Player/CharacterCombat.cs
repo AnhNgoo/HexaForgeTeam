@@ -6,16 +6,16 @@ public class CharacterCombat : LoadComponents
     [SerializeField] private bool debugMode = true;
     [Header("Attack Hitbox Settings")]
     [SerializeField] private float forwardAttackOffset = 1.5f;
+    [SerializeField] private float yAttackOffset = 0f;
     [SerializeField] private float attackHitBoxRadius = 1f;
     [Header("Combat Settings")]
     [SerializeField] private float nextAttackTime = 1f; //Thời gian xong animation để thực hiện đòn tấn công tiếp theo
     public float NextAttackTime => nextAttackTime;
     [SerializeField] private float comboResetDelay = 0.4f; //Thời gian đợi xem player có đánh tiếp không
     [SerializeField] private float finalAttackTime = 1f; //Thời gian xong animation đòn cuối để reset combo
-
+    [SerializeField] private IAttackStep[] weaponCombos;
+    [SerializeField] private IAttackStep[] punchCombos;
     private CharacterBase characterBase;
-    private IAttackStep[] weaponCombos;
-    private IAttackStep[] punchCombos;
     private int currentComboIndex = 0; //Chỉ số đòn tấn công hiện tại trong chuỗi combo
     private bool isComboWindowOpen = false;
     public bool IsAttacking { get; set; } = false;
@@ -24,6 +24,9 @@ public class CharacterCombat : LoadComponents
     private Coroutine comboCoroutine;
     private Cooldown cooldownAttackTimer = new Cooldown();
 
+    private float tempForwardAttackOffset;
+    private float tempYAttackOffset;
+    private float tempAttackHitBoxRadius;
     protected override void LoadComponent()
     {
     }
@@ -33,11 +36,12 @@ public class CharacterCombat : LoadComponents
 
     }
 
-    public void Init(CharacterBase character, IAttackStep[] combos)
+    public void Init(CharacterBase character, IAttackStep[] weaponCombos, IAttackStep[] punchCombos = null)
     {
         characterBase = character;
-        weaponCombos = combos;
-        InitPunchCombos();
+        this.weaponCombos = weaponCombos;
+        InitPunchCombos(punchCombos);
+        ResetHitBox();
     }
 
     public void SetWeaponCombos(IAttackStep[] combos)
@@ -51,9 +55,6 @@ public class CharacterCombat : LoadComponents
             return;
 
         if (cooldownAttackTimer.IsOnCooldown)
-            return;
-
-        if (!characterBase.CheckConditionAttack())
             return;
 
         if (!CanAttack)
@@ -130,10 +131,16 @@ public class CharacterCombat : LoadComponents
         float delay = comboIndex == combos.Length - 1 ? finalAttackTime : comboResetDelay;
         yield return new WaitForSeconds(delay);
 
-        isComboWindowOpen = false;
-        FirstAttack = true;
+        ResetCombo();
     }
 
+    public void ResetCombo()
+    {
+        isComboWindowOpen = false;
+        FirstAttack = true;
+        CanAttack = true;
+        IsAttacking = false;
+    }
     // Lấy combo đang sử dụng, ưu tiên combo vũ khí nếu có, nếu không thì dùng combo tay không
     private IAttackStep[] GetActiveCombos()
     {
@@ -143,13 +150,11 @@ public class CharacterCombat : LoadComponents
         return weaponCombos;
     }
 
-    // Khởi tạo combo tay không
-    private void InitPunchCombos()
+    //Khởi tạo combo tay không
+    private void InitPunchCombos(IAttackStep[] combos = null)
     {
-        if (punchCombos != null && punchCombos.Length > 0)
-            return;
-
-        punchCombos = new IAttackStep[4]
+        //Nếu có punch combo riêng thì dùng, nếu không thì khởi tạo combo tay không mặc định
+        punchCombos = combos ?? new IAttackStep[4]
         {
             new PunchStep_1(characterBase),
             new PunchStep_2(characterBase),
@@ -160,10 +165,30 @@ public class CharacterCombat : LoadComponents
 
     #region Melee
 
+    public void SetHitBox(float forwardOffset, float yOffset, float radius)
+    {
+        tempForwardAttackOffset = forwardAttackOffset;
+        tempYAttackOffset = yAttackOffset;
+        tempAttackHitBoxRadius = attackHitBoxRadius;
+
+        forwardAttackOffset = forwardOffset;
+        yAttackOffset = yOffset;
+        attackHitBoxRadius = radius;
+    }
+
+    public void ResetHitBox()
+    {
+        if (tempForwardAttackOffset == 0f && tempYAttackOffset == 0f && tempAttackHitBoxRadius == 0f)
+            return;
+        forwardAttackOffset = tempForwardAttackOffset;
+        yAttackOffset = tempYAttackOffset;
+        attackHitBoxRadius = tempAttackHitBoxRadius;
+    }
     //Bật hixbox tấn công
     public void AttackHitBox()
     {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position + transform.forward * forwardAttackOffset, attackHitBoxRadius);
+        Vector3 offset = transform.forward * forwardAttackOffset + transform.up * yAttackOffset;
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position + offset, attackHitBoxRadius);
 
         foreach (Collider hitCollider in hitColliders)
         {
@@ -176,19 +201,28 @@ public class CharacterCombat : LoadComponents
     {
         if (other.CompareTag("Enemy"))
         {
-            DebugNote.Green("Xử lý va chạm với enemy ở đây, Hit Enemy: " + other.name);
+            EnemyBase enemy = other.GetComponent<EnemyBase>();
+            if (enemy != null)
+            {
+                float damage = characterBase.CharacterData.stats.damage;
+                float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
+                enemy.DamageReceiver.TakeHit(damage, poisonDamage);
+            }
+
             CameraShake.Instance.Shake();
         }
     }
     #endregion
 
 #if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
+    private void OnDrawGizmos()
     {
         if (!debugMode)
             return;
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position + transform.forward * forwardAttackOffset, attackHitBoxRadius);
+
+        Vector3 offset = transform.forward * forwardAttackOffset + transform.up * yAttackOffset;
+        Gizmos.DrawWireSphere(transform.position + offset, attackHitBoxRadius);
     }
 #endif
 }

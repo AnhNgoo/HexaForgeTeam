@@ -56,7 +56,7 @@ public class CharacterMovement : LoadComponents
     public bool IsGrounded { get; set; } = false;
     public bool CanMoveAttack { get; set; } = false;
     public Vector2 MoveDirection { get; private set; }
-    private Vector3 CurrentMove;
+    private Vector3 CurrentMove; // Hướng di chuyển cuối cùng sau khi áp dụng tất cả các hiệu ứng (dodge, lunge, jump, v.v.)
 
     private float verticalVelocity;
 
@@ -78,6 +78,7 @@ public class CharacterMovement : LoadComponents
         CheckWallEdge();
     }
 
+    // Thiết lập hướng di chuyển dựa trên input và hướng camera
     public void SetMoveDirection(Vector2 direction)
     {
         Vector3 forward = Camera.main.transform.forward;
