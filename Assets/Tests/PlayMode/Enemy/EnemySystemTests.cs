@@ -267,7 +267,7 @@ namespace DuskBlade.Tests
             GameObject enemy = SpawnEnemy(new Vector3(0f, 1f, 0f));
             yield return new WaitForSeconds(0.2f);
             Component detection = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyDetection");
-            object target;
+            object target = null;
             bool readTarget = detection != null && TestReflectionHelper.TryGetValue(detection, "CurrentTarget", out target);
             c.Actual = $"Player={player.name}, Enemy={enemy.name}, đọc CurrentTarget={readTarget}, target={(target ?? "null")}, lỗi Console={ErrorCount()}.";
             AssertNoErrors("Enemy nhận target Player phát sinh Error/Exception.");
@@ -412,7 +412,7 @@ namespace DuskBlade.Tests
         private float ReadEnemyHp(GameObject enemy, bool fail)
         {
             Component health = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyHealth");
-            object value;
+            object value = null;
             if (health != null && TestReflectionHelper.TryGetValue(health, "currentHealth", out value))
                 return Convert.ToSingle(value, CultureInfo.InvariantCulture);
             if (fail) Assert.Fail("Không đọc được currentHealth thật trên EnemyHealth.");
@@ -421,7 +421,7 @@ namespace DuskBlade.Tests
 
         private float ReadFloat(object target, string member, float fallback)
         {
-            object value;
+            object value = null;
             if (target != null && TestReflectionHelper.TryGetValue(target, member, out value) && value != null)
                 return Convert.ToSingle(value, CultureInfo.InvariantCulture);
             return fallback;

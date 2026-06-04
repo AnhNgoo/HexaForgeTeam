@@ -11775,6 +11775,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &197587441
 Animator:
   serializedVersion: 5
@@ -11998,6 +12000,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &202714063
 Animator:
   serializedVersion: 5
@@ -28954,6 +28958,7 @@ GameObject:
   - component: {fileID: 428860398}
   - component: {fileID: 428860397}
   - component: {fileID: 428860410}
+  - component: {fileID: 428860411}
   m_Layer: 8
   m_Name: Enemy_Bat (8)
   m_TagString: Enemy
@@ -29129,6 +29134,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &428860407
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29141,8 +29150,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 205035791}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &428860408
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29165,6 +29175,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 428860401}
   _locomotion: {fileID: 428860400}
   _animatorController: {fileID: 452600184}
+  _lootDropper: {fileID: 428860411}
   _mainCollider: {fileID: 428860398}
   _myTransform: {fileID: 428860409}
 --- !u!4 &428860409
@@ -29199,6 +29210,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &428860411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 428860396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &429214477 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4553606696386485828, guid: 66d2dd758b4240b49b0abfa5c686a211, type: 3}
@@ -31064,6 +31087,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &452600185
 Animator:
   serializedVersion: 5
@@ -42753,6 +42778,7 @@ GameObject:
   - component: {fileID: 625260217}
   - component: {fileID: 625260216}
   - component: {fileID: 625260229}
+  - component: {fileID: 625260230}
   m_Layer: 8
   m_Name: Enemy_Bat (6)
   m_TagString: Enemy
@@ -42928,6 +42954,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &625260226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42940,8 +42970,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 48222479}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &625260227
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -42964,6 +42995,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 625260220}
   _locomotion: {fileID: 625260219}
   _animatorController: {fileID: 677947818}
+  _lootDropper: {fileID: 625260230}
   _mainCollider: {fileID: 625260217}
   _myTransform: {fileID: 625260228}
 --- !u!4 &625260228
@@ -42998,6 +43030,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &625260230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 625260215}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &626014573
 GameObject:
   m_ObjectHideFlags: 0
@@ -45787,6 +45831,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &677947819
 Animator:
   serializedVersion: 5
@@ -52259,6 +52305,7 @@ GameObject:
   - component: {fileID: 758748296}
   - component: {fileID: 758748295}
   - component: {fileID: 758748308}
+  - component: {fileID: 758748309}
   m_Layer: 8
   m_Name: Enemy_Bat
   m_TagString: Enemy
@@ -52434,6 +52481,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 8
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &758748305
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52446,8 +52497,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 1910185695}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &758748306
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -52470,6 +52522,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 758748299}
   _locomotion: {fileID: 758748298}
   _animatorController: {fileID: 1998011237}
+  _lootDropper: {fileID: 758748309}
   _mainCollider: {fileID: 758748296}
   _myTransform: {fileID: 758748307}
 --- !u!4 &758748307
@@ -52504,6 +52557,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &758748309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 758748294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &759442931
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -55666,6 +55731,7 @@ GameObject:
   - component: {fileID: 797910010}
   - component: {fileID: 797910009}
   - component: {fileID: 797910022}
+  - component: {fileID: 797910023}
   m_Layer: 8
   m_Name: Enemy_Bat (4)
   m_TagString: Enemy
@@ -55841,6 +55907,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &797910019
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55853,8 +55923,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 767780195}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &797910020
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -55877,6 +55948,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 797910013}
   _locomotion: {fileID: 797910012}
   _animatorController: {fileID: 197587440}
+  _lootDropper: {fileID: 797910023}
   _mainCollider: {fileID: 797910010}
   _myTransform: {fileID: 797910021}
 --- !u!4 &797910021
@@ -55911,6 +55983,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &797910023
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 797910008}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &798470778
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -62442,6 +62526,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &895807102
 Animator:
   serializedVersion: 5
@@ -90223,6 +90309,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &1320056936
 Animator:
   serializedVersion: 5
@@ -91995,6 +92083,7 @@ GameObject:
   - component: {fileID: 1343721511}
   - component: {fileID: 1343721510}
   - component: {fileID: 1343721523}
+  - component: {fileID: 1343721524}
   m_Layer: 8
   m_Name: Enemy_Bat (7)
   m_TagString: Enemy
@@ -92170,6 +92259,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &1343721520
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92182,8 +92275,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 298856795}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &1343721521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92206,6 +92300,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 1343721514}
   _locomotion: {fileID: 1343721513}
   _animatorController: {fileID: 1417828051}
+  _lootDropper: {fileID: 1343721524}
   _mainCollider: {fileID: 1343721511}
   _myTransform: {fileID: 1343721522}
 --- !u!4 &1343721522
@@ -92240,6 +92335,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &1343721524
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1343721509}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1344725752
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -92433,6 +92540,7 @@ GameObject:
   - component: {fileID: 1350199648}
   - component: {fileID: 1350199647}
   - component: {fileID: 1350199660}
+  - component: {fileID: 1350199661}
   m_Layer: 8
   m_Name: Enemy_Bat (1)
   m_TagString: Enemy
@@ -92608,6 +92716,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &1350199657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92620,8 +92732,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 1903683634}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &1350199658
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -92644,6 +92757,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 1350199651}
   _locomotion: {fileID: 1350199650}
   _animatorController: {fileID: 202714062}
+  _lootDropper: {fileID: 1350199661}
   _mainCollider: {fileID: 1350199648}
   _myTransform: {fileID: 1350199659}
 --- !u!4 &1350199659
@@ -92678,6 +92792,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &1350199661
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350199646}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1350224968 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: -927199367670048503, guid: 8439f8be81ef9ec43a1e0097e7f59288, type: 3}
@@ -96892,6 +97018,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &1417828052
 Animator:
   serializedVersion: 5
@@ -126319,6 +126447,7 @@ GameObject:
   - component: {fileID: 1877346978}
   - component: {fileID: 1877346977}
   - component: {fileID: 1877346990}
+  - component: {fileID: 1877346991}
   m_Layer: 8
   m_Name: Enemy_Bat (5)
   m_TagString: Enemy
@@ -126494,6 +126623,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &1877346987
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126506,8 +126639,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 513159005}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &1877346988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126530,6 +126664,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 1877346981}
   _locomotion: {fileID: 1877346980}
   _animatorController: {fileID: 895807101}
+  _lootDropper: {fileID: 1877346991}
   _mainCollider: {fileID: 1877346978}
   _myTransform: {fileID: 1877346989}
 --- !u!4 &1877346989
@@ -126564,6 +126699,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &1877346991
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877346976}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1877448557
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -131463,6 +131610,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &1928236630
 Animator:
   serializedVersion: 5
@@ -132182,6 +132331,7 @@ GameObject:
   - component: {fileID: 1938005345}
   - component: {fileID: 1938005344}
   - component: {fileID: 1938005357}
+  - component: {fileID: 1938005358}
   m_Layer: 8
   m_Name: Enemy_Bat (3)
   m_TagString: Enemy
@@ -132357,6 +132507,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &1938005354
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -132369,8 +132523,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 1101175178}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &1938005355
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -132393,6 +132548,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 1938005348}
   _locomotion: {fileID: 1938005347}
   _animatorController: {fileID: 1320056935}
+  _lootDropper: {fileID: 1938005358}
   _mainCollider: {fileID: 1938005345}
   _myTransform: {fileID: 1938005356}
 --- !u!4 &1938005356
@@ -132427,6 +132583,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &1938005358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1938005343}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1939681159
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -137556,6 +137724,8 @@ MonoBehaviour:
   chaseHash: 0
   staggerHash: 0
   dieHash: 0
+  turnleftHash: 0
+  turnrightHash: 0
 --- !u!95 &1998011238
 Animator:
   serializedVersion: 5
@@ -144168,6 +144338,7 @@ GameObject:
   - component: {fileID: 2085204753}
   - component: {fileID: 2085204752}
   - component: {fileID: 2085204765}
+  - component: {fileID: 2085204766}
   m_Layer: 8
   m_Name: Enemy_Bat (2)
   m_TagString: Enemy
@@ -144343,6 +144514,10 @@ MonoBehaviour:
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 0
+  alertRadius: 8
+  enemyLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &2085204762
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -144355,8 +144530,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c20312b51bac8504d81e3257211cee39, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentAttackData: {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
+  attackArsenal: []
   _weaponHitbox: {fileID: 1494448587}
+  _projectileSpawnPoint: {fileID: 0}
 --- !u!114 &2085204763
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -144379,6 +144555,7 @@ MonoBehaviour:
   _poiseSystem: {fileID: 2085204756}
   _locomotion: {fileID: 2085204755}
   _animatorController: {fileID: 1928236629}
+  _lootDropper: {fileID: 2085204766}
   _mainCollider: {fileID: 2085204753}
   _myTransform: {fileID: 2085204764}
 --- !u!4 &2085204764
@@ -144413,6 +144590,18 @@ MonoBehaviour:
   enemyRewardType: 1
   minGoldReward: 0
   maxGoldReward: 2000
+--- !u!114 &2085204766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2085204751}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &2085732416 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3406220132369094607, guid: 029b4d9b3946e9f48b84c6b92cbe115a, type: 3}

@@ -294,7 +294,7 @@ namespace DuskBlade.Tests
         private float EnemyHp(GameObject enemy)
         {
             Component health = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyHealth");
-            object value;
+            object value = null;
             Assert.IsTrue(health != null && TestReflectionHelper.TryGetValue(health, "currentHealth", out value), "Không đọc được currentHealth thật trên Enemy.");
             return Convert.ToSingle(value, CultureInfo.InvariantCulture);
         }
@@ -305,7 +305,7 @@ namespace DuskBlade.Tests
             foreach (Component component in components)
             {
                 if (component == null) continue;
-                object value;
+                object value = null;
                 if (TestReflectionHelper.TryGetValue(component, "currentHealth", out value) ||
                     TestReflectionHelper.TryGetValue(component, "health", out value) ||
                     TestReflectionHelper.TryGetValue(component, "hp", out value))

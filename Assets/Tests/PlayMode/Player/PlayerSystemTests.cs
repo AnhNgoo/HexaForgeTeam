@@ -2020,7 +2020,7 @@ namespace DuskBlade.Tests
                 return null;
             }
 
-            object value;
+            object value = null;
             if (TestReflectionHelper.TryGetValue(lockTarget, "Target", out value))
             {
                 return value;
@@ -2277,6 +2277,5 @@ namespace DuskBlade.Tests
         }
     }
 }
-
 
 
