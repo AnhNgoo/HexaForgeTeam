@@ -12,8 +12,7 @@ public class AttackMeleeStep_3 : AttackStepBase
             meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
                                                                                         meleeCharacter.meleeAttackEffect_3,
                                                                                         meleeCharacter.meleeAttackEffectPoint_3.transform.position,
-                                                                                        meleeCharacter.meleeAttackEffectPoint_3.transform.rotation,
-                                                                                         meleeCharacter.meleeAttackEffectPoint_3.transform));
+                                                                                        meleeCharacter.meleeAttackEffectPoint_3.transform.rotation));
         }
     }
 

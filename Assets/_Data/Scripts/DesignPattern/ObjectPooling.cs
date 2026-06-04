@@ -16,6 +16,17 @@ public enum PoolType
     EarthBreaker_2 = 14,
     AuraEffect_1 = 15,
     AuraEffect_2 = 16,
+    AuraEffect_3 = 17,
+    AuraEffect_4 = 18,
+    AuraEffect_5 = 19,
+    AuraEffect_6 = 22,
+    KaelGiantHit_1 = 23,
+    KaelGiantHit_2 = 24,
+    KaelGiantAuraEffect_1 = 25,
+    EnemyBat = 50,
+    EnemySkeletonMelee = 51,
+    EnemyMushroom = 52,
+    EnemySkeletonRouge = 53,
 }
 
 [System.Serializable]
@@ -45,8 +56,9 @@ public class ObjectPooling : Singleton<ObjectPooling>
         base.LoadComponent();
 
     }
-    private void Start()
+    protected override void Awake()
     {
+        base.Awake();
         LoadPoolData();
         InitializePools();
     }

@@ -38,7 +38,16 @@ public class EnemyHitbox : MonoBehaviour
             if (_enemyBase.Combat.CurrentAttackData != null)
             {
                 finalDamage *= _enemyBase.Combat.CurrentAttackData.damageMultiplier; // Nhân thêm sát thương từ AttackData nếu có
+
+                PoolType targetHitVFX = _enemyBase.Combat.CurrentAttackData.hitVFX;
+                if (targetHitVFX != PoolType.None)
+                {
+                    // Bật hiệu ứng trúng đòn ngay tại vị trí ngực hoặc vị trí Player bị chạm
+                    _enemyBase.VFXManager.PlayVFX(targetHitVFX);
+                }
             }
+            _enemyBase.ExtendLeash(_enemyBase.Data.maxLeashDistance + 5f);
+
             Debug.Log($"{gameObject.name} gây sát thương {finalDamage} lên Player (sát thương cơ bản: {_enemyBase.Data.damage}, hệ số từ AttackData: {_enemyBase.Combat.CurrentAttackData.damageMultiplier})");
             // To_Do: Gọi hàm xử lý sát thương lên Player tại đây, ví dụ: other.GetComponent<PlayerHealth>().TakeDamage(attackData.damage);
         }
