@@ -20,6 +20,9 @@ public enum GameEvent
     OnSkill_2 = 12,
     OnActiveSkill_1 = 13,
     OnActiveSkill_2 = 14,
+    OnMusicVolumeChangedTest = 15,
+    OnBtn_TestEventFromMenuToOther = 16,
+    OnTestEventFromOtherToMenu = 17,
 
 }
 public static class EventManager
