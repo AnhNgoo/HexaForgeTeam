@@ -20,20 +20,29 @@ public enum RuneRarity
 public enum RuneStatType
 {
     HP,
+    HPPercent,
+
     MP,
+    MPPercent,
+
     Stamina,
+    StaminaPercent,
 
     ATK,
+    ATKPercent,
+
     MATK,
+    MATKPercent,
+
     DEF,
+    DEFPercent,
 
     AttackSpeed,
-    CooldownReduction,
     CritChance,
     CritDamage,
     ArmorPenetration,
-    MoveSpeed,
-    StaminaRegen
+    StaminaRegen,
+
 }
 
 [Serializable]
@@ -63,16 +72,19 @@ public class RuneData
 {
     public string runeID;
 
-public RuneColor runeColor;
+    public RuneColor runeColor;
 
-public RuneRarity runeRarity;
+    public RuneRarity runeRarity;
+    public string runeName;
 
-public bool isEquipped;
+public string runeLore;
 
-public int equippedSlotIndex = -1;
+    public bool isEquipped;
 
-public List<RuneAffixData> affixes =
-    new List<RuneAffixData>();
+    public int equippedSlotIndex = -1;
+
+    public List<RuneAffixData> affixes =
+        new List<RuneAffixData>();
 
     public RuneData()
     {

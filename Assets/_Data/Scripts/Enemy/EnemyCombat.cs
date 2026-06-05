@@ -48,6 +48,24 @@ public class EnemyCombat : MonoBehaviour
         if (_enemyBase.AnimatorController.Animator != null)
         {
             _enemyBase.AnimatorController.PlayAttackAnimation(currentAttackData); //Gọi hàm chơi animation tấn công từ EnemyAnimatorController
+
+            if (currentAttackData.missVFX != PoolType.None)
+            {
+                if (currentAttackData.attackType == AttackType.Melee)
+                {
+                    // CẬN CHIẾN: Phụt hiệu ứng xé gió ngay phía trước mặt quái
+                    Vector3 spawnPos = _enemyBase.MyTransform.position + _enemyBase.MyTransform.forward * 1f;
+                    ObjectPooling.Instance.SpawnFromPool(currentAttackData.missVFX, spawnPos, _enemyBase.MyTransform.rotation);
+                }
+                else if (currentAttackData.attackType == AttackType.Ranged)
+                {
+                    // BẮN XA: Phụt hiệu ứng lóe sáng (Muzzle Flash) ngay tại đầu nòng súng/mồm quái khi chuẩn bị nhả đạn!
+                    if (_projectileSpawnPoint != null)
+                    {
+                        ObjectPooling.Instance.SpawnFromPool(currentAttackData.missVFX, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation);
+                    }
+                }
+            }
             _attackCts = new CancellationTokenSource(); //Tạo mới CancellationTokenSource cho tác vụ tấn công hiện tại
             ReturnToIdleVisualAsync(_attackCts.Token).Forget(); //Bắt đầu tác vụ trả về trạng thái hình ảnh sau khi tấn công, có thể điều chỉnh thời gian chờ trong hàm này tùy thuộc vào thiết kế của animation tấn công
         }
@@ -58,11 +76,16 @@ public class EnemyCombat : MonoBehaviour
         List<AttackDataSO> availableAttacks = new List<AttackDataSO>();
         foreach (var attackData in attackArsenal)
         {
-            bool isCooldownReady = Time.time >= _attackCooldownTimers[attackData] + attackData.cooldown; //Kiểm tra nếu đòn tấn công đã sẵn sàng để sử dụng dựa trên thời gian hồi chiêu
-            bool isInRange = distanceToPlayer >= attackData.minAttackRange && distanceToPlayer <= attackData.maxAttackRange; //Kiểm tra nếu player nằm trong phạm vi tấn công của đòn tấn công
-            if (isCooldownReady && isInRange)
+            if (attackData == null) continue; //Nếu có phần tử null trong mảng dữ liệu tấn công, bỏ qua để tránh lỗi
+
+            if (_attackCooldownTimers.ContainsKey(attackData))
             {
-                availableAttacks.Add(attackData); //Nếu đòn tấn công đã sẵn sàng và player nằm trong phạm vi tấn công, thêm vào danh sách các đòn tấn công có thể sử dụng
+                bool isCooldownReady = Time.time >= _attackCooldownTimers[attackData] + attackData.cooldown; //Kiểm tra nếu đòn tấn công đã sẵn sàng để sử dụng dựa trên thời gian hồi chiêu
+                bool isInRange = distanceToPlayer >= attackData.minAttackRange && distanceToPlayer <= attackData.maxAttackRange; //Kiểm tra nếu player nằm trong phạm vi tấn công của đòn tấn công
+                if (isCooldownReady && isInRange)
+                {
+                    availableAttacks.Add(attackData); //Nếu đòn tấn công đã sẵn sàng và player nằm trong phạm vi tấn công, thêm vào danh sách các đòn tấn công có thể sử dụng
+                }
             }
         }
 
@@ -126,7 +149,7 @@ public class EnemyCombat : MonoBehaviour
         {
             float finalDamage = _enemyBase.Data.damage * currentAttackData.damageMultiplier; //Tính toán sát thương cuối cùng của projectile dựa trên sát thương cơ bản của Enemy và hệ số sát thương của đòn tấn công
             Vector3 shootDirection = (target.position + Vector3.up * 0.5f) - _projectileSpawnPoint.position; //Tính toán hướng bắn từ điểm xuất hiện đến vị trí của player, có thể điều chỉnh thêm Vector3.up để bắn vào phần thân trên của player thay vì chân
-            projectileScripts.Launch(finalDamage, currentAttackData.projectileSpeed, shootDirection); //Gọi hàm Launch của EnemyProjectile để thiết lập sát thương, tốc độ và hướng di chuyển cho projectile
+            projectileScripts.Launch(_enemyBase, finalDamage, currentAttackData.projectileSpeed, shootDirection, currentAttackData.hitVFX); //Gọi hàm Launch của EnemyProjectile để thiết lập sát thương, tốc độ và hướng di chuyển cho projectile
         }
     }
 

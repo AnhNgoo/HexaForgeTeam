@@ -18,7 +18,6 @@ public class IdleState : ICharacterState
 
     public void Exit()
     {
-
     }
 
     public void FixedUpdate()
@@ -29,10 +28,44 @@ public class IdleState : ICharacterState
     public void Update()
     {
         character.LookAtTarget();
-
-        if (character.CharacterMovement.MoveDirection != Vector2.zero)
+        if (character.CharacterInput.moveInput != Vector2.zero)
         {
             character.StateController.ChangeState(new MoveState(character));
+            return;
+        }
+
+        if (character.CharacterInput.Skill_1)
+        {
+            character.Skill_1();
+            return;
+        }
+
+        if (character.CharacterInput.Skill_2)
+        {
+            character.Skill_2();
+            return;
+        }
+        if (character.CharacterInput.Attack)
+        {
+
+            character.Attack();
+            return;
+        }
+
+        if (character.CharacterInput.HealthRecovery)
+        {
+            character.StateController.ChangeState(new HealthRecoveryState(character));
+            return;
+        }
+
+        if (character.CharacterInput.Dodge)
+        {
+            character.Dodge();
+            return;
+        }
+        if (character.CharacterInput.Jump && character.CharacterMovement.IsGrounded)
+        {
+            character.StateController.ChangeState(new JumpState(character));
             return;
         }
 

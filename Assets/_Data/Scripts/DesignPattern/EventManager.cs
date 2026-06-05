@@ -17,6 +17,10 @@ public enum GameEvent
     OnWallJump = 9,
     OnHealthRecovery = 10,
     OnSkill_1 = 11,
+    OnSkill_2 = 12,
+    OnActiveSkill_1 = 13,
+    OnActiveSkill_2 = 14,
+
 }
 public static class EventManager
 {
