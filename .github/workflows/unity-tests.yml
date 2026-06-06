@@ -1,0 +1,61 @@
+name: Unity Test Runner
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - testrunner
+      - feat/testrunner
+
+  pull_request:
+    branches:
+      - main
+      - develop
+      - testrunner
+      - feat/testrunner
+
+jobs:
+  test:
+    name: Run Unity Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: |
+            Library-${{ runner.os }}-
+
+      - name: Run Unity EditMode and PlayMode tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          testMode: all
+          artifactsPath: test-results
+
+      - name: Upload Unity test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-test-results
+          path: test-results
+
+      - name: Upload CSV test reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: duskblade-csv-test-reports
+          path: Assets/CSV
