@@ -88,7 +88,81 @@ public class RuneEquipUI : MonoBehaviour
             targetSlot.color =
                 Color.white;
         }
+
+        RefreshTotalStatText();
     }
+
+    #region Total Stats
+
+    private void RefreshTotalStatText()
+    {
+        if (totalStatText == null)
+        {
+            return;
+        }
+
+        if (RuneInventory.Instance == null)
+        {
+            return;
+        }
+
+        Dictionary<RuneStatType, float>
+            totalStats =
+            RuneInventory.Instance
+            .GetStats();
+
+        StringBuilder builder =
+            new StringBuilder();
+
+        foreach (var stat in totalStats)
+{
+    bool isPercent =
+        IsPercentStat(stat.Key);
+
+    float rawValue =
+        stat.Value;
+
+    float cap =
+        RuneInventory.Instance
+        .GetHardCap(stat.Key);
+
+    bool reachedCap =
+        rawValue >= cap;
+
+    string color =
+        reachedCap ?
+        "#FF4C4C" :
+        "#FFD966";
+
+    float displayValue =
+        Mathf.Min(
+            rawValue,
+            cap);
+
+    if (isPercent)
+    {
+        builder.AppendLine(
+            $"<color={color}>" +
+            $"{GetStatName(stat.Key)} " +
+            $"+{displayValue:F1}% " +
+            $"/ {cap:F0}%</color>");
+    }
+    else
+    {
+        builder.AppendLine(
+            $"<color={color}>" +
+            $"{GetStatName(stat.Key)} " +
+            $"+{displayValue:F0} " +
+            $"/ {cap:F0}</color>");
+    }
+}
+        totalStatText.text =
+            builder.ToString();
+    }
+
+    #endregion
+
+    #region Slot
 
     private void ResetSlots()
     {
@@ -107,12 +181,13 @@ public class RuneEquipUI : MonoBehaviour
             return;
         }
 
-        slotImage.sprite = null;
+        slotImage.sprite =
+            emptySprite;
 
         Color color =
             slotImage.color;
 
-        color.a = 0f;
+        color.a = 1f;
 
         slotImage.color =
             color;
@@ -135,6 +210,54 @@ public class RuneEquipUI : MonoBehaviour
 
         return null;
     }
+
+    #endregion
+
+    #region Unequip
+
+    public void UnequipBySlot(
+        int slotIndex)
+    {
+        if (RuneInventory.Instance == null)
+        {
+            return;
+        }
+
+        for (int i = 0;
+            i < RuneInventory.Instance.runes.Count;
+            i++)
+        {
+            RuneData rune =
+                RuneInventory.Instance.runes[i];
+
+            if (!rune.isEquipped)
+            {
+                continue;
+            }
+
+            if (rune.equippedSlotIndex != slotIndex)
+            {
+                continue;
+            }
+
+            RuneInventory.Instance
+                .UnequipRune(rune);
+
+            RefreshEquipUI();
+
+            if (InventoryUI.Instance != null)
+            {
+                InventoryUI.Instance
+                    .RefreshInventory();
+            }
+
+            return;
+        }
+    }
+
+    #endregion
+
+    #region Rune Sprite
 
     private Sprite GetRuneSprite(
         RuneData rune)
@@ -160,6 +283,8 @@ public class RuneEquipUI : MonoBehaviour
         return null;
     }
 
+    #endregion
+
     #region Red
 
     private Sprite GetRedSprite(
@@ -168,19 +293,15 @@ public class RuneEquipUI : MonoBehaviour
         switch (rarity)
         {
             case RuneRarity.Common:
-
                 return redCommonSprite;
 
             case RuneRarity.Rare:
-
                 return redRareSprite;
 
             case RuneRarity.Epic:
-
                 return redEpicSprite;
 
             case RuneRarity.Legendary:
-
                 return redLegendarySprite;
         }
 
@@ -197,19 +318,15 @@ public class RuneEquipUI : MonoBehaviour
         switch (rarity)
         {
             case RuneRarity.Common:
-
                 return greenCommonSprite;
 
             case RuneRarity.Rare:
-
                 return greenRareSprite;
 
             case RuneRarity.Epic:
-
                 return greenEpicSprite;
 
             case RuneRarity.Legendary:
-
                 return greenLegendarySprite;
         }
 
@@ -226,19 +343,15 @@ public class RuneEquipUI : MonoBehaviour
         switch (rarity)
         {
             case RuneRarity.Common:
-
                 return blueCommonSprite;
 
             case RuneRarity.Rare:
-
                 return blueRareSprite;
 
             case RuneRarity.Epic:
-
                 return blueEpicSprite;
 
             case RuneRarity.Legendary:
-
                 return blueLegendarySprite;
         }
 
@@ -246,4 +359,94 @@ public class RuneEquipUI : MonoBehaviour
     }
 
     #endregion
+
+    #region Stat Helper
+
+    private bool IsPercentStat(
+        RuneStatType statType)
+    {
+        switch (statType)
+        {
+            case RuneStatType.HPPercent:
+            case RuneStatType.MPPercent:
+            case RuneStatType.StaminaPercent:
+
+            case RuneStatType.ATKPercent:
+            case RuneStatType.MATKPercent:
+            case RuneStatType.DEFPercent:
+
+            case RuneStatType.AttackSpeed:
+            case RuneStatType.CritChance:
+            case RuneStatType.CritDamage:
+            case RuneStatType.ArmorPenetration:
+            case RuneStatType.StaminaRegen:
+
+                return true;
+        }
+
+        return false;
+    }
+
+    private string GetStatName(
+        RuneStatType statType)
+    {
+        switch (statType)
+        {
+            case RuneStatType.HP:
+                return "HP";
+
+            case RuneStatType.HPPercent:
+                return "HP";
+
+            case RuneStatType.MP:
+                return "MP";
+
+            case RuneStatType.MPPercent:
+                return "MP";
+
+            case RuneStatType.Stamina:
+                return "Stamina";
+
+            case RuneStatType.StaminaPercent:
+                return "Stamina";
+
+            case RuneStatType.ATK:
+                return "ATK";
+
+            case RuneStatType.ATKPercent:
+                return "ATK";
+
+            case RuneStatType.MATK:
+                return "MATK";
+
+            case RuneStatType.MATKPercent:
+                return "MATK";
+
+            case RuneStatType.DEF:
+                return "DEF";
+
+            case RuneStatType.DEFPercent:
+                return "DEF";
+
+            case RuneStatType.AttackSpeed:
+                return "Attack Speed";
+
+            case RuneStatType.CritChance:
+                return "Crit Chance";
+
+            case RuneStatType.CritDamage:
+                return "Crit Damage";
+
+            case RuneStatType.ArmorPenetration:
+                return "Armor Penetration";
+
+            case RuneStatType.StaminaRegen:
+                return "Stamina Regen";
+        }
+
+        return "Unknown";
+    }
+
+    #endregion
+
 }

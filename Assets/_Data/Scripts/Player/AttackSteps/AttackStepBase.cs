@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+
 public abstract class AttackStepBase : IAttackStep
 {
     public abstract string AttackStateName { get; }
@@ -10,7 +11,7 @@ public abstract class AttackStepBase : IAttackStep
 
     public AttackStepBase(CharacterBase character)
     {
-        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => character.CharacterCombat.AttackHitBox());
+        // character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => character.CharacterCombat.AttackHitBox());
     }
 
     /// <summary>
@@ -22,6 +23,5 @@ public abstract class AttackStepBase : IAttackStep
     {
         character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
         character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
-        DebugNote.Red("Ở base");
     }
 }

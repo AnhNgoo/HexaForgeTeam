@@ -17,12 +17,19 @@ public enum GameEvent
     OnWallJump = 9,
     OnHealthRecovery = 10,
     OnSkill_1 = 11,
-}
-public class EventManager : Singleton<EventManager>
-{
-    private Dictionary<GameEvent, Action<object>> eventDictionary = new Dictionary<GameEvent, Action<object>>();
+    OnSkill_2 = 12,
+    OnActiveSkill_1 = 13,
+    OnActiveSkill_2 = 14,
+    OnMusicVolumeChangedTest = 15,
+    OnBtn_TestEventFromMenuToOther = 16,
+    OnTestEventFromOtherToMenu = 17,
 
-    public void Subscribe(GameEvent eventType, Action<object> listener)
+}
+public static class EventManager
+{
+    private static Dictionary<GameEvent, Action<object>> eventDictionary = new Dictionary<GameEvent, Action<object>>();
+
+    public static void Subscribe(GameEvent eventType, Action<object> listener)
     {
         if (eventDictionary.ContainsKey(eventType))
         {
@@ -34,14 +41,14 @@ public class EventManager : Singleton<EventManager>
         }
     }
 
-    public void Unsubscribe(GameEvent eventType, Action<object> listener)
+    public static void Unsubscribe(GameEvent eventType, Action<object> listener)
     {
         if (!eventDictionary.ContainsKey(eventType)) return;
 
         eventDictionary[eventType] -= listener;
     }
 
-    public void Notify(GameEvent eventType, object data = null)
+    public static void Notify(GameEvent eventType, object data = null)
     {
         if (!eventDictionary.ContainsKey(eventType)) return;
 

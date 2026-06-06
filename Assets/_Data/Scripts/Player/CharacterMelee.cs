@@ -30,12 +30,11 @@ public class CharacterMelee : CharacterBase
         if (meleeAttackEffectPoint_4 == null)
             meleeAttackEffectPoint_4 = effectPoints?.transform.Find("MeleeAttackEffectPoint_4")?.gameObject;
     }
+
     protected override void Init(CharacterData data)
     {
         base.Init(data);
-        characterCombat?.Init(this, InitAttackCombos());
     }
-
     // Override để khởi tạo các đòn tấn công riêng cho Kael
     protected override IAttackStep[] InitAttackCombos()
     {
@@ -48,7 +47,7 @@ public class CharacterMelee : CharacterBase
         };
     }
 
-    protected override void OnAttack()
+    public override void Attack()
     {
         if (characterCombat.FirstAttack) // Chỉ áp sát mục tiêu nếu đây là đòn tấn công đầu tiên trong chuỗi combo
             MeleeSnapToTarget();
@@ -56,7 +55,7 @@ public class CharacterMelee : CharacterBase
     }
 
     //Hỗ trợ áp sát mục tiêu khi tấn công
-    protected async void MeleeSnapToTarget()
+    protected void MeleeSnapToTarget()
     {
         if (CharacterLockTarget == null ||
         !CharacterLockTarget.IsLockingTarget || // Chỉ áp sát nếu đang khóa mục tiêu

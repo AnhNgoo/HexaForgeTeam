@@ -13,14 +13,13 @@ public class DodgeState : ICharacterState
     }
     public void Enter()
     {
-        character.CharacterMovement.IsDodging = true;
         Dodge();
     }
 
 
     public void Exit()
     {
-        character.CharacterMovement.IsDodging = false;
+
     }
 
     public void FixedUpdate()
