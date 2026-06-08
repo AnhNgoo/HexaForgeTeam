@@ -33,6 +33,14 @@ public class EnemyState_Chase : EnemyState
         {
             return;
         }
+
+        if (!_enemyBase.Detection.IsPointInLeash(playerTransform.position))
+        {
+            _enemyBase.Detection.ForceLoseTarget();
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
+            return;
+        }
+
         float maxRangeInArsenal = 0f;
         foreach (var atk in _enemyBase.Combat.AttackArsenal)
         {

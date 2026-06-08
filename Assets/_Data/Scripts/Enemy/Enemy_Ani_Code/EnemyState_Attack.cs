@@ -24,7 +24,7 @@ public class EnemyState_Attack : EnemyState
         float distanceToOrigin = Vector3.Distance(_enemyBase.MyTransform.position, _enemyBase.SpawnOrigin);
         if (distanceToOrigin > _enemyBase.CurrentLeash + 5f) //Nếu đuổi xa quá rồi ở đó và nghi nghờ
         {
-            _enemyBase.Detection.ResetDetection(); //Đặt lại trạng thái phát hiện để xóa mục tiêu hiện tại và các thông tin liên quan, tránh lỗi Enemy vẫn tiếp tục tấn công mặc dù người chơi đã chạy ra khỏi phạm vi tấn công nhưng vẫn còn trong khoảng cách leash
+            _enemyBase.Detection.ForceLoseTarget(); //Đặt lại trạng thái phát hiện để xóa mục tiêu hiện tại và các thông tin liên quan, tránh lỗi Enemy vẫn tiếp tục tấn công mặc dù người chơi đã chạy ra khỏi phạm vi tấn công nhưng vẫn còn trong khoảng cách leash
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Nếu đã đi quá xa so với vị trí xuất hiện ban đầu (vượt quá khoảng cách leash cộng thêm một khoảng đệm nhỏ để tránh lỗi chuyển trạng thái liên tục khi đang ở gần ranh giới), chuyển sang trạng thái Suspicion để bắt đầu nghi ngờ và tìm kiếm mục tiêu, tránh trường hợp Enemy vẫn tiếp tục tấn công mặc dù người chơi đã chạy ra khỏi phạm vi tấn công nhưng vẫn còn trong khoảng cách leash
             return;
         }
@@ -35,6 +35,14 @@ public class EnemyState_Attack : EnemyState
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyIdleState);
             return;
         }
+
+        if (!_enemyBase.Detection.IsPointInLeash(playerTransform.position))
+        {
+            _enemyBase.Detection.ForceLoseTarget();
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
+            return;
+        }
+
         //Luôn xoay về hướng người chơi khi tấn công để tạo hiệu ứng tương tác và tăng tính chân thực của Enemy, có thể điều chỉnh lại logic quay nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể đứng yên khi tấn công mà không quay về hướng người chơi)
         Vector3 lookDir = (playerTransform.position - _enemyBase.MyTransform.position).normalized;
         lookDir.y = 0; //Giữ nguyên trục Y để tránh nghiêng lên xuống
@@ -49,7 +57,13 @@ public class EnemyState_Attack : EnemyState
 
         if (!hasClearShot)
         {
-            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState); //Nếu không có đường bắn thẳng đến người chơi, chuyển sang trạng thái Chase để tiếp tục truy đuổi
+            if (_enemyBase.Detection.IsPointInLeash(playerTransform.position))
+                _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState);
+            else
+            {
+                _enemyBase.Detection.ForceLoseTarget();
+                _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
+            }
             return;
         }
 
@@ -70,7 +84,8 @@ public class EnemyState_Attack : EnemyState
 
             if (distanceToPlayer > maxRangeInArsenal)
             {
-                _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState); //Nếu không có đòn tấn công nào phù hợp và player đã di chuyển ra khỏi phạm vi tấn công, chuyển sang trạng thái Chase để tiếp tục truy đuổi
+                if (_enemyBase.Detection.IsPointInLeash(playerTransform.position))
+                    _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState); //Nếu không có đòn tấn công nào phù hợp và player đã di chuyển ra khỏi phạm vi tấn công, chuyển sang trạng thái Chase để tiếp tục truy đuổi
             }
             else
             {

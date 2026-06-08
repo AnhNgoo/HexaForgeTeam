@@ -1,4 +1,6 @@
 using UnityEngine;
+using Cysharp.Threading.Tasks;
+using System;
 
 public class EnemyState_Dead : EnemyState
 {
@@ -8,10 +10,34 @@ public class EnemyState_Dead : EnemyState
     {
         base.Enter();
         Debug.Log($"{_enemyBase.gameObject.name} đã vào trạng thái Dead.");
-        // To_Do: Thực hiện các hành động khi vào trạng thái Dead, ví dụ: phát animation chết, vô hiệu hoá collider, v.v.
+
         _enemyBase.Locomotion.StopMoving();
-        _enemyBase.MainCollider.enabled = false; // Vô hiệu hoá collider để không còn tương tác vật lý
+
+        _enemyBase.Locomotion.SetAgentActive(false); //Vô hiệu hóa NavMeshAgent để tránh lỗi di chuyển sau khi chết
+
+        if (_enemyBase.MainCollider != null)
+        {
+            _enemyBase.MainCollider.enabled = true;
+        }
         _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.DieHash); // Phát animation chết
+
+        StartDespawnTimer().Forget(); // Bắt đầu timer để despawn sau khi chết, sử dụng Forget() để chạy bất đồng bộ mà không cần chờ đợi kết quả
+    }
+
+    private async UniTaskVoid StartDespawnTimer()
+    {
+        try
+        {
+            await UniTask.Delay(TimeSpan.FromSeconds(5), cancellationToken: _enemyBase.GetCancellationTokenOnDestroy()); // Chờ 5 giây trước khi despawn
+
+            if (_enemyBase.MainCollider != null) _enemyBase.MainCollider.enabled = false; // Vô hiệu hóa collider để tránh tương tác sau khi chết
+
+            _enemyBase.Despawn(); // Gọi phương thức despawn để trả Enemy về pool
+        }
+        catch (OperationCanceledException)
+        {
+
+        }
     }
 
     public override void UpdateLogic()
