@@ -1,11 +1,15 @@
 {
-    "name": "DuskBlade.PlayModeTests",
+    "name": "DuskBlade.EditModeTests",
     "rootNamespace": "DuskBlade.Tests",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "UnityEngine.UI",
+        "DuskBlade.PlayModeTests"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,

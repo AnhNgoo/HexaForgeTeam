@@ -652,7 +652,7 @@ namespace DuskBlade.Tests
         public IEnumerator PL_SUM_003_TongHeThongPlayer_KhongPhatSinhLoiDo()
         {
             yield return RunSummaryRoutine("PL-SUM-003", "Kiem tra tong he thong Player khong phat sinh loi do",
-                "Spawn, WASD, Jump, Dodge, Attack, Skill 1, Lock Target khong gay Error/Exception.", "High", 1);
+                "Spawn, joystick/vector input, Jump, Dodge, Attack, Skill 1, Lock Target khong gay Error/Exception.", "High", 1);
         }
 
         [Test]

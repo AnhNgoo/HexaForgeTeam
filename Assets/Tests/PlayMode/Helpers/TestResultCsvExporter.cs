@@ -12,6 +12,7 @@ namespace DuskBlade.Tests
     public static class TestResultCsvExporter
     {
         private const string ExportDirectory = "Assets/CSV";
+        private const int MaxActualResultLength = 360;
 
         private static readonly string[] Header =
         {
@@ -68,7 +69,7 @@ namespace DuskBlade.Tests
                 record.MaTC,
                 record.TieuDeTestcase,
                 record.KetQuaMongDoi,
-                record.KetQuaThucTe,
+                FormatActualResult(record.KetQuaThucTe),
                 record.TinhTrangThucThi,
                 record.MucDoNghiemTrongCuaLoi,
                 record.KieuChay,
@@ -82,14 +83,9 @@ namespace DuskBlade.Tests
         private static string ToCsvLine(IReadOnlyList<string> columns)
         {
             var builder = new StringBuilder();
-
             for (int i = 0; i < columns.Count; i++)
             {
-                if (i > 0)
-                {
-                    builder.Append(',');
-                }
-
+                if (i > 0) builder.Append(',');
                 builder.Append(Escape(columns[i]));
             }
 
@@ -98,14 +94,32 @@ namespace DuskBlade.Tests
 
         private static string Escape(string value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                return string.Empty;
-            }
-
+            if (string.IsNullOrEmpty(value)) return string.Empty;
             bool needsQuotes = value.IndexOfAny(new[] { ',', '"', '\r', '\n' }) >= 0;
             string escaped = value.Replace("\"", "\"\"");
             return needsQuotes ? $"\"{escaped}\"" : escaped;
+        }
+
+        private static string FormatActualResult(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return string.Empty;
+
+            string formatted = value
+                .Replace("\r\n", " | ")
+                .Replace("\n", " | ")
+                .Replace("\r", " | ")
+                .Replace("\t", " ")
+                .Trim();
+
+            while (formatted.Contains("  ")) formatted = formatted.Replace("  ", " ");
+            while (formatted.Contains("| |")) formatted = formatted.Replace("| |", "|");
+
+            if (formatted.Length > MaxActualResultLength)
+            {
+                formatted = formatted.Substring(0, MaxActualResultLength) + "... (đã rút gọn, xem Unity Console để biết chi tiết)";
+            }
+
+            return formatted;
         }
 
         private static string SanitizeFileName(string value)

@@ -5,6 +5,8 @@ namespace DuskBlade.Tests
 {
     public class TestLogWatcher
     {
+        private const int MaxStoredErrors = 3;
+        private const int MaxErrorLength = 220;
         private readonly List<string> errors = new List<string>();
         private bool isWatching;
 
@@ -48,14 +50,19 @@ namespace DuskBlade.Tests
                 return;
             }
 
-            if (string.IsNullOrEmpty(stackTrace))
+            if (errors.Count >= MaxStoredErrors)
             {
-                errors.Add(condition);
+                return;
             }
-            else
+
+            string message = string.IsNullOrEmpty(condition) ? type.ToString() : condition;
+            message = message.Replace("\r", " ").Replace("\n", " ").Trim();
+            if (message.Length > MaxErrorLength)
             {
-                errors.Add($"{condition}\n{stackTrace}");
+                message = message.Substring(0, MaxErrorLength) + "...";
             }
+
+            errors.Add(type + ": " + message);
         }
     }
 }
