@@ -94,6 +94,7 @@ public class MobileCamera : LoadComponents
         lookFingerId = -1;
     }
 
+
     private void ApplyCamera()
     {
         pov.m_HorizontalAxis.Value = targetXAxis;

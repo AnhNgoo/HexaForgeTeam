@@ -4,6 +4,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class HUDMenuTest : MenuBase
 {
@@ -80,7 +84,66 @@ public class HUDMenuTest : MenuBase
     }
     private void Update()
     {
-        EventManager.Notify(GameEvent.OnMovement, joystick.Direction);
+#if UNITY_EDITOR
+        if (!IsSimulatorFocused())
+        {
+            EventManager.Notify(GameEvent.OnMovement, Vector2.zero);
+            return;
+        }
+#endif
+
+        Vector2 move = joystick.Direction;
+
+#if UNITY_EDITOR || UNITY_STANDALONE
+        Vector2 keyboard = Vector2.zero;
+
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.wKey.isPressed)
+                keyboard.y = 1;
+
+            if (Keyboard.current.sKey.isPressed)
+                keyboard.y = -1;
+
+            if (Keyboard.current.aKey.isPressed)
+                keyboard.x = -1;
+
+            if (Keyboard.current.dKey.isPressed)
+                keyboard.x = 1;
+        }
+
+        if (keyboard != Vector2.zero)
+        {
+            float speedMultiplier = 0.5f;
+
+            if (Keyboard.current.cKey.isPressed)
+                speedMultiplier = 1f;
+            else if (Keyboard.current.vKey.isPressed)
+                speedMultiplier = 0.2f;
+
+            move = keyboard * speedMultiplier;
+        }
+#endif
+
+        EventManager.Notify(GameEvent.OnMovement, move);
+    }
+
+    private bool IsSimulatorFocused()
+    {
+#if UNITY_EDITOR
+        EditorWindow focusedWindow = EditorWindow.focusedWindow;
+
+        if (focusedWindow == null)
+            return false;
+
+        string windowName = focusedWindow.titleContent.text;
+
+        return windowName.Contains("Simulator") ||
+               windowName.Contains("Device Simulator") ||
+               windowName.Contains("Game");
+#else
+    return true;
+#endif
     }
 
     private void OnDodgeButtonClicked()
