@@ -19,7 +19,7 @@ public abstract class AttackStepBase : IAttackStep
     /// Nhớ phải gọi base.Attack(character) để chạy phần chung của tất cả các bước tấn công, nếu không sẽ bị lỗi animation và trigger attack
     /// </summary>
     /// <param name="character"></param>
-    public virtual async void Attack(CharacterBase character)
+    public virtual void Attack(CharacterBase character)
     {
         character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
         character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
