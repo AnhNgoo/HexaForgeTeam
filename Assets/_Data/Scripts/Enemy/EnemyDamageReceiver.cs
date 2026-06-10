@@ -17,12 +17,15 @@ public class EnemyDamageReceiver : MonoBehaviour
     {
         //To_Do: Tính toán sát thương cuối cùng dựa trên các yếu tố như phòng thủ, trạng thái, v.v.
         finalDamage = Mathf.Max(0, rawDamage - _enemyBase.Data.maxDefense);
-        _enemyBase.Heath.TakeDamage(finalDamage);
+        _enemyBase.Health.TakeDamage(finalDamage);
 
         //Gọi hệ thống poise để xử lý sát thương poise
         _enemyBase.PoiseSystem.TakePoiseDamage(poiseDamage);
 
-        //Gọi đồng đội xung quanh khi bị tấn công
-        _enemyBase.Detection.AlertNearbyAllies(GameObject.FindGameObjectWithTag("Player").transform); //Gọi hàm cảnh báo đồng bọn khi bị tấn công, có thể mở rộng sau này để truyền thông tin về mục tiêu cho các Enemy khác trong bán kính cảnh báo thay vì chỉ đơn giản là truyền vị trí của player (ví dụ: truyền trạng thái hiện tại của player như đang tấn công, đang phòng thủ, v.v.) để đồng bọn có thể phản ứng phù hợp hơn thay vì chỉ đơn giản là phát hiện mục tiêu như nhau với cùng một trạng thái.
+        if (_enemyBase.Detection.CurrentTarget == null)
+        {
+            Transform attacker = GameObject.FindGameObjectWithTag("Player").transform; //Tìm game object có tag "Player" để lấy reference đến attacker, có thể dùng để xác định hướng tấn công và các hiệu ứng liên quan đến vị trí của attacker
+            _enemyBase.Detection.ConfirmTarget(attacker); //Ép phát hiện attacker khi bị tấn công, có thể dùng để đảm bảo rằng Enemy sẽ phản ứng ngay lập tức khi bị tấn công mà không cần phải chờ đến lần kiểm tra phát hiện tiếp theo
+        }
     }
 }

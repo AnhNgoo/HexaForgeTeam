@@ -8,8 +8,6 @@ public class EnemyLocomotion : MonoBehaviour
     [SerializeField] private NavMeshAgent _navMeshAgent;
     [Header("Patrol Settings")]
     public bool isPatroller; //Công tắc để tắt bật đi tuần
-    public Transform[] wayPoints; //Mảng chứa các điểm tuần tra
-    public int currentWaypointIndex; //Chỉ số điểm tuần tra hiện tại
 
     private void OnValidate()
     {
@@ -27,20 +25,14 @@ public class EnemyLocomotion : MonoBehaviour
     {
         _enemyBase = enemyBase;
         Debug.Log($"{gameObject.name} - EnemyLocomotion đã được khởi tạo!");
-        if (isPatroller && (wayPoints == null || wayPoints.Length == 0))
+        if (isPatroller)
         {
-            Debug.LogWarning($"{gameObject.name} được đặt là patroller nhưng không có điểm tuần tra nào được gán!");
-            SetSpeed(_enemyBase.Data.patrolSpeed); // Đặt tốc độ di chuyển ban đầu là tốc độ tuần tra, có thể thay đổi sau này khi vào trạng thái khác
-        }
-        else if (isPatroller)
-        {
-            SetSpeed(_enemyBase.Data.patrolSpeed); // Đặt tốc độ di chuyển ban đầu là tốc độ tuần tra, có thể thay đổi sau này khi vào trạng thái khác
+            SetSpeed(_enemyBase.Data.patrolSpeed); //Đặt tốc độ di chuyển khi tuần tra, có thể điều chỉnh trong EnemyData để tạo ra sự đa dạng về hành vi di chuyển của các loại Enemy khác nhau
         }
         else
         {
-            SetSpeed(_enemyBase.Data.moveSpeed); // Đặt tốc độ di chuyển ban đầu là tốc độ di chuyển bình thường
+            SetSpeed(_enemyBase.Data.moveSpeed); //Đặt tốc độ di chuyển bình thường, có thể điều chỉnh trong EnemyData để tạo ra sự đa dạng về hành vi di chuyển của các loại Enemy khác nhau
         }
-
     }
 
     public void SetSpeed(float speed)
@@ -52,7 +44,17 @@ public class EnemyLocomotion : MonoBehaviour
     public void MoveToTarget(Vector3 targetPosition)
     {
         _navMeshAgent.isStopped = false;
+        _navMeshAgent.updateRotation = true;
         _navMeshAgent.SetDestination(targetPosition);
+    }
+
+    //Hàm đặt tốc độ xoay mặt tự động của NavMeshAgent    
+    public void SetAngularSpeed(float speed)
+    {
+        if (_navMeshAgent != null)
+        {
+            _navMeshAgent.angularSpeed = speed;
+        }
     }
 
     //Hàm dừng di chuyển
@@ -61,28 +63,31 @@ public class EnemyLocomotion : MonoBehaviour
         _navMeshAgent.isStopped = true;
     }
 
-    //Hàm kiểm tra lấy điểm mốc tiếp theo 
-    public Vector3 GetNextWaypoint()
+    //Dịch chuyển an toàn cho NavMeshAgent
+    public void WarpTo(Vector3 position)
     {
-        // Nếu không có điểm tuần tra nào, trả về vị trí hiện tại
-        if (wayPoints == null || wayPoints.Length == 0) return transform.position;
-
-        //Lấy Transform của điểm tuần tra hiện tại để sử dụng trong việc di chuyển và kiểm tra khoảng cách, có thể dùng để hiển thị debug hoặc các mục đích khác nếu cần thiết
-        Transform targetTransform = wayPoints[currentWaypointIndex];
-
-        if (targetTransform != null)
+        if (_navMeshAgent.isActiveAndEnabled)
         {
-            // Ép nó nhích qua điểm tiếp theo để lần sau không bị kẹt lại ở ô lỗi này nữa
-            currentWaypointIndex = (currentWaypointIndex + 1) % wayPoints.Length; // Tăng index, nếu vượt quá số lượng điểm tuần tra thì quay lại điểm đầu tiên
-
-            return targetTransform.position; // Tạm thời đứng im tại chỗ
+            _navMeshAgent.Warp(position);
         }
+        else
+        {
+            transform.position = position; //Nếu NavMeshAgent không hoạt động, di chuyển trực tiếp bằng cách đặt vị trí của transform, có thể dùng để đảm bảo rằng Enemy vẫn có thể được di chuyển đến vị trí mong muốn ngay cả khi NavMeshAgent gặp sự cố hoặc bị tắt
+        }
+    }
 
-        // Nếu điểm tuần tra hiện tại bị null, log lỗi và tiếp tục với điểm tuần tra tiếp theo
-        Vector3 target = targetTransform.position;
-        //Tăng index, nếu vượt quá số lượng điểm tuần tra thì quay lại điểm đầu tiên
-        currentWaypointIndex = (currentWaypointIndex + 1) % wayPoints.Length;
-        return target;
+    //Lấy một điểm ngẫu nhiên trên NavMesh xung quanh vị trí gốc
+    public Vector3 GetRandomRoamPosition(Vector3 origin, float radius)
+    {
+        Vector3 randomDirection = Random.insideUnitSphere * radius; //Tạo một vector ngẫu nhiên trong một hình cầu có bán kính là radius
+        randomDirection += origin; //Dịch chuyển vector ngẫu nhiên đến xung quanh vị trí gốc
 
+        NavMeshHit hit;
+        //Quét bán kính tìm điểm hợp lệ trên mặt đất
+        if (NavMesh.SamplePosition(randomDirection, out hit, radius, 1))
+        {
+            return hit.position; //Trả về vị trí hợp lệ trên NavMesh nếu tìm thấy
+        }
+        return origin; //Nếu không tìm thấy điểm hợp lệ nào, trả về vị trí gốc để tránh việc Enemy bị mắc kẹt hoặc di chuyển đến vị trí không hợp lệ
     }
 }

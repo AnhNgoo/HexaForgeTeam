@@ -26,6 +26,10 @@ public enum PoolType
     HitEffect_1 = 26,
     HitEffect_2 = 27,
     RecoveryBottle = 28,
+    EnemyBat = 50,
+    EnemySkeletonMelee = 51,
+    EnemyMushroom = 52,
+    EnemySkeletonRouge = 53,
 }
 
 [System.Serializable]
@@ -55,8 +59,9 @@ public class ObjectPooling : Singleton<ObjectPooling>
         base.LoadComponent();
 
     }
-    private void Start()
+    protected override void Awake()
     {
+        base.Awake();
         LoadPoolData();
         InitializePools();
     }

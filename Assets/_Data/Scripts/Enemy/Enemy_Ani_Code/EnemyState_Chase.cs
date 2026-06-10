@@ -15,11 +15,22 @@ public class EnemyState_Chase : EnemyState
     public override void UpdateLogic()
     {
         base.UpdateLogic();
+
+        //Kiểm tra dây xích
+        float distanceToOrigin = Vector3.Distance(_enemyBase.MyTransform.position, _enemyBase.SpawnOrigin);
+        if (distanceToOrigin > _enemyBase.CurrentLeash)
+        {
+            Debug.Log("color=red><b>Enemy đã vượt quá khoảng cách dây xích, tự động quay về vị trí spawn để tránh bị lạc quá xa và không thể tương tác với player.</b></color>");
+            _enemyBase.Detection.ForceLoseTarget(); //Ép mất mục tiêu khi vượt quá khoảng cách dây xích để tránh lỗi Enemy vẫn tiếp tục truy đuổi mặc dù đã đi quá xa so với vị trí xuất hiện ban đầu nhưng vẫn còn trong khoảng cách leash
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái Return để quay về vị trí xuất hiện ban đầu, tránh lỗi Enemy vẫn tiếp tục truy đuổi mặc dù đã đi quá xa so với vị trí xuất hiện ban đầu nhưng vẫn còn trong khoảng cách leash
+            return;
+
+        }
+
         Transform playerTransform = _enemyBase.Detection.CurrentTarget;
 
         if (playerTransform == null)
         {
-            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
             return;
         }
         float maxRangeInArsenal = 0f;

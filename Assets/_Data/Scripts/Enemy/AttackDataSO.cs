@@ -26,4 +26,7 @@ public class AttackDataSO : ScriptableObject
     [Header("Range Settings (Ranged Attacks Only)")]
     public GameObject projectilePrefab; //Prefab của projectile được sử dụng cho đòn tấn công tầm xa, có thể dùng để tạo ra projectile khi tấn công
     public float projectileSpeed = 10f; //Tốc độ của projectile (chỉ áp dụng cho tấn công tầm xa)
+    [Header("VFX Settings")]
+    public PoolType hitVFX; //Loại VFX được sử dụng khi đòn tấn công đánh trúng mục tiêu, có thể dùng để kích hoạt hiệu ứng tương ứng khi tấn công trúng player
+    public PoolType missVFX; //Loại VFX được sử dụng khi đòn tấn công không đánh trúng mục tiêu, có thể dùng để kích hoạt hiệu ứng tương ứng khi tấn công hụt player
 }
