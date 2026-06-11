@@ -9,7 +9,7 @@ public class AttackMeleeStep_3 : AttackStepBase
     {
         if (character is CharacterMelee meleeCharacter)
         {
-            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
+            meleeCharacter.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance?.SpawnFromPool(
                                                                                         meleeCharacter.meleeAttackEffect_3,
                                                                                         meleeCharacter.meleeAttackEffectPoint_3.transform.position,
                                                                                         meleeCharacter.meleeAttackEffectPoint_3.transform.rotation));

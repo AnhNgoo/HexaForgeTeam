@@ -1,5 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
 --- !u!1 &7018895851495567609
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,7 +7,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1898500148517993611}
-  - component: {fileID: 7959445922794598242}
   m_Layer: 0
   m_Name: Fountain_01_Prefab
   m_TagString: Untagged
@@ -46,31 +43,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7959445922794598242
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7018895851495567609}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9bec74c187ce38841bc49562a14c28a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_FoliageElements:
-  - prefab: {fileID: 3147920405435783990, guid: adb70e8d6e4d015498b3f66c419cb01f, type: 3}
-    weight: 1
-    minMaxScale: {x: 0.7, y: 1.5}
-    angleVariance: 30
-    maxYOffset: 0.5
-  - prefab: {fileID: 6803625359496642370, guid: 605bc03367afa0b448b39e3fbef15382, type: 3}
-    weight: 1
-    minMaxScale: {x: 0.7, y: 1.5}
-    angleVariance: 30
-    maxYOffset: 0.5
-  m_Radius: 7
-  m_Count: 14
 --- !u!1001 &357035666563459881
 PrefabInstance:
   m_ObjectHideFlags: 0
