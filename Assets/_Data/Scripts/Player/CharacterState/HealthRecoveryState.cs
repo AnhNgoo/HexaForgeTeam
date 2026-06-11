@@ -68,16 +68,21 @@ public class HealthRecoveryState : ICharacterState
     private async void StartHealthRecovery()
     {
         bool isHealthRecovered = false; // Đảm bảo chỉ hồi máu một lần trong quá trình animation
+        GameObject recoveryBottle = ObjectPooling.Instance.SpawnFromPool(PoolType.RecoveryBottle, character.HandRight.transform.position, character.HandRight.transform.rotation, character.HandRight.transform);
+        character.CharacterWeapon.StoreWeapon();
 
         while (character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) <= healthRecoveryCompleteThreshold)
         {
             if (character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) >= recoveryDuration && !isHealthRecovered)
             {
                 isHealthRecovered = true;
-                DebugNote.Green("Gọi hàm hồi máu ở đây");
+                character.CharacterRecovery.UseRecoveryBottle();
             }
             await UniTask.Yield();
         }
+
+        ObjectPooling.Instance.ReturnToPool(PoolType.RecoveryBottle, recoveryBottle);
+        character.CharacterWeapon.RetrieveWeapon();
         character.StateController.ChangeState(new IdleState(character));
     }
 }
