@@ -406,7 +406,7 @@ Transform:
   m_GameObject: {fileID: 3443141220721444920}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -468,6 +468,12 @@ MonoBehaviour:
   dieHash: 0
   turnleftHash: 0
   turnrightHash: 0
+  walkHash: 0
+  idleVariantStateNames: []
+  dieVariantStateNames: []
+  staggerVariantStateNames: []
+  chaseVariantStateNames: []
+  walkVariantStateNames: []
 --- !u!1 &3943921712316259443
 GameObject:
   m_ObjectHideFlags: 0
@@ -645,6 +651,8 @@ GameObject:
   - component: {fileID: 5703349148460164071}
   - component: {fileID: 7347060630065967488}
   - component: {fileID: 4407918783492614759}
+  - component: {fileID: 6001642034082954854}
+  - component: {fileID: 7949179564745765386}
   - component: {fileID: 856742118037698922}
   - component: {fileID: 2046581866919482272}
   - component: {fileID: 5231136539431358823}
@@ -695,6 +703,8 @@ MonoBehaviour:
   _animatorController: {fileID: 2021025527594678921}
   _lootDropper: {fileID: 7347060630065967488}
   _vfxManager: {fileID: 4407918783492614759}
+  _attackAnchors: {fileID: 7949179564745765386}
+  _hitboxRegistry: {fileID: 6001642034082954854}
   _mainCollider: {fileID: 2046581866919482272}
   _myTransform: {fileID: 4731773007819091492}
 --- !u!114 &4733340256213533310
@@ -711,8 +721,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: 9e9df672f93a8e848a441364cad6cc5f, type: 2}
-  _weaponHitbox: {fileID: 4626451704559597886}
-  _projectileSpawnPoint: {fileID: 7847924219708040789}
 --- !u!114 &1423811182920680424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -836,6 +844,46 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 4648331649184875042}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 60
+  _staggerVFXOffset: {x: 0, y: 0.2, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 0.5
+--- !u!114 &6001642034082954854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4901731325795769967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ad4ac3a64eaef4980013fe7b2f4d81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitboxEntries:
+  - type: 2
+    hitbox: {fileID: 4626451704559597886}
+--- !u!114 &7949179564745765386
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4901731325795769967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 508ec18076999a743953129db62c3a26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rootAnchor: {fileID: 0}
+  _mouthAnchor: {fileID: 5385964895807644689}
+  _chestAnchor: {fileID: 0}
+  _headAnchor: {fileID: 0}
+  _legAnchor: {fileID: 0}
+  _handAnchor: {fileID: 0}
+  _weaponAnchor: {fileID: 0}
+  _projectileSpawnAnchor: {fileID: 0}
 --- !u!195 &856742118037698922
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -854,8 +902,8 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 0
+  m_Height: 1.5
+  m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!136 &2046581866919482272
@@ -880,7 +928,7 @@ CapsuleCollider:
   m_Radius: 0.4
   m_Height: 0.5
   m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &5231136539431358823
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1151,6 +1199,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bb6439ecc4ee1e4b8f60e667190c48f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _dealDamageOnHit: 1
 --- !u!1 &7719306717544301541
 GameObject:
   m_ObjectHideFlags: 0

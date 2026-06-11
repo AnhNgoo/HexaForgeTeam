@@ -33,6 +33,10 @@ public class EnemyBase : LoadComponents, IPoolable
     [FoldoutGroup("Modules")]
     [SerializeField] private EnemyVFXManager _vfxManager;
     [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyAttackAnchors _attackAnchors;
+    [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyHitboxRegistry _hitboxRegistry;
+    [FoldoutGroup("Modules")]
     [SerializeField] private Collider _mainCollider;
     [FoldoutGroup("Modules")]
     [SerializeField] private Transform _myTransform;
@@ -54,6 +58,8 @@ public class EnemyBase : LoadComponents, IPoolable
     public EnemyAnimatorController AnimatorController => _animatorController;
     public EnemyLootDropper LootDropper => _lootDropper;
     public EnemyVFXManager VFXManager => _vfxManager;
+    public EnemyAttackAnchors AttackAnchors => _attackAnchors;
+    public EnemyHitboxRegistry HitboxRegistry => _hitboxRegistry;
     public Transform MyTransform => _myTransform;
     public Collider MainCollider => _mainCollider;
 
@@ -116,7 +122,8 @@ public class EnemyBase : LoadComponents, IPoolable
         _animatorController.Initialize(this);
         _lootDropper.Initialize(this);
         _vfxManager.Initialize(this);
-
+        _attackAnchors.Initialize(this);
+        _hitboxRegistry.Initialize(this);
         _eventManager.OnDead -= HandleDeathReport; //Đảm bảo không đăng ký trùng lặp sự kiện khi khởi tạo lại nhiều lần
         _eventManager.OnDead += HandleDeathReport; //Đăng ký sự kiện khi Enemy chết để gọi phương thức trả Enemy về pool
 
@@ -201,6 +208,11 @@ public class EnemyBase : LoadComponents, IPoolable
 
         if (!TryGetComponent(out _vfxManager))
             Debug.LogError("EnemyVFXManager component is missing on " + gameObject.name);
+
+        if (!TryGetComponent(out _attackAnchors))
+            Debug.LogError("EnemyAttackAnchors component is missing on " + gameObject.name);
+        if (!TryGetComponent(out _hitboxRegistry))
+            Debug.LogError("EnemyHitboxRegistry component is missing on " + gameObject.name);
 
         _animatorController = GetComponentInChildren<EnemyAnimatorController>();
     }

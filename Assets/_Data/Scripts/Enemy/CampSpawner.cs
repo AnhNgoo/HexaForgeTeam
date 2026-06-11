@@ -94,8 +94,11 @@ public class CampSpawner : MonoBehaviour
         Debug.Log($"<color=green><b>THÀNH CÔNG: Đã tự động tạo và gán {newlyAdded} Spawn Nodes mới dựa trên thư mục {spawnPointsParent.name}!</b></color>");
     }
 
-    [Header("Gizmo Settings")]
+    [FoldoutGroup("Gizmo Settings", true)]
+    [ToggleLeft][SerializeField] private bool showSpawnPointsGizmos = true; // Công tắc để bật/tắt hiển thị gizmo cho spawn points, có thể được thiết lập trong Inspector để dễ dàng kiểm soát việc hiển thị gizmo
+    [FoldoutGroup("Gizmo Settings")]
     [SerializeField] private List<EnemyGizmoData> enemyGizmoDataList;
+    [FoldoutGroup("Gizmo Settings")]
     [SerializeField] private float spawnPointGizmoHeight = 1f;
 
     private Transform _playerTransform; // Biến để lưu trữ reference đến Transform của player, có thể dùng để kiểm tra khoảng cách giữa player và camp để quyết định khi nào spawn/despawn enemy
@@ -212,6 +215,8 @@ public class CampSpawner : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        if (!showSpawnPointsGizmos) return; // Kiểm tra công tắc hiển thị gizmo trước khi vẽ để tiết kiệm hiệu năng và tránh làm rối mắt nếu không muốn hiển thị gizmo
+
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, spawnDistance); // Vẽ một hình tròn để hiển thị khoảng cách spawn của camp trong scene view, có thể điều chỉnh màu sắc và kích thước của hình tròn nếu cần thiết
 

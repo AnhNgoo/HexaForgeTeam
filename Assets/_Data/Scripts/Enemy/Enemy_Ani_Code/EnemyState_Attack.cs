@@ -53,26 +53,28 @@ public class EnemyState_Attack : EnemyState
         //Tính toán khoảng cách đến người chơi để quyết định có tiếp tục tấn công hay không
         float distanceToPlayer = Vector3.Distance(_enemyBase.MyTransform.position, playerTransform.position);
 
-        bool hasClearShot = _enemyBase.Detection.IsTargetVisible(playerTransform); //Kiểm tra xem có đường bắn thẳng đến người chơi hay không để quyết định có thực hiện tấn công tầm xa hay không, tránh trường hợp Enemy vẫn thực hiện tấn công tầm xa mặc dù người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách tấn công
-
-        if (!hasClearShot)
-        {
-            if (_enemyBase.Detection.IsPointInLeash(playerTransform.position))
-                _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState);
-            else
-            {
-                _enemyBase.Detection.ForceLoseTarget();
-                _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
-            }
-            return;
-        }
-
         AttackDataSO chosenAttack = _enemyBase.Combat.ChooseAttack(distanceToPlayer); //Chọn đòn tấn công phù hợp dựa trên khoảng cách đến player
         if (chosenAttack != null)
         {
-            _isWaitingCooldown = false; //Bắt đầu quá trình chờ đợi hồi chiêu của đòn tấn công, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể không cần chờ đợi hồi chiêu và có thể tấn công liên tục)
-            _enemyBase.Combat.PerformAttack(chosenAttack); //Thực hiện đòn tấn công đã chọn
-            _attackEndTime = Time.time + chosenAttack.attackDuration; //Cập nhật thời gian kết thúc của đòn tấn công hiện tại dựa trên thời gian của đòn tấn công đã chọn, giúp kiểm soát thời gian giữa các đòn tấn công và tránh lỗi spam tấn công liên tục
+            bool isCloseEnoughForMelee = distanceToPlayer <= 0.5f;
+            bool needsClearShot = chosenAttack.attackType == AttackType.Ranged;
+
+            if (needsClearShot && !_enemyBase.Detection.IsTargetVisible(playerTransform))
+            {
+                if (_enemyBase.Detection.IsPointInLeash(playerTransform.position))
+                    _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState);
+                else
+                {
+                    _enemyBase.Detection.ForceLoseTarget();
+                    _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
+                }
+
+                return;
+            }
+
+            _isWaitingCooldown = false; //Đặt lại trạng thái chờ đợi hồi chiêu khi đã chọn được đòn tấn công mới, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể không cần chờ đợi hồi chiêu và có thể tấn công liên tục)
+            _enemyBase.Combat.PerformAttack(chosenAttack); //Thực hiện đòn tấn công đã chọn, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có hiệu ứng đặc biệt khi thực hiện đòn tấn công)
+            _attackEndTime = Time.time + chosenAttack.attackDuration; //Cập nhật thời gian kết thúc của đòn tấn công hiện tại dựa trên thời gian của đòn tấn công đã chọn, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có thời gian tấn công dài hơn hoặc ngắn hơn)
         }
         else
         {

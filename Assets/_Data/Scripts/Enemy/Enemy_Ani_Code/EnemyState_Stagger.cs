@@ -6,6 +6,8 @@ public class EnemyState_Stagger : EnemyState
 {
     private float _staggerEndTime; //Biến để lưu thời điểm kết thúc stagger, có thể dùng để tính toán logic đặc biệt nếu bị đánh trúng trong khi đang stagger
     private bool _isRecovering; //Biến để theo dõi xem có đang trong quá trình hồi phục sau khi bị đánh trúng trong khi đang stagger hay không, có thể dùng để điều chỉnh logic khi bị đánh trúng trong trạng thái stagger (ví dụ như không cho bị stagger liên tiếp nếu đang trong quá trình hồi phục)
+    private float _idleVisualTime;
+    private bool _returnedToIdleVisual;
     public EnemyState_Stagger(EnemyBase enemyBase) : base(enemyBase) { }
 
     public override void Enter()
@@ -21,13 +23,23 @@ public class EnemyState_Stagger : EnemyState
 
         _staggerEndTime = Time.time + _enemyBase.Data.staggerDuration; //Tính toán thời điểm kết thúc stagger dựa trên thời gian stagger được định nghĩa trong EnemyData, có thể dùng để điều chỉnh logic đặc biệt nếu bị đánh trúng trong khi đang stagger
 
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.StaggerHash); // Phát animation Stagger khi vào trạng thái này
+        _returnedToIdleVisual = false; //Đặt lại trạng thái hiển thị idle khi vào trạng thái Stagger, có thể dùng để điều chỉnh logic hiển thị khi bị đánh trúng trong trạng thái stagger (ví dụ như chỉ hiển thị hiệu ứng stagger mà không chuyển sang animation idle nếu thời gian stagger còn lại quá ngắn)
+        _idleVisualTime = Time.time + _enemyBase.VFXManager.StaggerHitReactDuration; //Tính toán thời điểm bắt đầu hiển thị visual idle dựa trên thời gian phản ứng khi bị đánh trúng được định nghĩa trong EnemyVFXManager, có thể dùng để điều chỉnh logic hiển thị khi bị đánh trúng trong trạng thái stagger (ví dụ như chỉ hiển thị hiệu ứng stagger mà không chuyển sang animation idle nếu thời gian stagger còn lại quá ngắn)
+
+        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.StaggerHash); //Phát animation Stagger ngay khi vào trạng thái Stagger để đảm bảo rằng hiệu ứng Stagger sẽ được hiển thị đúng cách, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có animation Stagger đặc biệt hoặc không có animation Stagger)
+        _enemyBase.VFXManager.PlayStaggerVFX(); //Kích hoạt hiệu ứng Stagger ngay khi vào trạng thái Stagger để đảm bảo rằng hiệu ứng Stagger sẽ được hiển thị đúng cách, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có hiệu ứng Stagger đặc biệt hoặc không có hiệu ứng Stagger)
     }
 
     public override void UpdateLogic()
     {
         base.UpdateLogic();
         if (_isRecovering) return;
+
+        if (!_returnedToIdleVisual && Time.time >= _idleVisualTime)
+        {
+            _returnedToIdleVisual = true;
+            _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.IdleHash);
+        }
 
         // 4. Liên tục so khớp thời gian thực tế để đánh giá hồi phục tỉnh táo
         if (Time.time >= _staggerEndTime)
@@ -66,7 +78,7 @@ public class EnemyState_Stagger : EnemyState
     public override void Exit()
     {
         base.Exit();
-        // To_Do: Thực hiện các hành động khi thoát khỏi trạng thái Stagger, ví dụ: dừng animation Stagger
+        _enemyBase.VFXManager.StopStaggerVFX();
         _enemyBase.PoiseSystem.ResetPoise();
     }
 }
