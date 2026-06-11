@@ -26,6 +26,7 @@ public class EnemyStateMachine : MonoBehaviour
     public EnemyState_Return EnemyReturnState => returnState;
     #endregion
 
+    private bool _isSubscribed;
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
@@ -43,7 +44,12 @@ public class EnemyStateMachine : MonoBehaviour
         Subcribe(); // Đăng ký sự kiện khi khởi tạo để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra
     }
 
-    public void OnDisable()
+    private void OnEnable()
+    {
+        Subcribe(); // Đăng ký sự kiện khi đối tượng được kích hoạt để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra, cần kiểm tra nếu đã đăng ký để tránh đăng ký lại nhiều lần
+    }
+
+    private void OnDisable()
     {
         Unsubscribe(); // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
     }
@@ -59,18 +65,19 @@ public class EnemyStateMachine : MonoBehaviour
     #region Event Handlers
     private void Subcribe()
     {
+        if (_isSubscribed || _enemyBase == null || _enemyBase.EventManager == null) return; // Kiểm tra nếu đã đăng ký hoặc _enemyBase hoặc EventManager chưa được gán để tránh lỗi
         _enemyBase.EventManager.OnStagger += ActivateStunState; // Đăng ký sự kiện vỡ trạng thái để kích hoạt trạng thái Stagger
         _enemyBase.EventManager.OnDead += ActivateDeadState; // Đăng ký sự kiện chết để kích hoạt trạng thái Dead, có thể dùng lambda để tránh lỗi khi truyền trực tiếp hàm nếu hàm đó có tham số
+        _isSubscribed = true; // Đánh dấu đã đăng ký để tránh đăng ký lại nhiều lần
     }
 
     private void Unsubscribe()
     {
         //Kiểm tra xem _enemyBase và EventManager đã được gán hay chưa
-        if (_enemyBase != null && _enemyBase.EventManager != null)
-        {
-            _enemyBase.EventManager.OnStagger -= ActivateStunState; // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
-            _enemyBase.EventManager.OnDead -= ActivateDeadState; // Hủy đăng ký sự kiện chết để tránh lỗi, cần đảm bảo rằng lambda được hủy đúng cách nếu dùng lambda để đăng ký   
-        }
+        if (!_isSubscribed || _enemyBase == null || _enemyBase.EventManager == null) return;
+        _enemyBase.EventManager.OnStagger -= ActivateStunState; // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
+        _enemyBase.EventManager.OnDead -= ActivateDeadState; // Hủy đăng ký sự kiện chết để tránh lỗi, cần đảm bảo rằng lambda được hủy đúng cách nếu dùng lambda để đăng ký   
+        _isSubscribed = false; // Đánh dấu đã hủy đăng ký
     }
     #endregion
 

@@ -37,30 +37,24 @@ public class EnemyLocomotion : MonoBehaviour
 
     public void SetSpeed(float speed)
     {
-        if (_navMeshAgent == null)
-            _navMeshAgent = GetComponent<NavMeshAgent>();
-
-        if (_navMeshAgent == null)
-            return;
-
         _navMeshAgent.speed = speed;
     }
 
     //Hàm di chuyển đến vị trí mục tiêu
     public void MoveToTarget(Vector3 targetPosition)
     {
-        if (_navMeshAgent == null || !_navMeshAgent.isActiveAndEnabled || !_navMeshAgent.isOnNavMesh)
-            return;
-
-        _navMeshAgent.isStopped = false;
-        _navMeshAgent.updateRotation = true;
-        _navMeshAgent.SetDestination(targetPosition);
+        if (_navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+        {
+            _navMeshAgent.isStopped = false;
+            _navMeshAgent.updateRotation = true;
+            _navMeshAgent.SetDestination(targetPosition);
+        }
     }
 
     //Hàm đặt tốc độ xoay mặt tự động của NavMeshAgent    
     public void SetAngularSpeed(float speed)
     {
-        if (_navMeshAgent != null)
+        if (_navMeshAgent != null && _navMeshAgent.enabled)
         {
             _navMeshAgent.angularSpeed = speed;
         }
@@ -69,16 +63,24 @@ public class EnemyLocomotion : MonoBehaviour
     //Hàm dừng di chuyển
     public void StopMoving()
     {
-        if (_navMeshAgent == null || !_navMeshAgent.isActiveAndEnabled || !_navMeshAgent.isOnNavMesh)
-            return;
+        if (_navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+        {
+            _navMeshAgent.isStopped = true;
+        }
+    }
 
-        _navMeshAgent.isStopped = true;
+    public void SetAgentActive(bool isActive)
+    {
+        if (_navMeshAgent != null)
+        {
+            _navMeshAgent.enabled = isActive;
+        }
     }
 
     //Dịch chuyển an toàn cho NavMeshAgent
     public void WarpTo(Vector3 position)
     {
-        if (_navMeshAgent != null && _navMeshAgent.isActiveAndEnabled && _navMeshAgent.isOnNavMesh)
+        if (_navMeshAgent.isActiveAndEnabled)
         {
             _navMeshAgent.Warp(position);
         }

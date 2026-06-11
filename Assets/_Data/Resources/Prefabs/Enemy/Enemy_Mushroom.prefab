@@ -312,7 +312,7 @@ Transform:
   m_GameObject: {fileID: 1267619823498883804}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalPosition: {x: -0, y: -0.25, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -371,6 +371,14 @@ MonoBehaviour:
   dieHash: 0
   turnleftHash: 0
   turnrightHash: 0
+  walkHash: 0
+  idleVariantStateNames:
+  - Idle_1
+  - Idle_2
+  dieVariantStateNames: []
+  staggerVariantStateNames: []
+  chaseVariantStateNames: []
+  walkVariantStateNames: []
 --- !u!1 &1549449508889281809
 GameObject:
   m_ObjectHideFlags: 0
@@ -863,6 +871,8 @@ GameObject:
   - component: {fileID: 8890679875207938023}
   - component: {fileID: 1508105192401658928}
   - component: {fileID: 5646706134448946148}
+  - component: {fileID: 4809121333197521486}
+  - component: {fileID: 5590078494416788496}
   - component: {fileID: 3757004005214898668}
   - component: {fileID: 1872881905825537771}
   - component: {fileID: 3931352647727875571}
@@ -881,8 +891,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6805389830966813605}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.9, y: 0, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -913,6 +923,8 @@ MonoBehaviour:
   _animatorController: {fileID: 2712586504266707700}
   _lootDropper: {fileID: 1508105192401658928}
   _vfxManager: {fileID: 5646706134448946148}
+  _attackAnchors: {fileID: 5590078494416788496}
+  _hitboxRegistry: {fileID: 4809121333197521486}
   _mainCollider: {fileID: 1872881905825537771}
   _myTransform: {fileID: 8433593211813134949}
 --- !u!114 &2732903112922415508
@@ -929,8 +941,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: 36cc536a40821be42a1abb4fbebb6e80, type: 2}
-  _weaponHitbox: {fileID: 0}
-  _projectileSpawnPoint: {fileID: 6942088176739778058}
 --- !u!114 &1250612943567423206
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1054,6 +1064,39 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+--- !u!114 &4809121333197521486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6805389830966813605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54ad4ac3a64eaef4980013fe7b2f4d81, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hitboxEntries: []
+--- !u!114 &5590078494416788496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6805389830966813605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 508ec18076999a743953129db62c3a26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _rootAnchor: {fileID: 0}
+  _mouthAnchor: {fileID: 0}
+  _chestAnchor: {fileID: 0}
+  _headAnchor: {fileID: 0}
+  _legAnchor: {fileID: 0}
+  _handAnchor: {fileID: 0}
+  _weaponAnchor: {fileID: 0}
+  _projectileSpawnAnchor: {fileID: 6942088176739778058}
 --- !u!195 &3757004005214898668
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -1073,7 +1116,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 1
-  m_BaseOffset: 0
+  m_BaseOffset: 0.25
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!136 &1872881905825537771
