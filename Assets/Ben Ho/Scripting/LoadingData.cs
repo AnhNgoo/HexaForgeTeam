@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-     public static class LoadingData
+public static class LoadingData
 {
-    public static string TargetSceneName;
+    public static MenuType TargetMenu = MenuType.GameplayMenu;
 }
