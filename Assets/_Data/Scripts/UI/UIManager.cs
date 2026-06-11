@@ -11,6 +11,8 @@ public enum MenuType
 {
     None = 0,
     HUDMenuTest = 1,
+    MainMenuTest = 2,
+    SettingMenuTest = 3,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -57,8 +59,13 @@ public class UIManager : Singleton<UIManager>
     }
 
 
-    //Chuyển đổi menu
-    public void ChangeMenu(MenuType menuType, object data = null)
+    /// <summary>
+    /// Mở menu mình muốn và đóng tất cả menu đang mở, nếu muốn mở thêm menu mà không đóng menu hiện tại thì chỉ cần gọi menu.Open() của menu đó mà không cần gọi hàm này
+    /// </summary>
+    /// <param name="menuType"></param>
+    /// <param name="timeScale"></param>
+    /// <param name="data"></param>
+    public void ChangeMenu(MenuType menuType, int timeScale = 1, object data = null)
     {
         menus.RemoveAll(m => m == null || m.menuBase == null);
 
@@ -79,6 +86,7 @@ public class UIManager : Singleton<UIManager>
         if (CurrentMenu != null)
             CurrentMenu.Open(data);
 
+        Time.timeScale = timeScale;
         CurrentMenuType = CurrentMenu.menuType;
     }
 
@@ -91,6 +99,22 @@ public class UIManager : Singleton<UIManager>
         {
             if (menu?.menuBase != null)
                 menu.menuBase.Close();
+        }
+    }
+
+    //Đảm bảo các UI được khởi mở hết để đăng ký các sự kiện, sau đó đóng lại
+    public void InitUI()
+    {
+        menus.RemoveAll(m => m == null || m.menuBase == null);
+
+        foreach (var menu in menus)
+        {
+            if (menu?.menuBase != null)
+            {
+                menu.menuBase.Open();
+                menu.menuBase.Close();
+            }
+
         }
     }
 }
