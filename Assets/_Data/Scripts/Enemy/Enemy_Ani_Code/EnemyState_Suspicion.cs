@@ -23,7 +23,8 @@ public class EnemyState_Suspicion : EnemyState
     {
         base.Enter();
         Debug.Log($"{_enemyBase.gameObject.name} mất dấu mục tiêu! Vào trạng thái NGHI NGỜ.");
-        _enemyBase.Locomotion.MoveToTarget(_enemyBase.Detection.LastKnownTargetPosition); // Di chuyển đến vị trí cuối cùng biết của mục tiêu
+        Vector3 searchPoint = _enemyBase.Detection.ClampPointToLeash(_enemyBase.Detection.LastKnownTargetPosition); //Tính toán điểm tìm kiếm dựa trên vị trí cuối cùng biết của mục tiêu và khu vực dây xích để đảm bảo rằng Enemy sẽ di chuyển đến một vị trí hợp lý để bắt đầu quá trình nghi ngờ và tìm kiếm mục tiêu thay vì chỉ đứng yên tại chỗ hoặc di chuyển đến một vị trí không liên quan khi đã hết thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
+        _enemyBase.Locomotion.MoveToTarget(searchPoint); // Di chuyển đến vị trí tìm kiếm
         _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash);
 
         _isStandoff = false; // Đảm bảo rằng Enemy sẽ không ở trạng thái đối mặt (standoff) khi bắt đầu nghi ngờ và tìm kiếm mục tiêu
@@ -208,6 +209,7 @@ public class EnemyState_Suspicion : EnemyState
     private void PickNewSearchPoint()
     {
         _searchPos = _enemyBase.Locomotion.GetRandomRoamPosition(_enemyBase.Detection.LastKnownTargetPosition, 5f);
+        _searchPos = _enemyBase.Detection.ClampPointToLeash(_searchPos);
         _enemyBase.Locomotion.SetAngularSpeed(120f);
         _enemyBase.Locomotion.MoveToTarget(_searchPos); // Di chuyển đến điểm mới để tiếp tục tìm kiếm mục tiêu
         _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash);

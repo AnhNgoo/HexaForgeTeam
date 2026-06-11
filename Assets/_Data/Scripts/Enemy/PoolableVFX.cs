@@ -34,7 +34,7 @@ public class PoolableVFX : MonoBehaviour, IPoolable
     {
         if (!_isTracking) return; // Nếu không đang theo dõi trạng thái của VFX thì không làm gì để tiết kiệm hiệu năng và tránh lỗi
 
-        if (_particleSystem.IsAlive(true))
+        if (!_particleSystem.IsAlive(true))
         {
             _isTracking = false; // Dừng theo dõi trạng thái của VFX khi hiệu ứng đã hoàn thành để tiết kiệm hiệu năng và tránh lỗi
             ReturnToPool(); // Trả VFX về pool khi hiệu ứng đã hoàn thành để đảm bảo rằng VFX sẽ được tái sử dụng đúng cách và tiết kiệm tài nguyên

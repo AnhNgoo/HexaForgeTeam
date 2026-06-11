@@ -30,6 +30,14 @@ public enum PoolType
     EnemySkeletonMelee = 51,
     EnemyMushroom = 52,
     EnemySkeletonRouge = 53,
+    EnemyBee = 54,
+    EnemySpider = 55,
+    EnemySpiderToxin = 56,
+    EnemyDogPup = 57,
+    EnemyDogBark = 58,
+    Projectile_1 = 59,
+    Stun_Loop = 60,
+    MissHitEffect_1 = 100,
 }
 
 [System.Serializable]

@@ -33,13 +33,18 @@ public class EnemyBase : LoadComponents, IPoolable
     [FoldoutGroup("Modules")]
     [SerializeField] private EnemyVFXManager _vfxManager;
     [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyAttackAnchors _attackAnchors;
+    [FoldoutGroup("Modules")]
+    [SerializeField] private EnemyHitboxRegistry _hitboxRegistry;
+    [FoldoutGroup("Modules")]
     [SerializeField] private Collider _mainCollider;
     [FoldoutGroup("Modules")]
     [SerializeField] private Transform _myTransform;
     [FoldoutGroup("Modules")]
 
     //Định dạng EnemyBase như một đối tượng có thể được quản lý bởi Object Pooling
-    public PoolType PoolType => PoolType.Enemy;
+    private PoolType _poolType = PoolType.Enemy;
+    public PoolType PoolType => _poolType;
     //Mở cửa số  để các module khác có thể gọi nhau thông qua EnemyBase mà không cần phải biết đến nhau
     public EnemyData Data => enemyData;
     public EnemyEventManager EventManager => _eventManager;
@@ -53,6 +58,8 @@ public class EnemyBase : LoadComponents, IPoolable
     public EnemyAnimatorController AnimatorController => _animatorController;
     public EnemyLootDropper LootDropper => _lootDropper;
     public EnemyVFXManager VFXManager => _vfxManager;
+    public EnemyAttackAnchors AttackAnchors => _attackAnchors;
+    public EnemyHitboxRegistry HitboxRegistry => _hitboxRegistry;
     public Transform MyTransform => _myTransform;
     public Collider MainCollider => _mainCollider;
 
@@ -81,8 +88,9 @@ public class EnemyBase : LoadComponents, IPoolable
     {
         _myCamp = camp; //Lưu reference đến CampSpawner quản lý việc spawn và pool đối tượng này để sử dụng sau này
         _myNode = node; //Lưu reference đến SpawnNode quản lý việc spawn và pool đối tượng này để sử dụng sau này
-        _spawnOrigin = node.spawnPoint.position; //Lưu vị trí gốc của Enemy khi được spawn từ SpawnNode để sử dụng sau này, có thể dùng để reset vị trí của Enemy khi cần thiết
+        _poolType = node.enemyType; //Đặt PoolType của Enemy dựa trên thiết lập trong SpawnNode để đảm bảo rằng Enemy được trả về đúng pool khi chết hoặc không còn cần thiết nữa
 
+        _spawnOrigin = node.spawnPoint.position; //Lưu vị trí gốc của Enemy khi được spawn từ SpawnNode để sử dụng sau này, có thể dùng để reset vị trí của Enemy khi cần thiết
         _spawnRotation = node.spawnPoint.rotation; //Lưu hướng gốc của Enemy khi được spawn từ SpawnNode để sử dụng sau này, có thể dùng để reset hướng của Enemy khi cần thiết
         _currentLeash = enemyData.maxLeashDistance; //Khởi tạo khoảng cách hiện tại đến vị trí xuất hiện ban đầu bằng khoảng cách dây xích tối đa, có thể dùng để kiểm tra dây xích và quyết định khi nào cần quay về vị trí xuất hiện ban đầu hoặc chuyển sang trạng thái nghi ngờ
 
@@ -114,7 +122,8 @@ public class EnemyBase : LoadComponents, IPoolable
         _animatorController.Initialize(this);
         _lootDropper.Initialize(this);
         _vfxManager.Initialize(this);
-
+        _attackAnchors.Initialize(this);
+        _hitboxRegistry.Initialize(this);
         _eventManager.OnDead -= HandleDeathReport; //Đảm bảo không đăng ký trùng lặp sự kiện khi khởi tạo lại nhiều lần
         _eventManager.OnDead += HandleDeathReport; //Đăng ký sự kiện khi Enemy chết để gọi phương thức trả Enemy về pool
 
@@ -158,7 +167,11 @@ public class EnemyBase : LoadComponents, IPoolable
         {
             _myCamp.NotifyEnemyDied(_myNode); //Gọi phương thức thông báo Enemy đã chết đến CampSpawner để quản lý việc spawn/despawn
         }
-        ObjectPooling.Instance?.ReturnToPool(PoolType, gameObject); //Trả Enemy về pool để tái sử dụng, có thể dùng để kiểm soát việc despawn Enemy và đảm bảo rằng Enemy được trả về pool thay vì bị huỷ
+    }
+
+    public void Despawn()
+    {
+        ObjectPooling.Instance.ReturnToPool(PoolType, gameObject); //Gọi phương thức trả Enemy về pool để tái sử dụng, có thể dùng để kiểm soát việc despawn Enemy và đảm bảo rằng Enemy được trả về pool thay vì bị huỷ
     }
 
     private void CacheReferences()
@@ -196,6 +209,11 @@ public class EnemyBase : LoadComponents, IPoolable
         if (!TryGetComponent(out _vfxManager))
             Debug.LogError("EnemyVFXManager component is missing on " + gameObject.name);
 
+        if (!TryGetComponent(out _attackAnchors))
+            Debug.LogError("EnemyAttackAnchors component is missing on " + gameObject.name);
+        if (!TryGetComponent(out _hitboxRegistry))
+            Debug.LogError("EnemyHitboxRegistry component is missing on " + gameObject.name);
+
         _animatorController = GetComponentInChildren<EnemyAnimatorController>();
     }
 
@@ -212,8 +230,10 @@ public class EnemyBase : LoadComponents, IPoolable
     public void OnSpawnFromPool()
     {
         gameObject.SetActive(true);
+        if (_mainCollider != null) _mainCollider.enabled = true;
         if (_locomotion != null)
         {
+            _locomotion.SetAgentActive(true);
             _locomotion.SetAngularSpeed(120f);
             _locomotion.StopMoving(); // Đảm bảo không bị chạy bậy lúc mới đẻ
         }
@@ -226,6 +246,8 @@ public class EnemyBase : LoadComponents, IPoolable
 
         //Reset tất cả các module về trạng thái ban đầu để chuẩn bị cho lần spawn tiếp theo, có thể gọi một phương thức ResetEnemy() để gom tất cả các thao tác reset vào một chỗ để dễ quản lý và tránh lỗi
         ResetEnemy();
+
+        if (_myCamp != null) _myCamp.ClearEnemyReference(_myNode, this); //Gọi phương thức để xóa reference đến Enemy này trong SpawnNode của CampSpawner để tránh lỗi khi Enemy được spawn lại bởi một CampSpawner khác và vẫn còn reference đến Enemy cũ
 
         gameObject.SetActive(false);
         _myCamp = null; //Reset reference đến CampSpawner để chuẩn bị cho lần spawn tiếp theo, tránh việc gọi nhầm phương thức trả về pool khi Enemy đã được spawn lại bởi một CampSpawner khác
