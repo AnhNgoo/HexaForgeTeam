@@ -37,12 +37,21 @@ public class EnemyLocomotion : MonoBehaviour
 
     public void SetSpeed(float speed)
     {
+        if (_navMeshAgent == null)
+            _navMeshAgent = GetComponent<NavMeshAgent>();
+
+        if (_navMeshAgent == null)
+            return;
+
         _navMeshAgent.speed = speed;
     }
 
     //Hàm di chuyển đến vị trí mục tiêu
     public void MoveToTarget(Vector3 targetPosition)
     {
+        if (_navMeshAgent == null || !_navMeshAgent.isActiveAndEnabled || !_navMeshAgent.isOnNavMesh)
+            return;
+
         _navMeshAgent.isStopped = false;
         _navMeshAgent.updateRotation = true;
         _navMeshAgent.SetDestination(targetPosition);
@@ -60,13 +69,16 @@ public class EnemyLocomotion : MonoBehaviour
     //Hàm dừng di chuyển
     public void StopMoving()
     {
+        if (_navMeshAgent == null || !_navMeshAgent.isActiveAndEnabled || !_navMeshAgent.isOnNavMesh)
+            return;
+
         _navMeshAgent.isStopped = true;
     }
 
     //Dịch chuyển an toàn cho NavMeshAgent
     public void WarpTo(Vector3 position)
     {
-        if (_navMeshAgent.isActiveAndEnabled)
+        if (_navMeshAgent != null && _navMeshAgent.isActiveAndEnabled && _navMeshAgent.isOnNavMesh)
         {
             _navMeshAgent.Warp(position);
         }

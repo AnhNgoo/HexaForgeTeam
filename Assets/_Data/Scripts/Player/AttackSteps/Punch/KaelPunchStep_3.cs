@@ -25,7 +25,7 @@ public class KaelPunchStep_3 : AttackStepBase
 
 
             character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_1,
+            ObjectPooling.Instance?.SpawnFromPool(kael.kaelGiantPunchEffect_1,
                                         kael.kaelGiantPunchEffectPoint_3.transform.position,
                                         kael.kaelGiantPunchEffectPoint_3.transform.rotation,
                                         kael.kaelGiantPunchEffectPoint_3.transform);
@@ -38,7 +38,7 @@ public class KaelPunchStep_3 : AttackStepBase
 
 
             character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_3,
+            ObjectPooling.Instance?.SpawnFromPool(kael.punchEffect_3,
                                         kael.punchEffectPoint_3.transform.position,
                                         kael.punchEffectPoint_3.transform.rotation,
                                         kael.punchEffectPoint_3.transform);

@@ -105,6 +105,12 @@ public class CharacterAnimation : MonoBehaviour
     /// <param name="transitionDuration"></param>
     public void CrossFadeOneshot(string stateName, float transitionDuration = 0.1f, int layer = 0, float normalizedTimeOffset = 0f)
     {
+        if (animator == null)
+        {
+            Debug.LogWarning("Animator chÆ°a Ä‘Æ°á»£c gÃ¡n cho CharacterAnimation!");
+            return;
+        }
+
         if (currentState == stateName)
             return;
 
@@ -129,6 +135,9 @@ public class CharacterAnimation : MonoBehaviour
 
     public float GetAnimationTime(string stateName, int layer = 0)
     {
+        if (animator == null || !animator.isActiveAndEnabled || animator.runtimeAnimatorController == null)
+            return 0f;
+
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layer);
         if (stateInfo.IsName(stateName))
         {
@@ -139,6 +148,9 @@ public class CharacterAnimation : MonoBehaviour
 
     public void SetAnimationLayerWeight(string layerName, float weight)
     {
+        if (animator == null)
+            return;
+
         int layerIndex = animator.GetLayerIndex(layerName);
         if (layerIndex != -1)
         {
@@ -152,6 +164,9 @@ public class CharacterAnimation : MonoBehaviour
 
     public int GetAnimationLayerWeight(string layerName)
     {
+        if (animator == null)
+            return 0;
+
         int layerIndex = animator.GetLayerIndex(layerName);
         if (layerIndex != -1)
         {
@@ -180,6 +195,9 @@ public class CharacterAnimation : MonoBehaviour
     }
     public void SetAnimationSpeed(string stateName, float speed)
     {
+        if (animator == null)
+            return;
+
         animator.SetFloat(stateName, speed);
     }
 }
