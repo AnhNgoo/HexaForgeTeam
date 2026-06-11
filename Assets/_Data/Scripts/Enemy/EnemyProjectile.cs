@@ -39,7 +39,7 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
 
             if (_hitVFX != PoolType.None)
             {
-                ObjectPooling.Instance.SpawnFromPool(_hitVFX, transform.position, Quaternion.identity);
+                ObjectPooling.Instance?.SpawnFromPool(_hitVFX, transform.position, Quaternion.identity);
             }
 
             if (_sourceEnemy != null)
