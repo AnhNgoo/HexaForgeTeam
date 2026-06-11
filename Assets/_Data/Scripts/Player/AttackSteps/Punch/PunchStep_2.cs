@@ -7,7 +7,7 @@ public class PunchStep_2 : AttackStepBase
 {
     public PunchStep_2(CharacterBase character) : base(character)
     {
-        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance.SpawnFromPool(
+        character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => ObjectPooling.Instance?.SpawnFromPool(
                                                                                         character.punchEffect_2,
                                                                                         character.punchEffectPoint_2.transform.position,
                                                                                         character.punchEffectPoint_2.transform.rotation,

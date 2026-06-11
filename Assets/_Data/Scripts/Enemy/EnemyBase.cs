@@ -158,7 +158,7 @@ public class EnemyBase : LoadComponents, IPoolable
         {
             _myCamp.NotifyEnemyDied(_myNode); //Gọi phương thức thông báo Enemy đã chết đến CampSpawner để quản lý việc spawn/despawn
         }
-        ObjectPooling.Instance.ReturnToPool(PoolType, gameObject); //Trả Enemy về pool để tái sử dụng, có thể dùng để kiểm soát việc despawn Enemy và đảm bảo rằng Enemy được trả về pool thay vì bị huỷ
+        ObjectPooling.Instance?.ReturnToPool(PoolType, gameObject); //Trả Enemy về pool để tái sử dụng, có thể dùng để kiểm soát việc despawn Enemy và đảm bảo rằng Enemy được trả về pool thay vì bị huỷ
     }
 
     private void CacheReferences()

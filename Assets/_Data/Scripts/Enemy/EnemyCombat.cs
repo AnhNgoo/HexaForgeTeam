@@ -55,14 +55,14 @@ public class EnemyCombat : MonoBehaviour
                 {
                     // CẬN CHIẾN: Phụt hiệu ứng xé gió ngay phía trước mặt quái
                     Vector3 spawnPos = _enemyBase.MyTransform.position + _enemyBase.MyTransform.forward * 1f;
-                    ObjectPooling.Instance.SpawnFromPool(currentAttackData.missVFX, spawnPos, _enemyBase.MyTransform.rotation);
+                    ObjectPooling.Instance?.SpawnFromPool(currentAttackData.missVFX, spawnPos, _enemyBase.MyTransform.rotation);
                 }
                 else if (currentAttackData.attackType == AttackType.Ranged)
                 {
                     // BẮN XA: Phụt hiệu ứng lóe sáng (Muzzle Flash) ngay tại đầu nòng súng/mồm quái khi chuẩn bị nhả đạn!
                     if (_projectileSpawnPoint != null)
                     {
-                        ObjectPooling.Instance.SpawnFromPool(currentAttackData.missVFX, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation);
+                        ObjectPooling.Instance?.SpawnFromPool(currentAttackData.missVFX, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation);
                     }
                 }
             }

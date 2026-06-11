@@ -22,7 +22,7 @@ public class EarthRages : CharacterSkillBase
         EventManager.Notify(GameEvent.OnActiveSkill_2, false);
 
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
-        ObjectPooling.Instance.SpawnFromPool(kael.auraEffect_3,
+        ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_3,
                                             kael.bottomEffectPoint.transform.position,
                                             kael.bottomEffectPoint.transform.rotation,
                                             kael.bottomEffectPoint.transform);
@@ -33,15 +33,15 @@ public class EarthRages : CharacterSkillBase
 
         kael.GiantForm();
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f, 0, 0.15f);
-        kaelGiantAuraEffect_1 = ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantAuraEffect_1,
+        kaelGiantAuraEffect_1 = ObjectPooling.Instance?.SpawnFromPool(kael.kaelGiantAuraEffect_1,
                                             kael.bottomEffectPoint.transform.position,
                                             kael.bottomEffectPoint.transform.rotation,
                                             kael.bottomEffectPoint.transform);
-        ObjectPooling.Instance.SpawnFromPool(kael.auraEffect_4,
+        ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_4,
                                        kael.middleEffectPoint.transform.position,
                                        kael.middleEffectPoint.transform.rotation,
                                        kael.middleEffectPoint.transform);
-        ObjectPooling.Instance.SpawnFromPool(kael.auraEffect_5,
+        ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_5,
        kael.bottomEffectPoint.transform.position,
        kael.bottomEffectPoint.transform.rotation,
        kael.bottomEffectPoint.transform);
@@ -68,7 +68,7 @@ public class EarthRages : CharacterSkillBase
 
         character.StateController.ChangeState(new CombatState(character));
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
-        ObjectPooling.Instance.SpawnFromPool(kael.auraEffect_3,
+        ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_3,
                                             kael.bottomEffectPoint.transform.position,
                                             kael.bottomEffectPoint.transform.rotation,
                                             kael.bottomEffectPoint.transform);
@@ -79,12 +79,12 @@ public class EarthRages : CharacterSkillBase
 
         kael.NormalForm();
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f, 0, 0.15f);
-        ObjectPooling.Instance.ReturnToPool(kael.kaelGiantAuraEffect_1, kaelGiantAuraEffect_1);
-        ObjectPooling.Instance.SpawnFromPool(kael.auraEffect_4,
+        ObjectPooling.Instance?.ReturnToPool(kael.kaelGiantAuraEffect_1, kaelGiantAuraEffect_1);
+        ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_4,
                                        kael.middleEffectPoint.transform.position,
                                        kael.middleEffectPoint.transform.rotation,
                                        kael.middleEffectPoint.transform);
-        ObjectPooling.Instance.SpawnFromPool(kael.auraEffect_5,
+        ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_5,
        kael.bottomEffectPoint.transform.position,
        kael.bottomEffectPoint.transform.rotation,
        kael.bottomEffectPoint.transform);

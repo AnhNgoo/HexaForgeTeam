@@ -30,7 +30,7 @@ public class EnemyVFXManager : MonoBehaviour
         Transform targetAnchor = GetAnchorByVFXType(vfxType); // Lấy điểm neo tương ứng với loại VFX để gắn hiệu ứng một cách chính xác
         Vector3 spawnPosition = targetAnchor.position + offset; // Tính toán vị trí spawn của VFX dựa trên điểm neo và offset để đảm bảo rằng hiệu ứng sẽ được gắn vào Enemy một cách chính xác khi bị đánh trúng
 
-        ObjectPooling.Instance.SpawnFromPool(vfxType, spawnPosition, targetAnchor.rotation); // Spawn VFX từ pool tại vị trí đã tính toán với rotation mặc định để đảm bảo rằng hiệu ứng sẽ được hiển thị đúng cách khi Enemy bị đánh trúng
+        ObjectPooling.Instance?.SpawnFromPool(vfxType, spawnPosition, targetAnchor.rotation); // Spawn VFX từ pool tại vị trí đã tính toán với rotation mặc định để đảm bảo rằng hiệu ứng sẽ được hiển thị đúng cách khi Enemy bị đánh trúng
     }
 
     private Transform GetAnchorByVFXType(PoolType vfxType)

@@ -26,6 +26,11 @@ Material:
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords:
   - _EMISSION
+<<<<<<< HEAD
+=======
+  - _FADING_ON
+  - _SOFTPARTICLES_ON
+>>>>>>> origin/main
   - _SURFACE_TYPE_TRANSPARENT
   m_InvalidKeywords:
   - _ALPHABLEND_ON
@@ -33,11 +38,17 @@ Material:
   m_LightmapFlags: 0
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 1
+<<<<<<< HEAD
   m_CustomRenderQueue: -1
+=======
+  m_CustomRenderQueue: 3000
+>>>>>>> origin/main
   stringTagMap:
     RenderType: Opaque
   disabledShaderPasses:
   - GRABPASS
+  - DepthOnly
+  - SHADOWCASTER
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -100,8 +111,13 @@ Material:
     - _DistortionEnabled: 0
     - _DistortionStrength: 1
     - _DistortionStrengthScaled: 0
+<<<<<<< HEAD
     - _DstBlend: 0
     - _DstBlendAlpha: 0
+=======
+    - _DstBlend: 1
+    - _DstBlendAlpha: 1
+>>>>>>> origin/main
     - _EmissionEnabled: 0
     - _FlipbookBlending: 0
     - _FlipbookMode: 0
@@ -116,7 +132,11 @@ Material:
     - _SoftParticlesEnabled: 1
     - _SoftParticlesFarFadeDistance: 1
     - _SoftParticlesNearFadeDistance: 0
+<<<<<<< HEAD
     - _SrcBlend: 1
+=======
+    - _SrcBlend: 5
+>>>>>>> origin/main
     - _SrcBlendAlpha: 1
     - _Surface: 1
     - _UVSec: 0
@@ -131,3 +151,16 @@ Material:
     - _SoftParticleFadeParams: {r: 0, g: 0, b: 0, a: 0}
     - _TintColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
   m_BuildTextureStacks: []
+--- !u!114 &4563424161015923061
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 7

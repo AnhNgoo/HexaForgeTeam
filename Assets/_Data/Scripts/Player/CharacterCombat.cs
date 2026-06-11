@@ -106,10 +106,17 @@ public class CharacterCombat : LoadComponents
         //Thực hiện đòn tấn công
         attackStep.Attack(character);
 
+        Animator animator = character.CharacterAnimation.Animator;
+        if (animator == null || !animator.isActiveAndEnabled || animator.runtimeAnimatorController == null)
+        {
+            ResetCombo();
+            yield break;
+        }
+
         // Đợi cho đến khi animation bắt đầu
         yield return new WaitUntil(() =>
-            !character.CharacterAnimation.Animator.IsInTransition(0) &&
-            character.CharacterAnimation.Animator.GetCurrentAnimatorStateInfo(0).IsName(attackStep.AttackStateName));
+            !animator.IsInTransition(0) &&
+            animator.GetCurrentAnimatorStateInfo(0).IsName(attackStep.AttackStateName));
 
         //Nếu đòn cuối thì chạy full animation
         float animationLength = comboIndex == combos.Length - 1 ? finalAttackTime : nextAttackTime;
@@ -117,7 +124,7 @@ public class CharacterCombat : LoadComponents
         yield return new WaitUntil(() =>
         {
             return character.CharacterAnimation.GetAnimationTime(attackStep.AttackStateName) > animationLength &&
-                   !character.CharacterAnimation.Animator.IsInTransition(0);
+                   !animator.IsInTransition(0);
         });
 
         //Chuyển về trạng thái idle và mở cửa sổ combo để có thể tiếp tục chuỗi combo

@@ -75,6 +75,9 @@ public class PT_PackageWelcomeWindow : EditorWindow
 
     static PT_PackageWelcomeWindow()
     {
+        if (Application.isBatchMode)
+            return;
+
         if (!EditorPrefs.GetBool(PrefKey, false))
         {
             LoadAssets();
