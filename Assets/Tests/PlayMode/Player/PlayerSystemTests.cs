@@ -457,8 +457,8 @@ namespace DuskBlade.Tests
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component skill = FindRequiredComponent(player, "CharacterSkill", true);
-                    object skillData1;
-                    object runtimeSkill1;
+                    object skillData1 = null;
+                    object runtimeSkill1 = null;
                     bool hasSkillData1 = TestReflectionHelper.TryGetValue(skill, "SkillData1", out skillData1) && skillData1 != null;
                     bool hasRuntimeSkill1 = TestReflectionHelper.TryGetValue(skill, "skill1", out runtimeSkill1) && runtimeSkill1 != null;
                     context.Actual = string.Format("SkillData1={0}, runtime skill1={1}.", hasSkillData1 ? "Khac null" : "Null/khong doc duoc", hasRuntimeSkill1 ? "Khac null" : "Null/khong doc duoc");
@@ -742,9 +742,9 @@ namespace DuskBlade.Tests
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
-                    object characterData;
+                    object characterData = null;
                     Assert.IsTrue(TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) && characterData != null, "Khong tim thay CharacterData hop le tren Player prefab that.");
-                    object stats;
+                    object stats = null;
                     Assert.IsTrue(TestReflectionHelper.TryGetValue(characterData, "stats", out stats) && stats != null, "CharacterData cua Player khong co stats hop le.");
                     float health = ReadFloatOrFail(stats, "health");
                     float speed = ReadFloatOrFail(stats, "speed");
@@ -1564,7 +1564,7 @@ namespace DuskBlade.Tests
             yield return null;
 
             Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
-            object stateController;
+            object stateController = null;
             bool hasStateController = TestReflectionHelper.TryGetValue(characterBase, "StateController", out stateController) && stateController != null;
             object currentState = null;
             bool hasCurrentState = hasStateController && TestReflectionHelper.TryGetValue(stateController, "currentState", out currentState) && currentState != null;
@@ -1617,7 +1617,7 @@ namespace DuskBlade.Tests
             InvokeMovement(movement, new Vector2(1f, 1f), DefaultMoveSpeed);
             yield return null;
 
-            object moveDirectionValue;
+            object moveDirectionValue = null;
             Assert.IsTrue(TestReflectionHelper.TryGetValue(movement, "MoveDirection", out moveDirectionValue), "Khong doc duoc MoveDirection tren CharacterMovement.");
             Vector2 moveDirection = (Vector2)moveDirectionValue;
             context.Actual = string.Format("MoveDirection=({0},{1}), loi Console={2}.", FormatFloat(moveDirection.x), FormatFloat(moveDirection.y), GetErrorCount());
@@ -1780,8 +1780,8 @@ namespace DuskBlade.Tests
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
-                    object characterData;
-                    object stats;
+                    object characterData = null;
+                    object stats = null;
                     float health = -1f;
                     bool hasHealth = TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) &&
                                      characterData != null &&
@@ -2151,7 +2151,7 @@ namespace DuskBlade.Tests
 
         private float ReadFloatOrFail(object target, string memberName)
         {
-            float value;
+            float value = 0f;
             Assert.IsTrue(TestReflectionHelper.TryGetValue<float>(target, memberName, out value), "Khong doc duoc gia tri " + memberName + " bang reflection.");
             Assert.IsFalse(float.IsNaN(value), memberName + " bi NaN.");
             Assert.IsFalse(float.IsInfinity(value), memberName + " bi Infinity.");

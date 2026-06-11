@@ -145,7 +145,7 @@ namespace DuskBlade.Tests
 
         protected int ReadInt(object target, string member, int fallback = -1)
         {
-            object value;
+            object value = null;
             if (TryGet(target, member, out value) && value != null) return Convert.ToInt32(value, CultureInfo.InvariantCulture);
             return fallback;
         }

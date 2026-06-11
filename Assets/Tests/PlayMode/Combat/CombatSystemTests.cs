@@ -270,7 +270,7 @@ namespace DuskBlade.Tests
         {
             Component combat = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyCombat");
             Assert.IsNotNull(combat, "Không tìm thấy EnemyCombat trên Enemy prefab thật.");
-            object arsenal;
+            object arsenal = null;
             if (TestReflectionHelper.TryGetValue(combat, "AttackArsenal", out arsenal) && arsenal is Array attacks && attacks.Length > 0)
             {
                 object attack = attacks.GetValue(0);

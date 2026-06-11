@@ -207,7 +207,7 @@ namespace DuskBlade.Tests
         {
             GameObject enemy = SpawnEnemy(Vector3.zero);
             Component baseComp = Require(enemy, "EnemyBase");
-            object data;
+            object data = null;
             Assert.IsTrue(TestReflectionHelper.TryGetValue(baseComp, "Data", out data) && data != null, "EnemyBase.Data null hoặc không đọc được.");
             c.Actual = $"EnemyData={data}, maxHealth={ReadFloat(data, "maxHealth", -1f)}, damage={ReadFloat(data, "damage", -1f)}.";
         }
@@ -399,7 +399,7 @@ namespace DuskBlade.Tests
         {
             Component combat = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyCombat");
             if (combat == null) return "Không tìm thấy";
-            object arsenal;
+            object arsenal = null;
             if (TestReflectionHelper.TryGetValue(combat, "AttackArsenal", out arsenal) && arsenal is Array attacks && attacks.Length > 0)
             {
                 object chosen = attacks.GetValue(0);
