@@ -183,6 +183,11 @@ public class CharacterMovement : LoadComponents
 
     public void KnockBack(GameObject attacker)
     {
+        if (attacker == null)
+        {
+            Debug.LogWarning("Attacker is null. Cannot apply knockback.");
+            return;
+        }
         Vector3 knockBackDirection = (transform.position - attacker.transform.position).normalized;
         StartKnockBack(knockBackDirection);
     }
