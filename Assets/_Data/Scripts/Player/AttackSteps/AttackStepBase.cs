@@ -11,7 +11,6 @@ public abstract class AttackStepBase : IAttackStep
 
     public AttackStepBase(CharacterBase character)
     {
-        // character.CharacterAnimation.AddEvent(AttackStateName, TimeTriggerAttack, () => character.CharacterCombat.AttackHitBox());
     }
 
     /// <summary>

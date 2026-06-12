@@ -1,5 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
 --- !u!1 &351639546930758953
 GameObject:
   m_ObjectHideFlags: 0
@@ -156,7 +154,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3615432036859718279}
-  - component: {fileID: 8012262550792567668}
   m_Layer: 0
   m_Name: HUD
   m_TagString: Untagged
@@ -180,19 +177,6 @@ Transform:
   - {fileID: 9069469697993587999}
   m_Father: {fileID: 2819583641894999269}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8012262550792567668
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 801782867179029500}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c4255ac75576447fba24a12ad183987b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fighterShip: {fileID: 9076555253196122408}
 --- !u!1 &1664997744677466138
 GameObject:
   m_ObjectHideFlags: 0
@@ -342,7 +326,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4648181906656465331}
-  - component: {fileID: 3108742280452702968}
   m_Layer: 0
   m_Name: OutlineEffect
   m_TagString: Untagged
@@ -365,24 +348,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 2819583641894999269}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3108742280452702968
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4060191778372371057}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8437f55cf29c1a24789d74bb64d307b4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _passName: Cockpit Outlines
-  _material: {fileID: -876546973899608171, guid: 599ee092c2d4b4b40acb11c68b4cb8fb, type: 3}
-  _injectionPoint: 450
-  _injectionPointOffset: 0
-  _inputRequirements: 3
-  _cameraType: 3
 --- !u!1 &5075062026398930792
 GameObject:
   m_ObjectHideFlags: 0
@@ -5558,7 +5523,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7958295082544613830}
-  - component: {fileID: 4578865271029873814}
   - component: {fileID: 7341270770294522158}
   m_Layer: 0
   m_Name: Cockpit_Prefab
@@ -5584,27 +5548,6 @@ Transform:
   - {fileID: 6717721414303327473}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!114 &4578865271029873814
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7958295082544613829}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5f46d4e505b74bb29521cf5ce090873, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  pivot: {fileID: 2686534138908741770}
-  constraintA: {fileID: 0}
-  constraintB: {fileID: 0}
-  blendContraints: 0
-  blendTotal: 0
-  blendPosition: 0
-  blendRotation: 0
-  blendScale: 0
-  dampening: 0.1
 --- !u!95 &7341270770294522158
 Animator:
   serializedVersion: 5

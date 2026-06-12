@@ -102,7 +102,14 @@ public class SafeZoneChecker : LoadComponents
                 ScreenDamageEffect.Instance?.PlayScreenDamageEffect();
 
             if (gameObject.TryGetComponent(out ITakeDamage itakeDamage))
-                itakeDamage.TakeDamage(damagePerSecondOutsideSafeZone);
+            {
+                DamageInfo damageInfo = new DamageInfo
+                {
+                    damageAmount = damagePerSecondOutsideSafeZone,
+                    isFromSafeZoneEffect = true
+                };
+                itakeDamage.TakeDamage(damageInfo);
+            }
 
             Debug.Log("Damage: " + damagePerSecondOutsideSafeZone);
             yield return new WaitForSeconds(damageInterval);

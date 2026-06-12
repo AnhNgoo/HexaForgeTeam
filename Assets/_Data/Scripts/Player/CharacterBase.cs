@@ -13,7 +13,9 @@ using Cysharp.Threading.Tasks;
 [RequireComponent(typeof(CharacterLockTarget))]
 [RequireComponent(typeof(CharacterSkill))]
 [RequireComponent(typeof(CharacterInput))]
-public abstract class CharacterBase : LoadComponents
+[RequireComponent(typeof(CharacterHealth))]
+[RequireComponent(typeof(CharacterRecovery))]
+public abstract class CharacterBase : LoadComponents, ITakeDamage
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
@@ -22,6 +24,8 @@ public abstract class CharacterBase : LoadComponents
     [Header("Character Models")]
     [SerializeField] protected GameObject visuals;
     [SerializeField] protected GameObject characterVisual;
+    [SerializeField] protected GameObject handRight;
+    public GameObject HandRight => handRight;
 
     [Header("Character Components")]
     [SerializeField] protected CharacterAnimation characterAnimation;
@@ -40,17 +44,22 @@ public abstract class CharacterBase : LoadComponents
     public CharacterSkill CharacterSkill => characterSkill;
     [SerializeField] protected CharacterInput characterInput;
     public CharacterInput CharacterInput => characterInput;
+    [SerializeField] protected CharacterHealth characterHealth;
+    public CharacterHealth CharacterHealth => characterHealth;
+    [SerializeField] protected CharacterRecovery characterRecovery;
+    public CharacterRecovery CharacterRecovery => characterRecovery;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
+    public PoolType hitEffect_1 = PoolType.HitEffect_1;
     public GameObject punchEffectPoint_1;
-    public PoolType punchEffect_1 = PoolType.HitEffect_1;
+    public PoolType punchEffect_1 = PoolType.PunchEffect_1;
     public GameObject punchEffectPoint_2;
-    public PoolType punchEffect_2 = PoolType.HitEffect_2;
+    public PoolType punchEffect_2 = PoolType.PunchEffect_2;
     public GameObject punchEffectPoint_3;
-    public PoolType punchEffect_3 = PoolType.HitEffect_2;
+    public PoolType punchEffect_3 = PoolType.PunchEffect_2;
     public GameObject punchEffectPoint_4;
-    public PoolType punchEffect_4 = PoolType.HitEffect_2;
+    public PoolType punchEffect_4 = PoolType.PunchEffect_2;
 
     [Header("Character Base Settings")]
     [SerializeField] protected float attackSpeedMultiplier = 0.01f;
@@ -80,6 +89,10 @@ public abstract class CharacterBase : LoadComponents
             characterSkill = GetComponent<CharacterSkill>();
         if (characterInput == null)
             characterInput = GetComponent<CharacterInput>();
+        if (characterHealth == null)
+            characterHealth = GetComponent<CharacterHealth>();
+        if (characterRecovery == null)
+            characterRecovery = GetComponent<CharacterRecovery>();
         LoadEffectPoints();
     }
 
@@ -119,7 +132,10 @@ public abstract class CharacterBase : LoadComponents
             characterData = Instantiate(data);
 
         characterInput.Init();
+        characterHealth.Init(characterData.stats.maxHealth);
+        characterRecovery.Init(this);
         characterAnimation.Init(characterVisual);
+        characterWeapon.Init(handRight.transform);
         characterLockTarget.SetFollowTarget();
         characterCombat?.Init(this, InitAttackCombos(), InitPunchCombos());
         InitSkills();
@@ -238,10 +254,29 @@ public abstract class CharacterBase : LoadComponents
         characterRotate.LookAt(characterLockTarget.Target.position);
     }
 
-
-    #region AddAnimationEvents
-    protected virtual void AddAnimationEvents()
+    [Button("Take Damage (Test)")]
+    public void TakeDamage(DamageInfo damageInfo)
     {
+        float finalDamage = damageInfo.damageAmount - characterData.stats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
+        finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
+        characterHealth.SubtractHealth(finalDamage);
+
+        if (!damageInfo.isFromSafeZoneEffect)
+        {
+            characterMovement.KnockBack(damageInfo.attacker);
+            stateController.ChangeState(new HitState(this));
+        }
+
+        Debug.Log($"{gameObject.name} took {finalDamage} damage. Remaining health: {characterHealth.CurrentHealth}");
+
+        if (characterHealth.CurrentHealth <= 0)
+        {
+            Die();
+        }
     }
-    #endregion
+
+    private void Die()
+    {
+        stateController.ChangeState(new DeathState(this));
+    }
 }

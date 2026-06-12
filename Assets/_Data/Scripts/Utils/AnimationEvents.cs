@@ -86,6 +86,15 @@ public class AnimationEvents : LoadComponents
     }
     private AnimationClip GetAnimationClip(string clipName)
     {
+        if (animator == null)
+            animator = GetComponent<Animator>();
+
+        if (animator == null || animator.runtimeAnimatorController == null)
+        {
+            Debug.LogWarning("Animator chÆ°a Ä‘Æ°á»£c gÃ¡n cho AnimationEvents!");
+            return null;
+        }
+
         foreach (AnimationClip clip in animator.runtimeAnimatorController.animationClips)
         {
             if (clip.name == clipName)
