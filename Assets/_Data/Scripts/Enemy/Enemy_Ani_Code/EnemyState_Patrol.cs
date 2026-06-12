@@ -64,7 +64,16 @@ public class EnemyState_Patrol : EnemyState
 
         _enemyBase.Locomotion.SetAngularSpeed(120f); // Bật tốc độ xoay mặt tự động của NavMesh lên 120 độ/s để Enemy có thể tự động quay về hướng di chuyển khi đi tuần, giúp hành vi đi tuần trông tự nhiên hơn và tránh lỗi Enemy di chuyển đến điểm tuần tra mới nhưng vẫn quay mặt về hướng cũ thay vì hướng về điểm tuần tra mới
         _enemyBase.Locomotion.MoveToTarget(_currentTargetPos);
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash); //Có thể dùng animation chạy để làm cho hành vi đi tuần trông tự nhiên hơn, hoặc có thể tạo một animation riêng cho hành vi đi tuần nếu muốn tạo sự khác biệt rõ ràng giữa hai trạng thái này
+
+        if (_enemyBase.AnimatorController.HasAnimationState(_enemyBase.AnimatorController.WalkHash)) //Kiểm tra xem đã có animation đi bộ nào được thiết lập chưa để tránh lỗi khi gọi PlayAnimation với hash = 0
+        {
+            _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.WalkHash); //Có thể dùng animation đi bộ để làm cho hành vi đi tuần trông tự nhiên hơn, hoặc có thể tạo một animation riêng cho hành vi đi tuần nếu muốn tạo sự khác biệt rõ ràng giữa hai trạng thái này
+        }
+        else
+        {
+            _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash); //Có thể dùng animation chạy để làm cho hành vi đi tuần trông tự nhiên hơn, hoặc có thể tạo một animation riêng cho hành vi đi tuần nếu muốn tạo sự khác biệt rõ ràng giữa hai trạng thái này
+        }
+
     }
 
     public override void Exit()

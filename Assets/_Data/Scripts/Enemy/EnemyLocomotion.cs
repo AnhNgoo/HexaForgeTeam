@@ -43,15 +43,18 @@ public class EnemyLocomotion : MonoBehaviour
     //Hàm di chuyển đến vị trí mục tiêu
     public void MoveToTarget(Vector3 targetPosition)
     {
-        _navMeshAgent.isStopped = false;
-        _navMeshAgent.updateRotation = true;
-        _navMeshAgent.SetDestination(targetPosition);
+        if (_navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+        {
+            _navMeshAgent.isStopped = false;
+            _navMeshAgent.updateRotation = true;
+            _navMeshAgent.SetDestination(targetPosition);
+        }
     }
 
     //Hàm đặt tốc độ xoay mặt tự động của NavMeshAgent    
     public void SetAngularSpeed(float speed)
     {
-        if (_navMeshAgent != null)
+        if (_navMeshAgent != null && _navMeshAgent.enabled)
         {
             _navMeshAgent.angularSpeed = speed;
         }
@@ -60,7 +63,18 @@ public class EnemyLocomotion : MonoBehaviour
     //Hàm dừng di chuyển
     public void StopMoving()
     {
-        _navMeshAgent.isStopped = true;
+        if (_navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
+        {
+            _navMeshAgent.isStopped = true;
+        }
+    }
+
+    public void SetAgentActive(bool isActive)
+    {
+        if (_navMeshAgent != null)
+        {
+            _navMeshAgent.enabled = isActive;
+        }
     }
 
     //Dịch chuyển an toàn cho NavMeshAgent

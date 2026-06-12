@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 [RequireComponent(typeof(CharacterController))]
 public class CharacterMovement : LoadComponents
@@ -42,6 +43,10 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private float fallThreshold = -50f;
     public float FallThreshold => fallThreshold;
     public bool JumpLanding { get; set; } = false;
+
+    [Header("KnockBack Settings")]
+    [SerializeField] private float knockBackForce = 10f;
+    [SerializeField] private float knockBackDuration = 0.05f;
 
     [Header("Wall Edge Settings")]
     [SerializeField] private LayerMask wallEdgeLayer;
@@ -176,6 +181,28 @@ public class CharacterMovement : LoadComponents
         verticalVelocity = jumpForce;
     }
 
+    public void KnockBack(GameObject attacker)
+    {
+        if (attacker == null)
+        {
+            Debug.LogWarning("Attacker is null. Cannot apply knockback.");
+            return;
+        }
+        Vector3 knockBackDirection = (transform.position - attacker.transform.position).normalized;
+        StartKnockBack(knockBackDirection);
+    }
+
+    public async void StartKnockBack(Vector3 knockBackDirection)
+    {
+        float timer = 0f;
+        while (timer < knockBackDuration)
+        {
+            Vector3 knockBackMove = knockBackDirection * knockBackForce;
+            cc.Move(knockBackMove * Time.deltaTime);
+            timer += Time.deltaTime;
+            await UniTask.Yield();
+        }
+    }
     public void MoveAir(Vector2 direction, float moveSpeed)
     {
         Movement(direction, moveSpeed, airSpeedMultiplier);

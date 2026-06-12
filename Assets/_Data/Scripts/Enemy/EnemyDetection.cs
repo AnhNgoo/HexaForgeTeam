@@ -32,8 +32,35 @@ public class EnemyDetection : MonoBehaviour
         return Vector3.Distance(_enemyBase.SpawnOrigin, Player.position) <= _enemyBase.CurrentLeash; //Kiểm tra nếu khoảng cách từ vị trí xuất hiện ban đầu đến Player nhỏ hơn hoặc bằng khoảng cách dây xích hiện tại, nếu có thể mở rộng sau này để thêm điều kiện kiểm tra khác (ví dụ: kiểm tra nếu Player đang đứng trong một khu vực cụ thể nào đó) để tạo ra sự đa dạng về điều kiện phát hiện mục tiêu
     }
 
+    public bool IsPointInLeash(Vector3 point)
+    {
+        return Vector3.Distance(_enemyBase.SpawnOrigin, point) <= _enemyBase.CurrentLeash; //Kiểm tra nếu khoảng cách từ vị trí xuất hiện ban đầu đến điểm nhỏ hơn hoặc bằng khoảng cách dây xích hiện tại, nếu có thể mở rộng sau này để thêm điều kiện kiểm tra khác (ví dụ: kiểm tra nếu điểm đang nằm trong một khu vực cụ thể nào đó) để tạo ra sự đa dạng về điều kiện phát hiện mục tiêu
+    }
+
+    public Vector3 ClampPointToLeash(Vector3 point, float buffer = 1f)
+    {
+        Vector3 fromOrigin = point - _enemyBase.SpawnOrigin; //Tính vector từ vị trí xuất hiện ban đầu đến điểm
+        fromOrigin.y = 0f; //Loại bỏ thành phần y để chỉ tính toán trên mặt phẳng ngang
+
+        float maxDistance = Mathf.Max(0f, _enemyBase.CurrentLeash - buffer); //Tính khoảng cách tối đa từ vị trí xuất hiện ban đầu đến điểm sau khi trừ đi buffer, đảm bảo rằng khoảng cách không âm
+
+        if (fromOrigin.magnitude <= maxDistance) return point; //Nếu điểm nằm trong khoảng cách tối đa thì trả về điểm gốc
+
+        return _enemyBase.SpawnOrigin + fromOrigin.normalized * maxDistance; //Nếu điểm nằm ngoài khoảng cách tối đa thì trả về điểm đã được điều chỉnh về phía vị trí xuất hiện ban đầu với khoảng cách bằng maxDistance để đảm bảo rằng điểm trả về nằm trong khoảng cách dây xích
+    }
+
+    public void SetSuspiciousPosition(Vector3 position)
+    {
+        lastKnownTargetPosition = ClampPointToLeash(position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+    }
+
     private void Update()
     {
+        if (_enemyBase.StateMachine.CurrentState == _enemyBase.StateMachine.EnemyStaggerState ||
+            _enemyBase.StateMachine.CurrentState == _enemyBase.StateMachine.EnemyDeadState)
+        {
+            return;
+        }
         FindTarget();
         CheckLoseTarget();
     }
@@ -76,7 +103,7 @@ public class EnemyDetection : MonoBehaviour
                     }
                     else // THẤY PLAYER NHƯNG PLAYER ĐỨNG NGOÀI XÍCH -> NGHI NGỜ (Đứng gác biên giới)
                     {
-                        lastKnownTargetPosition = potentialTarget.position; //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+                        SetSuspiciousPosition(potentialTarget.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
                         if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemySuspicionState)
                         {
                             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái nghi ngờ khi nhìn thấy mục tiêu nhưng mục tiêu đứng ngoài xích, có thể mở rộng sau này để có trạng thái riêng cho việc nhìn thấy mục tiêu nhưng đứng ngoài xích và di chuyển đến vị trí cuối cùng của mục tiêu
@@ -89,7 +116,7 @@ public class EnemyDetection : MonoBehaviour
             {
                 if (!Physics.Raycast(eyePosition, directionToTarget, dstToTarget, obstacleLayerMask))
                 {
-                    lastKnownTargetPosition = potentialTarget.position; //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+                    SetSuspiciousPosition(potentialTarget.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
                     if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemySuspicionState)
                     {
                         Debug.Log($"{gameObject.name} đã nghe thấy mục tiêu: {potentialTarget.name}");
@@ -98,6 +125,27 @@ public class EnemyDetection : MonoBehaviour
                     }
                 }
             }
+        }
+    }
+
+    public void ReportDamageHit(Transform attacker)
+    {
+        if (attacker == null) return;
+
+        bool attackerInsideLeash = IsPointInLeash(attacker.position);
+        bool canSeeAttacker = IsTargetVisible(attacker);
+
+        if (attackerInsideLeash && canSeeAttacker)
+        {
+            ConfirmTarget(attacker); //Nếu kẻ tấn công đang đứng trong xích và có thể nhìn thấy thì xác nhận kẻ tấn công làm mục tiêu ngay lập tức, có thể mở rộng sau này để thêm điều kiện khác (ví dụ: nếu kẻ tấn công đang đứng trong một khu vực cụ thể nào đó) để tạo ra sự đa dạng về điều kiện phản ứng khi bị tấn công
+            return;
+        }
+
+        SetSuspiciousPosition(attacker.position); //Dù có xác nhận mục tiêu hay không thì cũng cập nhật vị trí cuối cùng của kẻ tấn công để có thể di chuyển đến đó khi mất mục tiêu, có thể mở rộng sau này để thêm logic khác khi bị tấn công (ví dụ: nếu kẻ tấn công đang đứng trong một khu vực cụ thể nào đó thì cập nhật vị trí cuối cùng của mục tiêu thành một vị trí khác để tạo ra sự đa dạng về phản ứng khi bị tấn công)
+
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyStaggerState && _enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyDeadState) //Nếu không đang bị stagger hoặc chết thì mới phản ứng khi bị tấn công, có thể mở rộng sau này để thêm điều kiện khác (ví dụ: nếu đang ở trạng thái phòng thủ thì vẫn phản ứng khi bị tấn công)
+        {
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
         }
     }
 
@@ -136,6 +184,18 @@ public class EnemyDetection : MonoBehaviour
     //Bộ não xử lý khi phát hiện kẻ địch
     public void ConfirmTarget(Transform target)
     {
+
+        if (target == null) return;
+
+        if (!IsPointInLeash(target.position))
+        {
+            SetSuspiciousPosition(target.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+            if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyStaggerState && _enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyDeadState)
+            {
+                _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái nghi ngờ khi nhìn thấy mục tiêu nhưng mục tiêu đứng ngoài xích, có thể mở rộng sau này để có trạng thái riêng cho việc nhìn thấy mục tiêu nhưng đứng ngoài xích và di chuyển đến vị trí cuối cùng của mục tiêu
+            }
+            return; //Nếu mục tiêu không nằm trong xích thì không xác nhận mục tiêu mà chỉ chuyển sang trạng thái nghi ngờ, có thể mở rộng sau này để có trạng thái riêng cho việc nhìn thấy mục tiêu nhưng đứng ngoài xích và di chuyển đến vị trí cuối cùng của mục tiêu
+        }
         //Nếu đã khoá mục tiêu rồi thì không gào thét báo động nữa
         if (currentTarget != null) return;
 
@@ -155,8 +215,17 @@ public class EnemyDetection : MonoBehaviour
 
     public void ForceDetectTarget(Transform target)
     {
+        if (target == null) return;
+
+        if (!IsPointInLeash(target.position))
+        {
+            currentTarget = null;
+            SetSuspiciousPosition(target.position);
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
+            return;
+        }
         currentTarget = target; //Ép đặt mục tiêu cho Enemy, có thể dùng trong trường hợp cần thiết như khi bị đồng bọn cảnh báo hoặc khi bị tấn công từ phía sau mà chưa kịp phát hiện mục tiêu
-        lastKnownTargetPosition = target.position; //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+        SetSuspiciousPosition(target.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
         _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState); //Chuyển sang trạng thái Chase khi bị ép phát hiện mục tiêu, có thể mở rộng sau này để chuyển sang trạng thái khác nếu cần thiết (ví dụ: trạng thái phòng thủ nếu bị tấn công từ phía sau)
     }
 
@@ -164,7 +233,7 @@ public class EnemyDetection : MonoBehaviour
     {
         if (CurrentTarget != null)
         {
-            lastKnownTargetPosition = CurrentTarget.position; //Cập nhật vị trí cuối cùng của mục tiêu trước khi mất mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
+            SetSuspiciousPosition(CurrentTarget.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
         }
         currentTarget = null;
     }

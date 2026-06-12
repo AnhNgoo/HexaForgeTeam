@@ -1,5 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
 --- !u!1 &94458047568760731
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,7 +7,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5808465152162819875}
-  - component: {fileID: 5573165713736495738}
   m_Layer: 24
   m_Name: LazerBeam
   m_TagString: Untagged
@@ -37,22 +34,6 @@ Transform:
   - {fileID: 6598602211676797172}
   m_Father: {fileID: 4170579790048540534}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5573165713736495738
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 94458047568760731}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9be2dec593c37470590fcba37a895a52, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  hitting: 1
-  beamHitObj: {fileID: 7596423378755630715}
-  beamMissObj: {fileID: 2305548436812566094}
-  beamPivot: {fileID: 3478925088019422578}
 --- !u!1 &285302960735422404
 GameObject:
   m_ObjectHideFlags: 0
@@ -10445,7 +10426,6 @@ GameObject:
   - component: {fileID: 7823454851481205074}
   - component: {fileID: 3717847363859079403}
   - component: {fileID: 4929628185129251329}
-  - component: {fileID: 6851722520164170137}
   m_Layer: 24
   m_Name: BeamEnd Sphere
   m_TagString: Untagged
@@ -10518,22 +10498,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &6851722520164170137
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2672772282006981911}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70dbabacc1e2947b198369ec7f9fa94c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  positionJitter: 1
-  scaleJitter: 0
-  scale: 5
-  speed: 50
 --- !u!1 &2744402775610803765
 GameObject:
   m_ObjectHideFlags: 0
@@ -11814,7 +11778,6 @@ GameObject:
   - component: {fileID: 837884674099337506}
   - component: {fileID: 9058906534629278271}
   - component: {fileID: 5745234466643495634}
-  - component: {fileID: 5368684251805650701}
   m_Layer: 24
   m_Name: BeamEnd Sphere
   m_TagString: Untagged
@@ -11887,22 +11850,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &5368684251805650701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6091816386675172811}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70dbabacc1e2947b198369ec7f9fa94c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  positionJitter: 1
-  scaleJitter: 1
-  scale: 5
-  speed: 50
 --- !u!1 &6250350311712679883
 GameObject:
   m_ObjectHideFlags: 0
@@ -11996,7 +11943,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6644371068303470843}
-  - component: {fileID: 6304578663101508160}
   - component: {fileID: 6304578663101508191}
   m_Layer: 0
   m_Name: Model_Invader_Worm_Parts
@@ -12030,23 +11976,6 @@ Transform:
   - {fileID: 5510693283985190753}
   m_Father: {fileID: 5510693284301472120}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6304578663101508160
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6304578663101508161}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bce80088733fe3946b425e55b668ff29, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  Spline: {fileID: 5510693284216101160}
-  flipDirection: 0
-  Distance: 400
-  PositionOffset: 20
-  ScaleOffset: 0.04
 --- !u!95 &6304578663101508191
 Animator:
   serializedVersion: 5

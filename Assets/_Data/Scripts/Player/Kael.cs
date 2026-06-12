@@ -28,8 +28,8 @@ public class Kael : CharacterMelee
     public PoolType auraEffect_4 = PoolType.AuraEffect_4;
     public PoolType auraEffect_5 = PoolType.AuraEffect_5;
     public PoolType kaelGiantAuraEffect_1 = PoolType.KaelGiantAuraEffect_1;
-    public PoolType kaelGiantPunchEffect_1 = PoolType.KaelGiantHit_1;
-    public PoolType kaelGiantPunchEffect_2 = PoolType.KaelGiantHit_2;
+    public PoolType kaelGiantPunchEffect_1 = PoolType.KaelGiantPunchEffect_1;
+    public PoolType kaelGiantPunchEffect_2 = PoolType.KaelGiantPunchEffect_2;
 
 
     public bool IsGiantForm { get; private set; } = false;
@@ -75,6 +75,18 @@ public class Kael : CharacterMelee
             new KaelPunchStep_4(this)
         };
     }
+
+    // Override để khởi tạo các đòn tấn công riêng cho Kael
+    protected override IAttackStep[] InitAttackCombos()
+    {
+        return new IAttackStep[4]
+        {
+            new KaelAttackMeleeStep_1(this),
+            new KaelAttackMeleeStep_2(this),
+            new KaelAttackMeleeStep_3(this),
+            new KaelAttackMeleeStep_4(this)
+        };
+    }
     protected override ICharacterSkill GetSkill_1()
     {
         if (characterSkill.SkillData1 == null)
@@ -96,6 +108,7 @@ public class Kael : CharacterMelee
         IsGiantForm = true;
         characterCombat.ResetCombo(); // Reset combo khi biến hình để tránh lỗi combo giữa 2 hình dạng
         characterCombat.SetHitBox(kaelGiantforwardAttackOffset, kaelGiantYAttackOffset, kaelGiantAttackHitBoxRadius); // Cập nhật hitbox cho hình dạng khổng lồ
+        characterWeapon.StoreWeapon(); // Cất vũ khí khi biến hình
         // Chuyển sang hình dạng khổng lồ  
         characterAnimation.Init(kaelGiantVisual);
         kaelGiantVisual.SetActive(true);
@@ -107,6 +120,7 @@ public class Kael : CharacterMelee
         IsGiantForm = false;
         characterCombat.ResetCombo(); // Reset combo khi biến hình để tránh lỗi combo giữa 2 hình dạng
         characterCombat.ResetHitBox(); // Reset hitbox về giá trị mặc định
+        characterWeapon.RetrieveWeapon(); // Lấy lại vũ khí khi trở về hình dạng bình thường
         // Chuyển về hình dạng bình thường  
         characterAnimation.Init(characterVisual);
         kaelGiantVisual.SetActive(false);
