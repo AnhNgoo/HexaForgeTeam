@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-
-#if UNITY_EDITOR
-using UnityEditor;
-#endif
 
 namespace DuskBlade.Tests
 {
@@ -34,7 +29,7 @@ namespace DuskBlade.Tests
             Directory.CreateDirectory(ExportDirectory);
 
             string safeSystemName = SanitizeFileName(string.IsNullOrWhiteSpace(systemName) ? "TestResults" : systemName);
-            string fileName = $"{safeSystemName}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+            string fileName = $"{safeSystemName}.csv";
             string path = Path.Combine(ExportDirectory, fileName).Replace("\\", "/");
 
             using (var writer = new StreamWriter(path, false, new UTF8Encoding(true)))
@@ -49,10 +44,6 @@ namespace DuskBlade.Tests
                     }
                 }
             }
-
-#if UNITY_EDITOR
-            AssetDatabase.Refresh();
-#endif
 
             return path;
         }
