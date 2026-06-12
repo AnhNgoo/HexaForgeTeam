@@ -14,6 +14,7 @@ on:
     branches:
       - main
       - develop
+      - demofromphuocbranch
       - testrunner
       - feat/testrunner
 
@@ -68,7 +69,9 @@ jobs:
           rm -rf Assets/CSV
           mkdir -p Assets/CSV
 
-      - name: Run Unity EditMode and PlayMode tests
+      - name: Run Unity EditMode tests
+        id: unity-editmode
+        continue-on-error: true
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -77,9 +80,46 @@ jobs:
         with:
           projectPath: .
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Unity EditMode Test Results
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
-          testMode: all
-          artifactsPath: test-results
+          testMode: editmode
+          artifactsPath: test-results/editmode
+
+      - name: Run Unity PlayMode tests
+        id: unity-playmode
+        continue-on-error: true
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: Unity PlayMode Test Results
+          customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
+          testMode: playmode
+          artifactsPath: test-results/playmode
+
+      - name: List generated test artifacts
+        if: always()
+        shell: bash
+        run: |
+          find test-results -maxdepth 3 -type f -print || true
+          find Assets/CSV -maxdepth 1 -type f -print || true
+
+      - name: Write Unity test summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Unity Test Runner"
+            echo ""
+            echo "- EditMode outcome: ${{ steps.unity-editmode.outcome }}"
+            echo "- PlayMode outcome: ${{ steps.unity-playmode.outcome }}"
+            echo ""
+            echo "Download artifacts 'unity-test-results' and 'duskblade-csv-test-reports' to inspect failed tests."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove Unity metadata from CSV reports
         if: always()
@@ -93,6 +133,7 @@ jobs:
         with:
           name: unity-test-results
           path: test-results
+          if-no-files-found: warn
 
       - name: Upload CSV test reports
         uses: actions/upload-artifact@v6
@@ -101,3 +142,8 @@ jobs:
           name: duskblade-csv-test-reports
           path: Assets/CSV/*.csv
           if-no-files-found: ignore
+
+      - name: Fail if Unity tests failed
+        if: always() && (steps.unity-editmode.outcome == 'failure' || steps.unity-playmode.outcome == 'failure')
+        shell: bash
+        run: exit 1
