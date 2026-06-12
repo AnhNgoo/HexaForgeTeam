@@ -8,6 +8,6 @@ public class GameManager : Singleton<GameManager>
     private void Start()
     {
         UIManager.Instance.CloseAllMenus();
-        UIManager.Instance.ChangeMenu(MenuType.HUDMenuTest);
+        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
 }
