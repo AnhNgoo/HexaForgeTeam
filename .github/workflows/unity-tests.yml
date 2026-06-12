@@ -43,6 +43,31 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
+      - name: Free disk space for Unity Docker image
+        shell: bash
+        run: |
+          echo "Disk space before cleanup:"
+          df -h
+
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /usr/share/dotnet || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
+          sudo rm -rf /usr/local/share/boost || true
+          sudo rm -rf /usr/share/swift || true
+          sudo rm -rf /opt/microsoft || true
+          sudo apt-get clean
+          docker system prune -af || true
+
+          echo "Disk space after cleanup:"
+          df -h
+
+      - name: Prepare clean CSV report directory
+        shell: bash
+        run: |
+          rm -rf Assets/CSV
+          mkdir -p Assets/CSV
+
       - name: Run Unity EditMode and PlayMode tests
         uses: game-ci/unity-test-runner@v4
         env:
@@ -52,8 +77,15 @@ jobs:
         with:
           projectPath: .
           githubToken: ${{ secrets.GITHUB_TOKEN }}
+          customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: all
           artifactsPath: test-results
+
+      - name: Remove Unity metadata from CSV reports
+        if: always()
+        shell: bash
+        run: |
+          find Assets/CSV -type f -name '*.meta' -delete
 
       - name: Upload Unity test results
         uses: actions/upload-artifact@v6
@@ -67,4 +99,5 @@ jobs:
         if: always()
         with:
           name: duskblade-csv-test-reports
-          path: Assets/CSV
+          path: Assets/CSV/*.csv
+          if-no-files-found: ignore
