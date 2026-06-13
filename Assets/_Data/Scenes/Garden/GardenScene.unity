@@ -1,5 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
 --- !u!29 &1
 OcclusionCullingSettings:
   m_ObjectHideFlags: 0
@@ -117656,34 +117654,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &966895463892816109
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 966895463892816114}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8a432c59e36da65418a040549712b15c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  mainLight: {fileID: 1569291825}
-  skybox: {fileID: 2100000, guid: 415118ae62a10c549ae6946f1d1c7a82, type: 2}
-  reflection: {fileID: 8900000, guid: c13aadf14d6dac64f86f37be1050b7d0, type: 3}
-  CameraLockTransform: {fileID: 0}
-  WorldUpTransform: {fileID: 0}
-  SpawnTransform: {fileID: 966895464219401362}
-  FlythroughDirector: {fileID: 5121285567406897636}
-  SequenceDirector: {fileID: 0}
-  Root: {fileID: 1996431147}
-  Scene:
-    m_Handle: 0
-  TerminalLoader: {fileID: 2436931954908391015}
-  FogEnabled: 1
-  PostProcessingEnabled: 1
-  StartActive: 0
-  RendererIndex: 0
 --- !u!1 &966895463892816114
 GameObject:
   m_ObjectHideFlags: 0
@@ -117693,7 +117663,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 966895463892816108}
-  - component: {fileID: 966895463892816109}
   m_Layer: 0
   m_Name: SceneSetup
   m_TagString: Untagged

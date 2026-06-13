@@ -1,5 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
 --- !u!1 &7594701168838816517
 GameObject:
   m_ObjectHideFlags: 0
@@ -9,7 +7,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4650863480626057105}
-  - component: {fileID: 3435752350768508354}
   m_Layer: 0
   m_Name: LongGrassGroup_Prefab
   m_TagString: Untagged
@@ -50,33 +47,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: -1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3435752350768508354
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7594701168838816517}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9bec74c187ce38841bc49562a14c28a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_FoliageElements:
-  - prefab: {fileID: 1589292159681938572, guid: da06dc8437b01974a9c4abb0b1f60ede, type: 3}
-    weight: 1
-    minMaxScale: {x: 0.9, y: 1.8}
-    angleVariance: 45
-  - prefab: {fileID: 891825496699488124, guid: ceeaa13298b01e747ad8cc611e5d66fe, type: 3}
-    weight: 0.1
-    minMaxScale: {x: 0.9, y: 1.8}
-    angleVariance: 45
-  - prefab: {fileID: 798307877103473833, guid: 0926d2c9b362dfd4186d6f2a7477e90b, type: 3}
-    weight: 0.1
-    minMaxScale: {x: 0.9, y: 1.8}
-    angleVariance: 45
-  m_Radius: 3
-  m_Count: 18
 --- !u!1001 &46430110223392960
 PrefabInstance:
   m_ObjectHideFlags: 0

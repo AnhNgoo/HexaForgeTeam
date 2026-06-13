@@ -18,24 +18,21 @@ public class EnemyCombat : MonoBehaviour
 
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
     public AttackDataSO CurrentAttackData => currentAttackData; //Cho phép các lớp khác truy cập dữ liệu tấn công hiện tại nhưng không cho phép thay đổi trực tiếp
-    [Header("Hitbox Settings")]
-    [SerializeField] private EnemyHitbox _weaponHitbox; //Tham chiếu đến hitbox của Enemy, có thể gán trực tiếp trên editor
-    [Header("Range Setup")]
-    [SerializeField] private Transform _projectileSpawnPoint; //Điểm xuất hiện của projectile, có thể gán trực tiếp trên editor
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
         _attackCooldownTimers = new Dictionary<AttackDataSO, float>(); //Khởi tạo Dictionary để theo dõi thời gian hồi chiêu của từng đòn tấn công
         foreach (var attackData in attackArsenal)
         {
+            if (attackData == null) continue;
             _attackCooldownTimers[attackData] = -100f; //Khởi tạo thời gian hồi chiêu ban đầu cho mỗi đòn tấn công, có thể đặt thành một giá trị âm lớn để đảm bảo rằng tất cả các đòn tấn công đều có thể được sử dụng ngay từ đầu
         }
         Debug.Log($"{gameObject.name} - EnemyCombat đã được khởi tạo!");
+    }
 
-        if (_weaponHitbox != null)
-        {
-            _weaponHitbox.Initialize(_enemyBase);
-        }
+    private EnemyAttackContext CreateAttackContext()
+    {
+        return new EnemyAttackContext(_enemyBase, currentAttackData, _enemyBase.Detection.CurrentTarget); //Tạo một EnemyAttackContext mới với thông tin về EnemyBase, dữ liệu tấn công hiện tại và mục tiêu hiện tại của Enemy, có thể mở rộng sau này để thêm các thông tin khác như vị trí của attacker, hướng tấn công, v.v.)
     }
 
     public void PerformAttack(AttackDataSO chosenAttack)
@@ -43,29 +40,14 @@ public class EnemyCombat : MonoBehaviour
         currentAttackData = chosenAttack;
         _attackCooldownTimers[currentAttackData] = Time.time; //Cập nhật thời gian hồi chiêu của đòn tấn công đã chọn, giúp kiểm soát thời gian giữa các đòn tấn công khác nhau
 
-        Debug.Log($"{gameObject.name} Xài chiêu {currentAttackData.attackName}!");
+        currentAttackData.skillLogic?.OnAttackStart(CreateAttackContext());
+
+        Debug.Log($"[EnemyCombat] {gameObject.name} dùng attack: {currentAttackData.attackName}, skillLogic: {(currentAttackData.skillLogic != null ? currentAttackData.skillLogic.name : "NULL - fallback")}");
 
         if (_enemyBase.AnimatorController.Animator != null)
         {
             _enemyBase.AnimatorController.PlayAttackAnimation(currentAttackData); //Gọi hàm chơi animation tấn công từ EnemyAnimatorController
 
-            if (currentAttackData.missVFX != PoolType.None)
-            {
-                if (currentAttackData.attackType == AttackType.Melee)
-                {
-                    // CẬN CHIẾN: Phụt hiệu ứng xé gió ngay phía trước mặt quái
-                    Vector3 spawnPos = _enemyBase.MyTransform.position + _enemyBase.MyTransform.forward * 1f;
-                    ObjectPooling.Instance.SpawnFromPool(currentAttackData.missVFX, spawnPos, _enemyBase.MyTransform.rotation);
-                }
-                else if (currentAttackData.attackType == AttackType.Ranged)
-                {
-                    // BẮN XA: Phụt hiệu ứng lóe sáng (Muzzle Flash) ngay tại đầu nòng súng/mồm quái khi chuẩn bị nhả đạn!
-                    if (_projectileSpawnPoint != null)
-                    {
-                        ObjectPooling.Instance.SpawnFromPool(currentAttackData.missVFX, _projectileSpawnPoint.position, _projectileSpawnPoint.rotation);
-                    }
-                }
-            }
             _attackCts = new CancellationTokenSource(); //Tạo mới CancellationTokenSource cho tác vụ tấn công hiện tại
             ReturnToIdleVisualAsync(_attackCts.Token).Forget(); //Bắt đầu tác vụ trả về trạng thái hình ảnh sau khi tấn công, có thể điều chỉnh thời gian chờ trong hàm này tùy thuộc vào thiết kế của animation tấn công
         }
@@ -123,49 +105,140 @@ public class EnemyCombat : MonoBehaviour
     }
 
     #region Animation Controller
-    public void OpenHitbox()
+
+    private void SpawnProjectile()
     {
-        if (currentAttackData == null) return; //Nếu không có đòn tấn công nào được chọn, không cần mở hitbox
-        if (currentAttackData.attackType == AttackType.Melee) //Chỉ mở hitbox nếu đòn tấn công là cận chiến, tránh lỗi mở hitbox cho đòn tấn công tầm xa
+
+        Transform target = _enemyBase.Detection.CurrentTarget; //Lấy vị trí của player để làm hướng di chuyển cho projectile
+        if (target == null) return; //Nếu không có mục tiêu, không cần tạo ra projectile
+
+        Transform spawnPoint = ResolveProjectileAnchor(currentAttackData);
+        GameObject projectileGo = ObjectPooling.Instance.SpawnFromPool(currentAttackData.projectilePoolType, spawnPoint.position, Quaternion.identity); //Tạo ra projectile tại điểm xuất hiện với hướng mặc định
+        EnemyProjectile projectileScripts = projectileGo.GetComponent<EnemyProjectile>(); //Lấy component EnemyProjectile từ prefab để thiết lập sát thương và tốc độ
+        if (projectileScripts != null)
         {
-            if (_weaponHitbox != null) _weaponHitbox.EnableHitBox(); //Gọi hàm mở hitbox từ EnemyHitbox để đảm bảo rằng hitbox sẽ được mở đúng thời điểm trong animation tấn công
+            float finalDamage = _enemyBase.Data.damage * currentAttackData.damageMultiplier; //Tính toán sát thương cuối cùng của projectile dựa trên sát thương cơ bản của Enemy và hệ số sát thương của đòn tấn công
+            Vector3 shootDirection = (target.position + Vector3.up * 0.5f) - spawnPoint.position; //Tính toán hướng bắn từ điểm xuất hiện đến vị trí của player, có thể điều chỉnh thêm Vector3.up để bắn vào phần thân trên của player thay vì chân
+            projectileScripts.Launch(_enemyBase, finalDamage, currentAttackData.projectileSpeed, shootDirection, currentAttackData.projectileLifetime); //Gọi hàm Launch của EnemyProjectile để thiết lập sát thương, tốc độ và hướng di chuyển cho projectile
         }
-        else if (currentAttackData.attackType == AttackType.Ranged)//Nêu đòn tấn công tầm xa gọi hàm SpawnProjectile để tạo ra projectile, tránh lỗi mở hitbox cho đòn tấn công tầm xa
+    }
+
+    public void ForceCloseHitbox()
+    {
+        _enemyBase.HitboxRegistry.DisableAllHitboxes(); //Gọi hàm đóng tất cả hitbox từ EnemyHitboxRegistry để đảm bảo rằng tất cả hitbox sẽ được đóng, tránh lỗi hitbox vẫn mở sau khi animation kết thúc hoặc khi vào trạng thái Stagger hoặc Dead
+        CancelVisualTask(); //Hủy bỏ tác vụ trả về trạng thái hình ảnh nếu đang tồn tại để tránh lỗi khi vào trạng thái Stagger hoặc Dead
+    }
+
+    public void EnableHitbox(EnemyHitboxType type)
+    {
+        EnemyHitbox hitbox = _enemyBase.HitboxRegistry.GetHitbox(type);
+        if (hitbox != null)
+            hitbox.EnableHitBox();
+    }
+
+    public void DisableHitbox(EnemyHitboxType type)
+    {
+        EnemyHitbox hitbox = _enemyBase.HitboxRegistry.GetHitbox(type);
+        if (hitbox != null)
+            hitbox.DisableHitBox();
+    }
+    public void PlayAttackVFX()
+    {
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
+        if (currentAttackData == null) return;
+        if (currentAttackData.attackVFX == PoolType.None) return;
+
+        Transform anchor = ResolveVFXAnchor(currentAttackData);
+        Vector3 position = anchor.position + anchor.TransformDirection(currentAttackData.vfxOffset);
+        Quaternion rotation = Quaternion.Euler(currentAttackData.vfxEuler) * anchor.rotation;
+
+        GameObject vfx = ObjectPooling.Instance.SpawnFromPool(currentAttackData.attackVFX, position, rotation);
+
+        if (vfx != null && currentAttackData.vfxScale > 0f)
+        {
+            vfx.transform.localScale = Vector3.one * currentAttackData.vfxScale;
+        }
+    }
+
+    public Transform ResolveVFXAnchor(AttackDataSO attackData)
+    {
+        if (attackData.vfxAnchor == EnemyAttackAnchorType.Hitbox)
+        {
+            EnemyHitbox hitbox = _enemyBase.HitboxRegistry.GetHitbox(attackData.hitboxType);
+            if (hitbox != null)
+                return hitbox.transform;
+        }
+
+        if (attackData.vfxAnchor == EnemyAttackAnchorType.Target)
+        {
+            Transform target = _enemyBase.Detection.CurrentTarget;
+            if (target != null)
+                return target;
+        }
+        return _enemyBase.AttackAnchors.GetAnchor(attackData.vfxAnchor);
+    }
+
+    public Transform ResolveProjectileAnchor(AttackDataSO attackData)
+    {
+        if (attackData == null) return transform;
+
+        if (attackData.projectileAnchor == EnemyAttackAnchorType.Hitbox)
+        {
+            EnemyHitbox hitbox = _enemyBase.HitboxRegistry.GetHitbox(attackData.hitboxType);
+            if (hitbox != null)
+                return hitbox.transform;
+        }
+
+        return _enemyBase.AttackAnchors.GetAnchor(attackData.projectileAnchor);
+    }
+
+    public void HandleAttackImpactEvent()
+    {
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
+        if (currentAttackData == null) return;
+
+        Debug.Log($"[EnemyCombat] AttackImpact event: {currentAttackData.attackName}");
+        Debug.Log($"[EnemyCombat] Gọi skill impact: {(currentAttackData.skillLogic != null ? currentAttackData.skillLogic.name : "NULL - fallback")}");
+
+        if (currentAttackData.skillLogic != null)
+        {
+            currentAttackData.skillLogic.OnAttackImpact(CreateAttackContext());
+            return;
+        }
+
+        if (currentAttackData.attackType == AttackType.Melee)
+        {
+            EnableHitbox(currentAttackData.hitboxType);
+        }
+        else if (currentAttackData.attackType == AttackType.Ranged)
         {
             SpawnProjectile();
         }
     }
 
-    private void SpawnProjectile()
+    public void HandleAttackEndEvent()
     {
-        if (currentAttackData.projectilePrefab == null || _projectileSpawnPoint == null) return; //Nếu không có prefab projectile hoặc điểm xuất hiện được gán, không thể tạo ra projectile
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
+        if (currentAttackData == null) return;
 
-        Transform target = _enemyBase.Detection.CurrentTarget; //Lấy vị trí của player để làm hướng di chuyển cho projectile
-        if (target == null) return; //Nếu không có mục tiêu, không cần tạo ra projectile
-
-        GameObject projectileGo = Instantiate(currentAttackData.projectilePrefab, _projectileSpawnPoint.position, Quaternion.identity); //Tạo ra projectile tại điểm xuất hiện với hướng mặc định
-        EnemyProjectile projectileScripts = projectileGo.GetComponent<EnemyProjectile>(); //Lấy component EnemyProjectile từ prefab để thiết lập sát thương và tốc độ
-        if (projectileScripts != null)
+        if (currentAttackData.skillLogic != null)
         {
-            float finalDamage = _enemyBase.Data.damage * currentAttackData.damageMultiplier; //Tính toán sát thương cuối cùng của projectile dựa trên sát thương cơ bản của Enemy và hệ số sát thương của đòn tấn công
-            Vector3 shootDirection = (target.position + Vector3.up * 0.5f) - _projectileSpawnPoint.position; //Tính toán hướng bắn từ điểm xuất hiện đến vị trí của player, có thể điều chỉnh thêm Vector3.up để bắn vào phần thân trên của player thay vì chân
-            projectileScripts.Launch(_enemyBase, finalDamage, currentAttackData.projectileSpeed, shootDirection, currentAttackData.hitVFX); //Gọi hàm Launch của EnemyProjectile để thiết lập sát thương, tốc độ và hướng di chuyển cho projectile
+            currentAttackData.skillLogic.OnAttackEnd(CreateAttackContext());
+            return;
+        }
+
+        if (currentAttackData.attackType == AttackType.Melee)
+        {
+            DisableHitbox(currentAttackData.hitboxType);
         }
     }
 
-    public void CloseHitbox()
+    public void HandleAttackMovementEvent()
     {
-        if (currentAttackData != null && currentAttackData.attackType == AttackType.Melee) //Chỉ đóng hitbox nếu đòn tấn công là cận chiến, tránh lỗi đóng hitbox cho đòn tấn công tầm xa
-        {
-            if (_weaponHitbox != null) _weaponHitbox.DisableHitBox(); //Gọi hàm đóng hitbox từ EnemyHitbox để đảm bảo rằng hitbox sẽ được đóng đúng thời điểm, tránh lỗi hitbox vẫn mở sau khi animation kết thúc
-        }
-    }
-    public void ForceCloseHitbox()
-    {
-        if (currentAttackData != null && currentAttackData.attackType == AttackType.Melee) //Chỉ đóng hitbox nếu đòn tấn công là cận chiến, tránh lỗi đóng hitbox cho đòn tấn công tầm xa
-            if (_weaponHitbox != null) _weaponHitbox.DisableHitBox(); //Gọi hàm đóng hitbox từ EnemyHitbox để đảm bảo rằng hitbox sẽ được đóng đúng thời điểm, tránh lỗi hitbox vẫn mở sau khi animation kết thúc, dùng trong trường hợp cần thiết như khi vào trạng thái Stagger
-        CancelVisualTask(); //Hủy bỏ tác vụ trả về trạng thái hình ảnh nếu đang tồn tại để tránh lỗi khi vào trạng thái Stagger hoặc Dead
-        Debug.Log($"{gameObject.name} đã bị ép đóng hitbox!");
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
+        if (currentAttackData == null) return;
+
+        currentAttackData.skillLogic?.OnAttackMovement(CreateAttackContext());
     }
     #endregion
 }
