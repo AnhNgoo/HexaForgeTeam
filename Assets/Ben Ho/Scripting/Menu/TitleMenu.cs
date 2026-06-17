@@ -82,9 +82,10 @@ public class TitleMenu : MenuBase
 
     private void OnHelpButtonClicked()
     {
-        Debug.Log("Help button clicked");
-    }
+        HelpMenuData.BackMenu = MenuType.TitleMenu;
 
+        UIManager.Instance.ChangeMenu(MenuType.HelpMenu);
+    }
     private void OnCreditsButtonClicked()
     {
         Debug.Log("Credits button clicked");

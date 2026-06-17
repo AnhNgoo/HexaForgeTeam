@@ -35,8 +35,6 @@ public class PauseMenu : MenuBase
     {
         base.Open(data);
 
-        Time.timeScale = 0f;
-
         if (btn_Continue != null)
         {
             btn_Continue.onClick.RemoveListener(OnContinueButtonClicked);
@@ -99,15 +97,13 @@ public class PauseMenu : MenuBase
     }
 
     private void OnSettingButtonClicked()
-{
-    Debug.Log("Setting button clicked");
+    {
+        Debug.Log("Setting button clicked");
 
-    Time.timeScale = 0f;
+        SettingMenuData.BackMenu = MenuType.PauseMenu;
 
-    SettingMenuData.BackMenu = MenuType.PauseMenu;
-
-    UIManager.Instance.ChangeMenu(MenuType.SettingMenu);
-}
+        UIManager.Instance.ChangeMenu(MenuType.SettingMenu);
+    }
 
     private void OnExitButtonClicked()
     {
