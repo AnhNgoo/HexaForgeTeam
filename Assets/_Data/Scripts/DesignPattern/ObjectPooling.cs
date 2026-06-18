@@ -26,6 +26,7 @@ public enum PoolType
     HitEffect_1 = 26,
     HitEffect_2 = 27,
     RecoveryBottle = 28,
+    HealingEffect = 29,
     EnemyBat = 50,
     EnemySkeletonMelee = 51,
     EnemyMushroom = 52,

@@ -8,21 +8,17 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private CharacterController cc;
     public CharacterController CC => cc;
     [SerializeField] private bool debugMode = false;
+    [SerializeField] private float strafeThreshold = 0.8f;
+    public float StrafeThreshold => strafeThreshold;
 
     [Header("Walk Settings")]
     [SerializeField] private float walkSpeedMultiplier = 0.3f;
-    [SerializeField] private float walkThreshold = 0.3f;
-    public float WalkThreshold => walkThreshold;
 
     [Header("Run Settings")]
     [SerializeField] private float runSpeedMultiplier = 1f;
-    [SerializeField] private float runThreshold = 0.75f;
-    public float RunThreshold => runThreshold;
 
     [Header("Sprint Settings")]
     [SerializeField] private float sprintSpeedMultiplier = 1.3f;
-    [SerializeField] private float sprintThreshold = 1.0f;
-    public float SprintThreshold => sprintThreshold;
 
     [Header("Dodge Settings")]
     [SerializeField] private float dodgeSpeedMultiplier = 1f;
@@ -31,7 +27,6 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private float dodgeCooldown = 1f;
     public float DodgeCooldown => dodgeCooldown;
     public bool IsDodging { get; set; } = false;
-    public float dodgeTimer { get; set; } = 0f;
 
     [Header("Lunge Settings")]
     [SerializeField] private float lungeSpeedMultiplier = 10f;
@@ -160,9 +155,19 @@ public class CharacterMovement : LoadComponents
         Movement(direction, moveSpeed, sprintSpeedMultiplier);
     }
 
-    public void Dodge(Vector2 direction, float moveSpeed)
+    public async void Dodge(Vector2 direction, float moveSpeed)
     {
-        Movement(direction, moveSpeed, dodgeSpeedMultiplier);
+
+        IsDodging = true;
+        float dodgeTimer = 0f;
+        while (dodgeTimer < dodgeDuration)
+        {
+            Movement(direction, moveSpeed, dodgeSpeedMultiplier);
+            dodgeTimer += Time.deltaTime;
+            await UniTask.Yield();
+        }
+        Stop();
+        IsDodging = false;
     }
 
     public void Lunge(Vector2 direction, float moveSpeed)

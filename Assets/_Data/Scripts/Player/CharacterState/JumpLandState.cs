@@ -36,6 +36,7 @@ public class JumpLandState : ICharacterState
         character.CharacterAnimation.EnableRootMotion();
         character.CharacterAnimation.CrossFade("Jump_Land", 0.1f);
         await UniTask.Delay(1000);
+        character.CharacterCombat.ResetCombo();
         character.CharacterAnimation.DisableRootMotion();
         character.StateController.ChangeState(new IdleState(character));
     }

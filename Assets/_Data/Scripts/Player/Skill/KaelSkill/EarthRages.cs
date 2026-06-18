@@ -18,8 +18,8 @@ public class EarthRages : CharacterSkillBase
             Debug.LogError("EarthRages skill chỉ có thể được sử dụng bởi Kael");
             return;
         }
-        EventManager.Notify(GameEvent.OnActiveSkill_1, false);
-        EventManager.Notify(GameEvent.OnActiveSkill_2, false);
+        character.CharacterSkill.CanUseSkill1 = false;
+        character.CharacterSkill.CanUseSkill2 = false;
 
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
         ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_3,
@@ -93,8 +93,8 @@ public class EarthRages : CharacterSkillBase
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_2_1") > 0.3f &&
                  !character.CharacterAnimation.Animator.IsInTransition(0));
 
-        EventManager.Notify(GameEvent.OnActiveSkill_1, true);
-        EventManager.Notify(GameEvent.OnActiveSkill_2, true);
+        character.CharacterSkill.CanUseSkill1 = true;
+        character.CharacterSkill.CanUseSkill2 = true;
         character.StateController.ChangeState(new IdleState(character));
     }
 }

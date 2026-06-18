@@ -45,13 +45,13 @@ public class WallJumpState : ICharacterState
                                                 0f,
                                                 character.CharacterMovement.MoveDirection.y);
 
-        if (character.CharacterInput.moveInput != Vector2.zero && !character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.MoveInput != Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.MoveAir(character.CharacterMovement.MoveDirection, speed);
             character.CharacterRotate.Rotate(rotationDirection);
             return;
         }
-        if (character.CharacterInput.moveInput == Vector2.zero && !character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.MoveInput == Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.Stop();
             return;
