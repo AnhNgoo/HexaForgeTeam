@@ -132,11 +132,3 @@ jobs:
           name: duskblade-csv-test-reports
           path: Assets/CSV_CLEAN/*.csv
           if-no-files-found: ignore
-
-      - name: Upload CSV test reports
-        uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: duskblade-csv-test-reports
-          path: Assets/CSV/*.csv
-          if-no-files-found: ignore
