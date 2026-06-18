@@ -122,6 +122,7 @@ jobs:
         if: always()
         shell: bash
         run: |
+          rm -rf Assets/CSV_CLEAN
           mkdir -p Assets/CSV_CLEAN
           find Assets/CSV -type f -name '*.csv' -exec cp {} Assets/CSV_CLEAN/ \;
 
