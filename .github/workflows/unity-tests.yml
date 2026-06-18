@@ -118,19 +118,20 @@ jobs:
             echo "Download artifacts 'unity-test-results' and 'duskblade-csv-test-reports' to inspect failed tests."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Remove Unity metadata from CSV reports
+      - name: Prepare CSV reports without metadata
         if: always()
         shell: bash
         run: |
-          find Assets/CSV -type f -name '*.meta' -delete
+          mkdir -p Assets/CSV_CLEAN
+          find Assets/CSV -type f -name '*.csv' -exec cp {} Assets/CSV_CLEAN/ \;
 
-      - name: Upload Unity test results
+      - name: Upload CSV test reports
         uses: actions/upload-artifact@v6
         if: always()
         with:
-          name: unity-test-results
-          path: test-results
-          if-no-files-found: warn
+          name: duskblade-csv-test-reports
+          path: Assets/CSV_CLEAN/*.csv
+          if-no-files-found: ignore
 
       - name: Upload CSV test reports
         uses: actions/upload-artifact@v6
