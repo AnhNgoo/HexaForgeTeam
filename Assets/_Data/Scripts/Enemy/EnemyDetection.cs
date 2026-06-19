@@ -18,7 +18,6 @@ public class EnemyDetection : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyDetection đã được khởi tạo!");
     }
 
     public void SetPlayerReference(Transform playerTransform)
@@ -61,6 +60,13 @@ public class EnemyDetection : MonoBehaviour
         {
             return;
         }
+
+        if (_enemyBase.Combat.IsPerformingAttack)
+        {
+            if (currentTarget != null) lastKnownTargetPosition = currentTarget.position;
+            return;
+        }
+
         FindTarget();
         CheckLoseTarget();
     }

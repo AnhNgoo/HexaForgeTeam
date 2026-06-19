@@ -16,6 +16,12 @@ public class EnemyState_Chase : EnemyState
     {
         base.UpdateLogic();
 
+        if (_enemyBase.MinibossBehaviour != null && _enemyBase.MinibossBehaviour.IsActionLocked)
+        {
+            _enemyBase.Locomotion.StopMoving();
+            return;
+        }
+
         //Kiểm tra dây xích
         float distanceToOrigin = Vector3.Distance(_enemyBase.MyTransform.position, _enemyBase.SpawnOrigin);
         if (distanceToOrigin > _enemyBase.CurrentLeash)

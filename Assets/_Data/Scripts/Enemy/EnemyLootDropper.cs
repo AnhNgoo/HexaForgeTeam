@@ -8,7 +8,6 @@ public class EnemyLootDropper : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyLootDropper đã được khởi tạo!");
     }
 
     private void OnEnable()
