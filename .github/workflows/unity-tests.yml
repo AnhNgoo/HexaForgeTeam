@@ -82,6 +82,7 @@ jobs:
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: editmode
           artifactsPath: test-results/editmode
+          coverageOptions: ''
 
       - name: Run Unity PlayMode tests
         id: unity-playmode
@@ -96,6 +97,7 @@ jobs:
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: playmode
           artifactsPath: test-results/playmode
+          coverageOptions: ''
 
       - name: List generated test artifacts
         if: always()
