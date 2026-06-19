@@ -53,9 +53,16 @@ public class EnemyState_Attack : EnemyState
         }
 
         //Luôn xoay về hướng người chơi khi tấn công để tạo hiệu ứng tương tác và tăng tính chân thực của Enemy, có thể điều chỉnh lại logic quay nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể đứng yên khi tấn công mà không quay về hướng người chơi)
-        Vector3 lookDir = (playerTransform.position - _enemyBase.MyTransform.position).normalized;
-        lookDir.y = 0; //Giữ nguyên trục Y để tránh nghiêng lên xuống
-        _enemyBase.MyTransform.rotation = Quaternion.Slerp(_enemyBase.MyTransform.rotation, Quaternion.LookRotation(lookDir), Time.deltaTime * 5f); //Quay về hướng người chơi với tốc độ mượt mà, có thể điều chỉnh tốc độ quay nếu cần thiết
+        Vector3 lookDirection = playerTransform.position - _enemyBase.MyTransform.position;
+
+        lookDirection.y = 0f;
+
+        if (lookDirection.sqrMagnitude <= 0.001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(lookDirection.normalized);
+
+        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(_enemyBase.MyTransform.rotation, targetRotation, 540f * Time.deltaTime);
 
         if (Time.time < _attackEndTime) return; //Nếu đang trong thời gian của đòn tấn công hiện tại thì không thực hiện logic tấn công mới để tránh lỗi spam tấn công liên tục
 
@@ -68,6 +75,14 @@ public class EnemyState_Attack : EnemyState
             _enemyBase.StateMachine.ChangeState(
                 _enemyBase.StateMachine.EnemyBlockState
             );
+            return;
+        }
+
+        float facingAngle = Vector3.Angle(_enemyBase.MyTransform.forward, lookDirection.normalized);
+
+        if (facingAngle > 10f)
+        {
+            _enemyBase.Locomotion.StopMoving();
             return;
         }
 
