@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class StoreMenu : MenuBase
 {
@@ -114,9 +115,14 @@ public class StoreMenu : MenuBase
 
     private void OnBackButtonClicked()
     {
-        Debug.Log("Store Back button clicked");
+        if (LobbyUIOverlayManager.Instance != null)
+        {
+            LobbyUIOverlayManager.Instance.CloseMenu();
+            return;
+        }
 
-        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        // Chỉ dùng khi chạy UI Menu độc lập.
+        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
 
     private void UpdatePlayerCoinUI()

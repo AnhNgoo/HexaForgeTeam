@@ -21,7 +21,8 @@ public enum MenuType
     GachaMenu = 8,
     StoreMenu = 9,
     InventoryGemMenu = 10,
-    HUDMenuTest = 11,
+    HelpMenu = 11,
+    CharacterMenu = 12,
 }
 
 public class UIManager : Singleton<UIManager>
