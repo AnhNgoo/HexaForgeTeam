@@ -253,7 +253,15 @@ public class CharacterMenu : MenuBase
 
     private void OnBackButtonClicked()
     {
-        UIManager.Instance.ChangeMenu(backMenu);
+        if (LobbyUIOverlayManager.Instance != null)
+        {
+            LobbyUIOverlayManager.Instance.CloseMenu();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.TitleMenu
+        );
     }
 
     private void ClearDisplay()

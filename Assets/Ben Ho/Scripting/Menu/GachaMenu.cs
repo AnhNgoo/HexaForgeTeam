@@ -153,11 +153,14 @@ public class GachaMenu : MenuBase
 
     private void OnCancelButtonClicked()
     {
-        Debug.Log("Cancel gacha");
+        if (LobbyUIOverlayManager.Instance != null)
+        {
+            LobbyUIOverlayManager.Instance.CloseMenu();
+            return;
+        }
 
-        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
-
     private GachaReward GetRandomReward()
     {
         if (rewards == null || rewards.Length == 0)

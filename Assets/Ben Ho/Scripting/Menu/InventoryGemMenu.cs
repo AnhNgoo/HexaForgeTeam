@@ -116,9 +116,16 @@ public class InventoryGemMenu : MenuBase
 
     private void OnBackButtonClicked()
     {
-        Debug.Log("Inventory Gem Back button clicked");
+        if (LobbyUIOverlayManager.Instance != null)
+        {
+            LobbyUIOverlayManager.Instance.CloseMenu();
+            return;
+        }
 
-        UIManager.Instance.ChangeMenu(backMenu);
+        // Chỉ dùng khi chạy UI Menu độc lập.
+        UIManager.Instance.ChangeMenu(
+            MenuType.InventoryMenu
+        );
     }
 
     // private void RefreshGemUI()
