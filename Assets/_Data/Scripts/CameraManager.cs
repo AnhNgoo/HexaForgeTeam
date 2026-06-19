@@ -20,6 +20,7 @@ public class CameraManager : Singleton<CameraManager>
     [SerializeField] private CameraShake cameraShake;
     private readonly Dictionary<CameraType, CameraRig> cameraLookup = new Dictionary<CameraType, CameraRig>();
     private CameraRig currentCamera;
+    public CameraRig CurrentCamera => currentCamera;
 
     [System.Serializable]
     public class CameraRig
@@ -175,5 +176,13 @@ public class CameraManager : Singleton<CameraManager>
         toPov.m_HorizontalAxis.Value = horizontal;
         toPov.m_VerticalAxis.Value = Mathf.Clamp(vertical, -70f, 70f);
         toCamera.mobileCamera?.SetAxis(toPov.m_HorizontalAxis.Value, toPov.m_VerticalAxis.Value);
+    }
+
+    public CinemachinePOV GetCurrentCameraPOV()
+    {
+        if (currentCamera?.virtualCamera == null)
+            return null;
+
+        return currentCamera.virtualCamera.GetCinemachineComponent<CinemachinePOV>();
     }
 }
