@@ -32,7 +32,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           lfs: true
           
@@ -42,7 +42,7 @@ jobs:
           git log -1
             
       - name: Cache Unity Library
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -126,9 +126,16 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload CSV test reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: duskblade-csv-test-reports
           path: Assets/CSV/*.csv
           if-no-files-found: ignore
+
+      - name: Upload Unity Test Results Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-test-results
+          path: test-results
