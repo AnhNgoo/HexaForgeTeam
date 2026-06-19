@@ -7,7 +7,7 @@ permissions:
   actions: read
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 on:
   push:
@@ -84,6 +84,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: editmode
           artifactsPath: test-results/editmode
@@ -99,6 +100,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: playmode
           artifactsPath: test-results/playmode
