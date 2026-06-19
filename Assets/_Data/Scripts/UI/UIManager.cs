@@ -10,9 +10,19 @@ using System.Linq;
 public enum MenuType
 {
     None = 0,
-    HUDMenuTest = 1,
-    MainMenuTest = 2,
-    SettingMenuTest = 3,
+    
+    TitleMenu = 1,
+    LoadingMenu = 2,
+    GameplayMenu = 3,
+    InventoryMenu = 4,
+    SettingMenu = 5,
+    PauseMenu = 6,
+    LevelUpMenu = 7,
+    GachaMenu = 8,
+    StoreMenu = 9,
+    InventoryGemMenu = 10,
+    HelpMenu = 11,
+    CharacterMenu = 12,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -31,6 +41,7 @@ public class UIManager : Singleton<UIManager>
         public MenuType menuType;
         public MenuBase menuBase;
     }
+
 
 
     protected override void LoadComponent()
@@ -59,13 +70,8 @@ public class UIManager : Singleton<UIManager>
     }
 
 
-    /// <summary>
-    /// Mở menu mình muốn và đóng tất cả menu đang mở, nếu muốn mở thêm menu mà không đóng menu hiện tại thì chỉ cần gọi menu.Open() của menu đó mà không cần gọi hàm này
-    /// </summary>
-    /// <param name="menuType"></param>
-    /// <param name="timeScale"></param>
-    /// <param name="data"></param>
-    public void ChangeMenu(MenuType menuType, int timeScale = 1, object data = null)
+    //Chuyển đổi menu
+    public void ChangeMenu(MenuType menuType, object data = null)
     {
         menus.RemoveAll(m => m == null || m.menuBase == null);
 
@@ -86,7 +92,6 @@ public class UIManager : Singleton<UIManager>
         if (CurrentMenu != null)
             CurrentMenu.Open(data);
 
-        Time.timeScale = timeScale;
         CurrentMenuType = CurrentMenu.menuType;
     }
 
@@ -102,7 +107,6 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    //Đảm bảo các UI được khởi mở hết để đăng ký các sự kiện, sau đó đóng lại
     public void InitUI()
     {
         menus.RemoveAll(m => m == null || m.menuBase == null);
@@ -114,7 +118,7 @@ public class UIManager : Singleton<UIManager>
                 menu.menuBase.Open();
                 menu.menuBase.Close();
             }
-
         }
     }
+
 }

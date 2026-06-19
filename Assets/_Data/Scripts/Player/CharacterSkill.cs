@@ -8,6 +8,8 @@ public class CharacterSkill : MonoBehaviour
     public CharacterSkillData SkillData1 => skillData1;
     [SerializeField] private CharacterSkillData skillData2;
     public CharacterSkillData SkillData2 => skillData2;
+    public bool CanUseSkill1 { get; set; } = true;
+    public bool CanUseSkill2 { get; set; } = true;
     private ICharacterSkill skill1;
     private ICharacterSkill skill2;
     private CharacterBase characterBase;
@@ -21,11 +23,13 @@ public class CharacterSkill : MonoBehaviour
 
     public void UseSkill1()
     {
+        if (!CanUseSkill1) return;
         skill1?.UseSkill();
     }
 
     public void UseSkill2()
     {
+        if (!CanUseSkill2) return;
         skill2?.UseSkill();
     }
 }

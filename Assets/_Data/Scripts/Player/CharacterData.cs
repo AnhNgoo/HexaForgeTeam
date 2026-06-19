@@ -11,13 +11,13 @@ public class CharacterData : ScriptableObject
 [System.Serializable]
 public class CharacterStats
 {
-    public float health;
+    public float maxHealth;
     public float speed;
     public DamageType damageType;
     public float damage;
+    public float defense;
     public float poisonDamage;
     public float stamina;
-    [Range(100f, 150f)] public float attackSpeed;
 }
 
 [System.Serializable]

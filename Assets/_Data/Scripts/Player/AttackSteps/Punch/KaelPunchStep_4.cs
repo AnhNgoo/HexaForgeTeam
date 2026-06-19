@@ -10,7 +10,7 @@ public class KaelPunchStep_4 : AttackStepBase
     }
 
     public override string AttackStateName => "Punch_4";
-    public float KaelGiantTimeTriggerAttack => 0.6f;
+    public float KaelGiantTimeTriggerAttack => 0.7f;
 
     public override async void Attack(CharacterBase character)
     {
@@ -18,26 +18,23 @@ public class KaelPunchStep_4 : AttackStepBase
 
         if (kael.IsGiantForm)
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
-            character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance?.SpawnFromPool(kael.kaelGiantPunchEffect_2,
+            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_2,
                                         kael.kaelGiantPunchEffectPoint_4.transform.position,
                                         kael.kaelGiantPunchEffectPoint_4.transform.rotation);
         }
         else
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 
-            character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance?.SpawnFromPool(kael.punchEffect_4,
+            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_4,
                                         kael.punchEffectPoint_4.transform.position,
-                                        kael.punchEffectPoint_4.transform.rotation,
-                                        kael.punchEffectPoint_4.transform);
+                                        kael.punchEffectPoint_4.transform.rotation);
         }
     }
 }

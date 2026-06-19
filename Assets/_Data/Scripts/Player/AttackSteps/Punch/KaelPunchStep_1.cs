@@ -18,27 +18,23 @@ public class KaelPunchStep_1 : AttackStepBase
 
         if (kael.IsGiantForm)
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
-            character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance?.SpawnFromPool(kael.kaelGiantPunchEffect_1,
+            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_1,
                                         kael.kaelGiantPunchEffectPoint_1.transform.position,
-                                        kael.kaelGiantPunchEffectPoint_1.transform.rotation,
-                                        kael.kaelGiantPunchEffectPoint_1.transform);
+                                        kael.kaelGiantPunchEffectPoint_1.transform.rotation);
         }
         else
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 
-            character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance?.SpawnFromPool(kael.punchEffect_1,
+            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_1,
                                         kael.punchEffectPoint_1.transform.position,
-                                        kael.punchEffectPoint_1.transform.rotation,
-                                        kael.punchEffectPoint_1.transform);
+                                        kael.punchEffectPoint_1.transform.rotation);
         }
     }
 }

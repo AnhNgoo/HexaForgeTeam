@@ -19,29 +19,25 @@ public class KaelPunchStep_3 : AttackStepBase
         Debug.Log("KaelPunchStep_3 Attack");
         if (kael.IsGiantForm)
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
 
-            character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance?.SpawnFromPool(kael.kaelGiantPunchEffect_1,
+            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_1,
                                         kael.kaelGiantPunchEffectPoint_3.transform.position,
-                                        kael.kaelGiantPunchEffectPoint_3.transform.rotation,
-                                        kael.kaelGiantPunchEffectPoint_3.transform);
+                                        kael.kaelGiantPunchEffectPoint_3.transform.rotation);
         }
         else
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 
 
-            character.CharacterCombat.AttackHitBox();
-            ObjectPooling.Instance?.SpawnFromPool(kael.punchEffect_3,
+            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_3,
                                         kael.punchEffectPoint_3.transform.position,
-                                        kael.punchEffectPoint_3.transform.rotation,
-                                        kael.punchEffectPoint_3.transform);
+                                        kael.punchEffectPoint_3.transform.rotation);
         }
     }
 }

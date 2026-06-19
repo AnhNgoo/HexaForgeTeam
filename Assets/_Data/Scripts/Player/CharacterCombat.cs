@@ -4,6 +4,7 @@ using Sirenix.OdinInspector;
 public class CharacterCombat : LoadComponents
 {
     [SerializeField] private bool debugMode = true;
+    [SerializeField] private LayerMask enemyLayer;
     [Header("Attack Hitbox Settings")]
     [SerializeField] private float forwardAttackOffset = 1.5f;
     [SerializeField] private float yAttackOffset = 0f;
@@ -17,10 +18,10 @@ public class CharacterCombat : LoadComponents
     [SerializeField] private IAttackStep[] punchCombos;
     private CharacterBase characterBase;
     private int currentComboIndex = 0; //Chỉ số đòn tấn công hiện tại trong chuỗi combo
+    public int CurrentComboIndex => currentComboIndex;
     private bool isComboWindowOpen = false;
     public bool IsAttacking { get; set; } = false;
     public bool CanAttack { get; set; } = true;
-    public bool FirstAttack { get; set; } = true;
     private Coroutine comboCoroutine;
     private Cooldown cooldownAttackTimer = new Cooldown();
 
@@ -81,8 +82,6 @@ public class CharacterCombat : LoadComponents
             currentComboIndex = 0;
         }
 
-        FirstAttack = currentComboIndex == 0;
-
         if (comboCoroutine != null)
         {
             StopCoroutine(comboCoroutine);
@@ -135,7 +134,7 @@ public class CharacterCombat : LoadComponents
         characterBase.StateController.ChangeState(new IdleState(characterBase));
 
         // Đợi thêm một khoảng thời gian để xem người chơi có đánh tiếp không, nếu không thì reset combo
-        float delay = comboIndex == combos.Length - 1 ? finalAttackTime : comboResetDelay;
+        float delay = comboIndex == combos.Length - 1 ? 0 : comboResetDelay;
         yield return new WaitForSeconds(delay);
 
         ResetCombo();
@@ -144,9 +143,9 @@ public class CharacterCombat : LoadComponents
     public void ResetCombo()
     {
         isComboWindowOpen = false;
-        FirstAttack = true;
         CanAttack = true;
         IsAttacking = false;
+        currentComboIndex = 0;
     }
     // Lấy combo đang sử dụng, ưu tiên combo vũ khí nếu có, nếu không thì dùng combo tay không
     private IAttackStep[] GetActiveCombos()
@@ -192,32 +191,37 @@ public class CharacterCombat : LoadComponents
         attackHitBoxRadius = tempAttackHitBoxRadius;
     }
     //Bật hixbox tấn công
-    public void AttackHitBox()
+    public void AttackHitBox(PoolType hitEffect = PoolType.None)
     {
         Vector3 offset = transform.forward * forwardAttackOffset + transform.up * yAttackOffset;
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position + offset, attackHitBoxRadius);
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position + offset, attackHitBoxRadius, enemyLayer);
 
         foreach (Collider hitCollider in hitColliders)
         {
-            AttackHandler(hitCollider);
+            AttackHandler(hitCollider, hitEffect);
         }
     }
 
     // Xử lý logic khi đòn tấn công chạm trúng đối tượng
-    private void AttackHandler(Collider other)
+    private void AttackHandler(Collider other, PoolType hitEffect = PoolType.None)
     {
-        if (other.CompareTag("Enemy"))
+        EnemyBase enemy = other.GetComponent<EnemyBase>();
+        if (enemy != null)
         {
-            EnemyBase enemy = other.GetComponent<EnemyBase>();
-            if (enemy != null)
+            float damage = characterBase.CharacterData.stats.damage;
+            float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
+            if (enemy.DamageReceiver != null)
             {
-                float damage = characterBase.CharacterData.stats.damage;
-                float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
-                enemy.DamageReceiver.TakeHit(damage, poisonDamage, transform);
+                enemy.DamageReceiver.TakeHit(damage, poisonDamage);
             }
-
-            CameraShake.Instance?.Shake();
         }
+
+        if (hitEffect != PoolType.None)
+        {
+            ObjectPooling.Instance.SpawnFromPool(hitEffect, other.ClosestPoint(transform.position), Quaternion.identity);
+        }
+
+        CameraShake.Instance.Shake();
     }
     #endregion
 
