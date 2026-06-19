@@ -6,6 +6,7 @@ using UnityEngine;
 public class CharacterLockTarget : LoadComponents
 {
     [SerializeField] private float lockRadius = 50f; // Bán kính để khóa mục tiêu
+    [SerializeField] private float unlockRadius = 60f; // Bán kính để mở khóa mục tiêu, thường lớn hơn lockRadius để tránh việc mục tiêu bị khóa mở liên tục khi di chuyển gần rìa
     [SerializeField] private float maxScreenDistance = 3000f; // Khoảng cách tối đa để hiển thị mục tiêu, 3000 = full screen
     [SerializeField] private LayerMask targetLayer; // Lớp của mục tiêu để kiểm tra va chạm
     [SerializeField] private LayerMask obstacleLayer; // Lớp của chướng ngại vật để kiểm tra va chạm
@@ -29,6 +30,28 @@ public class CharacterLockTarget : LoadComponents
 
     }
 
+    private void Update()
+    {
+        UnLockTarget();
+    }
+
+    private void UnLockTarget()
+    {
+        if (!IsLockingTarget) return;
+
+        if (lookAtTarget == null) // Nếu mục tiêu bị hủy hoặc mất, tự động mở khóa
+        {
+            ToggleLockTarget();
+            return;
+        }
+
+        float distanceToTarget = Vector3.Distance(transform.position, lookAtTarget.position);
+        if (distanceToTarget > unlockRadius) // Nếu mục tiêu quá xa, tự động mở khóa
+        {
+            ToggleLockTarget();
+        }
+
+    }
     /// <summary>
     /// Bật/tắt khoá mục tiêu
     /// </summary>

@@ -18,7 +18,6 @@ public class KaelPunchStep_4 : AttackStepBase
 
         if (kael.IsGiantForm)
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
@@ -29,7 +28,6 @@ public class KaelPunchStep_4 : AttackStepBase
         }
         else
         {
-            character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 

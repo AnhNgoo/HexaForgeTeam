@@ -190,9 +190,9 @@ MonoBehaviour:
   m_VerticalAxis:
     Value: 0
     m_SpeedMode: 0
-    m_MaxSpeed: 300
-    m_AccelTime: 0.1
-    m_DecelTime: 0.1
+    m_MaxSpeed: 100
+    m_AccelTime: 0
+    m_DecelTime: 0
     m_InputAxisName: Mouse Y
     m_InputAxisValue: 0
     m_InvertInput: 1
@@ -214,12 +214,12 @@ MonoBehaviour:
   m_HorizontalAxis:
     Value: 0
     m_SpeedMode: 0
-    m_MaxSpeed: 300
-    m_AccelTime: 0.1
-    m_DecelTime: 0.1
+    m_MaxSpeed: 100
+    m_AccelTime: 0
+    m_DecelTime: 0
     m_InputAxisName: Mouse X
     m_InputAxisValue: 0
-    m_InvertInput: 1
+    m_InvertInput: 0
     m_MinValue: -180
     m_MaxValue: 180
     m_Wrap: 1
@@ -258,7 +258,7 @@ MonoBehaviour:
   m_TargetMovementOnly: 1
   m_ScreenX: 0.5
   m_ScreenY: 0.5
-  m_CameraDistance: 10
+  m_CameraDistance: 1.150483
   m_DeadZoneWidth: 0
   m_DeadZoneHeight: 0
   m_DeadZoneDepth: 0
@@ -640,7 +640,7 @@ MonoBehaviour:
   - id: 0
     virtualCamera: {fileID: 6744086533246096620}
     impulseSource: {fileID: 8394459046608067949}
-    mobileCamera: {fileID: 2750273948019166561}
+    mobileCamera: {fileID: 0}
     syncRotationFromPrevious: 1
   - id: 1
     virtualCamera: {fileID: 3503271184954638757}
@@ -699,9 +699,10 @@ GameObject:
   m_Component:
   - component: {fileID: 4611587969939951968}
   - component: {fileID: 6744086533246096620}
-  - component: {fileID: 2750273948019166561}
   - component: {fileID: 7580247298309365119}
   - component: {fileID: 8394459046608067949}
+  - component: {fileID: 7417482463693374001}
+  - component: {fileID: 2652106108832287429}
   m_Layer: 0
   m_Name: NormalCamera
   m_TagString: Untagged
@@ -764,23 +765,6 @@ MonoBehaviour:
         m_Calls: []
   m_LegacyBlendHint: 0
   m_ComponentOwner: {fileID: 4690622759204034039}
---- !u!114 &2750273948019166561
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5371429180669431528}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d60eab7288d5fcd4f914aca4caa32bb9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  virtualCamera: {fileID: 6744086533246096620}
-  pov: {fileID: 6637086901275003526}
-  horizontalSensitivity: 30
-  verticalSensitivity: 30
-  ignoreUI: 0
 --- !u!114 &7580247298309365119
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -857,6 +841,38 @@ MonoBehaviour:
     m_DissipationDistance: 100
     m_PropagationSpeed: 343
   m_DefaultVelocity: {x: 0, y: 0, z: -3}
+--- !u!114 &7417482463693374001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5371429180669431528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb7194dc27b9df64c8beca7482ee8e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayerIndex: -1
+  AutoEnableInputs: 1
+  XYAxis: {fileID: 0}
+  ZAxis: {fileID: 0}
+--- !u!114 &2652106108832287429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5371429180669431528}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb7194dc27b9df64c8beca7482ee8e0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayerIndex: -1
+  AutoEnableInputs: 1
+  XYAxis: {fileID: 0}
+  ZAxis: {fileID: 0}
 --- !u!1 &7366093251592653235
 GameObject:
   m_ObjectHideFlags: 0
