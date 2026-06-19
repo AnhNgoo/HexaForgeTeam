@@ -55,7 +55,6 @@ public class EnemyAnimatorController : MonoBehaviour
         _staggerVariantHashes = BuildVariantHashes(staggerVariantStateNames);
         _chaseVariantHashes = BuildVariantHashes(chaseVariantStateNames);
         _walkVariantHashes = BuildVariantHashes(walkVariantStateNames);
-        Debug.Log($"{gameObject.name} - EnemyAnimatorController đã được khởi tạo!");
     }
 
     private void OnValidate()
@@ -160,5 +159,20 @@ public class EnemyAnimatorController : MonoBehaviour
     public void PlayAttackVFX()
     {
         _enemyBase.Combat.PlayAttackVFX(); //Gọi hàm phát hiệu ứng tấn công từ EnemyCombat để đảm bảo rằng hiệu ứng sẽ được kích hoạt đúng thời điểm trong animation tấn công
+    }
+
+    public void BlockReady()
+    {
+        _enemyBase.Guard?.OnBlockReady();
+    }
+
+    public void ShieldBashImpact()
+    {
+        _enemyBase.Guard?.OnShieldBashImpact();
+    }
+
+    public void ShieldBashEnd()
+    {
+        _enemyBase.Guard?.OnShieldBashEnd();
     }
 }

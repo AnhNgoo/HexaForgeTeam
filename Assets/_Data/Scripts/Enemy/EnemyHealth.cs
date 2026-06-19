@@ -10,7 +10,6 @@ public class EnemyHealth : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyHealth đã được khởi tạo!");
         currentHealth = _enemyBase.Data.maxHealth;
     }
 

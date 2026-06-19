@@ -21,6 +21,15 @@ public class EnemyState_Attack : EnemyState
     {
         base.UpdateLogic();
 
+        if (_enemyBase.MinibossBehaviour != null && _enemyBase.MinibossBehaviour.IsActionLocked)
+        {
+            _enemyBase.Locomotion.StopMoving();
+            return;
+        }
+
+        if (_enemyBase.Combat.IsPerformingAttack)
+            return;
+
         float distanceToOrigin = Vector3.Distance(_enemyBase.MyTransform.position, _enemyBase.SpawnOrigin);
         if (distanceToOrigin > _enemyBase.CurrentLeash + 5f) //Nếu đuổi xa quá rồi ở đó và nghi nghờ
         {
@@ -53,6 +62,15 @@ public class EnemyState_Attack : EnemyState
         //Tính toán khoảng cách đến người chơi để quyết định có tiếp tục tấn công hay không
         float distanceToPlayer = Vector3.Distance(_enemyBase.MyTransform.position, playerTransform.position);
 
+        //Kiểm tra nếu Enemy có thể block và nên block thay vì tiếp tục tấn công, giúp Enemy có thể phòng thủ khi cần thiết thay vì chỉ tập trung vào tấn công, tạo sự đa dạng trong hành vi của Enemy và tránh lỗi spam tấn công liên tục khi người chơi đang ở gần
+        if (_enemyBase.Guard != null && _enemyBase.Guard.ShouldEnterGuard(distanceToPlayer))
+        {
+            _enemyBase.StateMachine.ChangeState(
+                _enemyBase.StateMachine.EnemyBlockState
+            );
+            return;
+        }
+
         AttackDataSO chosenAttack = _enemyBase.Combat.ChooseAttack(distanceToPlayer); //Chọn đòn tấn công phù hợp dựa trên khoảng cách đến player
         if (chosenAttack != null)
         {
@@ -72,32 +90,73 @@ public class EnemyState_Attack : EnemyState
                 return;
             }
 
-            _isWaitingCooldown = false; //Đặt lại trạng thái chờ đợi hồi chiêu khi đã chọn được đòn tấn công mới, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể không cần chờ đợi hồi chiêu và có thể tấn công liên tục)
+            _isWaitingCooldown = false;
+            _enemyBase.Locomotion.StopMoving();
             _enemyBase.Combat.PerformAttack(chosenAttack); //Thực hiện đòn tấn công đã chọn, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có hiệu ứng đặc biệt khi thực hiện đòn tấn công)
             _attackEndTime = Time.time + chosenAttack.attackDuration; //Cập nhật thời gian kết thúc của đòn tấn công hiện tại dựa trên thời gian của đòn tấn công đã chọn, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có thời gian tấn công dài hơn hoặc ngắn hơn)
         }
         else
         {
-            float maxRangeInArsenal = 0f;
-            foreach (var atk in _enemyBase.Combat.AttackArsenal)
+            float closeCombatRange = GetClosestMeleeRange();
+
+            if (closeCombatRange < 0f)
             {
-                if (atk.maxAttackRange > maxRangeInArsenal) maxRangeInArsenal = atk.maxAttackRange;
+                float preferredRange = GetPreferredRangedDistance();
+
+                BeginCooldownMovement();
+
+                if (distanceToPlayer > preferredRange + 0.5f)
+                {
+                    _enemyBase.Locomotion.SetSpeed(
+                        _enemyBase.Data.moveSpeed
+                    );
+
+                    _enemyBase.Locomotion.MoveToTarget(
+                        playerTransform.position,
+                        preferredRange
+                    );
+                }
+                else
+                {
+                    if (Time.time >= _nextStrafeTime)
+                    {
+                        _enemyBase.Locomotion.SetSpeed(
+                            _enemyBase.Data.patrolSpeed
+                        );
+
+                        CalculateStrafePoint(playerTransform.position);
+                    }
+
+                    _enemyBase.Locomotion.MoveToTarget(_strafeTargetPos);
+                }
+
+                return;
             }
 
-            if (distanceToPlayer > maxRangeInArsenal)
+            if (distanceToPlayer > closeCombatRange)
             {
-                if (_enemyBase.Detection.IsPointInLeash(playerTransform.position))
-                    _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyChaseState); //Nếu không có đòn tấn công nào phù hợp và player đã di chuyển ra khỏi phạm vi tấn công, chuyển sang trạng thái Chase để tiếp tục truy đuổi
+                BeginCooldownMovement();
+
+                float approachDistance =
+                    Mathf.Max(0.8f, closeCombatRange * 0.75f);
+
+                _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.moveSpeed);
+                _enemyBase.Locomotion.MoveToTarget(
+                    playerTransform.position,
+                    approachDistance
+                );
+                return;
             }
-            else
+
+            BeginCooldownMovement();
+
+            if (Time.time >= _nextStrafeTime)
             {
-                if (!_isWaitingCooldown) //Nếu chưa bắt đầu chờ đợi hồi chiêu thì bắt đầu chờ đợi, nếu đã bắt đầu chờ đợi rồi thì vẫn tiếp tục đứng yên chờ hồi chiêu mà không cần thiết phải đặt lại thời gian chờ đợi
-                {
-                    _isWaitingCooldown = true; //Bắt đầu quá trình chờ đợi hồi chiêu của đòn tấn công, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể không cần chờ đợi hồi chiêu và có thể tấn công liên tục)
-                    _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.patrolSpeed); //Đi bộ tại chỗ khi chờ hồi chiêu, có thể điều chỉnh lại tốc độ này nếu muốn Enemy di chuyển nhẹ nhàng tại chỗ khi chờ hồi chiêu thay vì đứng yên một chỗ
-                    CalculateStrafePoint(playerTransform.position); //Tính toán điểm di chuyển tấn công (strafe) xung quanh người chơi để tạo sự đa dạng trong cách tấn công và tránh lỗi spam động tác di chuyển tấn công liên tục
-                }
+                _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.patrolSpeed);
+                CalculateStrafePoint(playerTransform.position);
             }
+
+            _enemyBase.Locomotion.MoveToTarget(_strafeTargetPos);
         }
     }
 
@@ -115,6 +174,61 @@ public class EnemyState_Attack : EnemyState
         _strafeTargetPos = _enemyBase.Locomotion.GetRandomRoamPosition(potentialPoint, 1f);
         //Di chuyển đến điểm strafe đã tính toán nếu đã đến thời gian có thể thực hiện động tác di chuyển tấn công (strafe), giúp Enemy có thể di chuyển xung quanh người chơi một cách linh hoạt hơn thay vì chỉ đứng yên tại chỗ khi tấn công, tạo sự đa dạng trong cách tấn công và tránh lỗi spam động tác di chuyển tấn công liên tục
         _nextStrafeTime = Time.time + Random.Range(1.5f, 3f);
+    }
+
+    private float GetClosestMeleeRange()
+    {
+        float result = float.MaxValue;
+
+        foreach (AttackDataSO attack in _enemyBase.Combat.AttackArsenal)
+        {
+            if (attack == null || attack.attackType != AttackType.Melee)
+                continue;
+
+            result = Mathf.Min(result, attack.maxAttackRange);
+        }
+
+        return result == float.MaxValue ? -1f : result;
+    }
+
+    private void BeginCooldownMovement()
+    {
+        if (_isWaitingCooldown) return;
+
+        _isWaitingCooldown = true;
+
+        int movementHash =
+            _enemyBase.AnimatorController.HasAnimationState(
+                _enemyBase.AnimatorController.WalkHash)
+            ? _enemyBase.AnimatorController.WalkHash
+            : _enemyBase.AnimatorController.ChaseHash;
+
+        _enemyBase.AnimatorController.PlayAnimation(movementHash);
+    }
+
+    private float GetPreferredRangedDistance()
+    {
+        float sharedMin = 0f;
+        float sharedMax = float.MaxValue;
+        bool foundRanged = false;
+
+        foreach (AttackDataSO attack in _enemyBase.Combat.AttackArsenal)
+        {
+            if (attack == null || attack.attackType != AttackType.Ranged)
+                continue;
+
+            foundRanged = true;
+            sharedMin = Mathf.Max(sharedMin, attack.minAttackRange);
+            sharedMax = Mathf.Min(sharedMax, attack.maxAttackRange);
+        }
+
+        if (!foundRanged)
+            return 1.5f;
+
+        if (sharedMax < sharedMin)
+            return sharedMin;
+
+        return (sharedMin + sharedMax) * 0.5f;
     }
 
     public override void Exit()

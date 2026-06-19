@@ -40,7 +40,7 @@ public class EnemyBase : LoadComponents, IPoolable
     [SerializeField] private Collider _mainCollider;
     [FoldoutGroup("Modules")]
     [SerializeField] private Transform _myTransform;
-    [FoldoutGroup("Modules")]
+    private EnemyGuard _guard;
 
     //Định dạng EnemyBase như một đối tượng có thể được quản lý bởi Object Pooling
     private PoolType _poolType = PoolType.Enemy;
@@ -60,8 +60,11 @@ public class EnemyBase : LoadComponents, IPoolable
     public EnemyVFXManager VFXManager => _vfxManager;
     public EnemyAttackAnchors AttackAnchors => _attackAnchors;
     public EnemyHitboxRegistry HitboxRegistry => _hitboxRegistry;
+    public EnemyGuard Guard => _guard;
     public Transform MyTransform => _myTransform;
     public Collider MainCollider => _mainCollider;
+
+    public EnemyMinibossBehaviour MinibossBehaviour { get; private set; }
 
     //Reference đến CampSpawner quản lý việc spawn và pool đối tượng này, có thể dùng để gọi phương thức trả Enemy về pool khi Enemy chết hoặc không còn cần thiết nữa
     private CampSpawner _myCamp;
@@ -124,6 +127,8 @@ public class EnemyBase : LoadComponents, IPoolable
         _vfxManager.Initialize(this);
         _attackAnchors.Initialize(this);
         _hitboxRegistry.Initialize(this);
+        _guard?.Initialize(this);
+        MinibossBehaviour = GetComponent<EnemyMinibossBehaviour>();
         _eventManager.OnDead -= HandleDeathReport; //Đảm bảo không đăng ký trùng lặp sự kiện khi khởi tạo lại nhiều lần
         _eventManager.OnDead += HandleDeathReport; //Đăng ký sự kiện khi Enemy chết để gọi phương thức trả Enemy về pool
 
@@ -213,6 +218,7 @@ public class EnemyBase : LoadComponents, IPoolable
             Debug.LogError("EnemyAttackAnchors component is missing on " + gameObject.name);
         if (!TryGetComponent(out _hitboxRegistry))
             Debug.LogError("EnemyHitboxRegistry component is missing on " + gameObject.name);
+        TryGetComponent(out _guard);
 
         _animatorController = GetComponentInChildren<EnemyAnimatorController>();
     }
@@ -258,7 +264,7 @@ public class EnemyBase : LoadComponents, IPoolable
     [Button("Test: Đánh 1 đòn (Raw Dmg: 20, Poise Dmg: 30)", ButtonSizes.Large)]
     public void DebugTakeHit()
     {
-        _damageReceiver.TakeHit(20f, 30f);
+        _damageReceiver.TakeHit(20f, 30f, transform);
     }
     #endregion
 }

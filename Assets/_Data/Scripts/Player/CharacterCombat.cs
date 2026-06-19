@@ -213,7 +213,7 @@ public class CharacterCombat : LoadComponents
             {
                 float damage = characterBase.CharacterData.stats.damage;
                 float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
-                enemy.DamageReceiver.TakeHit(damage, poisonDamage);
+                enemy.DamageReceiver.TakeHit(damage, poisonDamage, transform);
             }
 
             CameraShake.Instance?.Shake();

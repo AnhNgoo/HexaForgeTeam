@@ -18,6 +18,10 @@ public class EnemyCombat : MonoBehaviour
 
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
     public AttackDataSO CurrentAttackData => currentAttackData; //Cho phép các lớp khác truy cập dữ liệu tấn công hiện tại nhưng không cho phép thay đổi trực tiếp
+
+    [SerializeField] private AttackSelectionMode selectionMode = AttackSelectionMode.Random;
+    private AttackDataSO _lastAttack;
+    public bool IsPerformingAttack { get; private set; }
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
@@ -27,7 +31,6 @@ public class EnemyCombat : MonoBehaviour
             if (attackData == null) continue;
             _attackCooldownTimers[attackData] = -100f; //Khởi tạo thời gian hồi chiêu ban đầu cho mỗi đòn tấn công, có thể đặt thành một giá trị âm lớn để đảm bảo rằng tất cả các đòn tấn công đều có thể được sử dụng ngay từ đầu
         }
-        Debug.Log($"{gameObject.name} - EnemyCombat đã được khởi tạo!");
     }
 
     private EnemyAttackContext CreateAttackContext()
@@ -37,6 +40,7 @@ public class EnemyCombat : MonoBehaviour
 
     public void PerformAttack(AttackDataSO chosenAttack)
     {
+        IsPerformingAttack = true;
         currentAttackData = chosenAttack;
         _attackCooldownTimers[currentAttackData] = Time.time; //Cập nhật thời gian hồi chiêu của đòn tấn công đã chọn, giúp kiểm soát thời gian giữa các đòn tấn công khác nhau
 
@@ -60,9 +64,12 @@ public class EnemyCombat : MonoBehaviour
         {
             if (attackData == null) continue; //Nếu có phần tử null trong mảng dữ liệu tấn công, bỏ qua để tránh lỗi
 
+
+
             if (_attackCooldownTimers.ContainsKey(attackData))
             {
-                bool isCooldownReady = Time.time >= _attackCooldownTimers[attackData] + attackData.cooldown; //Kiểm tra nếu đòn tấn công đã sẵn sàng để sử dụng dựa trên thời gian hồi chiêu
+                float effectiveCooldown = _enemyBase.MinibossBehaviour != null ? _enemyBase.MinibossBehaviour.ModifyAttackCooldown(attackData.cooldown) : attackData.cooldown;
+                bool isCooldownReady = Time.time >= _attackCooldownTimers[attackData] + effectiveCooldown;
                 bool isInRange = distanceToPlayer >= attackData.minAttackRange && distanceToPlayer <= attackData.maxAttackRange; //Kiểm tra nếu player nằm trong phạm vi tấn công của đòn tấn công
                 if (isCooldownReady && isInRange)
                 {
@@ -71,12 +78,42 @@ public class EnemyCombat : MonoBehaviour
             }
         }
 
-        if (availableAttacks.Count > 0)
+        if (availableAttacks.Count == 0)
+            return null;
+
+        if (selectionMode == AttackSelectionMode.Random)
         {
-            return availableAttacks[Random.Range(0, availableAttacks.Count)]; //Chọn ngẫu nhiên một đòn tấn công từ danh sách các đòn tấn công có thể sử dụng
+            return availableAttacks[
+                Random.Range(0, availableAttacks.Count)
+            ];
         }
 
-        return null;
+        AttackDataSO bestAttack = null;
+        float bestScore = float.MinValue;
+
+
+        foreach (AttackDataSO attack in availableAttacks)
+        {
+            float preferredRange =
+                (attack.minAttackRange + attack.maxAttackRange) * 0.5f;
+
+            float score =
+                -Mathf.Abs(distanceToPlayer - preferredRange);
+
+            if (attack == _lastAttack)
+                score -= 3f;
+
+            score += Random.Range(0f, 0.5f);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestAttack = attack;
+            }
+        }
+
+        _lastAttack = bestAttack;
+        return bestAttack;
     }
 
     private async UniTaskVoid ReturnToIdleVisualAsync(CancellationToken token)
@@ -86,6 +123,8 @@ public class EnemyCombat : MonoBehaviour
 
         //Nếu bị hủy bỏ, không cần thực hiện việc trả về trạng thái hình ảnh
         if (isCancelled) return;
+
+        IsPerformingAttack = false;
 
         // Nếu sống sót qua Delay và quái vẫn đang ở trạng thái Attack
         if (_enemyBase.StateMachine.CurrentState == _enemyBase.StateMachine.EnemyAttackState)
@@ -127,6 +166,7 @@ public class EnemyCombat : MonoBehaviour
     {
         _enemyBase.HitboxRegistry.DisableAllHitboxes(); //Gọi hàm đóng tất cả hitbox từ EnemyHitboxRegistry để đảm bảo rằng tất cả hitbox sẽ được đóng, tránh lỗi hitbox vẫn mở sau khi animation kết thúc hoặc khi vào trạng thái Stagger hoặc Dead
         CancelVisualTask(); //Hủy bỏ tác vụ trả về trạng thái hình ảnh nếu đang tồn tại để tránh lỗi khi vào trạng thái Stagger hoặc Dead
+        IsPerformingAttack = false;
     }
 
     public void EnableHitbox(EnemyHitboxType type)
@@ -224,13 +264,13 @@ public class EnemyCombat : MonoBehaviour
         if (currentAttackData.skillLogic != null)
         {
             currentAttackData.skillLogic.OnAttackEnd(CreateAttackContext());
-            return;
         }
-
-        if (currentAttackData.attackType == AttackType.Melee)
+        else if (currentAttackData.attackType == AttackType.Melee)
         {
             DisableHitbox(currentAttackData.hitboxType);
         }
+
+        IsPerformingAttack = false;
     }
 
     public void HandleAttackMovementEvent()

@@ -14,7 +14,6 @@ public class EnemyEventManager : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyEventManager đã được khởi tạo!");
     }
 
     public void CallTakeDamage(float damageAmount)
