@@ -3,26 +3,69 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class AchievementCardUI :
-    MonoBehaviour
+    LoadComponents
 {
     [Header("UI")]
     [SerializeField]
-    private TMP_Text titleText;
+    private TMP_Text TitleText;
 
     [SerializeField]
-    private TMP_Text descriptionText;
+    private TMP_Text DescriptionText;
 
     [SerializeField]
-    private TMP_Text progressText;
+    private TMP_Text ProgressText;
 
     [SerializeField]
-    private TMP_Text rewardText;
+    private TMP_Text RewardText;
 
     [SerializeField]
-    private Button claimButton;
+    private Button ClaimButton;
 
     private AchievementData
         achievementData;
+
+    protected override void LoadComponent()
+    {
+        if (TitleText == null)
+        {
+            TitleText =
+                transform.Find("TitleText")
+                ?.GetComponent<TMP_Text>();
+        }
+
+        if (DescriptionText == null)
+        {
+            DescriptionText =
+                transform.Find("DescriptionText")
+                ?.GetComponent<TMP_Text>();
+        }
+
+        if (ProgressText == null)
+        {
+            ProgressText =
+                transform.Find("ProgressText")
+                ?.GetComponent<TMP_Text>();
+        }
+
+        if (RewardText == null)
+        {
+            RewardText =
+                transform.Find("RewardText")
+                ?.GetComponent<TMP_Text>();
+        }
+
+        if (ClaimButton == null)
+        {
+            ClaimButton =
+                transform.Find("ClaimButton")
+                ?.GetComponent<Button>();
+        }
+    }
+
+    protected override void LoadComponentRuntime()
+    {
+
+    }
 
     public void Setup(
         AchievementData data)
@@ -31,12 +74,12 @@ public class AchievementCardUI :
 
         RefreshUI();
 
-        if (claimButton != null)
+        if (ClaimButton != null)
         {
-            claimButton.onClick
+            ClaimButton.onClick
                 .RemoveAllListeners();
 
-            claimButton.onClick
+            ClaimButton.onClick
                 .AddListener(
                     ClaimReward);
         }
@@ -49,40 +92,40 @@ public class AchievementCardUI :
             return;
         }
 
-        if (titleText != null)
+        if (TitleText != null)
         {
-            titleText.text =
+            TitleText.text =
                 achievementData.title;
         }
 
-        if (descriptionText != null)
+        if (DescriptionText != null)
         {
-            descriptionText.text =
+            DescriptionText.text =
                 achievementData.description;
         }
 
-        if (progressText != null)
+        if (ProgressText != null)
         {
-            progressText.text =
+            ProgressText.text =
                 $"{achievementData.currentProgress}" +
                 $" / " +
                 $"{achievementData.targetProgress}";
         }
 
-        if (rewardText != null)
+        if (RewardText != null)
         {
-            rewardText.text =
+            RewardText.text =
                 $"{achievementData.rewardGem} Gems";
         }
 
-        if (claimButton != null)
+        if (ClaimButton != null)
         {
-            claimButton.interactable =
+            ClaimButton.interactable =
                 achievementData.isCompleted &&
                 !achievementData.isClaimed;
 
             TMP_Text buttonText =
-                claimButton
+                ClaimButton
                 .GetComponentInChildren<TMP_Text>();
 
             if (buttonText != null)
@@ -137,6 +180,8 @@ public class AchievementCardUI :
             .SaveAchievement();
 
         AchievementManager.Instance
-    .RefreshUI();
+            .RefreshUI();
+        AchievementManager.Instance
+    .CheckUltimateRuneReward();
     }
 }

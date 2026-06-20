@@ -8,6 +8,7 @@ public class CharacterMelee : CharacterBase
     [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
     [Header("Melee Attack Effects")]
     public GameObject meleeAttackEffectPoint_1;
+    public PoolType hitEffect_2 = PoolType.HitEffect_2;
     public PoolType meleeAttackEffect_1 = PoolType.SlashEffect_1;
     public GameObject meleeAttackEffectPoint_2;
     public PoolType meleeAttackEffect_2 = PoolType.SlashEffect_1;
@@ -30,33 +31,16 @@ public class CharacterMelee : CharacterBase
         if (meleeAttackEffectPoint_4 == null)
             meleeAttackEffectPoint_4 = effectPoints?.transform.Find("MeleeAttackEffectPoint_4")?.gameObject;
     }
-    protected override void Init(CharacterData data)
-    {
-        base.Init(data);
-        characterCombat?.Init(this, InitAttackCombos());
-    }
 
-    // Override để khởi tạo các đòn tấn công riêng cho Kael
-    protected override IAttackStep[] InitAttackCombos()
+    public override void Attack()
     {
-        return new IAttackStep[4]
-        {
-            new AttackMeleeStep_1(this),
-            new AttackMeleeStep_2(this),
-            new AttackMeleeStep_3(this),
-            new AttackMeleeStep_4(this)
-        };
-    }
-
-    protected override void OnAttack()
-    {
-        if (characterCombat.FirstAttack) // Chỉ áp sát mục tiêu nếu đây là đòn tấn công đầu tiên trong chuỗi combo
+        if (characterCombat.CurrentComboIndex == 0) // Chỉ áp sát mục tiêu nếu đây là đòn tấn công đầu tiên trong chuỗi combo
             MeleeSnapToTarget();
         characterCombat?.TryAttack();
     }
 
     //Hỗ trợ áp sát mục tiêu khi tấn công
-    protected async void MeleeSnapToTarget()
+    protected void MeleeSnapToTarget()
     {
         if (CharacterLockTarget == null ||
         !CharacterLockTarget.IsLockingTarget || // Chỉ áp sát nếu đang khóa mục tiêu

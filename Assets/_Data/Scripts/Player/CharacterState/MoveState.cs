@@ -12,7 +12,6 @@ public class MoveState : ICharacterState
     }
     public void Enter()
     {
-
     }
 
     public void Exit()
@@ -29,17 +28,46 @@ public class MoveState : ICharacterState
     {
         character.LookAtTarget();
 
-        if (character.CharacterMovement.MoveDirection == Vector2.zero)
+        if (character.CharacterInput.moveInput == Vector2.zero)
         {
             character.StateController.ChangeState(new IdleState(character));
             character.CharacterMovement.Stop();
             return;
         }
 
-        //Chuyển về FallState nếu đang ở trên không và bắt đầu rơi
-        if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.CC.velocity.y < character.CharacterMovement.FallThreshold)
+        if (character.CharacterInput.Skill_1)
         {
-            character.StateController.ChangeState(new FallState(character));
+            character.Skill_1();
+            return;
+        }
+
+        if (character.CharacterInput.Skill_2)
+        {
+            character.Skill_2();
+            return;
+        }
+
+        if (character.CharacterInput.Attack)
+        {
+            character.Attack();
+            return;
+        }
+
+        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.RecoveryBottle > 0)
+        {
+            character.StateController.ChangeState(new HealthRecoveryState(character));
+            return;
+        }
+
+        if (character.CharacterInput.Dodge)
+        {
+            character.Dodge();
+            return;
+        }
+
+        if (character.CharacterInput.Jump && character.CharacterMovement.IsGrounded)
+        {
+            character.StateController.ChangeState(new JumpState(character));
             return;
         }
 
@@ -58,8 +86,8 @@ public class MoveState : ICharacterState
 
     private void MoveNormal()
     {
-        float xAbs = Mathf.Abs(character.JoystickInput.x);
-        float yAbs = Mathf.Abs(character.JoystickInput.y);
+        float xAbs = Mathf.Abs(character.CharacterInput.moveInput.x);
+        float yAbs = Mathf.Abs(character.CharacterInput.moveInput.y);
         float inputSpeed = Mathf.Max(xAbs, yAbs);// Giá trị lớn nhất giữa x và y của joystick để xác định tốc độ di chuyển
         float speed = character.CharacterData.stats.speed;
 
@@ -93,8 +121,8 @@ public class MoveState : ICharacterState
 
     private void MoveLockTarget()
     {
-        float x = character.JoystickInput.x; // Hướng đi ngang
-        float y = character.JoystickInput.y; // Hướng đi dọc
+        float x = character.CharacterInput.moveInput.x; // Hướng đi ngang
+        float y = character.CharacterInput.moveInput.y; // Hướng đi dọc
         float yAbs = Mathf.Abs(y); // Ngưỡng y để xác định di chuyển chéo hay thẳng
         float speed = character.CharacterData.stats.speed;
 

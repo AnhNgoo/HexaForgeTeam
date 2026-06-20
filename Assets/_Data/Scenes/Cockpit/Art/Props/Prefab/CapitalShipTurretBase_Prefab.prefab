@@ -1,5 +1,3 @@
-%YAML 1.1
-%TAG !u! tag:unity3d.com,2011:
 --- !u!1 &514469367946517559
 GameObject:
   m_ObjectHideFlags: 0
@@ -71,7 +69,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8412792452398566640}
-  - component: {fileID: 2153417960982544668}
   m_Layer: 0
   m_Name: CapitalShipTurretBase_Prefab
   m_TagString: cockpit_capitalLaser
@@ -96,31 +93,6 @@ Transform:
   - {fileID: 1258464064292343809}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2153417960982544668
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2524410216306371422}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24b8117377e18468680baa111a364dea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CannonYaw: {fileID: 2845723646373776621}
-  CannonPitch: {fileID: 674929492933714360}
-  Barrels:
-  - {fileID: 166570019154434798}
-  - {fileID: 1753854912612708686}
-  teamIndex: 0
-  ManualAim: {fileID: 1258464064292343809}
-  autoFire: 1
-  fireRate: 200
-  range: 450
-  targetPosition: {x: 0, y: 0, z: 0}
-  aimingPosition: {x: 0, y: 0, z: 0}
-  manualBlend: 0
 --- !u!1 &5468366531987465213
 GameObject:
   m_ObjectHideFlags: 0

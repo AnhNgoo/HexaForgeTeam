@@ -56,7 +56,7 @@ UpdateGemUI();
             return false;
         }
 
-       currentGem += amount;
+       currentGem -= amount;
 
 SaveLoadManager.Instance
     .SaveData.gem =

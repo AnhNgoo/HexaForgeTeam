@@ -10,12 +10,34 @@ public enum PoolType
     SafeZone = 2,
     SlashEffect_1 = 3,
     LockTargetMarker = 4,
-    HitEffect_1 = 9,
-    HitEffect_2 = 10,
+    PunchEffect_1 = 9,
+    PunchEffect_2 = 10,
     Earthquake_1 = 13,
     EarthBreaker_2 = 14,
     AuraEffect_1 = 15,
     AuraEffect_2 = 16,
+    AuraEffect_3 = 17,
+    AuraEffect_4 = 18,
+    AuraEffect_5 = 19,
+    AuraEffect_6 = 22,
+    KaelGiantPunchEffect_1 = 23,
+    KaelGiantPunchEffect_2 = 24,
+    KaelGiantAuraEffect_1 = 25,
+    HitEffect_1 = 26,
+    HitEffect_2 = 27,
+    RecoveryBottle = 28,
+    EnemyBat = 50,
+    EnemySkeletonMelee = 51,
+    EnemyMushroom = 52,
+    EnemySkeletonRouge = 53,
+    EnemyBee = 54,
+    EnemySpider = 55,
+    EnemySpiderToxin = 56,
+    EnemyDogPup = 57,
+    EnemyDogBark = 58,
+    Projectile_1 = 59,
+    Stun_Loop = 60,
+    MissHitEffect_1 = 100,
 }
 
 [System.Serializable]
@@ -45,8 +67,9 @@ public class ObjectPooling : Singleton<ObjectPooling>
         base.LoadComponent();
 
     }
-    private void Start()
+    protected override void Awake()
     {
+        base.Awake();
         LoadPoolData();
         InitializePools();
     }

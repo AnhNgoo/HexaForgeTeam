@@ -6,13 +6,13 @@ public class AchievementToastUI :
     MonoBehaviour
 {
     [SerializeField]
-    private GameObject visualRoot;
+    private GameObject VisualRoot;
 
     [SerializeField]
-    private TMP_Text titleText;
+    private TMP_Text TitleText;
 
     [SerializeField]
-    private TMP_Text descriptionText;
+    private TMP_Text DescriptionText;
 
     [SerializeField]
     private float showDuration = 3f;
@@ -21,9 +21,9 @@ public class AchievementToastUI :
 
     private void Awake()
     {
-        if (visualRoot != null)
+        if (VisualRoot != null)
         {
-            visualRoot.SetActive(false);
+            VisualRoot.SetActive(false);
         }
     }
 
@@ -48,29 +48,29 @@ public class AchievementToastUI :
         string title,
         string description)
     {
-        if (titleText != null)
+        if (TitleText != null)
         {
-            titleText.text =
+            TitleText.text =
                 title;
         }
 
-        if (descriptionText != null)
+        if (DescriptionText != null)
         {
-            descriptionText.text =
+            DescriptionText.text =
                 description;
         }
 
-        if (visualRoot != null)
+        if (VisualRoot != null)
         {
-            visualRoot.SetActive(true);
+            VisualRoot.SetActive(true);
         }
 
         yield return new WaitForSeconds(
             showDuration);
 
-        if (visualRoot != null)
+        if (VisualRoot != null)
         {
-            visualRoot.SetActive(false);
+            VisualRoot.SetActive(false);
         }
 
         currentRoutine = null;

@@ -12,7 +12,10 @@ using Cysharp.Threading.Tasks;
 [RequireComponent(typeof(CharacterCombat))]
 [RequireComponent(typeof(CharacterLockTarget))]
 [RequireComponent(typeof(CharacterSkill))]
-public abstract class CharacterBase : LoadComponents
+[RequireComponent(typeof(CharacterInput))]
+[RequireComponent(typeof(CharacterHealth))]
+[RequireComponent(typeof(CharacterRecovery))]
+public abstract class CharacterBase : LoadComponents, ITakeDamage
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
@@ -21,6 +24,8 @@ public abstract class CharacterBase : LoadComponents
     [Header("Character Models")]
     [SerializeField] protected GameObject visuals;
     [SerializeField] protected GameObject characterVisual;
+    [SerializeField] protected GameObject handRight;
+    public GameObject HandRight => handRight;
 
     [Header("Character Components")]
     [SerializeField] protected CharacterAnimation characterAnimation;
@@ -37,25 +42,30 @@ public abstract class CharacterBase : LoadComponents
     public CharacterLockTarget CharacterLockTarget => characterLockTarget;
     [SerializeField] protected CharacterSkill characterSkill;
     public CharacterSkill CharacterSkill => characterSkill;
+    [SerializeField] protected CharacterInput characterInput;
+    public CharacterInput CharacterInput => characterInput;
+    [SerializeField] protected CharacterHealth characterHealth;
+    public CharacterHealth CharacterHealth => characterHealth;
+    [SerializeField] protected CharacterRecovery characterRecovery;
+    public CharacterRecovery CharacterRecovery => characterRecovery;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
+    public PoolType hitEffect_1 = PoolType.HitEffect_1;
     public GameObject punchEffectPoint_1;
-    public PoolType punchEffect_1 = PoolType.HitEffect_1;
+    public PoolType punchEffect_1 = PoolType.PunchEffect_1;
     public GameObject punchEffectPoint_2;
-    public PoolType punchEffect_2 = PoolType.HitEffect_2;
+    public PoolType punchEffect_2 = PoolType.PunchEffect_2;
     public GameObject punchEffectPoint_3;
-    public PoolType punchEffect_3 = PoolType.HitEffect_2;
+    public PoolType punchEffect_3 = PoolType.PunchEffect_2;
     public GameObject punchEffectPoint_4;
-    public PoolType punchEffect_4 = PoolType.HitEffect_2;
+    public PoolType punchEffect_4 = PoolType.PunchEffect_2;
 
     [Header("Character Base Settings")]
     [SerializeField] protected float attackSpeedMultiplier = 0.01f;
     [SerializeField] protected string attackParameterName = "AttackSpeed";
     protected StateController stateController;
     public StateController StateController => stateController;
-
-    public Vector2 JoystickInput { get; private set; } // Lưu trữ input từ joystick
     private Cooldown dodgeCooldown = new Cooldown();
     public bool IsHealthRecovering { get; set; } = false;
 
@@ -77,6 +87,12 @@ public abstract class CharacterBase : LoadComponents
             characterLockTarget = GetComponent<CharacterLockTarget>();
         if (characterSkill == null)
             characterSkill = GetComponent<CharacterSkill>();
+        if (characterInput == null)
+            characterInput = GetComponent<CharacterInput>();
+        if (characterHealth == null)
+            characterHealth = GetComponent<CharacterHealth>();
+        if (characterRecovery == null)
+            characterRecovery = GetComponent<CharacterRecovery>();
         LoadEffectPoints();
     }
 
@@ -115,9 +131,13 @@ public abstract class CharacterBase : LoadComponents
         if (data != null)
             characterData = Instantiate(data);
 
+        characterInput.Init();
+        characterHealth.Init(characterData.stats.maxHealth);
+        characterRecovery.Init(this);
         characterAnimation.Init(characterVisual);
-        AddAnimationEvents();
+        characterWeapon.Init(handRight.transform);
         characterLockTarget.SetFollowTarget();
+        characterCombat?.Init(this, InitAttackCombos(), InitPunchCombos());
         InitSkills();
     }
 
@@ -127,32 +147,6 @@ public abstract class CharacterBase : LoadComponents
         characterAnimation.SetAnimationSpeed(attackParameterName, speed * attackSpeedMultiplier);
     }
     #endregion
-    protected virtual void OnEnable()
-    {
-        EventManager.Subscribe(GameEvent.OnMovement, OnMovement);
-        EventManager.Subscribe(GameEvent.OnDodge, _ => OnDodge());
-        EventManager.Subscribe(GameEvent.OnJump, _ => OnJump());
-        EventManager.Subscribe(GameEvent.OnWallJump, _ => OnWallJump());
-        EventManager.Subscribe(GameEvent.OnAttack, _ => OnAttack());
-        EventManager.Subscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
-        EventManager.Subscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
-        EventManager.Subscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
-    }
-
-    protected virtual void OnDisable()
-    {
-        EventManager.Unsubscribe(GameEvent.OnMovement, OnMovement);
-        EventManager.Unsubscribe(GameEvent.OnDodge, _ => OnDodge());
-        EventManager.Unsubscribe(GameEvent.OnJump, _ => OnJump());
-        EventManager.Unsubscribe(GameEvent.OnWallJump, _ => OnWallJump());
-        EventManager.Unsubscribe(GameEvent.OnAttack, _ => OnAttack());
-        EventManager.Unsubscribe(GameEvent.OnLockTarget, _ => OnLockTarget());
-        EventManager.Unsubscribe(GameEvent.OnHealthRecovery, _ => OnHealthRecovery());
-        EventManager.Unsubscribe(GameEvent.OnSkill_1, _ => OnSkill_1());
-    }
-
-
-
     protected virtual void Start()
     {
         stateController = new StateController();
@@ -161,7 +155,12 @@ public abstract class CharacterBase : LoadComponents
 
     protected virtual void Update()
     {
-        stateController?.currentState?.Update();
+        if (!CheckAnyStateTransition())
+            stateController?.currentState?.Update();
+
+        characterMovement.SetMoveDirection(characterInput.moveInput);
+        if (characterInput.LockTarget)
+            OnLockTarget();
     }
 
     protected virtual void FixedUpdate()
@@ -169,82 +168,32 @@ public abstract class CharacterBase : LoadComponents
         stateController?.currentState?.FixedUpdate();
     }
 
-    protected virtual void OnMovement(object obj)
+    protected virtual bool CheckAnyStateTransition()
     {
-        if (obj is not Vector2 direction) return;
+        //Chuyển về FallState nếu đang ở trên không và bắt đầu rơi
+        if (!CharacterMovement.IsGrounded && CharacterMovement.CC.velocity.y < CharacterMovement.FallThreshold)
+        {
+            StateController.ChangeState(new FallState(this));
+            return true;
+        }
 
-        JoystickInput = direction;
-        characterMovement.SetMoveDirection(direction);
+
+        return false;
     }
-
-    protected virtual void OnDodge()
+    public virtual void Dodge()
     {
-        if (dodgeCooldown.IsOnCooldown ||
-             !characterMovement.IsGrounded ||
-             characterMovement.IsDodging ||
-             characterMovement.JumpLanding ||
-            characterCombat.IsAttacking ||
-            IsHealthRecovering ||
-            characterMovement.IsLunging
-            )
+        if (dodgeCooldown.IsOnCooldown)
             return;
 
         dodgeCooldown.StartCooldown(characterMovement.DodgeCooldown);
 
-        if (!characterMovement.IsDodging)
-            stateController.ChangeState(new DodgeState(this));
+        stateController.ChangeState(new DodgeState(this));
     }
 
-    protected virtual void OnJump()
-    {
-        if (!characterMovement.IsGrounded ||
-             characterMovement.IsDodging ||
-             characterMovement.JumpLanding ||
-             characterCombat.IsAttacking ||
-             IsHealthRecovering)
-            return;
-
-        stateController.ChangeState(new JumpState(this));
-    }
-
-    private void OnWallJump()
-    {
-        if (!characterMovement.WallEdge ||
-             characterMovement.IsDodging ||
-             characterMovement.JumpLanding ||
-             characterCombat.IsAttacking ||
-             !characterMovement.CanWallJump ||
-             IsHealthRecovering)
-            return;
-
-        stateController.ChangeState(new WallJumpState(this));
-    }
-
-    private void OnHealthRecovery()
-    {
-        if (IsHealthRecovering ||
-             characterMovement.IsDodging ||
-             characterMovement.JumpLanding ||
-             characterCombat.IsAttacking ||
-             !characterMovement.IsGrounded)
-            return;
-
-        stateController.ChangeState(new HealthRecoveryState(this));
-    }
     #region Attack 
-    protected virtual void OnAttack()
+    public virtual void Attack()
     {
         characterCombat?.TryAttack();
-    }
-
-    public virtual bool CheckConditionAttack()
-    {
-        if (characterMovement.IsDodging ||
-             characterMovement.JumpLanding ||
-             characterMovement.CC.velocity.y < characterMovement.FallThreshold ||
-             IsHealthRecovering)
-            return false;
-        return true;
     }
 
     /// <summary>
@@ -255,10 +204,15 @@ public abstract class CharacterBase : LoadComponents
     {
         return null;
     }
+
+    // Dùng để set punch combo khác cho nhân vật cụ thể
+    protected virtual IAttackStep[] InitPunchCombos()
+    {
+        return null;
+    }
     #endregion
 
     #region Skill
-
     protected virtual void InitSkills()
     {
         characterSkill?.Init(this, GetSkill_1(), GetSkill_2());
@@ -274,9 +228,14 @@ public abstract class CharacterBase : LoadComponents
         return null;
     }
 
-    protected virtual void OnSkill_1()
+    public virtual void Skill_1()
     {
         characterSkill?.UseSkill1();
+    }
+
+    public virtual void Skill_2()
+    {
+        characterSkill?.UseSkill2();
     }
 
     #endregion
@@ -287,6 +246,7 @@ public abstract class CharacterBase : LoadComponents
         CharacterLockTarget.ToggleLockTarget();
     }
 
+    //Nhìn về phía mục tiêu khi đang khóa mục tiêu
     public virtual void LookAtTarget()
     {
         if (!characterLockTarget.IsLockingTarget)
@@ -294,10 +254,29 @@ public abstract class CharacterBase : LoadComponents
         characterRotate.LookAt(characterLockTarget.Target.position);
     }
 
-
-    #region AddAnimationEvents
-    protected virtual void AddAnimationEvents()
+    [Button("Take Damage (Test)")]
+    public void TakeDamage(DamageInfo damageInfo)
     {
+        float finalDamage = damageInfo.damageAmount - characterData.stats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
+        finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
+        characterHealth.SubtractHealth(finalDamage);
+
+        if (!damageInfo.isFromSafeZoneEffect)
+        {
+            characterMovement.KnockBack(damageInfo.attacker);
+            stateController.ChangeState(new HitState(this));
+        }
+
+        Debug.Log($"{gameObject.name} took {finalDamage} damage. Remaining health: {characterHealth.CurrentHealth}");
+
+        if (characterHealth.CurrentHealth <= 0)
+        {
+            Die();
+        }
     }
-    #endregion
+
+    private void Die()
+    {
+        stateController.ChangeState(new DeathState(this));
+    }
 }

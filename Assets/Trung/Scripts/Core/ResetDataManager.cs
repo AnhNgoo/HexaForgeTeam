@@ -3,18 +3,25 @@ using UnityEngine;
 public class ResetDataManager : MonoBehaviour
 {
     public void ResetAllData()
+{
+    if (CharacterManager.Instance != null)
     {
-        if (SaveLoadManager.Instance != null)
-        {
-            SaveLoadManager.Instance
-                .DeleteSave();
-        }
+        CharacterManager.Instance
+            .ResetCharacterData();
+    }
 
-        Debug.Log("All Data Reset");
+    if (SaveLoadManager.Instance != null)
+    {
+        SaveLoadManager.Instance
+            .DeleteSave();
+    }
+
+    Debug.Log(
+        "All Data Reset");
 
 #if UNITY_EDITOR
-        UnityEditor.EditorApplication.isPlaying =
-            false;
+    UnityEditor.EditorApplication.isPlaying =
+        false;
 #endif
-    }
+}
 }

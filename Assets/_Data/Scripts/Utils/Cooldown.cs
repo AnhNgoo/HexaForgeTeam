@@ -23,6 +23,10 @@ public class Cooldown
         CooldownTimer();
     }
 
+    public float GetRemainingCooldown()
+    {
+        return timer;
+    }
     /// <summary>
     /// Hàm này sẽ giảm timer theo thời gian thực. Khi timer giảm về 0, cooldown kết thúc và IsOnCooldown sẽ trả về false. Hàm này sử dụng UniTask để chạy song song với các tác
     /// </summary>

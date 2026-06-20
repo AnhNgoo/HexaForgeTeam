@@ -19,10 +19,6 @@ public abstract class CharacterSkillBase : ICharacterSkill
     {
         if (cooldown.IsOnCooldown)
             return false;
-
-        if (!character.CheckConditionAttack())
-            return false;
-
         return true;
     }
 

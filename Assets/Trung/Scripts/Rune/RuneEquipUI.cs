@@ -45,6 +45,8 @@ public class RuneEquipUI : MonoBehaviour
     [SerializeField] private Sprite blueEpicSprite;
 
     [SerializeField] private Sprite blueLegendarySprite;
+    [Header("Origin Rune")]
+[SerializeField] private Sprite originRuneSprite;
 
     private void Update()
     {
@@ -82,11 +84,22 @@ public class RuneEquipUI : MonoBehaviour
             }
 
             targetSlot.sprite =
-                GetRuneSprite(
-                    rune);
+    GetRuneSprite(
+        rune);
 
-            targetSlot.color =
-                Color.white;
+if (IsUltimateRune(rune))
+{
+    targetSlot.color =
+        new Color(
+            1f,
+            0.9f,
+            0.5f);
+}
+else
+{
+    targetSlot.color =
+        Color.white;
+}
         }
 
         RefreshTotalStatText();
@@ -116,6 +129,17 @@ public class RuneEquipUI : MonoBehaviour
 
         foreach (var stat in totalStats)
 {
+    if (stat.Key ==
+    RuneStatType.AllStats)
+{
+    builder.AppendLine(
+        "<color=#FFD700>" +
+        "✦ ORIGIN POWER ✦\n" +
+        $"All Stats +{stat.Value:F0}" +
+        "</color>");
+
+    continue;
+}
     bool isPercent =
         IsPercentStat(stat.Key);
 
@@ -262,6 +286,10 @@ public class RuneEquipUI : MonoBehaviour
     private Sprite GetRuneSprite(
         RuneData rune)
     {
+        if (IsUltimateRune(rune))
+{
+    return originRuneSprite;
+}
         switch (rune.runeColor)
         {
             case RuneColor.Red:
@@ -433,11 +461,34 @@ public class RuneEquipUI : MonoBehaviour
 
             case RuneStatType.StaminaRegen:
                 return "Stamina Regen";
+            case RuneStatType.AllStats:
+    return "All Stats";
         }
 
         return "Unknown";
     }
 
     #endregion
+    private bool IsUltimateRune(
+    RuneData rune)
+{
+    if (rune == null)
+    {
+        return false;
+    }
+
+    for (int i = 0;
+        i < rune.affixes.Count;
+        i++)
+    {
+        if (rune.affixes[i].statType ==
+            RuneStatType.AllStats)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 }

@@ -1,7 +1,5 @@
-using System.IO;
-using TMPro;
+
 using UnityEngine;
-using UnityEngine.UI;
 
 public class AccountLevelManager :
     MonoBehaviour
@@ -9,19 +7,10 @@ public class AccountLevelManager :
     public static AccountLevelManager Instance;
 
     [Header("UI")]
-    [SerializeField] private TMP_Text levelText;
-    [SerializeField] private TMP_Text expText;
-    [SerializeField] private Slider expBar;
-
-    [Header("Level Up UI")]
-    [SerializeField] private GameObject levelUpPanel;
-    [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text rewardText;
 
     private AccountLevelData accountData =
         new AccountLevelData();
 
-    private string savePath;
 
     private const int MAX_LEVEL = 30;
 
@@ -38,22 +27,13 @@ public class AccountLevelManager :
             return;
         }
 
-        savePath =
-            Application.persistentDataPath +
-            "/AccountLevel.json";
-
         LoadData();
     }
 
     private void Start()
-    {
-        UpdateUI();
-
-        if (levelUpPanel != null)
-        {
-            levelUpPanel.SetActive(false);
-        }
-    }
+{
+    UpdateUI();
+}
 
     public void AddExp(
         int amount)
@@ -140,30 +120,19 @@ if (accountData.level == 25)
     }
 
     private void UpdateUI()
+{
+    if (AccountLevelUI.Instance == null)
     {
-        if (levelText != null)
-        {
-            levelText.text =
-                accountData.level.ToString();
-        }
-
-        int requiredExp =
-            GetRequiredExp(
-                accountData.level);
-
-        if (expText != null)
-        {
-            expText.text =
-                $"{accountData.currentExp}/{requiredExp}";
-        }
-
-        if (expBar != null)
-        {
-            expBar.value =
-                (float)accountData.currentExp /
-                requiredExp;
-        }
+        return;
     }
+
+    AccountLevelUI.Instance
+        .Refresh(
+            accountData.level,
+            accountData.currentExp,
+            GetRequiredExp(
+                accountData.level));
+}
 
     private void ShowLevelUpPopup(
     int oldLevel,
@@ -171,41 +140,24 @@ if (accountData.level == 25)
     int gemReward,
     string unlockText)
 {
-    if (levelUpPanel == null)
+    if (LevelUpPopupUI.Instance == null)
     {
         return;
     }
 
-    levelUpPanel.SetActive(true);
+    string reward =
+        $"Lv {oldLevel} → Lv {newLevel}\n" +
+        $"+{gemReward} Gems\n" +
+        $"+10 HP\n" +
+        $"+1 ATK" +
+        unlockText;
 
-    if (titleText != null)
-    {
-        titleText.text =
-            "LEVEL UP";
-    }
-
-    if (rewardText != null)
-    {
-        rewardText.text =
-            $"Lv {oldLevel} → Lv {newLevel}\n" +
-            $"+{gemReward} Gems\n" +
-            $"+10 HP\n" +
-            $"+1 ATK" +
-            unlockText;
-    }
-
-    Invoke(
-        nameof(CloseLevelUpPanel),
-        3f);
+    LevelUpPopupUI.Instance
+        .Show(
+            "LEVEL UP",
+            reward);
 }
 
-    public void CloseLevelUpPanel()
-    {
-        if (levelUpPanel != null)
-        {
-            levelUpPanel.SetActive(false);
-        }
-    }
 
     public int GetLevel()
     {
@@ -246,4 +198,13 @@ accountData.currentExp =
     SaveLoadManager.Instance
     .SaveData.accountExp;
     }
+    public void ResetLevelData()
+{
+    accountData =
+        new AccountLevelData();
+
+    UpdateUI();
+
+    SaveData();
+}
 }

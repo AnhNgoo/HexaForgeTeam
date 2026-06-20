@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 
 public class AchievementManager :
@@ -32,6 +31,13 @@ public class AchievementManager :
     private const string
         Legendary5ID =
         "LEGENDARY_5";
+    private const string
+    MasterAchievementID =
+    "MASTER_ACHIEVEMENT";
+    
+    private const string
+    UltimateRuneName =
+    "Origin of Creation";
 
     private void Awake()
     {
@@ -77,6 +83,13 @@ RefreshUI();
                 "Obtain 5 Legendary Runes",
                 5,
                 1000));
+        achievements.Add(
+    new AchievementData(
+        MasterAchievementID,
+        "Master of Achievements",
+        "Complete all other achievements",
+        1,
+        0));
     }
 
     #endregion
@@ -159,6 +172,7 @@ RefreshUI();
         }
 
         RefreshUI();
+        CheckMasterAchievement();
     }
 
     #endregion
@@ -283,4 +297,130 @@ RefreshUI();
 }
 
     #endregion
+    private bool HasUltimateRune()
+{
+    if (RuneInventoryManager.Instance == null)
+    {
+        return false;
+    }
+
+    for (int i = 0;
+        i <
+        RuneInventoryManager.Instance
+        .runes.Count;
+        i++)
+    {
+        RuneData rune =
+            RuneInventoryManager.Instance
+            .runes[i];
+
+        if (rune.runeName ==
+            UltimateRuneName)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+public void CheckUltimateRuneReward()
+{
+    AchievementData master =
+        GetAchievement(
+            MasterAchievementID);
+
+    if (master == null)
+    {
+        return;
+    }
+
+    if (!master.isClaimed)
+    {
+        return;
+    }
+
+    if (HasUltimateRune())
+    {
+        return;
+    }
+
+    GiveUltimateRune();
+}
+
+private void GiveUltimateRune()
+{
+    RuneData rune =
+        new RuneData(
+            RuneColor.Red,
+            RuneRarity.Legendary);
+
+    rune.ignoreHardCap = true;
+
+    rune.runeName =
+        UltimateRuneName;
+
+    rune.runeLore =
+        "The final proof that nothing remains unconquered.";
+
+    rune.affixes.Add(
+    new RuneAffixData(
+        RuneStatType.AllStats,
+        99999));
+
+    RuneInventoryManager.Instance
+        .AddRune(rune);
+
+    Debug.Log(
+        "ULTIMATE RUNE UNLOCKED");
+}
+private void CheckMasterAchievement()
+{
+    AchievementData master =
+        GetAchievement(
+            MasterAchievementID);
+
+    if (master == null)
+    {
+        return;
+    }
+
+    if (master.isCompleted)
+    {
+        return;
+    }
+
+    for (int i = 0;
+         i < achievements.Count;
+         i++)
+    {
+        AchievementData achievement =
+            achievements[i];
+
+        if (achievement.achievementID ==
+            MasterAchievementID)
+        {
+            continue;
+        }
+
+        if (!achievement.isCompleted)
+        {
+            return;
+        }
+    }
+
+    master.currentProgress = 1;
+    master.isCompleted = true;
+
+    SaveAchievement();
+
+    RefreshUI();
+
+    if (toastUI != null)
+    {
+        toastUI.ShowToast(
+            "Achievement Unlocked",
+            master.title);
+    }
+}
 }

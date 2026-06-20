@@ -16,7 +16,6 @@ public class JumpState : ICharacterState
     {
         character.CharacterAnimation.CrossFade("Jump", 0.1f);
         character.CharacterMovement.Jump();
-        character.CharacterMovement.CanWallJump = true; //Cho phép wall jump sau khi nhảy
         CheckJumped();
     }
 
@@ -38,6 +37,11 @@ public class JumpState : ICharacterState
             return;
         }
 
+        if (character.CharacterInput.WallJump && character.CharacterMovement.WallEdge) //Chuyển về WallJumpState nếu nhấn wall jump và đang ở gần tường
+        {
+            character.StateController.ChangeState(new WallJumpState(character));
+            return;
+        }
         if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.CC.velocity.y < character.CharacterMovement.FallThreshold) //Chuyển về FallState khi đang ở trên không và bắt đầu rơi
         {
             character.StateController.ChangeState(new FallState(character));
@@ -50,13 +54,13 @@ public class JumpState : ICharacterState
                                                 0f,
                                                 character.CharacterMovement.MoveDirection.y);
 
-        if (character.CharacterMovement.MoveDirection != Vector2.zero && !character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.moveInput != Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.MoveAir(character.CharacterMovement.MoveDirection, speed);
             character.CharacterRotate.Rotate(rotationDirection);
             return;
         }
-        if (character.CharacterMovement.MoveDirection == Vector2.zero && !character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.moveInput == Vector2.zero && !character.CharacterMovement.IsGrounded)
         {
             character.CharacterMovement.Stop();
             return;

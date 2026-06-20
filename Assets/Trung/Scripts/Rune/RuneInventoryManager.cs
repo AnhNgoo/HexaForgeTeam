@@ -199,7 +199,11 @@ public Dictionary<RuneStatType, float>
     GetStats()
 {
     Dictionary<RuneStatType, float>
-        totalStats =
+        normalStats =
+        new Dictionary<RuneStatType, float>();
+
+    Dictionary<RuneStatType, float>
+        bypassStats =
         new Dictionary<RuneStatType, float>();
 
     for (int i = 0;
@@ -214,6 +218,12 @@ public Dictionary<RuneStatType, float>
             continue;
         }
 
+        Dictionary<RuneStatType, float>
+            targetDict =
+            rune.ignoreHardCap
+            ? bypassStats
+            : normalStats;
+
         for (int j = 0;
             j < rune.affixes.Count;
             j++)
@@ -221,22 +231,38 @@ public Dictionary<RuneStatType, float>
             RuneAffixData affix =
                 rune.affixes[j];
 
-            if (!totalStats.ContainsKey(
+            if (!targetDict.ContainsKey(
                 affix.statType))
             {
-                totalStats.Add(
+                targetDict.Add(
                     affix.statType,
                     0f);
             }
 
-            totalStats[affix.statType] +=
+            targetDict[
+                affix.statType] +=
                 affix.value;
         }
     }
-    ApplyRuneHardCaps(
-    totalStats);
 
-    return totalStats;
+    ApplyRuneHardCaps(
+        normalStats);
+
+    foreach (var stat in bypassStats)
+    {
+        if (!normalStats.ContainsKey(
+            stat.Key))
+        {
+            normalStats.Add(
+                stat.Key,
+                0f);
+        }
+
+        normalStats[stat.Key] +=
+            stat.Value;
+    }
+
+    return normalStats;
 }
 [ContextMenu("Debug Total Stats")]
 private void DebugTotalStats()

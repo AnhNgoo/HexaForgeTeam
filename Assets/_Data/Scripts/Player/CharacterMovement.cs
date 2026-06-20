@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 [RequireComponent(typeof(CharacterController))]
 public class CharacterMovement : LoadComponents
@@ -43,6 +44,10 @@ public class CharacterMovement : LoadComponents
     public float FallThreshold => fallThreshold;
     public bool JumpLanding { get; set; } = false;
 
+    [Header("KnockBack Settings")]
+    [SerializeField] private float knockBackForce = 10f;
+    [SerializeField] private float knockBackDuration = 0.05f;
+
     [Header("Wall Edge Settings")]
     [SerializeField] private LayerMask wallEdgeLayer;
     [SerializeField] private float radiusCheck = 0.5f;
@@ -56,7 +61,7 @@ public class CharacterMovement : LoadComponents
     public bool IsGrounded { get; set; } = false;
     public bool CanMoveAttack { get; set; } = false;
     public Vector2 MoveDirection { get; private set; }
-    private Vector3 CurrentMove;
+    private Vector3 CurrentMove; // Hướng di chuyển cuối cùng sau khi áp dụng tất cả các hiệu ứng (dodge, lunge, jump, v.v.)
 
     private float verticalVelocity;
 
@@ -78,6 +83,7 @@ public class CharacterMovement : LoadComponents
         CheckWallEdge();
     }
 
+    // Thiết lập hướng di chuyển dựa trên input và hướng camera
     public void SetMoveDirection(Vector2 direction)
     {
         Vector3 forward = Camera.main.transform.forward;
@@ -175,6 +181,28 @@ public class CharacterMovement : LoadComponents
         verticalVelocity = jumpForce;
     }
 
+    public void KnockBack(GameObject attacker)
+    {
+        if (attacker == null)
+        {
+            Debug.LogWarning("Attacker is null. Cannot apply knockback.");
+            return;
+        }
+        Vector3 knockBackDirection = (transform.position - attacker.transform.position).normalized;
+        StartKnockBack(knockBackDirection);
+    }
+
+    public async void StartKnockBack(Vector3 knockBackDirection)
+    {
+        float timer = 0f;
+        while (timer < knockBackDuration)
+        {
+            Vector3 knockBackMove = knockBackDirection * knockBackForce;
+            cc.Move(knockBackMove * Time.deltaTime);
+            timer += Time.deltaTime;
+            await UniTask.Yield();
+        }
+    }
     public void MoveAir(Vector2 direction, float moveSpeed)
     {
         Movement(direction, moveSpeed, airSpeedMultiplier);

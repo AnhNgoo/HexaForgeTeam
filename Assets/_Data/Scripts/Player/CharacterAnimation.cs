@@ -10,6 +10,22 @@ public class CharacterAnimation : MonoBehaviour
     [SerializeField] private AnimatorRootMotion animatorRootMotion;
     [SerializeField] protected AnimationEvents animationEvents;
     private string currentState;
+    // Cache runtime events so they can be re-registered after swapping visuals.
+    private readonly List<CachedAnimationEvent> cachedEvents = new();
+
+    private readonly struct CachedAnimationEvent
+    {
+        public CachedAnimationEvent(string clipName, float eventTime, UnityAction action)
+        {
+            ClipName = clipName;
+            EventTime = eventTime;
+            Action = action;
+        }
+
+        public string ClipName { get; }
+        public float EventTime { get; }
+        public UnityAction Action { get; }
+    }
 
     public void Init(GameObject visual)
     {
@@ -41,6 +57,22 @@ public class CharacterAnimation : MonoBehaviour
     private void SetAnimationEvents(AnimationEvents animationEvents)
     {
         this.animationEvents = animationEvents;
+        RebindCachedEvents();
+    }
+
+    private void RebindCachedEvents()
+    {
+        if (animationEvents == null)
+            return;
+
+        animationEvents.ResetRuntimeEvents();
+        if (cachedEvents.Count == 0)
+            return;
+
+        foreach (var cachedEvent in cachedEvents)
+        {
+            animationEvents.AddEvent(cachedEvent.ClipName, cachedEvent.EventTime, cachedEvent.Action);
+        }
     }
 
     public void EnableRootMotion()
@@ -56,14 +88,14 @@ public class CharacterAnimation : MonoBehaviour
     /// </summary>
     /// <param name="stateName"></param>
     /// <param name="transitionDuration"></param>
-    public void CrossFade(string stateName, float transitionDuration = 0.1f, int layer = 0)
+    public void CrossFade(string stateName, float transitionDuration = 0.1f, int layer = 0, float normalizedTimeOffset = 0f)
     {
         if (animator == null)
         {
             Debug.LogWarning("Animator chưa được gán cho CharacterAnimation!");
             return;
         }
-        animator.CrossFade(stateName, transitionDuration, layer);
+        animator.CrossFade(stateName, transitionDuration, layer, normalizedTimeOffset);
     }
 
     /// <summary>
@@ -71,12 +103,18 @@ public class CharacterAnimation : MonoBehaviour
     /// </summary>
     /// <param name="stateName"></param>
     /// <param name="transitionDuration"></param>
-    public void CrossFadeOneshot(string stateName, float transitionDuration = 0.1f, int layer = 0)
+    public void CrossFadeOneshot(string stateName, float transitionDuration = 0.1f, int layer = 0, float normalizedTimeOffset = 0f)
     {
+        if (animator == null)
+        {
+            Debug.LogWarning("Animator chÆ°a Ä‘Æ°á»£c gÃ¡n cho CharacterAnimation!");
+            return;
+        }
+
         if (currentState == stateName)
             return;
 
-        animator.CrossFade(stateName, transitionDuration, layer);
+        animator.CrossFade(stateName, transitionDuration, layer, normalizedTimeOffset);
         currentState = stateName;
     }
 
@@ -97,6 +135,9 @@ public class CharacterAnimation : MonoBehaviour
 
     public float GetAnimationTime(string stateName, int layer = 0)
     {
+        if (animator == null || !animator.isActiveAndEnabled || animator.runtimeAnimatorController == null)
+            return 0f;
+
         AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(layer);
         if (stateInfo.IsName(stateName))
         {
@@ -107,6 +148,9 @@ public class CharacterAnimation : MonoBehaviour
 
     public void SetAnimationLayerWeight(string layerName, float weight)
     {
+        if (animator == null)
+            return;
+
         int layerIndex = animator.GetLayerIndex(layerName);
         if (layerIndex != -1)
         {
@@ -120,6 +164,9 @@ public class CharacterAnimation : MonoBehaviour
 
     public int GetAnimationLayerWeight(string layerName)
     {
+        if (animator == null)
+            return 0;
+
         int layerIndex = animator.GetLayerIndex(layerName);
         if (layerIndex != -1)
         {
@@ -134,6 +181,10 @@ public class CharacterAnimation : MonoBehaviour
 
     public void AddEvent(string animationClipName, float eventTime, UnityAction function)
     {
+        if (function == null)
+            return;
+
+        cachedEvents.Add(new CachedAnimationEvent(animationClipName, eventTime, function));
         if (animationEvents == null)
         {
             Debug.LogWarning("AnimationEvents chưa được gán cho CharacterAnimation!");
@@ -144,6 +195,9 @@ public class CharacterAnimation : MonoBehaviour
     }
     public void SetAnimationSpeed(string stateName, float speed)
     {
+        if (animator == null)
+            return;
+
         animator.SetFloat(stateName, speed);
     }
 }

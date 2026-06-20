@@ -66,13 +66,16 @@ public class SaveLoadManager : MonoBehaviour
                 new GameSaveData();
         }
     }
-    public void DeleteSave()
+   public void DeleteSave()
 {
     if (File.Exists(savePath))
     {
         File.Delete(savePath);
     }
 
-    SaveData = new GameSaveData();
+    SaveData =
+        new GameSaveData();
+
+    SaveGame();
 }
 }

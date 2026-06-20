@@ -13,6 +13,7 @@ public class EnemyStateMachine : MonoBehaviour
     private EnemyState_Dead deadState;
     private EnemyState_Patrol patrolState;
     private EnemyState_Suspicion suspicionState;
+    private EnemyState_Return returnState;
     #region Getters
     public EnemyState CurrentState => currentState;
     public EnemyState_Idle EnemyIdleState => idleState;
@@ -22,8 +23,10 @@ public class EnemyStateMachine : MonoBehaviour
     public EnemyState_Dead EnemyDeadState => deadState;
     public EnemyState_Patrol EnemyPatrolState => patrolState;
     public EnemyState_Suspicion EnemySuspicionState => suspicionState;
+    public EnemyState_Return EnemyReturnState => returnState;
     #endregion
 
+    private bool _isSubscribed;
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
@@ -35,11 +38,18 @@ public class EnemyStateMachine : MonoBehaviour
         deadState = new EnemyState_Dead(_enemyBase);
         patrolState = new EnemyState_Patrol(_enemyBase);
         suspicionState = new EnemyState_Suspicion(_enemyBase);
-        ResetToDefaultState(); // Đặt trạng thái mặc định khi khởi tạo, có thể là Idle hoặc Patrol tùy thuộc vào thiết kế của Enemy
+        returnState = new EnemyState_Return(_enemyBase);
+        currentState = null;
+
         Subcribe(); // Đăng ký sự kiện khi khởi tạo để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra
     }
 
-    public void OnDisable()
+    private void OnEnable()
+    {
+        Subcribe(); // Đăng ký sự kiện khi đối tượng được kích hoạt để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra, cần kiểm tra nếu đã đăng ký để tránh đăng ký lại nhiều lần
+    }
+
+    private void OnDisable()
     {
         Unsubscribe(); // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
     }
@@ -55,14 +65,19 @@ public class EnemyStateMachine : MonoBehaviour
     #region Event Handlers
     private void Subcribe()
     {
+        if (_isSubscribed || _enemyBase == null || _enemyBase.EventManager == null) return; // Kiểm tra nếu đã đăng ký hoặc _enemyBase hoặc EventManager chưa được gán để tránh lỗi
         _enemyBase.EventManager.OnStagger += ActivateStunState; // Đăng ký sự kiện vỡ trạng thái để kích hoạt trạng thái Stagger
         _enemyBase.EventManager.OnDead += ActivateDeadState; // Đăng ký sự kiện chết để kích hoạt trạng thái Dead, có thể dùng lambda để tránh lỗi khi truyền trực tiếp hàm nếu hàm đó có tham số
+        _isSubscribed = true; // Đánh dấu đã đăng ký để tránh đăng ký lại nhiều lần
     }
 
     private void Unsubscribe()
     {
+        //Kiểm tra xem _enemyBase và EventManager đã được gán hay chưa
+        if (!_isSubscribed || _enemyBase == null || _enemyBase.EventManager == null) return;
         _enemyBase.EventManager.OnStagger -= ActivateStunState; // Hủy đăng ký sự kiện khi đối tượng bị hủy để tránh lỗi
-        _enemyBase.EventManager.OnDead -= ActivateDeadState; // Hủy đăng ký sự kiện chết để tránh lỗi, cần đảm bảo rằng lambda được hủy đúng cách nếu dùng lambda để đăng ký
+        _enemyBase.EventManager.OnDead -= ActivateDeadState; // Hủy đăng ký sự kiện chết để tránh lỗi, cần đảm bảo rằng lambda được hủy đúng cách nếu dùng lambda để đăng ký   
+        _isSubscribed = false; // Đánh dấu đã hủy đăng ký
     }
     #endregion
 
@@ -70,6 +85,8 @@ public class EnemyStateMachine : MonoBehaviour
     //Hàm chuyển đổi trạng thái
     public void ChangeState(EnemyState newState)
     {
+        if (currentState == newState) return; //Nếu đang ở trạng thái muốn chuyển đến thì không làm gì để tránh lỗi chuyển trạng thái liên tục khi đã ở trong trạng thái đó
+
         if (currentState != null)
         {
             currentState.Exit();
@@ -95,7 +112,7 @@ public class EnemyStateMachine : MonoBehaviour
     //Hàm Reset trạng thái về Idle (có thể gọi sau khi kết thúc trạng thái Stagger)
     public void ResetToDefaultState()
     {
-        if (_enemyBase.Locomotion.isPatroller && _enemyBase.Locomotion.wayPoints.Length > 0)
+        if (_enemyBase.Locomotion.isPatroller)
         {
             ChangeState(patrolState);
         }

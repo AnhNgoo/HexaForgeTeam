@@ -10,7 +10,18 @@ using System.Linq;
 public enum MenuType
 {
     None = 0,
-    HUDMenuTest = 1,
+    
+    TitleMenu = 1,
+    LoadingMenu = 2,
+    GameplayMenu = 3,
+    InventoryMenu = 4,
+    SettingMenu = 5,
+    PauseMenu = 6,
+    LevelUpMenu = 7,
+    GachaMenu = 8,
+    StoreMenu = 9,
+    InventoryGemMenu = 10,
+    HUDMenuTest = 11,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -29,6 +40,7 @@ public class UIManager : Singleton<UIManager>
         public MenuType menuType;
         public MenuBase menuBase;
     }
+
 
 
     protected override void LoadComponent()
@@ -93,4 +105,19 @@ public class UIManager : Singleton<UIManager>
                 menu.menuBase.Close();
         }
     }
+
+    public void InitUI()
+    {
+        menus.RemoveAll(m => m == null || m.menuBase == null);
+
+        foreach (var menu in menus)
+        {
+            if (menu?.menuBase != null)
+            {
+                menu.menuBase.Open();
+                menu.menuBase.Close();
+            }
+        }
+    }
+
 }

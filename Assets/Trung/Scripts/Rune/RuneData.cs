@@ -39,6 +39,7 @@ public enum RuneStatType
     CritDamage,
     ArmorPenetration,
     StaminaRegen,
+    AllStats
 
 }
 
@@ -79,6 +80,7 @@ public string runeLore;
     public bool isEquipped;
 
     public int equippedSlotIndex = -1;
+    public bool ignoreHardCap = false;
 
     public List<RuneAffixData> affixes =
         new List<RuneAffixData>();

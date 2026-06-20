@@ -156,6 +156,30 @@ public class LobbyStatManager : MonoBehaviour
                 case RuneStatType.StaminaRegen:
                     BonusStats.StaminaRegen += stat.Value;
                     break;
+                case RuneStatType.AllStats:
+
+    BonusStats.HP += stat.Value;
+    BonusStats.HPPercent += stat.Value;
+
+    BonusStats.MP += stat.Value;
+    BonusStats.MPPercent += stat.Value;
+
+    BonusStats.Stamina += stat.Value;
+    BonusStats.StaminaPercent += stat.Value;
+
+    BonusStats.ATK += stat.Value;
+    BonusStats.ATKPercent += stat.Value;
+
+    BonusStats.DEF += stat.Value;
+    BonusStats.DEFPercent += stat.Value;
+
+    BonusStats.CritChance += stat.Value;
+    BonusStats.CritDamage += stat.Value;
+
+    BonusStats.ArmorPenetration += stat.Value;
+    BonusStats.StaminaRegen += stat.Value;
+
+    break;
             }
         }
     }

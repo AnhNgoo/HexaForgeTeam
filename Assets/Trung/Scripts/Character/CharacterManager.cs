@@ -25,7 +25,9 @@ public class CharacterManager : MonoBehaviour
 
         LoadData();
 
-        CheckUnlockCharacter();
+        Invoke(
+        nameof(CheckUnlockCharacter),
+        0.1f);
     }
 
     public CharacterType GetSelectedCharacter()
@@ -89,6 +91,13 @@ public class CharacterManager : MonoBehaviour
         }
 
         SaveData();
+        CharacterSelectUI ui =
+    FindFirstObjectByType<CharacterSelectUI>();
+
+if (ui != null)
+{
+    ui.RefreshUI();
+}
     }
 
     private void SaveData()
@@ -112,5 +121,17 @@ public class CharacterManager : MonoBehaviour
         data =
             new CharacterUnlockData();
     }
+    if (!IsUnlocked(
+    data.selectedCharacter))
+{
+    data.selectedCharacter =
+        CharacterType.Kael;
+}
+}
+public void ResetCharacterData()
+{
+    data =
+        new CharacterUnlockData();
+
 }
 }

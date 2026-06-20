@@ -40,6 +40,8 @@ public class RuneCardUI :
 
     [SerializeField] private Button deleteButton;
 [SerializeField] private GameObject backUI;
+[SerializeField]
+private Sprite originRuneSprite;
 
 private bool isRevealed;
 private bool isAnimating;
@@ -458,6 +460,13 @@ if (canRevealAnimation &&
         RuneColor runeColor,
         RuneRarity runeRarity)
     {
+        if (IsUltimateRune())
+{
+    runeShapeImage.sprite =
+        originRuneSprite;
+
+    return;
+}
         switch (runeColor)
         {
             case RuneColor.Red:
@@ -643,6 +652,19 @@ if (canRevealAnimation &&
     private void SetupColorText(
         RuneColor runeColor)
     {
+        if (IsUltimateRune())
+{
+    colorText.text =
+        "Origin";
+
+    colorText.color =
+        new Color(
+            1f,
+            0.84f,
+            0f);
+
+    return;
+}
         switch (runeColor)
         {
             case RuneColor.Red:
@@ -750,6 +772,8 @@ if (canRevealAnimation &&
 
         case RuneStatType.StaminaRegen:
             return "STA REG";
+        case RuneStatType.AllStats:
+    return "ALL STAT";
 
     }
 
@@ -804,6 +828,8 @@ if (canRevealAnimation &&
 
         case RuneStatType.StaminaRegen:
             return "Stamina Regeneration";
+        case RuneStatType.AllStats:
+    return "All Stats";
 
     }
 
@@ -923,6 +949,14 @@ private void SetupRuneName(
 
     runeNameText.text =
         runeData.runeName;
+    if (IsUltimateRune())
+{
+    runeNameText.color =
+        new Color(
+            1f,
+            0.84f,
+            0f);
+}
 }
 private void SetupRuneLore(
     RuneData runeData)
@@ -1147,5 +1181,26 @@ private IEnumerator RevealAnimation()
 }
 
     isAnimating = false;
+}
+private bool IsUltimateRune()
+{
+    if (currentRuneData == null)
+    {
+        return false;
+    }
+
+    for (int i = 0;
+        i < currentRuneData.affixes.Count;
+        i++)
+    {
+        if (currentRuneData.affixes[i]
+            .statType ==
+            RuneStatType.AllStats)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 }
