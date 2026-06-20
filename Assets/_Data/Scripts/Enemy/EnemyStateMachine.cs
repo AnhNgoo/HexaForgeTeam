@@ -14,6 +14,7 @@ public class EnemyStateMachine : MonoBehaviour
     private EnemyState_Patrol patrolState;
     private EnemyState_Suspicion suspicionState;
     private EnemyState_Return returnState;
+    private EnemyState_Block blockState;
     #region Getters
     public EnemyState CurrentState => currentState;
     public EnemyState_Idle EnemyIdleState => idleState;
@@ -24,13 +25,13 @@ public class EnemyStateMachine : MonoBehaviour
     public EnemyState_Patrol EnemyPatrolState => patrolState;
     public EnemyState_Suspicion EnemySuspicionState => suspicionState;
     public EnemyState_Return EnemyReturnState => returnState;
+    public EnemyState_Block EnemyBlockState => blockState;
     #endregion
 
     private bool _isSubscribed;
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyStateMachine đã được khởi tạo!");
         idleState = new EnemyState_Idle(_enemyBase);
         staggerState = new EnemyState_Stagger(_enemyBase);
         chaseState = new EnemyState_Chase(_enemyBase);
@@ -39,6 +40,7 @@ public class EnemyStateMachine : MonoBehaviour
         patrolState = new EnemyState_Patrol(_enemyBase);
         suspicionState = new EnemyState_Suspicion(_enemyBase);
         returnState = new EnemyState_Return(_enemyBase);
+        blockState = new EnemyState_Block(_enemyBase);
         currentState = null;
 
         Subcribe(); // Đăng ký sự kiện khi khởi tạo để đảm bảo rằng trạng thái sẽ được kích hoạt khi sự kiện vỡ trạng thái xảy ra

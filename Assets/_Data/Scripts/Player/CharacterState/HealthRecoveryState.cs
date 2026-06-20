@@ -34,7 +34,7 @@ public class HealthRecoveryState : ICharacterState
     public void Update()
     {
         //Animation idle khi uống hồi máu
-        if (character.CharacterInput.moveInput == Vector2.zero)
+        if (character.CharacterInput.MoveInput == Vector2.zero)
         {
             character.CharacterAnimation.CrossFadeOneshot("Idle", 0.1f);
             character.CharacterMovement.Stop();
@@ -42,33 +42,27 @@ public class HealthRecoveryState : ICharacterState
         }
 
         //Animation di chuyển khi hồi máu
-        MoveNormal();
+        Move();
     }
 
-    private void MoveNormal()
+    private void Move()
     {
-        float xAbs = Mathf.Abs(character.CharacterInput.moveInput.x);
-        float yAbs = Mathf.Abs(character.CharacterInput.moveInput.y);
-        float inputSpeed = Mathf.Max(xAbs, yAbs);// Giá trị lớn nhất giữa x và y của joystick để xác định tốc độ di chuyển
         float speed = character.CharacterData.stats.speed;
 
         Vector3 rotationDirection = new Vector3(character.CharacterMovement.MoveDirection.x,
                                                 0f,
                                                 character.CharacterMovement.MoveDirection.y);
 
-        if (inputSpeed > 0)
-        {
-            character.CharacterMovement.Walk(character.CharacterMovement.MoveDirection, speed);
-            character.CharacterAnimation.CrossFadeOneshot("Walk", 0.1f);
-            character.CharacterRotate.Rotate(rotationDirection);
-            return;
-        }
+        character.CharacterMovement.Walk(character.CharacterMovement.MoveDirection, speed);
+        character.CharacterAnimation.CrossFadeOneshot("Walk", 0.1f);
+        character.CharacterRotate.Rotate(rotationDirection);
     }
 
     private async void StartHealthRecovery()
     {
         bool isHealthRecovered = false; // Đảm bảo chỉ hồi máu một lần trong quá trình animation
         GameObject recoveryBottle = ObjectPooling.Instance.SpawnFromPool(PoolType.RecoveryBottle, character.HandRight.transform.position, character.HandRight.transform.rotation, character.HandRight.transform);
+        GameObject healingEffect = ObjectPooling.Instance.SpawnFromPool(PoolType.HealingEffect, character.bottomEffectPoint.transform.position, Quaternion.identity, character.bottomEffectPoint.transform);
         character.CharacterWeapon.StoreWeapon();
 
         while (character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) <= healthRecoveryCompleteThreshold)
@@ -82,6 +76,7 @@ public class HealthRecoveryState : ICharacterState
         }
 
         ObjectPooling.Instance.ReturnToPool(PoolType.RecoveryBottle, recoveryBottle);
+        ObjectPooling.Instance.ReturnToPool(PoolType.HealingEffect, healingEffect);
         character.CharacterWeapon.RetrieveWeapon();
         character.StateController.ChangeState(new IdleState(character));
     }

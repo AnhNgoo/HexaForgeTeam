@@ -13,8 +13,6 @@ public class Kael : CharacterMelee
 
     [Header("Effect Points")]
     public GameObject earthBreakerEffectPoint;
-    public GameObject middleEffectPoint;
-    public GameObject bottomEffectPoint;
     public GameObject kaelGiantPunchEffectPoint_1;
     public GameObject kaelGiantPunchEffectPoint_2;
     public GameObject kaelGiantPunchEffectPoint_3;
@@ -109,6 +107,7 @@ public class Kael : CharacterMelee
         characterCombat.ResetCombo(); // Reset combo khi biến hình để tránh lỗi combo giữa 2 hình dạng
         characterCombat.SetHitBox(kaelGiantforwardAttackOffset, kaelGiantYAttackOffset, kaelGiantAttackHitBoxRadius); // Cập nhật hitbox cho hình dạng khổng lồ
         characterWeapon.StoreWeapon(); // Cất vũ khí khi biến hình
+        GetDashShadowEffect(kaelGiantVisual);
         // Chuyển sang hình dạng khổng lồ  
         characterAnimation.Init(kaelGiantVisual);
         kaelGiantVisual.SetActive(true);
@@ -121,6 +120,7 @@ public class Kael : CharacterMelee
         characterCombat.ResetCombo(); // Reset combo khi biến hình để tránh lỗi combo giữa 2 hình dạng
         characterCombat.ResetHitBox(); // Reset hitbox về giá trị mặc định
         characterWeapon.RetrieveWeapon(); // Lấy lại vũ khí khi trở về hình dạng bình thường
+        GetDashShadowEffect(characterVisual);
         // Chuyển về hình dạng bình thường  
         characterAnimation.Init(characterVisual);
         kaelGiantVisual.SetActive(false);

@@ -24,7 +24,6 @@ public class EnemyLocomotion : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyLocomotion đã được khởi tạo!");
         if (isPatroller)
         {
             SetSpeed(_enemyBase.Data.patrolSpeed); //Đặt tốc độ di chuyển khi tuần tra, có thể điều chỉnh trong EnemyData để tạo ra sự đa dạng về hành vi di chuyển của các loại Enemy khác nhau
@@ -41,14 +40,17 @@ public class EnemyLocomotion : MonoBehaviour
     }
 
     //Hàm di chuyển đến vị trí mục tiêu
-    public void MoveToTarget(Vector3 targetPosition)
+    public void MoveToTarget(Vector3 targetPosition, float stoppingDistance = 0f)
     {
-        if (_navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
-        {
-            _navMeshAgent.isStopped = false;
-            _navMeshAgent.updateRotation = true;
-            _navMeshAgent.SetDestination(targetPosition);
-        }
+        if (_navMeshAgent == null ||
+            !_navMeshAgent.enabled ||
+            !_navMeshAgent.isOnNavMesh)
+            return;
+
+        _navMeshAgent.stoppingDistance = Mathf.Max(0f, stoppingDistance);
+        _navMeshAgent.isStopped = false;
+        _navMeshAgent.updateRotation = true;
+        _navMeshAgent.SetDestination(targetPosition);
     }
 
     //Hàm đặt tốc độ xoay mặt tự động của NavMeshAgent    

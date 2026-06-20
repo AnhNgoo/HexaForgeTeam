@@ -28,7 +28,7 @@ public class IdleState : ICharacterState
     public void Update()
     {
         character.LookAtTarget();
-        if (character.CharacterInput.moveInput != Vector2.zero)
+        if (character.CharacterInput.MoveInput != Vector2.zero)
         {
             character.StateController.ChangeState(new MoveState(character));
             return;

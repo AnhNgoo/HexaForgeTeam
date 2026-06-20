@@ -7,7 +7,7 @@ permissions:
   actions: read
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 on:
   push:
@@ -32,12 +32,17 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
         with:
           lfs: true
-
+          
+      - name: Show branch
+        run: |
+          git branch
+          git log -1
+            
       - name: Cache Unity Library
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: Library
           key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
@@ -79,9 +84,11 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: editmode
           artifactsPath: test-results/editmode
+          coverageOptions: ''
 
       - name: Run Unity PlayMode tests
         id: unity-playmode
@@ -93,9 +100,11 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: playmode
           artifactsPath: test-results/playmode
+          coverageOptions: ''
 
       - name: List generated test artifacts
         if: always()
@@ -118,24 +127,17 @@ jobs:
             echo "Download artifacts 'unity-test-results' and 'duskblade-csv-test-reports' to inspect failed tests."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Remove Unity metadata from CSV reports
-        if: always()
-        shell: bash
-        run: |
-          find Assets/CSV -type f -name '*.meta' -delete
-
-      - name: Upload Unity test results
-        uses: actions/upload-artifact@v6
-        if: always()
-        with:
-          name: unity-test-results
-          path: test-results
-          if-no-files-found: warn
-
       - name: Upload CSV test reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: duskblade-csv-test-reports
           path: Assets/CSV/*.csv
           if-no-files-found: ignore
+
+      - name: Upload Unity Test Results Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unity-test-results
+          path: test-results

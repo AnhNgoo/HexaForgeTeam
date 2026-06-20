@@ -1,16 +1,11 @@
-using System.Threading;
 using UnityEngine;
-using Cysharp.Threading.Tasks;
-
 public class EnemyState_Suspicion : EnemyState
 {
-    private CancellationTokenSource _searchCts;
     private float _searchEndTime; //Biến để theo dõi thời gian kết thúc của quá trình nghi ngờ, giúp kiểm soát thời gian mà Enemy sẽ tiếp tục nghi ngờ và tìm kiếm mục tiêu trước khi quay về trạng thái mặc định hoặc trạng thái khác nếu không tìm thấy mục tiêu
     private bool _isWaiting; //Biến để theo dõi xem Enemy có đang trong quá trình chờ đợi ở vị trí cuối cùng biết của mục tiêu hay không, giúp kiểm soát logic di chuyển và tìm kiếm mục tiêu trong trạng thái Suspicion
     private float _waitTimer; //Biến để theo dõi thời gian đã chờ đợi ở vị trí cuối cùng biết của mục tiêu, giúp kiểm soát thời gian mà Enemy sẽ tiếp tục chờ đợi trước khi bắt đầu di chuyển xung quanh khu vực đó để tìm kiếm mục tiêu
     private Vector3 _searchPos; //Biến để lưu trữ vị trí cuối cùng biết của mục tiêu, giúp Enemy có thể di chuyển đến đó và bắt đầu quá trình nghi ngờ và tìm kiếm mục tiêu một cách chính xác hơn thay vì chỉ dựa vào vị trí hiện tại của mục tiêu nếu mục tiêu đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
 
-    private bool _isTurning; //Biến để theo dõi xem Enemy có đang trong quá trình quay để tìm kiếm mục tiêu hay không, giúp kiểm soát logic quay và tìm kiếm mục tiêu trong trạng thái Suspicion
     private bool _isInvestigatingScene; //Biến để theo dõi xem Enemy có đang trong quá trình điều tra hiện trường nghi ngờ hay không, giúp kiểm soát logic di chuyển và tìm kiếm mục tiêu trong trạng thái Suspicion khi đã hết thời gian nghi ngờ và tìm kiếm mục tiêu ban đầu nhưng vẫn chưa tìm thấy mục tiêu và muốn tiếp tục điều tra xung quanh khu vực đó để tìm kiếm mục tiêu
 
     private float _nextStandoffTime; //Biến để theo dõi thời gian tiếp theo mà Enemy có thể thực hiện động tác đối mặt (standoff) với người chơi khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash, giúp tạo sự đa dạng trong cách Enemy phản ứng khi nghi ngờ và tìm kiếm mục tiêu
@@ -22,17 +17,27 @@ public class EnemyState_Suspicion : EnemyState
     public override void Enter()
     {
         base.Enter();
-        Debug.Log($"{_enemyBase.gameObject.name} mất dấu mục tiêu! Vào trạng thái NGHI NGỜ.");
-        Vector3 searchPoint = _enemyBase.Detection.ClampPointToLeash(_enemyBase.Detection.LastKnownTargetPosition); //Tính toán điểm tìm kiếm dựa trên vị trí cuối cùng biết của mục tiêu và khu vực dây xích để đảm bảo rằng Enemy sẽ di chuyển đến một vị trí hợp lý để bắt đầu quá trình nghi ngờ và tìm kiếm mục tiêu thay vì chỉ đứng yên tại chỗ hoặc di chuyển đến một vị trí không liên quan khi đã hết thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
-        _enemyBase.Locomotion.MoveToTarget(searchPoint); // Di chuyển đến vị trí tìm kiếm
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash);
 
-        _isStandoff = false; // Đảm bảo rằng Enemy sẽ không ở trạng thái đối mặt (standoff) khi bắt đầu nghi ngờ và tìm kiếm mục tiêu
+        Debug.Log(
+            $"{_enemyBase.gameObject.name} mất dấu mục tiêu! Vào trạng thái NGHI NGỜ."
+        );
+
+        _isWaiting = false;
+        _isStandoff = false;
+
+        _searchPos = _enemyBase.Detection.ClampPointToLeash(
+            _enemyBase.Detection.LastKnownTargetPosition
+        );
+
+        _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.patrolSpeed);
+        _enemyBase.Locomotion.SetAngularSpeed(120f);
+        _enemyBase.Locomotion.MoveToTarget(_searchPos);
+
+        _enemyBase.AnimatorController.PlayAnimation(
+            _enemyBase.AnimatorController.ChaseHash
+        );
 
         _searchEndTime = Time.time + 15f;
-
-        _searchCts = new CancellationTokenSource();
-        TurnTowardsSuspicious(_searchCts.Token).Forget(); // Bắt đầu quá trình quay để tìm kiếm mục tiêu ngay khi vào trạng thái Suspicion, có thể điều chỉnh lại thời gian bắt đầu quay nếu muốn Enemy chờ đợi một chút trước khi bắt đầu quay để tìm kiếm mục tiêu
     }
 
     public override void UpdateLogic()
@@ -48,20 +53,12 @@ public class EnemyState_Suspicion : EnemyState
         //Thấy người chơi , nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash, nghi ngờ và tìm kiếm
         if (_enemyBase.Detection.Player != null && _enemyBase.Detection.IsTargetVisible(_enemyBase.Detection.Player) && !_enemyBase.Detection.IsPlayerInLeashRange())
         {
-            if (_searchCts != null)  //Hủy quá trình quay để tìm kiếm mục tiêu ban đầu nếu đang chạy để tránh xung đột logic khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash và muốn thực hiện động tác đối mặt (standoff) với người chơi
-            {
-                _searchCts.Cancel();
-                _searchCts.Dispose();
-                _searchCts = null;
-            }
-            _isTurning = false;
 
             //Xoay mặt lườm player 
             Vector3 dirToPlayer = (_enemyBase.Detection.Player.position - _enemyBase.MyTransform.position).normalized;
             dirToPlayer.y = 0; // Giữ nguyên trục Y để tránh nghiêng lên xuống
 
-            _enemyBase.Locomotion.SetAngularSpeed(0); // Tạm thời đặt tốc độ quay về 0 để đảm bảo rằng Enemy sẽ chỉ quay về hướng của người chơi mà không bị ảnh hưởng bởi tốc độ quay mặc định, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể vẫn giữ tốc độ quay mặc định khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash để tạo sự đa dạng trong cách Enemy phản ứng khi nghi ngờ và tìm kiếm mục tiêu)
-            _enemyBase.MyTransform.rotation = Quaternion.Slerp(_enemyBase.MyTransform.rotation, Quaternion.LookRotation(dirToPlayer), Time.deltaTime * 5f); // Quay về hướng của người chơi với tốc độ mượt mà, có thể điều chỉnh tốc độ quay nếu cần thiết để tạo hiệu ứng nghi ngờ và tìm kiếm mục tiêu
+            _enemyBase.Locomotion.SetAngularSpeed(360f);
 
             float distanceToPlayer = Vector3.Distance(_enemyBase.MyTransform.position, _enemyBase.Detection.Player.position);
 
@@ -108,8 +105,6 @@ public class EnemyState_Suspicion : EnemyState
             }
         }
 
-        if (_isTurning) return; // Nếu đang trong quá trình quay để tìm kiếm mục tiêu thì không thực hiện logic di chuyển hoặc tìm kiếm mới để tránh xung đột logic
-
         if (Time.time >= _searchEndTime) // Nếu đã hết thời gian nghi ngờ và tìm kiếm mục tiêu thì quay về trạng thái mặc định hoặc trạng thái khác nếu không tìm thấy mục tiêu
         {
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyReturnState); // Quay về trạng thái mặc định, có thể là Idle hoặc Patrol tùy thiết kế của Enemy
@@ -152,60 +147,6 @@ public class EnemyState_Suspicion : EnemyState
         _nextStandoffTime = Time.time + Random.Range(1.5f, 3f); // Thiết lập thời gian tiếp theo mà Enemy có thể thực hiện động tác đối mặt (standoff) với người chơi là 5 giây, có thể điều chỉnh lại thời gian này nếu muốn Enemy thực hiện động tác đối mặt (standoff) với người chơi thường xuyên hơn hoặc ít hơn khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
     }
 
-    private async UniTaskVoid TurnTowardsSuspicious(CancellationToken token)
-    {
-        if (_enemyBase == null || _enemyBase.MyTransform == null) return; //Kiểm tra nếu Enemy hoặc Transform của Enemy bị hủy hoặc không tồn tại trước khi thực hiện quá trình quay để tìm kiếm mục tiêu để tránh lỗi NullReferenceException
-        Vector3 dirToSound = (_enemyBase.Detection.LastKnownTargetPosition - _enemyBase.MyTransform.position).normalized;
-        dirToSound.y = 0; // Giữ nguyên trục Y để tránh nghiêng lên xuống
-
-        if (dirToSound.sqrMagnitude > 0.01f) // Đảm bảo không bị lỗi toán học khi nghe thấy tiếng ở phía dưới chân
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(dirToSound);
-            float angleToSound = Vector3.SignedAngle(_enemyBase.MyTransform.forward, dirToSound, Vector3.up);
-
-            int turnHash = (angleToSound > 0) ? _enemyBase.AnimatorController.TurnRightHash : _enemyBase.AnimatorController.TurnLeftHash;
-            _enemyBase.AnimatorController.PlayAnimation(turnHash); // Phát animation quay trái hoặc quay
-
-            float time = 0f; // Biến để theo dõi thời gian đã quay, có thể điều chỉnh lại nếu muốn Enemy quay nhanh hơn hoặc chậm hơn để tìm kiếm mục tiêu
-            Quaternion startRot = _enemyBase.MyTransform.rotation;
-
-            while (time < 1f)
-            {
-                time += Time.deltaTime; // Điều chỉnh tốc độ quay nếu cần thiết
-
-                if (_enemyBase == null || _enemyBase.MyTransform == null) return;
-
-                _enemyBase.MyTransform.rotation = Quaternion.Slerp(startRot, targetRotation, time / 0.5f); // Quay mượt mà về hướng của tiếng động để tìm kiếm mục tiêu
-
-                bool isCancelled = await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken: token).SuppressCancellationThrow(); // Cho phép hủy bỏ quá trình quay nếu trạng thái bị thay đổi hoặc Enemy tìm thấy mục tiêu trong khi đang quay để tránh lỗi và xung đột logic
-                if (isCancelled) return; // Nếu quá trình quay bị hủy bỏ thì dừng ngay lập tức để tránh lỗi và xung đột logic
-            }
-            if (_enemyBase == null || _enemyBase.MyTransform == null) return;
-            _enemyBase.MyTransform.rotation = targetRotation; // Đảm bảo rằng Enemy sẽ quay chính xác về hướng của tiếng động để tìm kiếm mục tiêu sau khi quá trình quay kết thúc
-        }
-
-        if (_enemyBase == null || _enemyBase.MyTransform == null) return;
-        //Đứng nhìn chằm chằm 1 giây để đánh giá tình hình sau khi quay về hướng của tiếng động để tìm kiếm mục tiêu, có thể điều chỉnh lại thời gian này nếu muốn Enemy đứng nghi ngờ lâu hơn hoặc ngắn hơn trước khi bắt đầu di chuyển xung quanh khu vực đó để tìm kiếm mục tiêu
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.IdleHash); // Phát animation Idle khi đứng nghi ngờ để tìm kiếm mục tiêu
-        bool waitCancelled = await UniTask.Delay(1000, cancellationToken: token).SuppressCancellationThrow(); // Cho phép hủy bỏ quá trình chờ đợi nếu trạng thái bị thay đổi hoặc Enemy tìm thấy mục tiêu trong khi đang chờ đợi để tránh lỗi và xung đột logic
-        if (waitCancelled) return; // Nếu quá trình chờ đợi bị hủy bỏ thì dừng ngay lập tức để tránh lỗi và xung đột logic
-
-        if (_enemyBase == null || _enemyBase.MyTransform == null) return;
-
-        Debug.Log($"{_enemyBase.gameObject.name} đã hoàn thành quá trình quay nghi ngờ và đánh giá tình hình, bắt đầu di chuyển xung quanh khu vực cuối cùng biết của mục tiêu để tìm kiếm mục tiêu.");
-        _isTurning = false; // Kết thúc quá trình quay để tìm kiếm mục tiêu và bắt đầu di chuyển xung quanh khu vực đó để tìm kiếm mục tiêu
-
-        _searchEndTime = Time.time + 15f; // Thiết lập thời gian kết thúc của quá trình nghi ngờ và tìm kiếm mục tiêu là 15 giây, có thể điều chỉnh lại nếu muốn Enemy tiếp tục nghi ngờ và tìm kiếm mục tiêu lâu hơn hoặc ngắn hơn trước khi quay về trạng thái mặc định hoặc trạng thái khác nếu không tìm thấy mục tiêu
-        _isWaiting = false; // Đảm bảo rằng Enemy sẽ không ở trạng thái chờ đợi khi bắt đầu di chuyển xung quanh khu vực cuối cùng biết của mục tiêu để tìm kiếm mục tiêu
-
-        _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.patrolSpeed); //Đi từ từ để tìm kiếm mục tiêu xung quanh khu vực cuối cùng biết của mục tiêu, có thể điều chỉnh lại tốc độ này nếu muốn Enemy di chuyển nhanh hơn hoặc chậm hơn khi đang nghi ngờ và tìm kiếm mục tiêu
-        _enemyBase.Locomotion.SetAngularSpeed(120f); // Bật tốc độ xoay mặt tự động của NavMesh lên 120 độ/s
-
-        _searchPos = _enemyBase.Detection.LastKnownTargetPosition; // Điểm đến đầu tiên là HIỆN TRƯỜNG MẤT DẤU
-        _enemyBase.Locomotion.MoveToTarget(_searchPos);
-        _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash);
-    }
-
     private void PickNewSearchPoint()
     {
         _searchPos = _enemyBase.Locomotion.GetRandomRoamPosition(_enemyBase.Detection.LastKnownTargetPosition, 5f);
@@ -220,12 +161,5 @@ public class EnemyState_Suspicion : EnemyState
     {
         base.Exit();
         _enemyBase.Locomotion.StopMoving(); // Dừng di chuyển khi rời khỏi trạng thái Suspicion để tránh lỗi di chuyển không mong muốn khi đã chuyển sang trạng thái khác
-
-        if (_searchCts != null && !_searchCts.IsCancellationRequested)
-        {
-            _searchCts.Cancel(); // Hủy bỏ đếm ngược nếu rời khỏi trạng thái này
-            _searchCts.Dispose();
-            _searchCts = null;
-        }
     }
 }

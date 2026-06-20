@@ -20,7 +20,6 @@ public abstract class AttackStepBase : IAttackStep
     /// <param name="character"></param>
     public virtual void Attack(CharacterBase character)
     {
-        character.SetAttackSpeed(character.CharacterData.stats.attackSpeed);
         character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
     }
 }
