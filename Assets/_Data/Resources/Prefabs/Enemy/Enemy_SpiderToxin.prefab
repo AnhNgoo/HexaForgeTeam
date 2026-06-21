@@ -200,7 +200,7 @@ GameObject:
   - component: {fileID: 6050350468672317062}
   - component: {fileID: 6908549951495362231}
   - component: {fileID: 125063788319237821}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: SpiderToxin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2010,7 +2010,7 @@ GameObject:
   - component: {fileID: 6438740335856165678}
   - component: {fileID: 2689309062244647201}
   - component: {fileID: 8290921937638735375}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_SpiderToxin
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2076,6 +2076,7 @@ MonoBehaviour:
   attackArsenal:
   - {fileID: 11400000, guid: 7919b084cd36d224f96a765090bf2e57, type: 2}
   - {fileID: 11400000, guid: c581ff61b1c03af4caca62ea999bb53c, type: 2}
+  selectionMode: 0
 --- !u!114 &2949728392096226988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2199,6 +2200,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &1217683921543289375
 MonoBehaviour:
   m_ObjectHideFlags: 0

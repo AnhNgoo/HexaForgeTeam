@@ -532,7 +532,7 @@ GameObject:
   - component: {fileID: 2728720904280827208}
   - component: {fileID: 8623829424057894093}
   - component: {fileID: 5181562985345211525}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: DogBark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1084,7 +1084,7 @@ GameObject:
   - component: {fileID: 505593675016353114}
   - component: {fileID: 3191197379566513430}
   - component: {fileID: 5714215735868470841}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_DogBark
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1149,6 +1149,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: 7bac8ba4b23809a4e9d39ad9ed050a87, type: 2}
+  selectionMode: 0
 --- !u!114 &7156916164180686859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1272,6 +1273,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &2014308448034278562
 MonoBehaviour:
   m_ObjectHideFlags: 0
