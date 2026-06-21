@@ -3,9 +3,6 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 public class CharacterMelee : CharacterBase
 {
-    [SerializeField] protected Vector2 meleeSnapThreshold = new Vector2(2.5f, 15f); // Tầm áp sát tối thiểu và tối đa để kích hoạt snap
-    [SerializeField] protected float ZoffsetCheckForNearEnemy = 1.5f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
-    [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
     [Header("Melee Attack Effects")]
     public GameObject meleeAttackEffectPoint_1;
     public PoolType hitEffect_2 = PoolType.HitEffect_2;
@@ -63,7 +60,7 @@ public class CharacterMelee : CharacterBase
 
         float distanceToTarget = Vector3.Distance(transform.position, CharacterLockTarget.Target.position);
 
-        while (distanceToTarget > meleeSnapThreshold.x)
+        while (distanceToTarget > meleeSnapThreshold.x && !CheckObstacleInFront())
         {
             Vector3 directionToTarget = (CharacterLockTarget.Target.position - transform.position).normalized;
             Vector2 direction = new Vector2(directionToTarget.x, directionToTarget.z);
@@ -74,25 +71,6 @@ public class CharacterMelee : CharacterBase
         }
         CharacterMovement.Stop();
         CharacterMovement.IsLunging = false;
-    }
-
-    /// <summary>
-    /// Giúp kiểm tra xem trước mặt có kẻ địch nào gần không
-    /// Dùng để tắt root motion khi tấn công nếu có kẻ địch gần, tránh trường hợp nhân vật bị kéo lùi lại quá xa khi tấn công mà không trúng mục tiêu nào
-    /// </summary>
-    /// <returns></returns>
-    public virtual bool CheckForNearEnemy()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position + transform.forward * ZoffsetCheckForNearEnemy, radiusCheckForNearEnemy);
-
-        foreach (Collider hitCollider in hitColliders)
-        {
-            if (hitCollider.CompareTag("Enemy"))
-            {
-                return true; // Có kẻ địch gần trước mặt
-            }
-        }
-        return false;
     }
 
 #if UNITY_EDITOR

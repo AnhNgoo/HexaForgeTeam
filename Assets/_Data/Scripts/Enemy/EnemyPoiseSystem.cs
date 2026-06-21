@@ -8,7 +8,6 @@ public class EnemyPoiseSystem : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyPoiseSystem đã được khởi tạo!");
         currentPoise = 0f; // Khởi tạo poise ban đầu
     }
 

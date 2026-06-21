@@ -18,7 +18,6 @@ public class CharacterStats
     public float defense;
     public float poisonDamage;
     public float stamina;
-    [Range(100f, 150f)] public float attackSpeed;
 }
 
 [System.Serializable]

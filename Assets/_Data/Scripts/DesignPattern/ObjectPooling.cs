@@ -26,6 +26,7 @@ public enum PoolType
     HitEffect_1 = 26,
     HitEffect_2 = 27,
     RecoveryBottle = 28,
+    HealingEffect = 29,
     EnemyBat = 50,
     EnemySkeletonMelee = 51,
     EnemyMushroom = 52,
@@ -37,6 +38,14 @@ public enum PoolType
     EnemyDogBark = 58,
     Projectile_1 = 59,
     Stun_Loop = 60,
+    LightningTelegraph = 61,
+    LightningStrike = 62,
+    Blink = 63,
+    EnemyMinibossWarrior = 65,
+    EnemyMinibossPhantom = 66,
+    EnemyMinibossShade = 67,
+    EnemyMinibossMage = 68,
+    EnemyMinibossBrurrow = 69,
     MissHitEffect_1 = 100,
 }
 

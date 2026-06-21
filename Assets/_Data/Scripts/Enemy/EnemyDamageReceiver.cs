@@ -10,41 +10,64 @@ public class EnemyDamageReceiver : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyDamageReceiver đã được khởi tạo!");
     }
 
     public void TakeHit(float rawDamage, float poiseDamage)
     {
+        TakeHit(rawDamage, poiseDamage, null);
+    }
+
+    public void TakeHit(float rawDamage, float poiseDamage, Transform attacker)
+    {
         if (_enemyBase.Health.CurrentHealth <= 0) return; //Nếu đã chết thì không nhận thêm sát thương
 
         bool isStaggered = _enemyBase.StateMachine.CurrentState == _enemyBase.StateMachine.EnemyStaggerState;
+        bool isSpecialActionLocked = _enemyBase.MinibossBehaviour != null && _enemyBase.MinibossBehaviour.IsActionLocked;
 
-        if (isStaggered)
+        if (!isStaggered && !isSpecialActionLocked && _enemyBase.Guard != null)
         {
-            finalDamage = rawDamage; //Nếu đang bị stagger thì bỏ qua phòng thủ, nhận sát thương gốc
-            Debug.Log($"{_enemyBase.gameObject.name} đang bị stagger, bỏ qua phòng thủ và nhận sát thương gốc: {finalDamage}");
+            EnemyGuardResult guardResult = _enemyBase.Guard.TryBlock(rawDamage, poiseDamage, attacker, out float blockedDamage);
+
+            if (guardResult != EnemyGuardResult.NotBlocked)
+            {
+                _enemyBase.Health.TakeDamage(blockedDamage);
+
+                if (_enemyBase.Health.CurrentHealth <= 0f) return;
+
+                if (guardResult == EnemyGuardResult.Broken)
+                    _enemyBase.EventManager.CallStagger();
+                else
+                    _enemyBase.Guard.PlayBlockHit();
+
+                ReportAttacker(attacker);
+                return;
+            }
         }
-        else
+
+        float finalDamage = isStaggered ? rawDamage : Mathf.Max(0f, rawDamage - _enemyBase.Data.maxDefense);
+
+        if (!isStaggered && _enemyBase.MinibossBehaviour != null)
         {
-            finalDamage = Mathf.Max(0, rawDamage - _enemyBase.Data.maxDefense);
+            finalDamage = _enemyBase.MinibossBehaviour.ModifyIncomingDamage(finalDamage, attacker);
         }
+
         _enemyBase.Health.TakeDamage(finalDamage);
 
-        if (_enemyBase.Health.CurrentHealth <= 0) return; //Nếu đã chết sau khi nhận sát thương thì không cần xử lý poise
+        if (_enemyBase.Health.CurrentHealth <= 0f) return;
 
         if (isStaggered)
-        {
-            _enemyBase.StateMachine.EnemyStaggerState.OnHitDuringStagger(); //Nếu đang bị stagger và bị đánh trúng, thì gọi phương thức OnHitDuringStagger để xử lý logic đặc biệt khi bị đánh trúng trong trạng thái stagger (ví dụ như reset thời gian stagger, tăng thời gian stagger, hoặc các hiệu ứng đặc biệt khác)
-        }
-        else
-        {
-            _enemyBase.PoiseSystem.TakePoiseDamage(poiseDamage); //Nếu không đang bị stagger thì vẫn nhận sát thương poise như bình thường, có thể dẫn đến việc bị stagger nếu poise giảm xuống dưới ngưỡng
-        }
+            _enemyBase.StateMachine.EnemyStaggerState.OnHitDuringStagger();
+        else if (poiseDamage > 0f)
+            _enemyBase.PoiseSystem.TakePoiseDamage(poiseDamage);
+
+        ReportAttacker(attacker);
+    }
+
+    public void ReportAttacker(Transform attacker)
+    {
+        if (attacker == null) return;
 
         if (_enemyBase.Detection.CurrentTarget == null)
-        {
-            Transform attacker = GameObject.FindGameObjectWithTag("Player").transform; //Tìm game object có tag "Player" để lấy reference đến attacker, có thể dùng để xác định hướng tấn công và các hiệu ứng liên quan đến vị trí của attacker
-            _enemyBase.Detection.ReportDamageHit(attacker); //Ép phát hiện attacker khi bị tấn công, có thể dùng để đảm bảo rằng Enemy sẽ phản ứng ngay lập tức khi bị tấn công mà không cần phải chờ đến lần kiểm tra phát hiện tiếp theo
-        }
+            _enemyBase.Detection.ReportDamageHit(attacker);
     }
 }

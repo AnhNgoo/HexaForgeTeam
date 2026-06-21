@@ -202,7 +202,7 @@ GameObject:
   - component: {fileID: 1372193413867696162}
   - component: {fileID: 4985646639794874670}
   - component: {fileID: 7440764645025391407}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Dog Pup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -838,7 +838,7 @@ GameObject:
   - component: {fileID: 2012484596410180271}
   - component: {fileID: 1810654471071358887}
   - component: {fileID: 1942950303447735018}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_DogPup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -903,6 +903,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: ce92885e1bd37e647a89052e4045137f, type: 2}
+  selectionMode: 0
 --- !u!114 &8229156540716150463
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1026,6 +1027,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &5447430833872245387
 MonoBehaviour:
   m_ObjectHideFlags: 0

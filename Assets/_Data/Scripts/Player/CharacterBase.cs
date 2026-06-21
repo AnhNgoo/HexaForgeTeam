@@ -20,6 +20,15 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
     public CharacterData CharacterData => characterData;
+    [Header("Check Obstacle In Front Settings")]
+    [SerializeField] protected LayerMask obstacleLayer; // Lớp của chướng ngại vật để kiểm tra va chạm khi di chuyển hoặc áp sát mục tiêu
+    [SerializeField] protected float ZoffsetCheckObstacleInFront = 1.5f; // Khoảng cách Z để kiểm tra chướng ngại vật trước mặt
+    [SerializeField] protected float radiusCheckObstacleInFront = 1f; // Bán kính để kiểm tra chướng ngại vật trước mặt
+    [Header("Check Near Enemy Settings")]
+    [SerializeField] protected LayerMask enemyLayer; // Lớp của kẻ địch để kiểm tra va chạm khi kiểm tra kẻ địch gần trước mặt
+    [SerializeField] protected Vector2 meleeSnapThreshold = new Vector2(2.5f, 15f); // Tầm áp sát tối thiểu và tối đa để kích hoạt snap
+    [SerializeField] protected float ZoffsetCheckForNearEnemy = 1.5f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
 
     [Header("Character Models")]
     [SerializeField] protected GameObject visuals;
@@ -51,6 +60,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
+    public GameObject middleEffectPoint;
+    public GameObject bottomEffectPoint;
     public PoolType hitEffect_1 = PoolType.HitEffect_1;
     public GameObject punchEffectPoint_1;
     public PoolType punchEffect_1 = PoolType.PunchEffect_1;
@@ -68,6 +79,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public StateController StateController => stateController;
     private Cooldown dodgeCooldown = new Cooldown();
     public bool IsHealthRecovering { get; set; } = false;
+    public DashShadowEffect dashShadowEffect { get; set; }
 
     protected override void LoadComponent()
     {
@@ -130,8 +142,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     {
         if (data != null)
             characterData = Instantiate(data);
-
-        characterInput.Init();
         characterHealth.Init(characterData.stats.maxHealth);
         characterRecovery.Init(this);
         characterAnimation.Init(characterVisual);
@@ -139,6 +149,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterLockTarget.SetFollowTarget();
         characterCombat?.Init(this, InitAttackCombos(), InitPunchCombos());
         InitSkills();
+        GetDashShadowEffect(characterVisual);
     }
 
     // Điều chỉnh tốc độ animation tấn công dựa trên tốc độ tấn công của character
@@ -158,7 +169,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (!CheckAnyStateTransition())
             stateController?.currentState?.Update();
 
-        characterMovement.SetMoveDirection(characterInput.moveInput);
+        characterMovement.SetMoveDirection(characterInput.MoveInput);
         if (characterInput.LockTarget)
             OnLockTarget();
     }
@@ -180,6 +191,77 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
         return false;
     }
+
+    #region Move
+    public virtual void MoveNormal()
+    {
+        float speed = characterData.stats.speed;
+
+        Vector3 rotationDirection = new Vector3(characterMovement.MoveDirection.x,
+                                                0f,
+                                                characterMovement.MoveDirection.y);
+
+        if (characterInput.Walk)
+
+        {
+            characterMovement.Walk(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Walk", 0.1f);
+            characterRotate.Rotate(rotationDirection);
+            return;
+        }
+
+        if (characterInput.Sprint)
+        {
+            characterMovement.Sprint(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Sprint", 0.1f);
+            characterRotate.Rotate(rotationDirection);
+            return;
+        }
+
+        if (!characterInput.Sprint || !characterInput.Walk)
+        {
+            characterMovement.Run(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Run", 0.1f);
+            characterRotate.Rotate(rotationDirection);
+            return;
+        }
+    }
+
+    public virtual void MoveLockTarget()
+    {
+        float x = characterInput.MoveInput.x; // Hướng đi ngang
+        float y = characterInput.MoveInput.y; // Hướng đi dọc
+        float yAbs = Mathf.Abs(y); // Ngưỡng y để xác định di chuyển chéo hay thẳng
+        float speed = characterData.stats.speed;
+
+        if (x < 0 && yAbs < characterMovement.StrafeThreshold)
+        {
+            characterMovement.Run(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Run_Strafe_Left", 0.1f);
+            return;
+        }
+
+        if (x > 0 && yAbs < characterMovement.StrafeThreshold)
+        {
+            characterMovement.Run(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Run_Strafe_Right", 0.1f);
+            return;
+        }
+        if (y < 0)
+        {
+            characterMovement.Run(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Run_Backward", 0.1f);
+            return;
+        }
+
+        if (y > 0)
+        {
+            characterMovement.Run(characterMovement.MoveDirection, speed);
+            characterAnimation.CrossFadeOneshot("Run", 0.1f);
+            return;
+        }
+    }
+    #endregion
     public virtual void Dodge()
     {
         if (dodgeCooldown.IsOnCooldown)
@@ -278,5 +360,37 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     private void Die()
     {
         stateController.ChangeState(new DeathState(this));
+    }
+
+    protected virtual void GetDashShadowEffect(GameObject characterVisual)
+    {
+        dashShadowEffect = characterVisual.GetComponent<DashShadowEffect>();
+    }
+
+    protected virtual bool CheckObstacleInFront()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position + transform.forward * ZoffsetCheckObstacleInFront, radiusCheckObstacleInFront, obstacleLayer);
+
+        if (hitColliders.Length > 0) // Nếu có ít nhất 1 chướng ngại vật thì true
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Giúp kiểm tra xem trước mặt có kẻ địch nào gần không
+    /// Dùng để tắt root motion khi tấn công nếu có kẻ địch gần, tránh trường hợp nhân vật bị kéo lùi lại quá xa khi tấn công mà không trúng mục tiêu nào
+    /// </summary>
+    /// <returns></returns>
+    public virtual bool CheckForNearEnemy()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position + transform.forward * ZoffsetCheckForNearEnemy, radiusCheckForNearEnemy, enemyLayer);
+
+        if (hitColliders.Length > 0) // Nếu có ít nhất 1 enemy thì true
+        {
+            return true;
+        }
+        return false;
     }
 }

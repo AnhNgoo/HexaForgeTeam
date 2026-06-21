@@ -7,6 +7,12 @@ public enum AttackType
     Ranged
 }
 
+public enum AttackSelectionMode
+{
+    Random,
+    Tactical
+}
+
 public enum EnemyAttackAnchorType
 {
     None,
@@ -33,6 +39,8 @@ public enum EnemyHitboxType
     Spin,
     Sting,
     Explosion,
+    Shield,
+    GroundImpact,
 }
 
 [CreateAssetMenu(fileName = "New Attack Data", menuName = "Enemy/Attack Data")]

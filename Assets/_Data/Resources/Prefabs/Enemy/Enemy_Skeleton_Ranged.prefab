@@ -433,7 +433,7 @@ GameObject:
   - component: {fileID: 9063579080466294665}
   - component: {fileID: 519569242382437550}
   - component: {fileID: 2302004553268008489}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_Skeleton_Ranged
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -498,6 +498,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: caa502e00c6d4494daffeaabaa3e3762, type: 2}
+  selectionMode: 0
 --- !u!114 &650471500707039634
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -621,6 +622,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &2102029121382375105
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -672,7 +678,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 2
+  m_Height: 2.26
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -2213,7 +2219,7 @@ GameObject:
   - component: {fileID: 3826976784996241864}
   - component: {fileID: 3313539962308046373}
   - component: {fileID: 7394430870622820089}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Skeleton_Rogue
   m_TagString: Untagged
   m_Icon: {fileID: 0}

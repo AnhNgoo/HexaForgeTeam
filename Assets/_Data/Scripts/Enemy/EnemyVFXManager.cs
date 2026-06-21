@@ -25,8 +25,6 @@ public class EnemyVFXManager : MonoBehaviour
         if (_chestAnchor == null) _chestAnchor = transform; // Nếu không có chestAnchor được thiết lập thì sử dụng transform của Enemy làm điểm neo mặc định để đảm bảo rằng hiệu ứng sẽ được gắn vào Enemy một cách chính xác khi bị đánh trúng
         if (_headAnchor == null) _headAnchor = transform; // Nếu không có headAnchor được thiết lập thì sử dụng transform của Enemy làm điểm neo mặc định để đảm bảo rằng hiệu ứng sẽ được gắn vào Enemy một cách chính xác khi bị đánh trúng
         if (_footAnchor == null) _footAnchor = transform; // Nếu không có foot
-
-        Debug.Log($"{gameObject.name} - EnemyVFXManager đã được khởi tạo!"); // Log để kiểm tra xem EnemyVFXManager đã được khởi tạo hay chưa, có thể giúp phát hiện lỗi trong quá trình phát triển
     }
 
     /// <summary> 

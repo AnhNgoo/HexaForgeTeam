@@ -5,6 +5,7 @@ public class EnemyHitbox : MonoBehaviour
 {
     private EnemyBase _enemyBase;
     private Collider _hitboxCollider;
+    private AttackDataSO _attackDataSnapshot;
     public event Action<Collider> OnHitTarget;
     [SerializeField] private bool _dealDamageOnHit = true; // Thêm biến để kiểm soát việc
 
@@ -14,10 +15,10 @@ public class EnemyHitbox : MonoBehaviour
         DisableHitBox(); // Đảm bảo hitbox được tắt khi khởi tạo
 
     }
-    public void Initialize(EnemyBase enemyBase)
+    public void Initialize(EnemyBase enemyBase, AttackDataSO attackData = null)
     {
         _enemyBase = enemyBase;
-        Debug.Log($"{gameObject.name} - EnemyHitbox đã được khởi tạo!");
+        _attackDataSnapshot = attackData;
     }
 
     public void EnableHitBox()
@@ -34,22 +35,25 @@ public class EnemyHitbox : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        float multiplier = 1f; // Hệ số mặc định là 1 (không thay đổi sát thương)
         if (other.CompareTag("Player"))
         {
             if (_dealDamageOnHit)
             {
-                float finalDamage = _enemyBase.Data.damage; // Lấy sát thương cơ bản từ EnemyData
-
-                if (_enemyBase.Combat.CurrentAttackData != null)
+                if (_enemyBase == null)
                 {
-                    multiplier = _enemyBase.Combat.CurrentAttackData.damageMultiplier;
-                    finalDamage *= multiplier;
+                    Debug.LogWarning($"{gameObject.name} chưa được Initialize.");
+                    return;
                 }
+
+                AttackDataSO attackData = _attackDataSnapshot ?? _enemyBase.Combat.CurrentAttackData;
+
+                float multiplier = attackData != null ? attackData.damageMultiplier : 1f;
+
+                float finalDamage = _enemyBase.Data.damage * multiplier;
 
                 _enemyBase.ExtendLeash(_enemyBase.Data.maxLeashDistance + 5f);
 
-                Debug.Log($"{gameObject.name} gây sát thương {finalDamage} lên Player (sát thương cơ bản: {_enemyBase.Data.damage}, hệ số từ AttackData: {_enemyBase.Combat.CurrentAttackData.damageMultiplier})");
+                Debug.Log($"{gameObject.name} gây sát thương {finalDamage} lên Player " + $"(sát thương cơ bản: {_enemyBase.Data.damage}, " + $"hệ số: {multiplier})");
 
                 // To_Do: Gọi hàm xử lý sát thương lên Player tại đây, ví dụ: other.GetComponent<PlayerHealth>().TakeDamage(attackData.damage);
             }

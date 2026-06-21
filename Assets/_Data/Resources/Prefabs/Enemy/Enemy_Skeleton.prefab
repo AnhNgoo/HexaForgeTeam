@@ -77,7 +77,7 @@ GameObject:
   - component: {fileID: 2062187922259351147}
   - component: {fileID: 2371537201838724970}
   - component: {fileID: 5273537888799192132}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Skeleton_Minion
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -910,7 +910,7 @@ GameObject:
   - component: {fileID: 3453425404940768480}
   - component: {fileID: 8926648702240372932}
   - component: {fileID: 4924481103504667590}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_Skeleton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -975,6 +975,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: 414b3c13cbaa09349978e5f12665553d, type: 2}
+  selectionMode: 0
 --- !u!114 &3152252454642886709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1098,6 +1099,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &4791893352025962759
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1151,7 +1157,7 @@ NavMeshAgent:
   m_AutoTraverseOffMeshLink: 1
   m_AutoBraking: 1
   m_AutoRepath: 1
-  m_Height: 2
+  m_Height: 2.15
   m_BaseOffset: 1
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
@@ -1666,6 +1672,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5bb6439ecc4ee1e4b8f60e667190c48f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _dealDamageOnHit: 1
 --- !u!1 &6932197779146246762
 GameObject:
   m_ObjectHideFlags: 0
