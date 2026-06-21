@@ -43,7 +43,7 @@ GameObject:
   - component: {fileID: 8654509711744348180}
   - component: {fileID: 3508605987646813610}
   - component: {fileID: 4701751353594855890}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Spider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -249,7 +249,7 @@ GameObject:
   - component: {fileID: 8871619814609409599}
   - component: {fileID: 7679621046005544179}
   - component: {fileID: 2398269294320769679}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_Spider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -315,6 +315,7 @@ MonoBehaviour:
   attackArsenal:
   - {fileID: 11400000, guid: 7919b084cd36d224f96a765090bf2e57, type: 2}
   - {fileID: 11400000, guid: c581ff61b1c03af4caca62ea999bb53c, type: 2}
+  selectionMode: 0
 --- !u!114 &4986482020111710890
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,6 +439,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &3324522119014945592
 MonoBehaviour:
   m_ObjectHideFlags: 0
