@@ -105,7 +105,7 @@ public class TitleMenu : MenuBase
 
     private void OnTrophyButtonClicked()
     {
-        Debug.Log("Trophy button clicked");
+        UIManager.Instance.ChangeMenu(MenuType.TrophyMenu);
     }
     
     // *NOTE - Gợi event từ menu ra nơi khác
