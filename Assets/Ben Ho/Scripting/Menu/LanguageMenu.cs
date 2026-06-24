@@ -7,6 +7,7 @@ public class LanguageMenu : MenuBase
     public override MenuType menuType => MenuType.LanguageMenu;
 
     [Header("Buttons")]
+    [SerializeField] private Button btn_Back;
     [SerializeField] private Button btn_English;
     [SerializeField] private Button btn_Vietnamese;
     [SerializeField] private Button btn_Confirm;
@@ -16,7 +17,7 @@ public class LanguageMenu : MenuBase
     [SerializeField] private TMP_Text txt_English;
     [SerializeField] private TMP_Text txt_Vietnamese;
 
-    private Language selectedLanguage;
+    private int selectedLanguage;
 
     private readonly Color selectedColor =
         new Color32(255, 210, 80, 255);
@@ -27,21 +28,8 @@ public class LanguageMenu : MenuBase
     protected override void LoadComponent()
     {
 
-        if (btn_English == null)
-            btn_English = transform.Find("Main/Pop-Up/Button-English")
-                ?.GetComponent<Button>();
-
-        if (btn_Vietnamese == null)
-            btn_Vietnamese = transform.Find("Main/Pop-Up/Button-Vietnamese")
-                ?.GetComponent<Button>();
-
-        if (btn_Confirm == null)
-            btn_Confirm = transform.Find("Main/Pop-Up/Button-Orange")
-                ?.GetComponent<Button>();
-
-        if (btn_Cancel == null)
-            btn_Cancel = transform.Find("Main/Pop-Up/Button-Grey")
-                ?.GetComponent<Button>();
+        if (btn_Back == null)
+            btn_Back = transform.Find("Btn_Back")?.GetComponent<Button>();
     }
 
     protected override void LoadComponentRuntime()
@@ -53,18 +41,18 @@ public class LanguageMenu : MenuBase
     {
         base.Open(data);
 
-        btn_English.onClick.AddListener(OnEnglishSelected);
-        btn_Vietnamese.onClick.AddListener(OnVietnameseSelected);
-
-        btn_Confirm.onClick.AddListener(OnConfirm);
-        btn_Cancel.onClick.AddListener(OnCancel);
-
         selectedLanguage =
-            (Language)PlayerPrefs.GetInt(
-                "LANGUAGE",
-                (int)Language.English);
+            PlayerPrefs.GetInt("LANGUAGE", 0);
 
-        RefreshLanguageUI();
+        RefreshUI();
+
+        btn_English.onClick.AddListener(OnEnglishClicked);
+        btn_Vietnamese.onClick.AddListener(OnVietnameseClicked);
+
+        btn_Confirm.onClick.AddListener(OnConfirmClicked);
+        btn_Cancel.onClick.AddListener(OnCancelClicked);
+
+        btn_Back.onClick.AddListener(OnBackClicked);
     }
 
     public override void Close()
@@ -76,45 +64,50 @@ public class LanguageMenu : MenuBase
 
         btn_Confirm.onClick.RemoveAllListeners();
         btn_Cancel.onClick.RemoveAllListeners();
+
+        btn_Back.onClick.RemoveAllListeners();
     }
 
-    private void OnEnglishSelected()
+    private void OnEnglishClicked()
     {
-        selectedLanguage = Language.English;
-        RefreshLanguageUI();
+        selectedLanguage = 0;
+        RefreshUI();
     }
 
-    private void OnVietnameseSelected()
+    private void OnVietnameseClicked()
     {
-        selectedLanguage = Language.Vietnamese;
-        RefreshLanguageUI();
+        selectedLanguage = 1;
+        RefreshUI();
     }
 
-    private void RefreshLanguageUI()
+    private void RefreshUI()
     {
         if (txt_English != null)
             txt_English.color =
-                selectedLanguage == Language.English
+                selectedLanguage == 0
                 ? selectedColor
                 : normalColor;
 
         if (txt_Vietnamese != null)
             txt_Vietnamese.color =
-                selectedLanguage == Language.Vietnamese
+                selectedLanguage == 1
                 ? selectedColor
                 : normalColor;
     }
 
-    private void OnConfirm()
+    private void OnConfirmClicked()
     {
-        LocalizationManager.Instance
-            .ChangeLanguage(selectedLanguage);
 
-        UIManager.Instance.ChangeMenu(
-            MenuType.TitleMenu);
+
+        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
 
-    private void OnCancel()
+    private void OnCancelClicked()
+    {
+        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
+    }
+
+    private void OnBackClicked()
     {
         UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
