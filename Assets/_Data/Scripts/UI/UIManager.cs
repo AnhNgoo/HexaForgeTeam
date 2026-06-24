@@ -23,6 +23,8 @@ public enum MenuType
     InventoryGemMenu = 10,
     HelpMenu = 11,
     CharacterMenu = 12,
+    TrophyMenu = 13,
+    LanguageMenu = 14,
 }
 
 public class UIManager : Singleton<UIManager>
