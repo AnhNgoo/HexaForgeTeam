@@ -7,7 +7,6 @@ public class LanguageMenu : MenuBase
     public override MenuType menuType => MenuType.LanguageMenu;
 
     [Header("Buttons")]
-    [SerializeField] private Button btn_Back;
     [SerializeField] private Button btn_English;
     [SerializeField] private Button btn_Vietnamese;
     [SerializeField] private Button btn_Confirm;
@@ -28,8 +27,6 @@ public class LanguageMenu : MenuBase
     protected override void LoadComponent()
     {
 
-        if (btn_Back == null)
-            btn_Back = transform.Find("Btn_Back")?.GetComponent<Button>();
     }
 
     protected override void LoadComponentRuntime()
@@ -51,8 +48,6 @@ public class LanguageMenu : MenuBase
 
         btn_Confirm.onClick.AddListener(OnConfirmClicked);
         btn_Cancel.onClick.AddListener(OnCancelClicked);
-
-        btn_Back.onClick.AddListener(OnBackClicked);
     }
 
     public override void Close()
@@ -64,8 +59,6 @@ public class LanguageMenu : MenuBase
 
         btn_Confirm.onClick.RemoveAllListeners();
         btn_Cancel.onClick.RemoveAllListeners();
-
-        btn_Back.onClick.RemoveAllListeners();
     }
 
     private void OnEnglishClicked()
@@ -103,11 +96,6 @@ public class LanguageMenu : MenuBase
     }
 
     private void OnCancelClicked()
-    {
-        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
-    }
-
-    private void OnBackClicked()
     {
         UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
