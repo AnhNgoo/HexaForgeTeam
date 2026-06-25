@@ -10,7 +10,7 @@ using System.Linq;
 public enum MenuType
 {
     None = 0,
-    
+
     TitleMenu = 1,
     LoadingMenu = 2,
     GameplayMenu = 3,
@@ -23,6 +23,7 @@ public enum MenuType
     InventoryGemMenu = 10,
     HelpMenu = 11,
     CharacterMenu = 12,
+    HUDMenuTest = 13
 }
 
 public class UIManager : Singleton<UIManager>

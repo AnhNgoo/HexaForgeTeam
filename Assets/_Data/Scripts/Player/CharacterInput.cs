@@ -29,8 +29,15 @@ public class CharacterInput : MonoBehaviour
     public bool Skill_2 => skill_2;
 
     private InputActions inputActions => InputManager.InputActions;
+    private CharacterBase characterBase;
 
 
+    public void Init(CharacterBase characterBase)
+    {
+        this.characterBase = characterBase;
+
+        inputActions.Keyboard.ChangeWeapon.performed += characterBase.ChangeWeapon;
+    }
     private void Update()
     {
         if (inputActions == null)
