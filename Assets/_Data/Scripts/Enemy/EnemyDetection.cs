@@ -174,17 +174,7 @@ public class EnemyDetection : MonoBehaviour
     {
         if (target == null) return false;
 
-        Vector3 eyePosition = transform.position + Vector3.up * 1f; //Điều chỉnh chiều cao của mắt nếu cần thiết
-        Vector3 targetEyePosition = target.position + Vector3.up * 1f; //Điều chỉnh chiều cao của mắt mục tiêu nếu cần thiết
-        float dstToTarget = Vector3.Distance(eyePosition, targetEyePosition);
-
-        if (dstToTarget > _enemyBase.Data.detectRange) return false; //Nếu mục tiêu đã chạy ra khỏi khoảng cách phát hiện thì không cần kiểm tra nữa để tối ưu hiệu suất
-
-        Vector3 dirToTarget = (targetEyePosition - eyePosition).normalized;
-
-        if (Vector3.Angle(transform.forward, dirToTarget) > _enemyBase.Data.povAngle / 2f) return false;
-
-        return !Physics.Raycast(eyePosition, dirToTarget, dstToTarget, obstacleLayerMask); //Trả về true nếu không có chướng ngại vật nào chắn giữa Enemy và mục tiêu, ngược lại trả về false
+        return HasLineOfSightTo(target, true);
     }
 
     //Bộ não xử lý khi phát hiện kẻ địch
@@ -276,6 +266,26 @@ public class EnemyDetection : MonoBehaviour
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
             return;
         }
+    }
+
+    public bool HasLineOfSightTo(Transform target, bool requireFieldOfView = true)
+    {
+        if (target == null) return false;
+
+        Vector3 eyePosition = transform.position + Vector3.up * 1f;
+        Vector3 targetEyePosition = target.position + Vector3.up * 1f;
+
+        float dstToTarget = Vector3.Distance(eyePosition, targetEyePosition);
+        if (dstToTarget > _enemyBase.Data.detectRange) return false;
+
+        Vector3 dirToTarget = (targetEyePosition - eyePosition).normalized;
+
+        if (requireFieldOfView && Vector3.Angle(transform.forward, dirToTarget) > _enemyBase.Data.povAngle / 2f)
+        {
+            return false;
+        }
+
+        return !Physics.Raycast(eyePosition, dirToTarget, dstToTarget, obstacleLayerMask);
     }
 
     public void ResetDetection()
