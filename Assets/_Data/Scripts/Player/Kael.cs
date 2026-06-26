@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using UnityEngine.EventSystems;
-public class Kael : CharacterMelee
+
+public class Kael :  CharacterMelee
 {
     [Header("Kael")]
     [SerializeField] protected GameObject kaelGiantVisual;

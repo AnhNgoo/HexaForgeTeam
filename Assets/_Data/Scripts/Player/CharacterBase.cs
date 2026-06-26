@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
 using Cysharp.Threading.Tasks;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterAnimation))]
 [RequireComponent(typeof(CharacterMovement))]
@@ -135,13 +136,15 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     protected override void Awake()
     {
         base.Awake();
-        Init(characterData);
+
     }
     [Button("Init Character Data")]
     protected virtual void Init(CharacterData data)
     {
         if (data != null)
             characterData = Instantiate(data);
+
+        CharacterInput.Init(this);
         characterHealth.Init(characterData.stats.maxHealth);
         characterRecovery.Init(this);
         characterAnimation.Init(characterVisual);
@@ -150,6 +153,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterCombat?.Init(this, InitAttackCombos(), InitPunchCombos());
         InitSkills();
         GetDashShadowEffect(characterVisual);
+        EquipmentSystem.Instance?.Init(characterWeapon);
     }
 
     // Điều chỉnh tốc độ animation tấn công dựa trên tốc độ tấn công của character
@@ -160,6 +164,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     #endregion
     protected virtual void Start()
     {
+        Init(characterData);
         stateController = new StateController();
         stateController.ChangeState(new IdleState(this));
     }
@@ -393,4 +398,19 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         }
         return false;
     }
+
+    #region Change Weapon
+
+    public virtual void ChangeWeapon(InputAction.CallbackContext context)
+    {
+        Vector2 scrollDelta = context.ReadValue<Vector2>();
+        float scrollY = scrollDelta.y;
+
+        if (scrollY > 0f)
+        {
+            Debug.Log("Mouse wheel scrolled up");
+            characterWeapon.ChangeWeapon();
+        }
+    }
+    #endregion
 }

@@ -2,6 +2,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+[System.Serializable]
+public class TutorialPanel
+{
+    public TutorialType tutorialType;
+    public GameObject panel;
+}
 public class GameplayMenu : MenuBase
 {
     public override MenuType menuType => MenuType.GameplayMenu;
@@ -20,6 +26,10 @@ public class GameplayMenu : MenuBase
     [Header("Buttons")]
     [SerializeField] private Button btn_Settings;
     [SerializeField] private Button btn_Inventory;
+
+    [Header("Tutorial")]
+    [SerializeField] private GameObject tutorialPanel;
+    [SerializeField] private TutorialPanel[] tutorialPanels;
 
     protected override void LoadComponent()
     {
@@ -40,6 +50,9 @@ public class GameplayMenu : MenuBase
 
         if (btn_Inventory == null)
             btn_Inventory = transform.Find("Btn_Inventory")?.GetComponent<Button>();
+
+        if (tutorialPanel == null)
+            tutorialPanel = transform.Find("Panel_Tutorial")?.gameObject;
     }
 
     protected override void LoadComponentRuntime()
@@ -68,6 +81,19 @@ public class GameplayMenu : MenuBase
         btn_Inventory.onClick.RemoveListener(OnInventoryButtonClicked);
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        EventManager.Subscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
+        EventManager.Subscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
+    }
+
+    private void OnDestroy()
+    {
+        EventManager.Unsubscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
+        EventManager.Unsubscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
+    }
     private void Update()
     {
         UpdatePlayerStatsUI();
@@ -116,4 +142,43 @@ public class GameplayMenu : MenuBase
 
         UIManager.Instance.ChangeMenu(MenuType.InventoryMenu);
     }
+
+    #region Tutorial
+
+    private void ShowTutorialPanel(object data)
+    {
+        if (data is not TutorialType tutorialType)
+        {
+            Debug.LogWarning("Invalid data type for ShowTutorialPanel. Expected TutorialType.");
+            return;
+        }
+
+        if (tutorialPanel == null) return;
+
+        tutorialPanel.SetActive(true);
+
+        foreach (var panel in tutorialPanels)
+        {
+            if (panel.panel != null)
+            {
+                panel.panel.SetActive(panel.tutorialType == tutorialType);
+            }
+        }
+    }
+
+    private void HideTutorialPanel(object data)
+    {
+        if (tutorialPanel == null) return;
+
+        tutorialPanel.SetActive(false);
+
+        foreach (var panel in tutorialPanels)
+        {
+            if (panel.panel != null)
+            {
+                panel.panel.SetActive(false);
+            }
+        }
+    }
+    #endregion
 }
