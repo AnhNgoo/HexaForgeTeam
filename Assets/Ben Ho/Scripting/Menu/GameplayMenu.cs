@@ -22,6 +22,8 @@ public class GameplayMenu : MenuBase
 
     [Header("Level")]
     [SerializeField] private TextMeshProUGUI txt_Level;
+    [Header("Gold")]
+    [SerializeField] private TextMeshProUGUI txt_Gold;
 
     [Header("Buttons")]
     [SerializeField] private Button btn_Settings;
@@ -30,6 +32,8 @@ public class GameplayMenu : MenuBase
     [Header("Tutorial")]
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private TutorialPanel[] tutorialPanels;
+
+    private bool _isGoldSubscribed;
 
     protected override void LoadComponent()
     {
@@ -53,6 +57,9 @@ public class GameplayMenu : MenuBase
 
         if (tutorialPanel == null)
             tutorialPanel = transform.Find("Panel_Tutorial")?.gameObject;
+
+        if (txt_Gold == null)
+            txt_Gold = transform.Find("Txt_Gold")?.GetComponent<TextMeshProUGUI>();
     }
 
     protected override void LoadComponentRuntime()
@@ -71,6 +78,12 @@ public class GameplayMenu : MenuBase
         btn_Inventory.onClick.AddListener(OnInventoryButtonClicked);
 
         UpdatePlayerStatsUI();
+
+        if (GoldManager.Instance != null)
+        {
+            GoldManager.Instance.OnGoldChanged += UpdateGoldUI;
+            UpdateGoldUI(GoldManager.Instance.CurrentGold);
+        }
     }
 
     public override void Close()
@@ -79,6 +92,15 @@ public class GameplayMenu : MenuBase
 
         btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
         btn_Inventory.onClick.RemoveListener(OnInventoryButtonClicked);
+
+        if (GoldManager.Instance != null)
+            GoldManager.Instance.OnGoldChanged -= UpdateGoldUI;
+    }
+
+    private void UpdateGoldUI(int gold)
+    {
+        if (txt_Gold != null)
+            txt_Gold.text = gold.ToString();
     }
 
     protected override void Awake()
@@ -142,6 +164,38 @@ public class GameplayMenu : MenuBase
 
         UIManager.Instance.ChangeMenu(MenuType.InventoryMenu);
     }
+
+    #region Gold
+    private void OnEnable()
+    {
+        SubscribeGold();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeGold();
+    }
+
+    private void SubscribeGold()
+    {
+        if (_isGoldSubscribed || GoldManager.Instance == null)
+            return;
+
+        GoldManager.Instance.OnGoldChanged += UpdateGoldUI;
+        _isGoldSubscribed = true;
+
+        UpdateGoldUI(GoldManager.Instance.CurrentGold);
+    }
+
+    private void UnsubscribeGold()
+    {
+        if (!_isGoldSubscribed || GoldManager.Instance == null)
+            return;
+
+        GoldManager.Instance.OnGoldChanged -= UpdateGoldUI;
+        _isGoldSubscribed = false;
+    }
+    #endregion
 
     #region Tutorial
 

@@ -2,12 +2,20 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
+public enum EnemyProjectileEffectType
+{
+    None,
+    Stun,
+    Root
+}
+
 public class EnemyProjectile : MonoBehaviour, IPoolable
 {
     [SerializeField] private PoolType poolType;
     public PoolType PoolType => poolType;
 
-    [SerializeField] private bool _isStunningProjectile; // Biến để xác định nếu viên đạn có hiệu ứng choáng, có thể được thiết lập trong Inspector để tạo ra các loại đạn khác nhau với hiệu ứng khác nhau
+    [SerializeField] private EnemyProjectileEffectType effectType;
+    [SerializeField] private float effectDuration = 1.5f;
 
     private EnemyBase _sourceEnemy;
     private float _damage;
@@ -53,18 +61,16 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     {
         if (other.CompareTag("Player"))
         {
-            if (_isStunningProjectile)
-            {
-                DebugNote.Yellow("Đạn trúng Player và làm choáng!");
-
-                // To_Do: Gọi hàm xử lý hiệu ứng choáng lên Player tại đây
-            }
+            ApplyEffect(other);
 
             DebugNote.Green("Đạn trúng Player mất " + _damage + " máu!");
 
             if (_sourceEnemy != null)
             {
                 _sourceEnemy.ExtendLeash(_sourceEnemy.Data.maxLeashDistance + 5f);
+
+                if (effectType == EnemyProjectileEffectType.Root)
+                    _sourceEnemy.GetComponent<ShadeMinibossBehaviour>()?.NotifyShadowBindSuccess();
             }
 
             ReturnToPool();
@@ -81,6 +87,24 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     {
         if (!_isLaunched) return;
         ObjectPooling.Instance.ReturnToPool(poolType, gameObject);
+    }
+
+    private void ApplyEffect(Collider other)
+    {
+        if (effectType == EnemyProjectileEffectType.None)
+            return;
+
+        CharacterMovement movement = other.GetComponent<CharacterMovement>();
+        if (movement == null)
+            return;
+
+        movement.LockMovement(effectDuration);
+
+        if (effectType == EnemyProjectileEffectType.Stun)
+            DebugNote.Yellow("Đạn trúng Player và làm choáng!");
+
+        if (effectType == EnemyProjectileEffectType.Root)
+            DebugNote.Yellow("Đạn trúng Player và trói chân!");
     }
 
     public void OnSpawnFromPool()
