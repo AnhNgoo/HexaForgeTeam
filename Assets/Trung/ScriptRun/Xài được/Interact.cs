@@ -13,7 +13,8 @@ public class Interact : MonoBehaviour
     [Header("UI")]
     [SerializeField] private GameObject interactButtonPrefab;
 
-    [SerializeField] private Vector3 worldOffset =
+    [SerializeField]
+    private Vector3 worldOffset =
         new Vector3(0f, 2f, 0f);
 
     [Header("Trigger")]

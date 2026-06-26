@@ -36,7 +36,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
         ResetSafeZone(safeZone);
         GetAllTargetCenterPoint();
-        IsActiveSafeZone = false; //Khi tạo vòng bo mới chưa kích hoạt bo đốt
+        IsActiveSafeZone = true; //Khi tạo vòng bo mới kích hoạt bo đốt
     }
 
     [Button("Step 2: Start Shrink Safe Zone")]
@@ -68,9 +68,10 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
     private void ResetSafeZone(SafeZone safeZone)
     {
-        Vector3 startCenterPoint = GetStartCenterPoint().position;
-        safeZone.InitSafeZone(startCenterPoint, safeZoneData.startRadius);
-        IsSafeZoneCompleted = false;
+        Transform startCenterPoint = GetStartCenterPoint();
+        if (startCenterPoint == null || safeZoneData == null) return;
+
+        safeZone.InitSafeZone(startCenterPoint.position, safeZoneData.startRadius);
     }
     private void GetAllTargetCenterPoint()
     {

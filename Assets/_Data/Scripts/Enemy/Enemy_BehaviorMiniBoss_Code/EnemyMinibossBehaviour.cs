@@ -20,6 +20,16 @@ public abstract class EnemyMinibossBehaviour : MonoBehaviour
         return cooldown;
     }
 
+    public virtual float ModifyMoveSpeed(float speed)
+    {
+        return speed;
+    }
+
+    public virtual float ModifyDetectionRange(float range)
+    {
+        return range;
+    }
+
     public virtual void ResetBehaviour()
     {
         IsActionLocked = false;

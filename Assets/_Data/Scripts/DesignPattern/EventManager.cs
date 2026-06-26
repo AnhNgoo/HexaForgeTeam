@@ -23,7 +23,8 @@ public enum GameEvent
     OnMusicVolumeChangedTest = 15,
     OnBtn_TestEventFromMenuToOther = 16,
     OnTestEventFromOtherToMenu = 17,
-
+    OnShowTutorial = 18,
+    OnHideTutorial = 19,
 }
 public static class EventManager
 {

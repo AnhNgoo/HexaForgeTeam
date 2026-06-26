@@ -60,6 +60,8 @@ public class CharacterMovement : LoadComponents
 
     private float verticalVelocity;
 
+    private float _movementLockedUntil;
+
     protected override void LoadComponent()
     {
         if (cc == null)
@@ -142,21 +144,41 @@ public class CharacterMovement : LoadComponents
     }
     public void Walk(Vector2 direction, float moveSpeed)
     {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
         Movement(direction, moveSpeed, walkSpeedMultiplier);
     }
 
     public void Run(Vector2 direction, float moveSpeed)
     {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
         Movement(direction, moveSpeed, runSpeedMultiplier);
     }
 
     public void Sprint(Vector2 direction, float moveSpeed)
     {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
         Movement(direction, moveSpeed, sprintSpeedMultiplier);
     }
 
     public async void Dodge(Vector2 direction, float moveSpeed)
     {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
 
         IsDodging = true;
         float dodgeTimer = 0f;
@@ -172,6 +194,11 @@ public class CharacterMovement : LoadComponents
 
     public void Lunge(Vector2 direction, float moveSpeed)
     {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
         Movement(direction, moveSpeed, lungeSpeedMultiplier);
     }
     public void Jump()
@@ -210,6 +237,11 @@ public class CharacterMovement : LoadComponents
     }
     public void MoveAir(Vector2 direction, float moveSpeed)
     {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
         Movement(direction, moveSpeed, airSpeedMultiplier);
     }
 
@@ -236,6 +268,12 @@ public class CharacterMovement : LoadComponents
             radiusCheck,
             wallEdgeLayer
         );
+    }
+
+    public void LockMovement(float duration)
+    {
+        _movementLockedUntil = Mathf.Max(_movementLockedUntil, Time.time + duration);
+        Stop();
     }
 
 #if UNITY_EDITOR

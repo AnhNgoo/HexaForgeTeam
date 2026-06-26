@@ -19,7 +19,7 @@ public static class ProjectSizeAnalyzer
     private static GUIStyle modernToggleStyle;
     private static GUIStyle roundedButtonStyle;
     private static VisualElement toolbarUI;
-    private static bool showSizes = true; // Default to show sizes
+    private static bool showSizes = false; // Default to show sizes
 
     private static float positionOffset = -200f; // Position near undo history on the right
     private static float buttonHeight = 22f; // Slightly larger for better touch area

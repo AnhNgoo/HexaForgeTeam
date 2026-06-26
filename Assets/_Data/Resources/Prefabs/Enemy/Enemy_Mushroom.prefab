@@ -296,7 +296,7 @@ GameObject:
   - component: {fileID: 2911702809073797540}
   - component: {fileID: 38511536397132502}
   - component: {fileID: 2712586504266707700}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Mushroom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -876,7 +876,7 @@ GameObject:
   - component: {fileID: 3757004005214898668}
   - component: {fileID: 1872881905825537771}
   - component: {fileID: 3931352647727875571}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Enemy_Mushroom
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -941,6 +941,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: 36cc536a40821be42a1abb4fbebb6e80, type: 2}
+  selectionMode: 0
 --- !u!114 &1250612943567423206
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1064,6 +1065,11 @@ MonoBehaviour:
   _chestAnchor: {fileID: 0}
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
+  _staggerHitReactDuration: 0.5
+  _staggerVFX: 0
+  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFXEuler: {x: 0, y: 0, z: 0}
+  _staggerVFXScale: 1
 --- !u!114 &4809121333197521486
 MonoBehaviour:
   m_ObjectHideFlags: 0
