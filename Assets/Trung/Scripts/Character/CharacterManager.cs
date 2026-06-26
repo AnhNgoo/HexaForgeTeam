@@ -108,6 +108,16 @@ if (ui != null)
 
     SaveLoadManager.Instance
         .SaveGame();
+        if (PlayFabDataManager.Instance != null)
+{
+    PlayFabDataManager.Instance
+        .SaveCloud();
+}
+if (PlayFabDataManager.Instance != null)
+{
+    PlayFabDataManager.Instance
+        .MarkDirty();
+}
 }
 
     private void LoadData()

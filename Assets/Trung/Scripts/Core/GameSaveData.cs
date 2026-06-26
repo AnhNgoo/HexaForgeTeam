@@ -9,6 +9,9 @@ public class GameSaveData
     // Account
     public int accountLevel = 1;
     public int accountExp = 0;
+    // Leaderboard
+
+public int lifetimeGemEarned = 0;
 
     // Character
     public CharacterUnlockData characterData =

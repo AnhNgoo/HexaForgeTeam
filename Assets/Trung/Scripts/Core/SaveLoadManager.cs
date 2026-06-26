@@ -10,24 +10,31 @@ public class SaveLoadManager : MonoBehaviour
     private string savePath;
 
     private void Awake()
+{
+    if (Instance == null)
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        savePath =
-            Application.persistentDataPath +
-            "/GameSave.json";
-
-        LoadGame();
+        Instance = this;
+    }
+    else
+    {
+        Destroy(gameObject);
+        return;
     }
 
+    string playFabID =
+        PlayerPrefs.GetString(
+            "PlayFabID",
+            "Offline");
+
+    savePath =
+        Application.persistentDataPath +
+        "/GameSave_" +
+        playFabID +
+        ".json";
+
+    LoadGame();
+    DontDestroyOnLoad(gameObject);
+}
     public void SaveGame()
     {
         string json =
@@ -77,5 +84,16 @@ public class SaveLoadManager : MonoBehaviour
         new GameSaveData();
 
     SaveGame();
+}
+public void SetSaveFile(
+    string playFabID)
+{
+    savePath =
+        Application.persistentDataPath +
+        "/GameSave_" +
+        playFabID +
+        ".json";
+
+    LoadGame();
 }
 }
