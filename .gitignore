@@ -14,6 +14,12 @@ game_save/
 # Loại bỏ thư mục báo cáo kiểm thử tự động sinh ra
 /[Aa]ssets/CSV/
 
+# Chặn file cấu hình giao diện ProBuilder cá nhân
+/[Pp]ackages/com.unity.probuilder/Settings.json
+
+# Chặn file cấu hình Build (Nếu muốn cả đội tự quản lý Scene riêng, ít khi commit)
+/[Pp]roject[Ss]ettings/EditorBuildSettings.asset
+
 # For security purposes
 [Gg]oogle[Ss]ervices/
 
