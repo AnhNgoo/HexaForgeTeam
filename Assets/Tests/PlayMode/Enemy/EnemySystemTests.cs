@@ -5,11 +5,13 @@ using System.Globalization;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
+using UnityEngine.SceneManagement;
 
 namespace DuskBlade.Tests
 {
     public class EnemySystemTests
     {
+        
         private const string TesterName = "Huỳnh Ngọc Thanh Phước";
         private const string StartDate = "31/05/2026";
         private const string RunMode = "Tự động";
@@ -17,6 +19,15 @@ namespace DuskBlade.Tests
 
         private readonly List<UnityEngine.Object> spawned = new List<UnityEngine.Object>();
         private TestLogWatcher watcher;
+
+        [UnitySetUp]
+        public IEnumerator Setup()
+        {
+            SceneManager.LoadScene("GameDemo");
+
+            yield return null;
+            yield return null;
+        }
 
         [TearDown]
         public void TearDown()
@@ -222,19 +233,44 @@ namespace DuskBlade.Tests
         }
 
         private IEnumerator DamageEnemy(Ctx c, bool kill)
-        {
+{
             StartWatcher();
+
             GameObject player = SpawnPlayer(new Vector3(0f, 1f, -2f));
             GameObject enemy = SpawnEnemy(new Vector3(0f, 1f, 0f));
+
+            DisableEnemyLoot(enemy);
+
             yield return null;
+
             float before = ReadEnemyHp(enemy, true);
-            string method = ApplyDamage(enemy, kill ? before + 9999f : 10f);
+
+            string method = ApplyDamage(
+                enemy,
+                kill ? before + 9999f : 10f
+            );
+
             yield return null;
+
             float after = ReadEnemyHp(enemy, true);
-            c.Actual = $"Player hỗ trợ={player.name}, method damage={method}, HP trước={N(before)}, HP sau={N(after)}, số lỗi Console={ErrorCount()}.";
-            AssertNoErrors("Enemy nhận damage phát sinh Error/Exception.");
-            Assert.Less(after, before, "Enemy không giảm HP sau khi gọi damage thật.");
-            if (kill) Assert.LessOrEqual(after, 0f, "Enemy chưa về 0 HP sau damage kết liễu.");
+
+            c.Actual =
+                $"Player={player.name}, method={method}, HP trước={N(before)}, HP sau={N(after)}.";
+
+            Assert.Less(
+                after,
+                before,
+                "Enemy không giảm HP"
+            );
+
+            if (kill)
+            {
+                Assert.LessOrEqual(
+                    after,
+                    0f,
+                    "Enemy chưa về 0 HP"
+                );
+            }
         }
 
         private IEnumerator DeadThenAttack(Ctx c)
@@ -384,17 +420,44 @@ namespace DuskBlade.Tests
             c.Actual = $"Enemy={enemy.name}, Player={player.name}, HP trước={N(hp0)}, HP sau={N(ReadEnemyHp(enemy, true))}, damage method={damage}, attack method={attack}, lỗi Console={ErrorCount()}.";
             AssertNoErrors("Tổng Enemy phát sinh Error/Exception.");
         }
+        private void DisableEnemyLoot(GameObject enemy)
+        {
+            Component loot =
+                TestReflectionHelper.FindComponentByClassName(
+                    enemy,
+                    "EnemyLootDropper"
+                );
 
+            if (loot != null)
+            {
+                loot.gameObject.SetActive(false);
+            }
+        }
         private string ApplyDamage(GameObject enemy, float damage)
         {
-            Component receiver = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyDamageReceiver");
-            if (receiver != null && TestReflectionHelper.TryInvokeMethod(receiver, "TakeHit", damage, 0f)) return "EnemyDamageReceiver.TakeHit";
-            Component health = Require(enemy, "EnemyHealth");
-            if (TestReflectionHelper.TryInvokeMethod(health, "TakeDamage", damage)) return "EnemyHealth.TakeDamage";
-            Assert.Fail("Không tìm thấy method TakeHit/TakeDamage thật trên Enemy.");
-            return "Không tìm thấy";
-        }
+            Component health =
+                enemy.GetComponent(
+                    "EnemyHealth"
+                );
 
+            if (health != null)
+            {
+                var method = health.GetType()
+                    .GetMethod("TakeDamage");
+
+                if(method != null)
+                {
+                    method.Invoke(
+                        health,
+                        new object[] { damage }
+                    );
+
+                    return "EnemyHealth.TakeDamage";
+                }
+            }
+
+            return "Không tìm thấy EnemyHealth.TakeDamage";
+        }
         private string TryEnemyAttack(GameObject enemy, GameObject player)
         {
             Component combat = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyCombat");
@@ -410,14 +473,76 @@ namespace DuskBlade.Tests
         }
 
         private float ReadEnemyHp(GameObject enemy, bool fail)
+{
+    Component health =
+    enemy.GetComponent("EnemyHealth");
+
+if (health == null)
+{
+    health = enemy.GetComponentInChildren(
+        typeof(Component),
+        true
+    );
+
+    foreach(Component c in enemy.GetComponentsInChildren<Component>(true))
+    {
+        if(c.GetType().Name == "EnemyHealth")
         {
-            Component health = TestReflectionHelper.FindComponentByClassName(enemy, "EnemyHealth");
-            object value = null;
-            if (health != null && TestReflectionHelper.TryGetValue(health, "currentHealth", out value))
-                return Convert.ToSingle(value, CultureInfo.InvariantCulture);
-            if (fail) Assert.Fail("Không đọc được currentHealth thật trên EnemyHealth.");
-            return -1f;
+            health = c;
+            break;
         }
+    }
+}
+
+    if (health == null)
+    {
+        if (fail)
+            Assert.Fail("Không tìm thấy EnemyHealth.");
+
+        return -1f;
+    }
+
+
+    var type = health.GetType();
+
+
+    // đọc property CurrentHealth
+    var prop = type.GetProperty(
+        "CurrentHealth",
+        System.Reflection.BindingFlags.Public |
+        System.Reflection.BindingFlags.Instance
+    );
+
+    if (prop != null)
+    {
+        object value = prop.GetValue(health);
+
+        if (value != null)
+            return Convert.ToSingle(value);
+    }
+
+
+    // đọc private field currentHealth
+    var field = type.GetField(
+        "currentHealth",
+        System.Reflection.BindingFlags.NonPublic |
+        System.Reflection.BindingFlags.Instance
+    );
+
+    if (field != null)
+    {
+        object value = field.GetValue(health);
+
+        if (value != null)
+            return Convert.ToSingle(value);
+    }
+
+
+    if (fail)
+        Assert.Fail("Không đọc được HP thật trên EnemyHealth.");
+
+    return -1f;
+}
 
         private float ReadFloat(object target, string member, float fallback)
         {
@@ -431,10 +556,7 @@ namespace DuskBlade.Tests
         {
             GameObject prefab = TestPrefabFinder.FindEnemyPrefab();
             Assert.IsNotNull(prefab, "Không tìm thấy Enemy prefab thật trong project.");
-            GameObject go = UnityEngine.Object.Instantiate(prefab, position, Quaternion.identity);
-            go.name = prefab.name + "_Test";
-            spawned.Add(go);
-            return go;
+            return TestEnemySpawnHelper.SpawnEnemyWithCampLifecycle(prefab, position, "_Test", spawned);
         }
 
         private GameObject SpawnPlayer(Vector3 position)

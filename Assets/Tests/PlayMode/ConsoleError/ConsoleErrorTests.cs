@@ -213,10 +213,7 @@ namespace DuskBlade.Tests
         {
             GameObject prefab = TestPrefabFinder.FindEnemyPrefab();
             Assert.IsNotNull(prefab, "Không tìm thấy Enemy prefab thật trong project.");
-            GameObject go = UnityEngine.Object.Instantiate(prefab, pos, Quaternion.identity);
-            go.name = prefab.name + "_ConsoleTest";
-            spawned.Add(go);
-            return go;
+            return TestEnemySpawnHelper.SpawnEnemyWithCampLifecycle(prefab, pos, "_ConsoleTest", spawned);
         }
 
         private void CreateCameraAndGround()

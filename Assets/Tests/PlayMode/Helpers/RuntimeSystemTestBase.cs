@@ -165,10 +165,7 @@ namespace DuskBlade.Tests
         {
             GameObject prefab = TestPrefabFinder.FindEnemyPrefab();
             Assert.IsNotNull(prefab, "Không tìm thấy Enemy prefab thật trong project.");
-            GameObject go = UnityEngine.Object.Instantiate(prefab, position, Quaternion.identity);
-            go.name = prefab.name + "_RuntimeTest";
-            spawned.Add(go);
-            return go;
+            return TestEnemySpawnHelper.SpawnEnemyWithCampLifecycle(prefab, position, "_RuntimeTest", spawned);
         }
 
         protected GameObject InstantiatePrefab(GameObject prefab, Vector3 position, string suffix)
