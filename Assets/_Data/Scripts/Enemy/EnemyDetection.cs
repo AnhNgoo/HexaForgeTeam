@@ -91,8 +91,10 @@ public class EnemyDetection : MonoBehaviour
         //Kiểm tra khoảng cách từ Enemy đến mục tiêu
         float dstToTarget = Vector3.Distance(eyePosition, targetEyePosition);
 
+        float detectRange = _enemyBase.MinibossBehaviour != null ? _enemyBase.MinibossBehaviour.ModifyDetectionRange(_enemyBase.Data.detectRange) : _enemyBase.Data.detectRange;
+
         //Kiểm tra nếu mục tiêu nằm trong khoảng cách phát hiện
-        if (dstToTarget <= _enemyBase.Data.detectRange)
+        if (dstToTarget <= detectRange)
         {
             //Xem mục tiêu đang đứng hướng nào
             Vector3 directionToTarget = (targetEyePosition - eyePosition).normalized;
@@ -118,17 +120,22 @@ public class EnemyDetection : MonoBehaviour
                 }
                 else Debug.Log($"{gameObject.name} không thể nhìn thấy mục tiêu do có chướng ngại vật chắn giữa.");
             } // HƯỚNG 2: Player đứng sau lưng (Ngoài góc FOV nhưng vẫn trong bán kính phát hiện) nhưng lọt vào tầm nghe thính giác (50% tầm nhìn)
-            else if (dstToTarget <= _enemyBase.Data.detectRange * 0.5f)
+            else if (dstToTarget <= detectRange * 0.5f)
             {
                 if (!Physics.Raycast(eyePosition, directionToTarget, dstToTarget, obstacleLayerMask))
                 {
-                    SetSuspiciousPosition(potentialTarget.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
-                    if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemySuspicionState)
+                    SetSuspiciousPosition(potentialTarget.position);
+
+                    if (IsPlayerInLeashRange())
                     {
-                        Debug.Log($"{gameObject.name} đã nghe thấy mục tiêu: {potentialTarget.name}");
-                        _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState); //Chuyển sang trạng thái nghi ngờ khi nghe thấy mục tiêu, có thể mở rộng sau này để có trạng thái riêng cho việc nghe thấy mục tiêu và di chuyển đến vị trí cuối cùng của mục tiêu
-                        AlertNearbyAllies(potentialTarget); //Xác nhận mục tiêu khi nghe thấy, có thể mở rộng sau này để truyền thông tin về mục tiêu cho các Enemy khác trong bán kính cảnh báo
+                        ConfirmTarget(potentialTarget);
                     }
+                    else if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemySuspicionState)
+                    {
+                        _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
+                    }
+
+                    AlertNearbyAllies(potentialTarget);
                 }
             }
         }
@@ -139,17 +146,16 @@ public class EnemyDetection : MonoBehaviour
         if (attacker == null) return;
 
         bool attackerInsideLeash = IsPointInLeash(attacker.position);
-        bool canSeeAttacker = IsTargetVisible(attacker);
 
-        if (attackerInsideLeash && canSeeAttacker)
+        if (attackerInsideLeash)
         {
-            ConfirmTarget(attacker); //Nếu kẻ tấn công đang đứng trong xích và có thể nhìn thấy thì xác nhận kẻ tấn công làm mục tiêu ngay lập tức, có thể mở rộng sau này để thêm điều kiện khác (ví dụ: nếu kẻ tấn công đang đứng trong một khu vực cụ thể nào đó) để tạo ra sự đa dạng về điều kiện phản ứng khi bị tấn công
+            ForceDetectTarget(attacker);
             return;
         }
 
-        SetSuspiciousPosition(attacker.position); //Dù có xác nhận mục tiêu hay không thì cũng cập nhật vị trí cuối cùng của kẻ tấn công để có thể di chuyển đến đó khi mất mục tiêu, có thể mở rộng sau này để thêm logic khác khi bị tấn công (ví dụ: nếu kẻ tấn công đang đứng trong một khu vực cụ thể nào đó thì cập nhật vị trí cuối cùng của mục tiêu thành một vị trí khác để tạo ra sự đa dạng về phản ứng khi bị tấn công)
+        SetSuspiciousPosition(attacker.position);
 
-        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyStaggerState && _enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyDeadState) //Nếu không đang bị stagger hoặc chết thì mới phản ứng khi bị tấn công, có thể mở rộng sau này để thêm điều kiện khác (ví dụ: nếu đang ở trạng thái phòng thủ thì vẫn phản ứng khi bị tấn công)
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyStaggerState && _enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyDeadState)
         {
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
         }
@@ -260,9 +266,9 @@ public class EnemyDetection : MonoBehaviour
             return;
         }
         //Ngay lập tức mất mục tiêu chuyển sang nghi ngờ nếu có chướng ngại vật chắn giữa Enemy và mục tiêu để tránh trường hợp Enemy vẫn giữ mục tiêu mặc dù nó đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách phát hiện
-        if (!IsTargetVisible(currentTarget))
+        if (!HasLineOfSightTo(currentTarget, false))
         {
-            ForceLoseTarget(); // LƯU VỊ TRÍ CUỐI CÙNG!
+            ForceLoseTarget();
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
             return;
         }
@@ -276,7 +282,8 @@ public class EnemyDetection : MonoBehaviour
         Vector3 targetEyePosition = target.position + Vector3.up * 1f;
 
         float dstToTarget = Vector3.Distance(eyePosition, targetEyePosition);
-        if (dstToTarget > _enemyBase.Data.detectRange) return false;
+        float detectRange = _enemyBase.MinibossBehaviour != null ? _enemyBase.MinibossBehaviour.ModifyDetectionRange(_enemyBase.Data.detectRange) : _enemyBase.Data.detectRange;
+        if (dstToTarget > detectRange) return false;
 
         Vector3 dirToTarget = (targetEyePosition - eyePosition).normalized;
 

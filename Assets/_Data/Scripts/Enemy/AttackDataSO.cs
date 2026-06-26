@@ -36,6 +36,8 @@ public enum EnemyHitboxType
     Body,
     Leg,
     Hand,
+    ClawLeft,
+    ClawRight,
     Spin,
     Sting,
     Explosion,

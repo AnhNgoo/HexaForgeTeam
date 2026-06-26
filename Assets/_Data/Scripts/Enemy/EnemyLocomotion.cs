@@ -36,6 +36,8 @@ public class EnemyLocomotion : MonoBehaviour
 
     public void SetSpeed(float speed)
     {
+        if (_enemyBase != null && _enemyBase.MinibossBehaviour != null)
+            speed = _enemyBase.MinibossBehaviour.ModifyMoveSpeed(speed);
         _navMeshAgent.speed = speed;
     }
 

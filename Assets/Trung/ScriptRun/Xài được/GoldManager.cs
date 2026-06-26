@@ -1,10 +1,13 @@
 using UnityEngine;
+using System;
 
 public class GoldManager : Singleton<GoldManager>
 {
     [Header("Gold Runtime")]
     [SerializeField] private int currentGold = 0;
     public int CurrentGold => currentGold;
+
+    public event Action<int> OnGoldChanged;
 
     /// <summary>
     /// Cộng vàng
@@ -15,6 +18,8 @@ public class GoldManager : Singleton<GoldManager>
             return;
 
         currentGold += amount;
+
+        OnGoldChanged?.Invoke(currentGold);
 
         Debug.Log($"Nhận {amount} vàng | Tổng vàng: {currentGold}");
     }
@@ -28,6 +33,8 @@ public class GoldManager : Singleton<GoldManager>
             return;
 
         currentGold -= amount;
+
+        OnGoldChanged?.Invoke(currentGold);
 
         if (currentGold < 0)
             currentGold = 0;
@@ -49,5 +56,6 @@ public class GoldManager : Singleton<GoldManager>
     public void ResetGold()
     {
         currentGold = 0;
+        OnGoldChanged?.Invoke(currentGold);
     }
 }
