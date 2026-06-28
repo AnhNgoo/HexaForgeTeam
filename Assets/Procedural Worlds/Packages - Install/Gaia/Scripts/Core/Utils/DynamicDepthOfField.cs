@@ -184,9 +184,15 @@ public class DynamicDepthOfField : MonoBehaviour
     }
 
     private void Update()
-    {
-        UpdateDepthOfFieldFocus();
-    }
+{
+#if UNITY_EDITOR
+    // Bỏ qua Depth Of Field khi chạy GitHub Actions / Unity Test Runner
+    if (Application.isBatchMode)
+        return;
+#endif
+
+    UpdateDepthOfFieldFocus();
+}
 
     private void CheckAndSetupDepthOfField()
     {
@@ -230,106 +236,165 @@ public class DynamicDepthOfField : MonoBehaviour
 
     private void UpdateDepthOfFieldFocus()
     {
+        // CI / Unity Test Runner không cần chạy hiệu ứng camera
+    #if UNITY_EDITOR
+        if (Application.isBatchMode)
+        {
+            return;
+        }
+    #endif
+
         if (mainCamera == null)
         {
             return;
         }
-#if HDPipeline || UPPipeline || UNITY_POST_PROCESSING_STACK_V2
+
+        if (depthOfField == null)
+        {
+            return;
+        }
+
+    #if HDPipeline || UPPipeline || UNITY_POST_PROCESSING_STACK_V2
         float normalizedRangeDistance = 1f;
         Ray centerRay = new Ray(mainCamera.transform.position, mainCamera.transform.forward);
         RaycastHit centerHit;
-#endif
+    #endif
 
-        // Start the raycast
-#if !HDPipeline && !UPPipeline
-#if UNITY_POST_PROCESSING_STACK_V2
+
+    #if !HDPipeline && !UPPipeline
+
+    #if UNITY_POST_PROCESSING_STACK_V2
+
         if (Physics.Raycast(centerRay, out centerHit, parameters.maxDistance, raycastLayerMask))
         {
             hitPoint = centerHit.point;
 
-            normalizedRangeDistance = Mathf.InverseLerp(parameters.minDistance, parameters.maxDistance, centerHit.distance);
+            normalizedRangeDistance =
+                Mathf.InverseLerp(parameters.minDistance,
+                parameters.maxDistance,
+                centerHit.distance);
 
-            float focusDistance = Vector3.Distance(mainCamera.transform.position, hitPoint);
+            float focusDistance =
+                Vector3.Distance(mainCamera.transform.position, hitPoint);
+
             depthOfField.focusDistance.value = focusDistance;
             depthOfField.aperture.value = parameters.aperture;
             depthOfField.focalLength.value = parameters.focalLength;
-
-
         }
         else
         {
             depthOfField.focusDistance.value = 100f;
             depthOfField.aperture.value = parameters.aperture;
             depthOfField.focalLength.value = parameters.focalLength;
-
-
         }
-#endif
-#endif
-#if UPPipeline
-            if (Physics.Raycast(centerRay, out centerHit, parameters.maxDistance, raycastLayerMask))
-            {
-                hitPoint = centerHit.point;
 
-                normalizedRangeDistance = Mathf.InverseLerp(parameters.minDistance, parameters.maxDistance, centerHit.distance);
+    #endif
 
-                float focusDistance = Vector3.Distance(mainCamera.transform.position, hitPoint);
-                if (depthOfField.mode.value != DepthOfFieldMode.Bokeh)
-                {
-                    depthOfField.mode.value = DepthOfFieldMode.Bokeh;
-                }
+    #endif
 
-                if (focusDistance < parameters.minDistance)
-                {
-                  focusDistance = parameters.minDistance;
-                }
-                else if (focusDistance > parameters.maxDistance) 
-                { 
-                  focusDistance = parameters.maxDistance;
-                }
-                depthOfField.focusDistance.value = focusDistance;
-                depthOfField.aperture.value = parameters.aperture;
-                depthOfField.focalLength.value = parameters.FocalLength;
-                depthOfField.bladeCount.value = parameters.bladeCount;
-                depthOfField.bladeCurvature.value = parameters.bladeCurvature;
-                depthOfField.bladeRotation.value = parameters.bladeRotation;
-            }
-            else
-            {
-                depthOfField.focusDistance.value = 100f;
-                depthOfField.aperture.value = parameters.aperture;
-                depthOfField.focalLength.value = parameters.FocalLength;
-                depthOfField.bladeCount.value = parameters.bladeCount;
-                depthOfField.bladeCurvature.value = parameters.bladeCurvature;
-                depthOfField.bladeRotation.value = parameters.bladeRotation;
-            }
-#endif
-#if HDPipeline
+
+    #if UPPipeline
 
         if (Physics.Raycast(centerRay, out centerHit, parameters.maxDistance, raycastLayerMask))
         {
             hitPoint = centerHit.point;
 
-            normalizedRangeDistance = Mathf.InverseLerp(parameters.minDistance, parameters.maxDistance, centerHit.distance);
+            normalizedRangeDistance =
+                Mathf.InverseLerp(parameters.minDistance,
+                parameters.maxDistance,
+                centerHit.distance);
+
+            float focusDistance =
+                Vector3.Distance(mainCamera.transform.position, hitPoint);
+
+
+            depthOfField.focusDistance.value = focusDistance;
+            depthOfField.aperture.value = parameters.aperture;
+            depthOfField.focalLength.value = parameters.FocalLength;
+            depthOfField.bladeCount.value = parameters.bladeCount;
+            depthOfField.bladeCurvature.value = parameters.bladeCurvature;
+            depthOfField.bladeRotation.value = parameters.bladeRotation;
+        }
+        else
+        {
+            depthOfField.focusDistance.value = 100f;
+            depthOfField.aperture.value = parameters.aperture;
+            depthOfField.focalLength.value = parameters.FocalLength;
+            depthOfField.bladeCount.value = parameters.bladeCount;
+            depthOfField.bladeCurvature.value = parameters.bladeCurvature;
+            depthOfField.bladeRotation.value = parameters.bladeRotation;
         }
 
-        targetNearRangeStart = Mathf.Lerp(parameters.minNearRangeStart, parameters.maxNearRangeStart, normalizedRangeDistance);
-        targetNearRangeEnd = Mathf.Lerp(parameters.minNearRangeEnd, parameters.maxNearRangeEnd, normalizedRangeDistance);
-        targetFarRangeStart = Mathf.Lerp(parameters.minFarRangeStart, parameters.maxFarRangeStart, normalizedRangeDistance);
-        targetFarRangeEnd = Mathf.Lerp(parameters.minFarRangeEnd, parameters.maxFarRangeEnd, normalizedRangeDistance);
+    #endif
 
-        currentNearRangeStart = Mathf.MoveTowards(currentNearRangeStart, targetNearRangeStart, parameters.nearFocusSpeed * Time.deltaTime);
-        currentNearRangeEnd = Mathf.MoveTowards(currentNearRangeEnd, targetNearRangeEnd, parameters.nearFocusSpeed * Time.deltaTime);
-        currentFarRangeStart = Mathf.MoveTowards(currentFarRangeStart, targetFarRangeStart, parameters.farFocusSpeed * Time.deltaTime);
-        currentFarRangeEnd = Mathf.MoveTowards(currentFarRangeEnd, targetFarRangeEnd, parameters.farFocusSpeed * Time.deltaTime);
 
-        // Apply the calculated focus distances
+    #if HDPipeline
+
+        if (Physics.Raycast(centerRay, out centerHit,
+            parameters.maxDistance,
+            raycastLayerMask))
+        {
+            hitPoint = centerHit.point;
+
+            normalizedRangeDistance =
+                Mathf.InverseLerp(parameters.minDistance,
+                parameters.maxDistance,
+                centerHit.distance);
+        }
+
+
+        targetNearRangeStart =
+            Mathf.Lerp(parameters.minNearRangeStart,
+            parameters.maxNearRangeStart,
+            normalizedRangeDistance);
+
+        targetNearRangeEnd =
+            Mathf.Lerp(parameters.minNearRangeEnd,
+            parameters.maxNearRangeEnd,
+            normalizedRangeDistance);
+
+        targetFarRangeStart =
+            Mathf.Lerp(parameters.minFarRangeStart,
+            parameters.maxFarRangeStart,
+            normalizedRangeDistance);
+
+        targetFarRangeEnd =
+            Mathf.Lerp(parameters.minFarRangeEnd,
+            parameters.maxFarRangeEnd,
+            normalizedRangeDistance);
+
+
+        currentNearRangeStart =
+            Mathf.MoveTowards(currentNearRangeStart,
+            targetNearRangeStart,
+            parameters.nearFocusSpeed * Time.deltaTime);
+
+
+        currentNearRangeEnd =
+            Mathf.MoveTowards(currentNearRangeEnd,
+            targetNearRangeEnd,
+            parameters.nearFocusSpeed * Time.deltaTime);
+
+
+        currentFarRangeStart =
+            Mathf.MoveTowards(currentFarRangeStart,
+            targetFarRangeStart,
+            parameters.farFocusSpeed * Time.deltaTime);
+
+
+        currentFarRangeEnd =
+            Mathf.MoveTowards(currentFarRangeEnd,
+            targetFarRangeEnd,
+            parameters.farFocusSpeed * Time.deltaTime);
+
+
+
         depthOfField.nearFocusStart.value = currentNearRangeStart;
         depthOfField.nearFocusEnd.value = currentNearRangeEnd;
         depthOfField.farFocusStart.value = currentFarRangeStart;
         depthOfField.farFocusEnd.value = currentFarRangeEnd;
 
-        //switch off depth of field when reaching the target Far range end - otherwise the sky will stay blurry
+
         if (currentFarRangeEnd == parameters.maxFarRangeEnd)
         {
             depthOfField.active = false;
@@ -338,7 +403,8 @@ public class DynamicDepthOfField : MonoBehaviour
         {
             depthOfField.active = true;
         }
-#endif
+
+    #endif
     }
 
 
