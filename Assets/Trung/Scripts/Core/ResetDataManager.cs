@@ -16,6 +16,18 @@ public class ResetDataManager : MonoBehaviour
             .DeleteSave();
     }
 
+    if (LeaderboardManager.Instance != null)
+    {
+        LeaderboardManager.Instance
+            .UpdatePowerScore();
+    }
+
+    if (PlayFabDataManager.Instance != null)
+    {
+        PlayFabDataManager.Instance
+            .SaveCloud();
+    }
+
     Debug.Log(
         "All Data Reset");
 

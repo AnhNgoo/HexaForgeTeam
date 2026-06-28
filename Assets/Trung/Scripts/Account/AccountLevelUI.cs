@@ -8,6 +8,8 @@ public class AccountLevelUI : LoadComponents
 
     [SerializeField]
     private TMP_Text LevelText;
+    [SerializeField]
+private TMP_Text UserNameText;
 
     [SerializeField]
     private TMP_Text ExpText;
@@ -44,8 +46,22 @@ public class AccountLevelUI : LoadComponents
                 requiredExp;
         }
     }
+    public void SetUserName(
+    string userName)
+{
+    if (UserNameText != null)
+    {
+        UserNameText.text = userName;
+    }
+}
     protected override void LoadComponent()
 {
+    if (UserNameText == null)
+{
+    UserNameText =
+        transform.Find(nameof(UserNameText))
+        ?.GetComponent<TMP_Text>();
+}
     if (LevelText == null)
     {
         LevelText =

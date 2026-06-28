@@ -173,6 +173,11 @@ RefreshUI();
 
         RefreshUI();
         CheckMasterAchievement();
+        if (LeaderboardManager.Instance != null)
+{
+    LeaderboardManager.Instance
+        .UpdatePowerScore();
+}
     }
 
     #endregion
