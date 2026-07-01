@@ -17,15 +17,17 @@ public enum MenuType
     InventoryMenu = 4,
     SettingMenu = 5,
     PauseMenu = 6,
-    LevelUpMenu = 7,
+    LevelMenu = 7,
     GachaMenu = 8,
     StoreMenu = 9,
-    InventoryGemMenu = 10,
+    InventoryRuneMenu = 10,
     HelpMenu = 11,
     CharacterMenu = 12,
     HUDMenuTest = 13,
-    TrophyMenu = 13,
-    LanguageMenu = 14,
+    AchievementMenu = 14,
+    LanguageMenu = 15,
+    GraphicsMenu = 16,
+    ControllerMenu = 17,
 }
 
 public class UIManager : Singleton<UIManager>

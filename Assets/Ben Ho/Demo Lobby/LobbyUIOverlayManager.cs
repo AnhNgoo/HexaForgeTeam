@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LobbyUIOverlayManager : MonoBehaviour
 {
@@ -9,6 +10,11 @@ public class LobbyUIOverlayManager : MonoBehaviour
 
     [Header("UI Scene")]
     [SerializeField] private string uiSceneName = "UI Menu";
+
+    [Header("Lobby UI Raycaster")]
+    [SerializeField] private GraphicRaycaster lobbyGraphicRaycaster;
+
+    private bool lobbyRaycasterWasEnabled;
 
     [Header("Player")]
     [SerializeField] private Transform player;
@@ -50,6 +56,12 @@ public class LobbyUIOverlayManager : MonoBehaviour
 
         if (lobbyEventSystem == null)
             lobbyEventSystem = FindObjectOfType<EventSystem>();
+
+        if (lobbyGraphicRaycaster == null)
+        {
+            lobbyGraphicRaycaster =
+                FindObjectOfType<GraphicRaycaster>(true);
+        }
 
         if (player != null)
         {
@@ -94,6 +106,14 @@ public class LobbyUIOverlayManager : MonoBehaviour
         SaveLobbyState();
         DisablePlayerControls();
         ConfigureCursorForUI();
+
+        if (lobbyGraphicRaycaster != null)
+        {
+            lobbyRaycasterWasEnabled =
+                lobbyGraphicRaycaster.enabled;
+
+            lobbyGraphicRaycaster.enabled = false;
+        }
 
         // Lobby có EventSystem riêng, tắt nó để không bị trùng
         // với EventSystem trong scene UI Menu.
@@ -321,6 +341,12 @@ public class LobbyUIOverlayManager : MonoBehaviour
         RestoreCursor();
 
         Time.timeScale = previousTimeScale;
+
+        if (lobbyGraphicRaycaster != null)
+        {
+            lobbyGraphicRaycaster.enabled =
+                lobbyRaycasterWasEnabled;
+        }
 
         if (lobbyEventSystem != null)
             lobbyEventSystem.gameObject.SetActive(true);
