@@ -52,7 +52,7 @@ public class IdleState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.RecoveryBottle > 0)
+        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.RecoveryBottle > 0 && !character.CharacterInput.IsHealthRecovering)
         {
             character.StateController.ChangeState(new HealthRecoveryState(character));
             return;

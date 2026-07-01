@@ -9,6 +9,10 @@ public enum TutorialType
     LockTarget = 2,
     Battle = 3,
     Dodge = 4,
+    PickUpItem = 5,
+    ReceiveRecoveryBottle = 6,
+    UseSkill = 7,
+
 }
 public class TutorialSystem : Singleton<TutorialSystem>
 {

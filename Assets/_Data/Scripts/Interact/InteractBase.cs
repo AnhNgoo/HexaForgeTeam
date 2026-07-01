@@ -1,15 +1,44 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public abstract class InteractBase : MonoBehaviour
+public abstract class InteractBase : LoadComponents
 {
-    protected void Update()
-    {
-        if (!playerInRange) return;
+    [Tooltip("Có thể override InteractionName để thay đổi tên hiển thị của đối tượng tương tác cụ thể này. Nếu không override thì sẽ lấy interactionName mặc định")]
+    [SerializeField] protected string interactionName = "Pick Up Item";
+    public virtual string InteractionName => interactionName;
+    [SerializeField] protected Transform modelItem;
 
-        if (Input.GetKeyDown(KeyCode.F))
+    protected bool playerInRange = false;
+    protected GameObject lockTargetMarker;
+    protected CharacterBase character;
+
+    protected override void LoadComponent()
+    {
+        if (modelItem == null)
+        {
+            GameObject visual = transform.Find("Visuals")?.gameObject;
+
+            if (visual != null)
+            {
+                if (visual.transform.childCount > 0)
+                    modelItem = visual?.transform?.GetChild(0);
+            }
+        }
+    }
+
+    protected override void LoadComponentRuntime()
+    {
+
+    }
+    protected virtual void Update()
+    {
+        if (!playerInRange || !InteractionManager.Instance.IsCurrentInteraction(this)) return;
+
+        if (InputManager.InputActions.Keyboard.Interact.triggered)
         {
             InteractAction();
         }
@@ -21,20 +50,50 @@ public abstract class InteractBase : MonoBehaviour
 
     protected abstract void InteractAction();
 
-    protected bool playerInRange = false;
-    private void OnTriggerEnter(Collider other)
+
+    protected virtual void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            if (character == null)
+            {
+                if (other.TryGetComponent(out CharacterBase characterBase))
+                {
+                    character = characterBase;
+                }
+            }
             playerInRange = true;
+            InteractionManager.Instance?.RegisterInteractable(this);
         }
     }
 
-    private void OnTriggerExit(Collider other)
+    protected virtual void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player"))
         {
+            if (character != null &&
+                other.TryGetComponent(out CharacterBase characterBase) && characterBase == character)
+            {
+                character = null;
+            }
             playerInRange = false;
+            InteractionManager.Instance?.UnregisterInteractable(this);
         }
     }
+
+    public void ShowHighlight()
+    {
+        lockTargetMarker = ObjectPooling.Instance.SpawnFromPool(PoolType.LockTargetMarker, modelItem.position, modelItem.rotation, modelItem);
+    }
+
+    public void HideHighlight()
+    {
+        if (lockTargetMarker != null)
+        {
+            ObjectPooling.Instance.ReturnToPool(PoolType.LockTargetMarker, lockTargetMarker);
+            lockTargetMarker = null;
+        }
+    }
+
+    public abstract void ResetInteraction();
 }

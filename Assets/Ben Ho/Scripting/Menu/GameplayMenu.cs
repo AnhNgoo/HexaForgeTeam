@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System;
+using UnityEngine.InputSystem;
 
 [System.Serializable]
 public class TutorialPanel
@@ -32,6 +34,10 @@ public class GameplayMenu : MenuBase
     [Header("Tutorial")]
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private TutorialPanel[] tutorialPanels;
+    [Header("Pick Up Item Panel")]
+    [SerializeField] private GameObject pickUpItemPanel;
+    [SerializeField] private TextMeshProUGUI text_Keyboard;
+    [SerializeField] private TextMeshProUGUI text_Description;
 
     private bool _isGoldSubscribed;
 
@@ -58,6 +64,14 @@ public class GameplayMenu : MenuBase
         if (tutorialPanel == null)
             tutorialPanel = transform.Find("Panel_Tutorial")?.gameObject;
 
+        if (pickUpItemPanel == null)
+            pickUpItemPanel = transform.Find("Panel_PickUpItem")?.gameObject;
+
+        if (text_Keyboard == null)
+            text_Keyboard = transform.Find("Panel_PickUpItem/Text_Keyboard")?.GetComponent<TextMeshProUGUI>();
+
+        if (text_Description == null)
+            text_Description = transform.Find("Panel_PickUpItem/Text_Description")?.GetComponent<TextMeshProUGUI>();
         if (txt_Gold == null)
             txt_Gold = transform.Find("Txt_Gold")?.GetComponent<TextMeshProUGUI>();
     }
@@ -106,15 +120,21 @@ public class GameplayMenu : MenuBase
     protected override void Awake()
     {
         base.Awake();
+        HidePickUpItemPanel(null);
 
         EventManager.Subscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
         EventManager.Subscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
+        EventManager.Subscribe(GameEvent.OnShowPickUpItemPanel, ShowPickUpItemPanel);
+        EventManager.Subscribe(GameEvent.OnHidePickUpItemPanel, HidePickUpItemPanel);
     }
+
 
     private void OnDestroy()
     {
         EventManager.Unsubscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
         EventManager.Unsubscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
+        EventManager.Unsubscribe(GameEvent.OnShowPickUpItemPanel, ShowPickUpItemPanel);
+        EventManager.Unsubscribe(GameEvent.OnHidePickUpItemPanel, HidePickUpItemPanel);
     }
     private void Update()
     {
@@ -234,5 +254,30 @@ public class GameplayMenu : MenuBase
             }
         }
     }
+    #endregion
+
+    #region PickUpItemPanel
+    private void HidePickUpItemPanel(object obj)
+    {
+        if (pickUpItemPanel == null) return;
+
+        pickUpItemPanel.SetActive(false);
+    }
+
+    private void ShowPickUpItemPanel(object obj)
+    {
+        if (pickUpItemPanel == null) return;
+
+        if (obj is not string interactionName)
+        {
+            Debug.LogWarning("Invalid data type for ShowPickUpItemPanel. Expected string.");
+            return;
+        }
+
+        text_Keyboard.text = InputManager.InputActions.Keyboard.Interact.GetBindingDisplayString();
+        text_Description.text = interactionName;
+        pickUpItemPanel.SetActive(true);
+    }
+
     #endregion
 }

@@ -13,9 +13,11 @@ public class CharacterWeapon : MonoBehaviour
 
 
     protected GameObject currentWeaponObject;
+    protected CharacterBase character;
 
-    public void Init(Transform weaponHoldPoint)
+    public void Init(CharacterBase character, Transform weaponHoldPoint)
     {
+        this.character = character;
         if (weaponHoldPoint == null)
         {
             Debug.LogWarning("Weapon hold point is not assigned. Please assign a transform to weaponHoldPoint.");
@@ -78,11 +80,9 @@ public class CharacterWeapon : MonoBehaviour
 
     public void ChangeWeapon()
     {
-        int nextWeaponIndex = EquipmentSystem.Instance.CurrentWeaponIndex + 1;
-        if (nextWeaponIndex >= EquipmentSystem.Instance.WeaponSlots.Count)
-        {
-            nextWeaponIndex = -1; // Quay lại vũ khí đầu tiên nếu vượt quá danh sách
-        }
-        EquipmentSystem.Instance.ChangeWeapon(nextWeaponIndex);
+        if (character.CharacterInput.IsChangingWeapon ||
+              EquipmentSystem.Instance.GetWeaponCount() == 0) return;
+
+        character.StateController.ChangeState(new ChangeWeaponState(character));
     }
 }

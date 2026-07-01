@@ -21,6 +21,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
     public CharacterData CharacterData => characterData;
+    [Header("Dust Effect Settings")]
+    [SerializeField] protected ParticleSystem dustEffect;
+    protected bool isDustEffectPlaying = false;
     [Header("Check Obstacle In Front Settings")]
     [SerializeField] protected LayerMask obstacleLayer; // Lớp của chướng ngại vật để kiểm tra va chạm khi di chuyển hoặc áp sát mục tiêu
     [SerializeField] protected float ZoffsetCheckObstacleInFront = 1.5f; // Khoảng cách Z để kiểm tra chướng ngại vật trước mặt
@@ -28,8 +31,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Header("Check Near Enemy Settings")]
     [SerializeField] protected LayerMask enemyLayer; // Lớp của kẻ địch để kiểm tra va chạm khi kiểm tra kẻ địch gần trước mặt
     [SerializeField] protected Vector2 meleeSnapThreshold = new Vector2(2.5f, 15f); // Tầm áp sát tối thiểu và tối đa để kích hoạt snap
-    [SerializeField] protected float ZoffsetCheckForNearEnemy = 1.5f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
-    [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected float ZoffsetCheckForNearEnemy = 2f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected float radiusCheckForNearEnemy = 1.5f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
 
     [Header("Character Models")]
     [SerializeField] protected GameObject visuals;
@@ -78,7 +81,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [SerializeField] protected string attackParameterName = "AttackSpeed";
     protected StateController stateController;
     public StateController StateController => stateController;
-    private Cooldown dodgeCooldown = new Cooldown();
+    protected Cooldown dodgeCooldown = new Cooldown();
     public bool IsHealthRecovering { get; set; } = false;
     public DashShadowEffect dashShadowEffect { get; set; }
 
@@ -106,6 +109,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterHealth = GetComponent<CharacterHealth>();
         if (characterRecovery == null)
             characterRecovery = GetComponent<CharacterRecovery>();
+        if (dustEffect == null)
+            dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
     }
 
@@ -148,12 +153,13 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterHealth.Init(characterData.stats.maxHealth);
         characterRecovery.Init(this);
         characterAnimation.Init(characterVisual);
-        characterWeapon.Init(handRight.transform);
+        characterWeapon.Init(this, handRight.transform);
         characterLockTarget.SetFollowTarget();
         characterCombat?.Init(this, InitAttackCombos(), InitPunchCombos());
         InitSkills();
         GetDashShadowEffect(characterVisual);
         EquipmentSystem.Instance?.Init(characterWeapon);
+        InteractionManager.Instance?.Init(this.transform);
     }
 
     // Điều chỉnh tốc độ animation tấn công dựa trên tốc độ tấn công của character
@@ -177,6 +183,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterMovement.SetMoveDirection(characterInput.MoveInput);
         if (characterInput.LockTarget)
             OnLockTarget();
+
+        PlayDustEffect();
     }
 
     protected virtual void FixedUpdate()
@@ -408,9 +416,30 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
         if (scrollY > 0f)
         {
-            Debug.Log("Mouse wheel scrolled up");
             characterWeapon.ChangeWeapon();
         }
     }
+    #endregion
+
+    #region Effect
+
+    protected virtual void PlayDustEffect()
+    {
+        if (dustEffect == null)
+            return;
+
+        if (characterMovement.IsGrounded && characterInput.IsMoving && !isDustEffectPlaying)
+        {
+            dustEffect.Play();
+            isDustEffectPlaying = true;
+        }
+        else if ((!characterMovement.IsGrounded || !characterInput.IsMoving) && isDustEffectPlaying)
+        {
+            dustEffect.Stop();
+            isDustEffectPlaying = false;
+        }
+
+    }
+
     #endregion
 }
