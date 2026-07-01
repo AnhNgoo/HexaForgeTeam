@@ -19,6 +19,13 @@ public class AchievementManager :
     [SerializeField]
     private AchievementToastUI toastUI;
 
+    private GameObject defaultAchievementPanel;
+    private Transform defaultContentParent;
+    private AchievementCardUI defaultCardPrefab;
+    private AchievementToastUI defaultToastUI;
+
+    private bool defaultUICached;
+
     private List<AchievementData>
         achievements =
         new List<AchievementData>();
@@ -54,9 +61,10 @@ public class AchievementManager :
 
         CreateDefaultAchievements();
 
-LoadAchievement();
+        LoadAchievement();
 
-RefreshUI();
+        RefreshUI();
+        CacheDefaultUI();
     }
 
     #region Create
@@ -379,53 +387,104 @@ private void GiveUltimateRune()
     Debug.Log(
         "ULTIMATE RUNE UNLOCKED");
 }
-private void CheckMasterAchievement()
-{
-    AchievementData master =
-        GetAchievement(
-            MasterAchievementID);
-
-    if (master == null)
+    private void CheckMasterAchievement()
     {
-        return;
-    }
+        AchievementData master =
+            GetAchievement(
+                MasterAchievementID);
 
-    if (master.isCompleted)
-    {
-        return;
-    }
-
-    for (int i = 0;
-         i < achievements.Count;
-         i++)
-    {
-        AchievementData achievement =
-            achievements[i];
-
-        if (achievement.achievementID ==
-            MasterAchievementID)
-        {
-            continue;
-        }
-
-        if (!achievement.isCompleted)
+        if (master == null)
         {
             return;
         }
+
+        if (master.isCompleted)
+        {
+            return;
+        }
+
+        for (int i = 0;
+            i < achievements.Count;
+            i++)
+        {
+            AchievementData achievement =
+                achievements[i];
+
+            if (achievement.achievementID ==
+                MasterAchievementID)
+            {
+                continue;
+            }
+
+            if (!achievement.isCompleted)
+            {
+                return;
+            }
+        }
+
+        master.currentProgress = 1;
+        master.isCompleted = true;
+
+        SaveAchievement();
+
+        RefreshUI();
+
+        if (toastUI != null)
+        {
+            toastUI.ShowToast(
+                "Achievement Unlocked",
+                master.title);
+        }
     }
-
-    master.currentProgress = 1;
-    master.isCompleted = true;
-
-    SaveAchievement();
-
-    RefreshUI();
-
-    if (toastUI != null)
+    private void CacheDefaultUI()
     {
-        toastUI.ShowToast(
-            "Achievement Unlocked",
-            master.title);
+        if (defaultUICached)
+            return;
+
+        defaultAchievementPanel = achievementPanel;
+        defaultContentParent = contentParent;
+        defaultCardPrefab = cardPrefab;
+        defaultToastUI = toastUI;
+
+        defaultUICached = true;
     }
-}
+
+    public void BindUI(
+        GameObject newPanel,
+        Transform newContentParent,
+        AchievementCardUI newCardPrefab,
+        AchievementToastUI newToastUI = null)
+    {
+        CacheDefaultUI();
+
+        if (achievementPanel != null &&
+            achievementPanel != newPanel)
+        {
+            achievementPanel.SetActive(false);
+        }
+
+        achievementPanel = newPanel;
+        contentParent = newContentParent;
+        cardPrefab = newCardPrefab;
+
+        if (newToastUI != null)
+            toastUI = newToastUI;
+    }
+
+    public void RestoreDefaultUI()
+    {
+        if (!defaultUICached)
+            return;
+
+        if (achievementPanel != null &&
+            achievementPanel != defaultAchievementPanel)
+        {
+            achievementPanel.SetActive(false);
+        }
+
+        achievementPanel = defaultAchievementPanel;
+        contentParent = defaultContentParent;
+        cardPrefab = defaultCardPrefab;
+        toastUI = defaultToastUI;
+    }
 }

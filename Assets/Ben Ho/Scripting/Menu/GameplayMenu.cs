@@ -153,7 +153,7 @@ public class GameplayMenu : MenuBase
     {
         Debug.Log("Settings button clicked");
 
-        Time.timeScale = 0f;
+        Time.timeScale = 1f;
 
         UIManager.Instance.ChangeMenu(MenuType.PauseMenu);
     }

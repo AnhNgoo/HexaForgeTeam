@@ -5,7 +5,7 @@ public class StartRunTable : MonoBehaviour
 {
     [Header("Scene")]
     [SerializeField]
-    private string sceneName = "TétTaoLao";
+    private string sceneName = "Tutorial";
 
     public void OnInteract()
     {
