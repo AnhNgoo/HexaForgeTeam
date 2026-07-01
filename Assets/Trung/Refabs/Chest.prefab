@@ -58,7 +58,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6200720779111275133, guid: 1083f87f08232f541942f4a22a00127e, type: 3}
       propertyPath: m_Name
-      value: Animated PBR Chest _Wood_Demo Variant
+      value: Chest
       objectReference: {fileID: 0}
     - target: {fileID: 6200720779111275133, guid: 1083f87f08232f541942f4a22a00127e, type: 3}
       propertyPath: m_IsActive
@@ -99,7 +99,7 @@ PrefabInstance:
       addedObject: {fileID: 549210992440854677}
     - targetCorrespondingSourceObject: {fileID: 6200720779111275133, guid: 1083f87f08232f541942f4a22a00127e, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6029904064144785064}
+      addedObject: {fileID: 3872568941432627978}
   m_SourcePrefab: {fileID: 100100000, guid: 1083f87f08232f541942f4a22a00127e, type: 3}
 --- !u!95 &463936336095149336 stripped
 Animator:
@@ -172,7 +172,7 @@ MonoBehaviour:
   pressAnimation: Press
   openToPressDelay: 1.5
   destroyDelay: 1
---- !u!114 &6029904064144785064
+--- !u!114 &3872568941432627978
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -181,11 +181,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 463936336102526680}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b9080f637d428174480fe059bee806ab, type: 3}
+  m_Script: {fileID: 11500000, guid: 3aa1d16350fae6e48862b054c757b24b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  interactText: "M\u1EDF R\u01B0\u01A1ng"
-  interactKey: 102
-  interactButtonPrefab: {fileID: 5874946568467031989, guid: b38d563ea105d0a4982c29d8b8d4cfb3, type: 3}
-  worldOffset: {x: 0, y: 2, z: 0}
+  interactText: Open
+  interactIcon: {fileID: 21300000, guid: a6732f4d3ca70714fae116d5e7de25c7, type: 3}
+  priority: 0
   playerTag: Player
