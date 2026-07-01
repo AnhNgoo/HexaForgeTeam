@@ -105,6 +105,24 @@ public class EnemyBase : LoadComponents, IPoolable
         ActivateAIAfterFrame().Forget();
     }
 
+    public void InitSummoned(Vector3 spawnPosition, Transform target)
+    {
+        _spawnOrigin = spawnPosition;
+        _spawnRotation = transform.rotation;
+        _currentLeash = enemyData.maxLeashDistance;
+
+        _locomotion.WarpTo(spawnPosition);
+        _health.ResetHealth();
+        _poiseSystem.ResetPoise();
+        _detection.ResetDetection();
+        _detection.SetPlayerReference(target);
+
+        if (target != null)
+            _detection.ForceDetectTarget(target);
+
+        ActivateAIAfterFrame().Forget();
+    }
+
     public void Initialize()
     {
         if (_isInitialized) return; //Nếu đã được khởi tạo rồi thì không khởi tạo lại để tránh lỗi và đảm bảo rằng Enemy chỉ được khởi tạo một lần duy nhất
@@ -240,7 +258,7 @@ public class EnemyBase : LoadComponents, IPoolable
         if (_locomotion != null)
         {
             _locomotion.SetAgentActive(true);
-            _locomotion.SetAngularSpeed(120f);
+            _locomotion.SetAngularSpeed(Data.angularSpeed); // Đặt tốc độ xoay mặt của NavMeshAgent dựa trên dữ liệu EnemyData để đảm bảo rằng Enemy có thể xoay mặt theo hướng mục tiêu một cách mượt mà và chính xác);
             _locomotion.StopMoving(); // Đảm bảo không bị chạy bậy lúc mới đẻ
         }
     }

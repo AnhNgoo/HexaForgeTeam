@@ -10,6 +10,7 @@ public class SafeZoneChecker : LoadComponents
 {
     [SerializeField] private VolumeProfile outsideSafeZoneVolumeProfile;
     [SerializeField] private bool isInSafeZone = false;
+    [SerializeField] private bool isFirstTimeCheckDistanceSafeZone = false;
     [SerializeField] private float damagePerSecondOutsideSafeZone = 10f;
     [SerializeField] private float damageInterval = 1f;
     [SerializeField] private float delayTimeWhenLeftSafeZone = 0.5f;
@@ -43,6 +44,11 @@ public class SafeZoneChecker : LoadComponents
         Vector2 safeZoneCenter = new Vector2(safeZone.CurrentCenterPoint.x, safeZone.CurrentCenterPoint.z);
         float distanceToSafeZoneCenter = Vector2.Distance(thisObjectPos, safeZoneCenter);
 
+        if (!isFirstTimeCheckDistanceSafeZone)
+        {
+            isFirstTimeCheckDistanceSafeZone = true;
+            CheckDistanceSafeZoneFirstTime(distanceToSafeZoneCenter, safeZone);
+        }
         //Nếu ở ngoài vòng bo
         if (distanceToSafeZoneCenter > safeZone.CurrentRadius)
         {
@@ -65,6 +71,18 @@ public class SafeZoneChecker : LoadComponents
         }
     }
 
+    private void CheckDistanceSafeZoneFirstTime(float distanceToSafeZoneCenter, SafeZone safeZone)
+    {
+        if (distanceToSafeZoneCenter > safeZone.CurrentRadius)
+        {
+            isInSafeZone = true;
+        }
+        // Nếu ở trong vòng bo
+        else
+        {
+            isInSafeZone = false;
+        }
+    }
     private void OutsideSafeZone()
     {
         isInSafeZone = false;

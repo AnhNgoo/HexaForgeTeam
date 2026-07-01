@@ -212,7 +212,7 @@ public class CharacterCombat : LoadComponents
             float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
             if (enemy.DamageReceiver != null)
             {
-                enemy.DamageReceiver.TakeHit(damage, poisonDamage);
+                enemy.DamageReceiver.TakeHit(damage, poisonDamage, transform);
             }
         }
 

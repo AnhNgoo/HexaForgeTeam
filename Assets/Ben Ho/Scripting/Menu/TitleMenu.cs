@@ -88,7 +88,7 @@ public class TitleMenu : MenuBase
     }
     private void OnCreditsButtonClicked()
     {
-        Debug.Log("Credits button clicked");
+        // UIManager.Instance.ChangeMenu(MenuType.CreditsMenu);
     }
 
     private void OnSettingsButtonClicked()
@@ -100,12 +100,12 @@ public class TitleMenu : MenuBase
 
     private void OnLanguageButtonClicked()
     {
-        Debug.Log("Language button clicked");
+        UIManager.Instance.ChangeMenu(MenuType.LanguageMenu);
     }
 
     private void OnTrophyButtonClicked()
     {
-        Debug.Log("Trophy button clicked");
+        UIManager.Instance.ChangeMenu(MenuType.TrophyMenu);
     }
     
     // *NOTE - Gợi event từ menu ra nơi khác

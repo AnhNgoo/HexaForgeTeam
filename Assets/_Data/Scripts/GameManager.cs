@@ -5,9 +5,10 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : Singleton<GameManager>
 {
+    [SerializeField] private MenuType startingMenu = MenuType.GameplayMenu;
     private void Start()
     {
         UIManager.Instance.CloseAllMenus();
-        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
+        UIManager.Instance.ChangeMenu(startingMenu);
     }
 }

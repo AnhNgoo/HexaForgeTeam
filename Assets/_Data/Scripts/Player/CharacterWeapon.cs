@@ -5,11 +5,14 @@ using Sirenix.OdinInspector;
 
 public class CharacterWeapon : MonoBehaviour
 {
-    [SerializeField] protected WeaponBase currentWeapon;
-    public WeaponBase CurrentWeapon => currentWeapon;
+    [SerializeField] protected WeaponData currentWeapon;
+    public WeaponData CurrentWeapon => currentWeapon;
     [SerializeField] protected Transform weaponHoldPoint;
     public Transform WeaponHoldPoint => weaponHoldPoint;
-    [SerializeField] protected WeaponBase weaponStored;
+    [SerializeField] protected WeaponData weaponStored;
+
+
+    protected GameObject currentWeaponObject;
 
     public void Init(Transform weaponHoldPoint)
     {
@@ -22,9 +25,9 @@ public class CharacterWeapon : MonoBehaviour
     }
 
     [Button("Equip Weapon")]
-    public void EquipWeapon(WeaponBase newWeapon, float sizeWeapon = 1f)
+    public void EquipWeapon(WeaponData newWeaponData, float sizeWeapon = 1f)
     {
-        if (newWeapon == null)
+        if (newWeaponData == null)
         {
             Debug.LogWarning("No weapon to equip. Please assign a weapon to currentWeapon.");
             return;
@@ -36,12 +39,9 @@ public class CharacterWeapon : MonoBehaviour
             return;
         }
 
-        currentWeapon = newWeapon;
-        currentWeapon.gameObject.SetActive(true);
-        currentWeapon.transform.SetParent(weaponHoldPoint);
-        currentWeapon.transform.localPosition = Vector3.zero;
-        currentWeapon.transform.localRotation = Quaternion.identity;
-        currentWeapon.transform.localScale = Vector3.one * sizeWeapon;
+        currentWeaponObject = ObjectPooling.Instance.SpawnFromPool(newWeaponData.weapon, weaponHoldPoint.position, weaponHoldPoint.rotation, weaponHoldPoint);
+
+        currentWeapon = newWeaponData;
     }
 
     [Button("Unequip Weapon")]
@@ -49,7 +49,8 @@ public class CharacterWeapon : MonoBehaviour
     {
         if (currentWeapon != null)
         {
-            currentWeapon.transform.SetParent(null);
+            Debug.Log($"Unequipping weapon khoa");
+            ObjectPooling.Instance.ReturnToPool(currentWeapon.weapon, currentWeaponObject);
             currentWeapon = null;
         }
     }
@@ -60,7 +61,7 @@ public class CharacterWeapon : MonoBehaviour
         if (currentWeapon != null)
         {
             weaponStored = currentWeapon;
-            currentWeapon.gameObject.SetActive(false);
+            currentWeaponObject.gameObject.SetActive(false);
             currentWeapon = null;
         }
     }
@@ -73,5 +74,15 @@ public class CharacterWeapon : MonoBehaviour
             EquipWeapon(weaponStored);
             weaponStored = null;
         }
+    }
+
+    public void ChangeWeapon()
+    {
+        int nextWeaponIndex = EquipmentSystem.Instance.CurrentWeaponIndex + 1;
+        if (nextWeaponIndex >= EquipmentSystem.Instance.WeaponSlots.Count)
+        {
+            nextWeaponIndex = -1; // Quay lại vũ khí đầu tiên nếu vượt quá danh sách
+        }
+        EquipmentSystem.Instance.ChangeWeapon(nextWeaponIndex);
     }
 }

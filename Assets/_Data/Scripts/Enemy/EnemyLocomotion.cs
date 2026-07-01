@@ -36,6 +36,8 @@ public class EnemyLocomotion : MonoBehaviour
 
     public void SetSpeed(float speed)
     {
+        if (_enemyBase != null && _enemyBase.MinibossBehaviour != null)
+            speed = _enemyBase.MinibossBehaviour.ModifyMoveSpeed(speed);
         _navMeshAgent.speed = speed;
     }
 
@@ -68,6 +70,8 @@ public class EnemyLocomotion : MonoBehaviour
         if (_navMeshAgent != null && _navMeshAgent.enabled && _navMeshAgent.isOnNavMesh)
         {
             _navMeshAgent.isStopped = true;
+            _navMeshAgent.ResetPath();
+            _navMeshAgent.velocity = Vector3.zero;
         }
     }
 
@@ -90,6 +94,11 @@ public class EnemyLocomotion : MonoBehaviour
         {
             transform.position = position; //Nếu NavMeshAgent không hoạt động, di chuyển trực tiếp bằng cách đặt vị trí của transform, có thể dùng để đảm bảo rằng Enemy vẫn có thể được di chuyển đến vị trí mong muốn ngay cả khi NavMeshAgent gặp sự cố hoặc bị tắt
         }
+    }
+
+    public void SetUpdateRotation(bool value)
+    {
+        if (_navMeshAgent != null && _navMeshAgent.enabled) _navMeshAgent.updateRotation = value;
     }
 
     //Lấy một điểm ngẫu nhiên trên NavMesh xung quanh vị trí gốc

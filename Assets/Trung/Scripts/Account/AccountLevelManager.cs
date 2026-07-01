@@ -33,6 +33,18 @@ public class AccountLevelManager :
     private void Start()
 {
     UpdateUI();
+
+    string displayName =
+        PlayerPrefs.GetString(
+            "DisplayName",
+            "Unknown");
+
+    if (AccountLevelUI.Instance != null)
+    {
+        AccountLevelUI.Instance
+            .SetUserName(
+                displayName);
+    }
 }
 
     public void AddExp(
@@ -175,18 +187,34 @@ if (accountData.level == 25)
     }
 
     private void SaveData()
+{
+    SaveLoadManager.Instance
+        .SaveData.accountLevel =
+        accountData.level;
+
+    SaveLoadManager.Instance
+        .SaveData.accountExp =
+        accountData.currentExp;
+
+    SaveLoadManager.Instance
+        .SaveGame();
+
+    if (PlayFabDataManager.Instance != null)
     {
-        SaveLoadManager.Instance
-    .SaveData.accountLevel =
-    accountData.level;
-
-SaveLoadManager.Instance
-    .SaveData.accountExp =
-    accountData.currentExp;
-
-SaveLoadManager.Instance
-    .SaveGame();
+        PlayFabDataManager.Instance
+            .SaveCloud();
     }
+    if (PlayFabDataManager.Instance != null)
+{
+    PlayFabDataManager.Instance
+        .MarkDirty();
+        if (LeaderboardManager.Instance != null)
+{
+    LeaderboardManager.Instance
+        .UpdatePowerScore();
+}
+}
+}
 
     private void LoadData()
     {
@@ -207,4 +235,5 @@ accountData.currentExp =
 
     SaveData();
 }
+
 }

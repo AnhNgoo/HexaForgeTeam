@@ -519,6 +519,7 @@ GameObject:
   - component: {fileID: 8176538796113034028}
   - component: {fileID: 782831221286889638}
   - component: {fileID: 5166748205593016332}
+  - component: {fileID: 7824076402893897213}
   - component: {fileID: 9043766363511717568}
   m_Layer: 3
   m_Name: 'Kael '
@@ -836,6 +837,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   recoveryBottle: 3
   healPercent: 36
+--- !u!114 &7824076402893897213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8913729754669744197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44e5400462b89b9458912b64ea6d68f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outsideSafeZoneVolumeProfile: {fileID: 11400000, guid: b052d21f20f94ee479e4e0ac8211ab18, type: 2}
+  isInSafeZone: 0
+  damagePerSecondOutsideSafeZone: 10
+  damageInterval: 1
+  delayTimeWhenLeftSafeZone: 0.5
 --- !u!114 &9043766363511717568
 MonoBehaviour:
   m_ObjectHideFlags: 0

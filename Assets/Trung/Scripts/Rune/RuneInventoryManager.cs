@@ -394,5 +394,15 @@ private void SaveRunes()
 
     SaveLoadManager.Instance
         .SaveGame();
+        if (PlayFabDataManager.Instance != null)
+{
+    PlayFabDataManager.Instance
+        .SaveCloud();
+}
+if (PlayFabDataManager.Instance != null)
+{
+    PlayFabDataManager.Instance
+        .MarkDirty();
+}
 }
 }

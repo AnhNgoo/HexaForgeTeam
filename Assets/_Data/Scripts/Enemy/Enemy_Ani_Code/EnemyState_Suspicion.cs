@@ -11,6 +11,10 @@ public class EnemyState_Suspicion : EnemyState
     private float _nextStandoffTime; //Biến để theo dõi thời gian tiếp theo mà Enemy có thể thực hiện động tác đối mặt (standoff) với người chơi khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash, giúp tạo sự đa dạng trong cách Enemy phản ứng khi nghi ngờ và tìm kiếm mục tiêu
     private Vector3 _standoffPos; //Biến để lưu trữ vị trí mục tiêu cho động tác đối mặt (standoff) với người chơi khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash, giúp Enemy có thể di chuyển đến đó để tạo sự tương tác và tăng tính chân thực của Enemy khi nghi ngờ và tìm kiếm mục tiêu
     private bool _isStandoff; //Biến để theo dõi xem Enemy có đang trong động tác đối mặt (standoff) với người chơi hay không khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash, giúp kiểm soát logic di chuyển và tìm kiếm mục tiêu trong trạng thái Suspicion khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
+    private bool _hasStandoffPoint;
+    private float _standoffMoveTimeout;
+    private float _standoffLookUntil;
+    private bool _isLookingAtPlayer;
 
     public EnemyState_Suspicion(EnemyBase enemyBase) : base(enemyBase) { }
 
@@ -24,6 +28,10 @@ public class EnemyState_Suspicion : EnemyState
 
         _isWaiting = false;
         _isStandoff = false;
+        _hasStandoffPoint = false;
+        _isLookingAtPlayer = false;
+        _standoffLookUntil = 0f;
+        _standoffMoveTimeout = 0f;
 
         _searchPos = _enemyBase.Detection.ClampPointToLeash(
             _enemyBase.Detection.LastKnownTargetPosition
@@ -31,11 +39,20 @@ public class EnemyState_Suspicion : EnemyState
 
         _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.patrolSpeed);
         _enemyBase.Locomotion.SetAngularSpeed(120f);
-        _enemyBase.Locomotion.MoveToTarget(_searchPos);
+        bool shouldGuardBorder = _enemyBase.Detection.Player != null && !_enemyBase.Detection.IsPlayerInLeashRange() && _enemyBase.Detection.HasLineOfSightTo(_enemyBase.Detection.Player, false);
 
-        _enemyBase.AnimatorController.PlayAnimation(
-            _enemyBase.AnimatorController.ChaseHash
-        );
+        if (shouldGuardBorder)
+        {
+            _enemyBase.Locomotion.StopMoving();
+            _enemyBase.Locomotion.SetUpdateRotation(false);
+            _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.IdleHash);
+        }
+        else
+        {
+            _enemyBase.Locomotion.SetUpdateRotation(true);
+            _enemyBase.Locomotion.MoveToTarget(_searchPos);
+            _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash);
+        }
 
         _searchEndTime = Time.time + 15f;
     }
@@ -51,7 +68,7 @@ public class EnemyState_Suspicion : EnemyState
         }
 
         //Thấy người chơi , nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash, nghi ngờ và tìm kiếm
-        if (_enemyBase.Detection.Player != null && _enemyBase.Detection.IsTargetVisible(_enemyBase.Detection.Player) && !_enemyBase.Detection.IsPlayerInLeashRange())
+        if (_enemyBase.Detection.Player != null && _enemyBase.Detection.HasLineOfSightTo(_enemyBase.Detection.Player, false) && !_enemyBase.Detection.IsPlayerInLeashRange())
         {
 
             //Xoay mặt lườm player 
@@ -77,16 +94,71 @@ public class EnemyState_Suspicion : EnemyState
             if (!_isStandoff)
             {
                 _isStandoff = true;
-                _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash);
-            }
+                _hasStandoffPoint = false;
+                _standoffLookUntil = 0f;
 
-            if (Time.time >= _nextStandoffTime || Vector3.Distance(_enemyBase.MyTransform.position, _standoffPos) < 0.5f)
-            {
-                CalculateStandoffPoint(dirToPlayer); // Tính toán vị trí mới cho động tác đối mặt (standoff) với người chơi để tạo sự đa dạng trong cách Enemy phản ứng khi nghi ngờ và tìm kiếm mục tiêu
+                int movementHash = _enemyBase.AnimatorController.HasAnimationState(_enemyBase.AnimatorController.WalkHash) ? _enemyBase.AnimatorController.WalkHash : _enemyBase.AnimatorController.ChaseHash;
+
+                _enemyBase.AnimatorController.PlayAnimation(movementHash);
             }
 
             _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.patrolSpeed); //Đi từ từ xung quanh khu vực cuối cùng biết của mục tiêu để tìm kiếm, có thể điều chỉnh lại tốc độ này nếu muốn Enemy di chuyển nhanh hơn hoặc chậm hơn khi nghi ngờ và tìm kiếm mục tiêu
-            _enemyBase.Locomotion.MoveToTarget(_standoffPos); //Di chuyển đến vị trí đối mặt (standoff) với người chơi để tạo sự tương tác và tăng tính chân thực của Enemy khi nghi ngờ và tìm kiếm mục tiêu
+
+            if (!_hasStandoffPoint)
+            {
+                CalculateStandoffPoint(dirToPlayer);
+                _hasStandoffPoint = true;
+                _standoffLookUntil = 0f;
+                float distanceToNewPoint = Vector3.Distance(_enemyBase.MyTransform.position, _standoffPos);
+                float moveTime = distanceToNewPoint / Mathf.Max(0.1f, _enemyBase.Data.patrolSpeed);
+                _standoffMoveTimeout = Time.time + Mathf.Clamp(moveTime + 1.0f, 2.0f, 5.0f);
+            }
+
+            float distanceToStandoffPoint = Vector3.Distance(_enemyBase.MyTransform.position, _standoffPos);
+
+            bool hasArrived = distanceToStandoffPoint <= 1.0f;
+            bool moveTimedOut = Time.time >= _standoffMoveTimeout;
+            bool shouldStopAndLook = hasArrived || moveTimedOut;
+
+            if (!shouldStopAndLook)
+            {
+                _isLookingAtPlayer = false;
+                _enemyBase.Locomotion.SetUpdateRotation(true);
+                _enemyBase.Locomotion.MoveToTarget(_standoffPos, 0.8f);
+            }
+            else
+            {
+                _enemyBase.Locomotion.StopMoving();
+                _enemyBase.Locomotion.SetUpdateRotation(false);
+
+                if (!_isLookingAtPlayer)
+                {
+                    _isLookingAtPlayer = true;
+                    _enemyBase.AnimatorController.PlayAnimation(
+                        _enemyBase.AnimatorController.IdleHash
+                    );
+
+                    _standoffLookUntil =
+                        Time.time + Random.Range(1.2f, 2.0f);
+                }
+
+                FacePlayerSoft(180f);
+
+                if (Time.time >= _standoffLookUntil)
+                {
+                    _isLookingAtPlayer = false;
+                    _hasStandoffPoint = false;
+                    _standoffLookUntil = 0f;
+                    _standoffMoveTimeout = 0f;
+
+                    int movementHash =
+                        _enemyBase.AnimatorController.HasAnimationState(_enemyBase.AnimatorController.WalkHash)
+                            ? _enemyBase.AnimatorController.WalkHash
+                            : _enemyBase.AnimatorController.ChaseHash;
+
+                    _enemyBase.AnimatorController.PlayAnimation(movementHash);
+                }
+            }
 
             _searchEndTime = Time.time + 15f; // Thiết lập thời gian kết thúc của quá trình nghi ngờ và tìm kiếm mục tiêu là 15 giây, có thể điều chỉnh lại nếu muốn Enemy tiếp tục nghi ngờ và tìm kiếm mục tiêu lâu hơn hoặc ngắn hơn trước khi quay về trạng thái mặc định hoặc trạng thái khác nếu không tìm thấy mục tiêu
             return;
@@ -139,12 +211,38 @@ public class EnemyState_Suspicion : EnemyState
 
     private void CalculateStandoffPoint(Vector3 dirToPlayer)
     {
-        //Đi ngang qua để vờn mồi 
-        Vector3 strafeDirection = (Random.value > 0.5f) ? Vector3.Cross(dirToPlayer, Vector3.up) : Vector3.Cross(dirToPlayer, Vector3.down);
-        Vector3 potentialPoint = _enemyBase.MyTransform.position + strafeDirection * 2f; // Tính toán điểm đối mặt (standoff) tiềm năng cách người chơi một khoảng nhất định, có thể điều chỉnh khoảng cách này nếu muốn Enemy di chuyển gần hơn hoặc xa hơn khi thực hiện động tác đối mặt (standoff) với người chơi
+        Vector3 borderAnchor = _enemyBase.Detection.ClampPointToLeash(_enemyBase.Detection.Player.position, 1.5f);
 
-        _standoffPos = _enemyBase.Locomotion.GetRandomRoamPosition(potentialPoint, 1f); // Điều chỉnh điểm đối mặt (standoff) tiềm năng để đảm bảo rằng nó nằm trong khu vực có thể di chuyển được và không bị chặn bởi địa hình hoặc vật cản, giúp Enemy có thể di chuyển đến vị trí đối mặt (standoff) với người chơi một cách linh hoạt hơn thay vì chỉ đứng yên tại chỗ khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
-        _nextStandoffTime = Time.time + Random.Range(1.5f, 3f); // Thiết lập thời gian tiếp theo mà Enemy có thể thực hiện động tác đối mặt (standoff) với người chơi là 5 giây, có thể điều chỉnh lại thời gian này nếu muốn Enemy thực hiện động tác đối mặt (standoff) với người chơi thường xuyên hơn hoặc ít hơn khi đã thấy người chơi nhưng người chơi đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách leash
+        Vector3 enemyToPlayer = _enemyBase.Detection.Player.position - borderAnchor;
+
+        enemyToPlayer.y = 0f;
+
+        if (enemyToPlayer.sqrMagnitude <= 0.001f)
+            enemyToPlayer = dirToPlayer;
+
+        enemyToPlayer.Normalize();
+
+        for (int i = 0; i < 6; i++)
+        {
+            Vector3 sideDirection = Random.value > 0.5f ? Vector3.Cross(Vector3.up, enemyToPlayer) : Vector3.Cross(enemyToPlayer, Vector3.up);
+
+            float sideWeight = Random.Range(0.6f, 1.0f);
+            float backWeight = Random.Range(0.1f, 0.35f);
+
+            Vector3 moveDirection = (sideDirection * sideWeight - enemyToPlayer * backWeight).normalized;
+            Vector3 potentialPoint = borderAnchor + moveDirection * Random.Range(1.8f, 3.0f);
+            potentialPoint = _enemyBase.Detection.ClampPointToLeash(potentialPoint, 1.2f);
+            Vector3 sampledPoint = _enemyBase.Locomotion.GetRandomRoamPosition(potentialPoint, 1f);
+
+            if (IsGoodStandoffPoint(sampledPoint))
+            {
+                _standoffPos = sampledPoint;
+                return;
+            }
+        }
+
+        // Fallback cuối: nếu không tìm được điểm tốt thì đứng yên và nhìn player.
+        _standoffPos = _enemyBase.MyTransform.position;
     }
 
     private void PickNewSearchPoint()
@@ -157,9 +255,66 @@ public class EnemyState_Suspicion : EnemyState
 
     }
 
+    private void FacePlayer()
+    {
+        Transform player = _enemyBase.Detection.Player;
+        if (player == null) return;
+
+        Vector3 dirToPlayer = player.position - _enemyBase.MyTransform.position;
+        dirToPlayer.y = 0f;
+
+        if (dirToPlayer.sqrMagnitude <= 0.001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(dirToPlayer.normalized);
+
+        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(
+            _enemyBase.MyTransform.rotation,
+            targetRotation,
+            540f * Time.deltaTime
+        );
+    }
+
+    private void FacePlayerSoft(float turnSpeed)
+    {
+        Transform player = _enemyBase.Detection.Player;
+        if (player == null) return;
+
+        Vector3 dirToPlayer = player.position - _enemyBase.MyTransform.position;
+        dirToPlayer.y = 0f;
+
+        if (dirToPlayer.sqrMagnitude <= 0.001f)
+            return;
+
+        Quaternion targetRotation = Quaternion.LookRotation(dirToPlayer.normalized);
+
+        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(
+            _enemyBase.MyTransform.rotation,
+            targetRotation,
+            turnSpeed * Time.deltaTime
+        );
+    }
+
+    private bool IsGoodStandoffPoint(Vector3 point)
+    {
+        float distanceFromEnemy = Vector3.Distance(
+            _enemyBase.MyTransform.position,
+            point
+        );
+
+        if (distanceFromEnemy < 1.5f)
+            return false;
+
+        if (!_enemyBase.Detection.IsPointInLeash(point))
+            return false;
+
+        return true;
+    }
+
     public override void Exit()
     {
         base.Exit();
+        _enemyBase.Locomotion.SetUpdateRotation(true); // Bật lại việc tự động xoay mặt của NavMeshAgent khi rời khỏi trạng thái Suspicion để đảm bảo rằng Enemy sẽ tiếp tục xoay mặt theo hướng di chuyển khi đã chuyển sang trạng thái khác, giúp hành vi di chuyển của Enemy trông tự nhiên hơn và tránh lỗi Enemy không xoay mặt theo hướng di chuyển khi đã chuyển sang trạng thái khác
         _enemyBase.Locomotion.StopMoving(); // Dừng di chuyển khi rời khỏi trạng thái Suspicion để tránh lỗi di chuyển không mong muốn khi đã chuyển sang trạng thái khác
     }
 }
