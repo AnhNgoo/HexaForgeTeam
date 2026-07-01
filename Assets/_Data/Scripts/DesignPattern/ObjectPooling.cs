@@ -46,6 +46,7 @@ public enum PoolType
     LightningTelegraph = 61,
     LightningStrike = 62,
     Blink = 63,
+    Projectile_Binding = 64,
     EnemyMinibossWarrior = 65,
     EnemyMinibossPhantom = 66,
     EnemyMinibossShade = 67,

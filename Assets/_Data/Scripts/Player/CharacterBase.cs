@@ -31,8 +31,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Header("Check Near Enemy Settings")]
     [SerializeField] protected LayerMask enemyLayer; // Lớp của kẻ địch để kiểm tra va chạm khi kiểm tra kẻ địch gần trước mặt
     [SerializeField] protected Vector2 meleeSnapThreshold = new Vector2(2.5f, 15f); // Tầm áp sát tối thiểu và tối đa để kích hoạt snap
-    [SerializeField] protected float ZoffsetCheckForNearEnemy = 1.5f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
-    [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected float ZoffsetCheckForNearEnemy = 2f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected float radiusCheckForNearEnemy = 1.5f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
 
     [Header("Character Models")]
     [SerializeField] protected GameObject visuals;

@@ -62,7 +62,7 @@ public class EnemyState_Attack : EnemyState
 
         Quaternion targetRotation = Quaternion.LookRotation(lookDirection.normalized);
 
-        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(_enemyBase.MyTransform.rotation, targetRotation, 540f * Time.deltaTime);
+        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(_enemyBase.MyTransform.rotation, targetRotation, 900f * Time.deltaTime);
 
         if (Time.time < _attackEndTime) return; //Nếu đang trong thời gian của đòn tấn công hiện tại thì không thực hiện logic tấn công mới để tránh lỗi spam tấn công liên tục
 
@@ -80,7 +80,7 @@ public class EnemyState_Attack : EnemyState
 
         float facingAngle = Vector3.Angle(_enemyBase.MyTransform.forward, lookDirection.normalized);
 
-        if (facingAngle > 10f)
+        if (facingAngle > 20f)
         {
             _enemyBase.Locomotion.StopMoving();
             return;
@@ -119,6 +119,38 @@ public class EnemyState_Attack : EnemyState
                 float preferredRange = GetPreferredRangedDistance();
 
                 BeginCooldownMovement();
+
+                float minimumRangedDistance = GetMinimumRangedDistance();
+
+                if (distanceToPlayer < minimumRangedDistance)
+                {
+                    BeginCooldownMovement();
+
+                    if (Time.time >= _nextStrafeTime)
+                    {
+                        _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.moveSpeed);
+
+                        Vector3 awayFromPlayer =
+                            _enemyBase.MyTransform.position - playerTransform.position;
+
+                        awayFromPlayer.y = 0f;
+
+                        if (awayFromPlayer.sqrMagnitude <= 0.01f)
+                            awayFromPlayer = -_enemyBase.MyTransform.forward;
+
+                        Vector3 retreatPoint =
+                            _enemyBase.MyTransform.position +
+                            awayFromPlayer.normalized * (minimumRangedDistance - distanceToPlayer + 2f);
+
+                        retreatPoint = _enemyBase.Detection.ClampPointToLeash(retreatPoint);
+                        _strafeTargetPos = _enemyBase.Locomotion.GetRandomRoamPosition(retreatPoint, 1.5f);
+
+                        _nextStrafeTime = Time.time + Random.Range(0.8f, 1.2f);
+                    }
+
+                    _enemyBase.Locomotion.MoveToTarget(_strafeTargetPos, 0.2f);
+                    return;
+                }
 
                 if (distanceToPlayer > preferredRange + 0.5f)
                 {
@@ -244,6 +276,21 @@ public class EnemyState_Attack : EnemyState
             return sharedMin;
 
         return (sharedMin + sharedMax) * 0.5f;
+    }
+
+    private float GetMinimumRangedDistance()
+    {
+        float result = float.MaxValue;
+
+        foreach (AttackDataSO attack in _enemyBase.Combat.AttackArsenal)
+        {
+            if (attack == null || attack.attackType != AttackType.Ranged)
+                continue;
+
+            result = Mathf.Min(result, attack.minAttackRange);
+        }
+
+        return result == float.MaxValue ? 0f : result;
     }
 
     public override void Exit()

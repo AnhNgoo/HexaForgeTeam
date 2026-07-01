@@ -26,8 +26,19 @@ public class EnemyLootDropper : MonoBehaviour
 
     private void GoldReceived()
     {
-        float goldAmount = Random.Range(_enemyBase.Data.minGoldReward, _enemyBase.Data.maxGoldReward + 1); //Tính toán số lượng vàng thưởng ngẫu nhiên dựa trên min và max gold reward trong EnemyData, cộng thêm 1 vào max để đảm bảo rằng giá trị max cũng có thể được chọn
-        DebugNote.Yellow($"Player nhận được {goldAmount} vàng từ việc tiêu diệt {gameObject.name}!");
+        int minGold = _enemyBase.Data.minGoldReward; //Lấy giá trị vàng tối thiểu từ dữ liệu của Enemy để tính toán số vàng thưởng, có thể điều chỉnh để lấy giá trị từ các nguồn khác nếu muốn
+        int maxGold = _enemyBase.Data.maxGoldReward; //Lấy giá trị vàng tối đa từ dữ liệu của Enemy để tính toán số vàng thưởng, có thể điều chỉnh để lấy giá trị từ các nguồn khác nếu muốn
+
+        if (maxGold < minGold)
+        {
+            maxGold = minGold; //Nếu giá trị vàng tối đa nhỏ hơn giá trị vàng tối thiểu, đặt giá trị vàng tối đa bằng giá trị vàng tối thiểu để tránh lỗi khi tính toán số vàng thưởng
+        }
+
+        int goldAmount = Random.Range(minGold, maxGold + 1); //Tạo số vàng thưởng ngẫu nhiên trong khoảng từ minGold đến maxGold, có thể điều chỉnh để tạo ra các loại phần thưởng khác nhau tùy thuộc vào loại Enemy hoặc ngẫu nhiên
+
+        GoldManager.Instance?.AddGold(goldAmount); //Gọi hàm AddGold của GoldManager để cộng số vàng thưởng vào tổng số vàng của player, có thể mở rộng sau này để thêm các loại phần thưởng khác như item hoặc điểm kinh nghiệm
+
+        DebugNote.Green($"Player nhận được {goldAmount} vàng từ Enemy {gameObject.name}!");
     }
 
     private void AwardEnemy()
