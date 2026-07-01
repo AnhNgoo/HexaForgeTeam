@@ -99,8 +99,6 @@ public class CharacterMovement : LoadComponents
 
     private void ApplyGravity()
     {
-        IsGrounded = cc.isGrounded;
-
         if (IsGrounded && verticalVelocity < 0)
         {
             verticalVelocity = -2f;

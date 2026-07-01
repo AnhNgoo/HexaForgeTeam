@@ -88,9 +88,15 @@ public class EquipmentSystem : Singleton<EquipmentSystem>
         currentWeaponIndex = index;
     }
 
+    // Lấy index của vũ khí trong danh sách weaponSlots, nếu không tìm thấy thì trả về -1
     public int GetIndexOfWeapon(WeaponData weaponData)
     {
         return weaponSlots.IndexOf(weaponData);
+    }
+
+    public int GetWeaponCount()
+    {
+        return weaponSlots.Count;
     }
 }
 
