@@ -349,6 +349,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterRotate.LookAt(characterLockTarget.Target.position);
     }
 
+    #region Take Damage
     [Button("Take Damage (Test)")]
     public void TakeDamage(DamageInfo damageInfo)
     {
@@ -356,10 +357,11 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
 
-        if (!damageInfo.isFromSafeZoneEffect)
+        if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
         {
             characterMovement.KnockBack(damageInfo.attacker);
             stateController.ChangeState(new HitState(this));
+            CameraShake.Instance?.Shake();
         }
 
         Debug.Log($"{gameObject.name} took {finalDamage} damage. Remaining health: {characterHealth.CurrentHealth}");
@@ -369,6 +371,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             Die();
         }
     }
+
+    #endregion
 
     private void Die()
     {
