@@ -1,5 +1,6 @@
 using System.IO;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class CharacterManager : MonoBehaviour
 {
@@ -35,8 +36,7 @@ public class CharacterManager : MonoBehaviour
         return data.selectedCharacter;
     }
 
-    public void SelectCharacter(
-        CharacterType type)
+    public void SelectCharacter(CharacterType type)
     {
         if (!IsUnlocked(type))
         {
@@ -44,6 +44,18 @@ public class CharacterManager : MonoBehaviour
         }
 
         data.selectedCharacter = type;
+
+        // MỚI: Ép RuneEquipUI đồng bộ theo đúng nhân vật đang được chọn để tránh lỗi hiển thị lệch pha chỉ số
+        if (RuneEquipUI.Instance != null)
+        {
+            // Dùng Reflection hoặc gọi gián tiếp để gán biến private viewingCharacter nếu cần
+            // Ở đây ta ép trực tiếp bằng cách gán thông qua hàm Refresh hoặc phương thức thích hợp
+            var field = typeof(RuneEquipUI).GetField("viewingCharacter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+            {
+                field.SetValue(RuneEquipUI.Instance, type);
+            }
+        }
 
         SaveData();
     }
@@ -131,6 +143,18 @@ if (PlayFabDataManager.Instance != null)
         data =
             new CharacterUnlockData();
     }
+
+    if (data.characterRuneBuilds == null || data.characterRuneBuilds.Count == 0)
+    {
+        data.characterRuneBuilds = new List<CharacterRuneEquip>
+        {
+            new CharacterRuneEquip(CharacterType.Kael),
+            new CharacterRuneEquip(CharacterType.Lyra),
+            new CharacterRuneEquip(CharacterType.Ares),
+            new CharacterRuneEquip(CharacterType.Elara)
+        };
+    }
+    
     if (!IsUnlocked(
     data.selectedCharacter))
 {
@@ -144,4 +168,17 @@ public void ResetCharacterData()
         new CharacterUnlockData();
 
 }
+public CharacterRuneEquip GetCharacterRuneBuild(CharacterType type)
+    {
+        if (data == null || data.characterRuneBuilds == null) return null;
+        
+        for (int i = 0; i < data.characterRuneBuilds.Count; i++)
+        {
+            if (data.characterRuneBuilds[i].characterType == type)
+            {
+                return data.characterRuneBuilds[i];
+            }
+        }
+        return null;
+    }
 }
