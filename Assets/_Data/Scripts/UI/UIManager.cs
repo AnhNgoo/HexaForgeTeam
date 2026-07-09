@@ -26,6 +26,14 @@ public enum MenuType
     HUDMenuTest = 13,
     TrophyMenu = 13,
     LanguageMenu = 14,
+
+    LobbyCharacterMenu = 100,
+    LobbyInventoryMenu = 101,
+    LobbyAchievementMenu = 102,
+    LobbyGachaMenu = 103,
+    LobbyAccountLevelMenu = 104,
+    LobbyDialogueMenu = 105,
+    LobbyLeaderboardMenu = 106,
 }
 
 public class UIManager : Singleton<UIManager>
