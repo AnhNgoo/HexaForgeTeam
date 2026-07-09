@@ -2,15 +2,37 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PickUpWeapon : InteractBase
+public class PickUpWeapon : InteractBase, IPoolable
 {
     [SerializeField] private WeaponData weaponData;
+    [Header("Set Pool Type trùng tên với tên prefab")]
+    [SerializeField] private PoolType poolType;
+    public PoolType PoolType => poolType;
+    public override string InteractionName => "Pick Up Weapon";
+
     protected override void InteractAction()
     {
         if (weaponData != null)
         {
             EquipmentSystem.Instance.AddWeapon(weaponData);
-            Destroy(gameObject); //NOTE - lần sau sẽ dùng object pooling để tái sử dụng vũ khí thay vì hủy nó
+            EventManager.Notify(GameEvent.OnHidePickUpItemPanel);
+            InteractionManager.Instance?.UnregisterInteractable(this);
+            ObjectPooling.Instance.ReturnToPool(PoolType, gameObject);
         }
+    }
+
+    public void OnSpawnFromPool()
+    {
+
+    }
+
+    public void OnReturnToPool()
+    {
+
+    }
+
+    public override void ResetInteraction()
+    {
+
     }
 }

@@ -1,238 +1,348 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class GachaMenu : MenuBase
 {
     public override MenuType menuType => MenuType.GachaMenu;
 
-    [Header("Buttons")]
-    [SerializeField] private Button btn_Cancel;
-    [SerializeField] private Button btn_Confirm;
-    [SerializeField] private Button btn_RollOne;
-    [SerializeField] private Button btn_RollFive;
+    [Header("Gacha Objects")]
+    [SerializeField] private GachaManager gachaManager;
+    [SerializeField] private GameObject gachaPanel;
+    [SerializeField] private GameObject resultPanel;
 
-    [Header("Reward Display")]
-    [SerializeField] private Image img_Reward;
-    [SerializeField] private TextMeshProUGUI txt_RewardName;
-    [SerializeField] private TextMeshProUGUI txt_Coin;
+    [Header("Main Panel Buttons")]
+    [SerializeField] private Button btnRollOne;
+    [SerializeField] private Button btnRollFive;
+    [SerializeField] private Button btnInventory;
+    [SerializeField] private Button btnCloseMenu;
 
-    [Header("Gacha Setting")]
-    [SerializeField] private int rollOneCost = 500;
-    [SerializeField] private int rollFiveCost = 2500;
-    [SerializeField] private int playerCoin = 5000;
+    [Header("Result Panel Buttons")]
+    [SerializeField] private Button btnCloseResult;
+    [SerializeField] private Button btnReroll;
 
-    [Header("Reward Data")]
-    [SerializeField] private GachaReward[] rewards;
-
-    private int selectedRollCount = 1;
-    private int selectedCost = 500;
+    [Header("Optional")]
+    [SerializeField] private TMP_Text txtCurrentGem;
+    [SerializeField] private TMP_Text txtMessage;
 
     protected override void LoadComponent()
     {
-        if (btn_Cancel == null)
-            btn_Cancel = FindDeepChild("Btn_Cancel")?.GetComponent<Button>();
+        if (gachaManager == null)
+        {
+            gachaManager =
+                GetComponentInChildren<GachaManager>(true);
+        }
 
-        if (btn_Confirm == null)
-            btn_Confirm = FindDeepChild("Btn_Confirm")?.GetComponent<Button>();
+        if (gachaPanel == null)
+        {
+            gachaPanel =
+                FindDeepChild("GachaPanel")?.gameObject;
+        }
 
-        if (btn_RollOne == null)
-            btn_RollOne = FindDeepChild("Btn_RollOne")?.GetComponent<Button>();
+        if (resultPanel == null)
+        {
+            resultPanel =
+                FindDeepChild("ResultPanel")?.gameObject;
+        }
 
-        if (btn_RollFive == null)
-            btn_RollFive = FindDeepChild("Btn_RollFive")?.GetComponent<Button>();
+        if (btnRollOne == null)
+        {
+            btnRollOne =
+                FindDeepChild("Roll1Button")?.GetComponent<Button>();
+        }
 
-        if (img_Reward == null)
-            img_Reward = FindDeepChild("Image_Reward")?.GetComponent<Image>();
+        if (btnRollFive == null)
+        {
+            btnRollFive =
+                FindDeepChild("Roll5Button")?.GetComponent<Button>();
+        }
 
-        if (txt_RewardName == null)
-            txt_RewardName = FindDeepChild("Txt_RewardName")?.GetComponent<TextMeshProUGUI>();
+        if (btnInventory == null)
+        {
+            btnInventory =
+                FindDeepChild("InventoryBtn")?.GetComponent<Button>();
+        }
 
-        if (txt_Coin == null)
-            txt_Coin = FindDeepChild("Txt_Coin")?.GetComponent<TextMeshProUGUI>();
+        if (btnReroll == null)
+        {
+            btnReroll =
+                FindDeepChild("ReRollButton")?.GetComponent<Button>();
+        }
+
+        // Hai button deu ten CloseButton, nen keo tay trong Inspector.
     }
 
     protected override void LoadComponentRuntime()
     {
-
+        LoadComponent();
     }
 
     public override void Open(object data = null)
     {
         base.Open(data);
 
-        selectedRollCount = 1;
-        selectedCost = rollOneCost;
+        LoadComponentRuntime();
 
+        RemoveEvents();
         AddEvents();
-        UpdateCoinUI();
-        ClearRewardUI();
+
+        if (gachaManager != null)
+        {
+            // RuneCardUI dung static Instance de bao card da lat.
+            GachaManager.Instance = gachaManager;
+            gachaManager.CloseResultPanel();
+        }
+
+        if (gachaPanel != null)
+            gachaPanel.SetActive(true);
+
+        if (resultPanel != null)
+            resultPanel.SetActive(false);
+
+        ClearMessage();
+        RefreshGemUI();
+        RefreshButtonState();
     }
 
     public override void Close()
     {
         RemoveEvents();
 
+        if (gachaManager != null)
+            gachaManager.CloseResultPanel();
+
+        if (gachaPanel != null)
+            gachaPanel.SetActive(false);
+
         base.Close();
     }
 
     private void AddEvents()
     {
-        if (btn_Cancel != null)
-            btn_Cancel.onClick.AddListener(OnCancelButtonClicked);
-
-        if (btn_Confirm != null)
-            btn_Confirm.onClick.AddListener(OnConfirmButtonClicked);
-
-        if (btn_RollOne != null)
-            btn_RollOne.onClick.AddListener(OnRollOneButtonClicked);
-
-        if (btn_RollFive != null)
-            btn_RollFive.onClick.AddListener(OnRollFiveButtonClicked);
+        AddButton(btnRollOne, OnRollOneClicked);
+        AddButton(btnRollFive, OnRollFiveClicked);
+        AddButton(btnInventory, OnInventoryClicked);
+        AddButton(btnCloseMenu, OnCloseMenuClicked);
+        AddButton(btnCloseResult, OnCloseResultClicked);
+        AddButton(btnReroll, OnRerollClicked);
     }
 
     private void RemoveEvents()
     {
-        if (btn_Cancel != null)
-            btn_Cancel.onClick.RemoveListener(OnCancelButtonClicked);
-
-        if (btn_Confirm != null)
-            btn_Confirm.onClick.RemoveListener(OnConfirmButtonClicked);
-
-        if (btn_RollOne != null)
-            btn_RollOne.onClick.RemoveListener(OnRollOneButtonClicked);
-
-        if (btn_RollFive != null)
-            btn_RollFive.onClick.RemoveListener(OnRollFiveButtonClicked);
+        RemoveButton(btnRollOne, OnRollOneClicked);
+        RemoveButton(btnRollFive, OnRollFiveClicked);
+        RemoveButton(btnInventory, OnInventoryClicked);
+        RemoveButton(btnCloseMenu, OnCloseMenuClicked);
+        RemoveButton(btnCloseResult, OnCloseResultClicked);
+        RemoveButton(btnReroll, OnRerollClicked);
     }
 
-    private void OnRollOneButtonClicked()
+    private void OnRollOneClicked()
     {
-        selectedRollCount = 1;
-        selectedCost = rollOneCost;
+        if (!ValidateGacha())
+            return;
 
-        Debug.Log("Selected roll x1");
+        /*
+         * Prefab cua Trung co the da gan Roll1 trong OnClick.
+         * Neu da co persistent Roll1 thi khong goi them lan nua.
+         */
+        if (!HasPersistentMethod(btnRollOne, "Roll1"))
+            gachaManager.Roll1();
+
+        StartCoroutine(RefreshAfterRoll());
     }
 
-    private void OnRollFiveButtonClicked()
+    private void OnRollFiveClicked()
     {
-        selectedRollCount = 5;
-        selectedCost = rollFiveCost;
+        if (!ValidateGacha())
+            return;
 
-        Debug.Log("Selected roll x5");
+        if (!HasPersistentMethod(btnRollFive, "Roll5"))
+            gachaManager.Roll5();
+
+        StartCoroutine(RefreshAfterRoll());
     }
 
-    private void OnConfirmButtonClicked()
-{
-    if (playerCoin < selectedCost)
+    private void OnRerollClicked()
     {
-        Debug.Log("Không đủ coin để gacha.");
-        return;
+        if (!ValidateGacha())
+            return;
+
+        if (!HasPersistentMethod(btnReroll, "ReRoll"))
+            gachaManager.ReRoll();
+
+        StartCoroutine(RefreshAfterRoll());
     }
 
-    playerCoin -= selectedCost;
-    UpdateCoinUI();
-
-    for (int i = 0; i < selectedRollCount; i++)
+    private void OnCloseResultClicked()
     {
-        GachaReward reward = GetRandomReward();
+        if (gachaManager == null)
+            return;
 
-        if (reward != null && reward.gemData != null)
+        if (!HasPersistentMethod(
+                btnCloseResult,
+                "CloseResultPanel"))
         {
-            // if (InventoryGem.Instance != null)
-            // {
-            //     InventoryGem.Instance.AddGem(reward.gemData, reward.amount);
-            // }
-
-            ShowReward(reward);
-
-            Debug.Log("Gacha nhận được: " + reward.gemData.gemName + " x" + reward.amount);
+            gachaManager.CloseResultPanel();
         }
     }
-}
 
-    private void OnCancelButtonClicked()
+    private void OnInventoryClicked()
     {
+        if (UIManager.Instance == null)
+        {
+            ShowMessage("UIManager is missing.");
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.InventoryRuneMenu);
+    }
+
+    private void OnCloseMenuClicked()
+    {
+        /*
+         * Khi mo tu Rune NPC, UI Menu duoc load Additive.
+         * CloseMenu se unload UI Menu va tra dieu khien cho Lobby.
+         */
         if (LobbyUIOverlayManager.Instance != null)
         {
             LobbyUIOverlayManager.Instance.CloseMenu();
             return;
         }
 
-        UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
+        // Truong hop test rieng scene UI Menu.
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(
+                MenuType.GameplayMenu);
+        }
+        else
+        {
+            gameObject.SetActive(false);
+        }
     }
-    private GachaReward GetRandomReward()
+
+    private IEnumerator RefreshAfterRoll()
     {
-        if (rewards == null || rewards.Length == 0)
+        yield return null;
+
+        RefreshGemUI();
+        RefreshButtonState();
+    }
+
+    private bool ValidateGacha()
+    {
+        if (gachaManager == null)
         {
-            Debug.LogWarning("Chưa gán reward cho GachaMenu.");
-            return null;
+            ShowMessage("GachaManager is missing.");
+            return false;
         }
 
-        int totalRate = 0;
-
-        for (int i = 0; i < rewards.Length; i++)
+        if (GemManager.Instance == null)
         {
-            totalRate += rewards[i].rate;
+            ShowMessage(
+                "GemManager is missing. Open Gacha from Lobby.");
+            return false;
         }
 
-        int randomValue = Random.Range(0, totalRate);
-        int currentRate = 0;
-
-        for (int i = 0; i < rewards.Length; i++)
+        if (RuneInventoryManager.Instance == null)
         {
-            currentRate += rewards[i].rate;
+            ShowMessage(
+                "RuneInventoryManager is missing.");
+            return false;
+        }
 
-            if (randomValue < currentRate)
+        GachaManager.Instance = gachaManager;
+
+        ClearMessage();
+        return true;
+    }
+
+    private void RefreshGemUI()
+    {
+        if (txtCurrentGem == null)
+            return;
+
+        txtCurrentGem.text =
+            GemManager.Instance != null
+                ? GemManager.Instance.GetCurrentGem().ToString()
+                : "0";
+    }
+
+    private void RefreshButtonState()
+    {
+        bool ready =
+            gachaManager != null &&
+            GemManager.Instance != null &&
+            RuneInventoryManager.Instance != null;
+
+        if (btnRollOne != null)
+            btnRollOne.interactable = ready;
+
+        if (btnRollFive != null)
+            btnRollFive.interactable = ready;
+
+        if (btnReroll != null)
+            btnReroll.interactable = ready;
+    }
+
+    private bool HasPersistentMethod(
+        Button button,
+        string methodName)
+    {
+        if (button == null)
+            return false;
+
+        for (int i = 0;
+             i < button.onClick.GetPersistentEventCount();
+             i++)
+        {
+            if (button.onClick.GetPersistentMethodName(i)
+                == methodName)
             {
-                return rewards[i];
+                return true;
             }
         }
 
-        return rewards[0];
+        return false;
     }
 
-    private void ShowReward(GachaReward reward)
+    private void ShowMessage(string message)
     {
-        if (reward == null || reward.gemData == null) return;
+        if (txtMessage != null)
+            txtMessage.text = message;
 
-        if (img_Reward != null)
-        {
-            img_Reward.sprite = reward.gemData.gemIcon;
-            img_Reward.enabled = reward.gemData.gemIcon != null;
-        }
-
-        if (txt_RewardName != null)
-        {
-            txt_RewardName.text = reward.gemData.gemName + " x" + reward.amount;
-        }
+        Debug.LogWarning(message);
     }
 
-    private void ClearRewardUI()
+    private void ClearMessage()
     {
-        if (img_Reward != null)
-        {
-            img_Reward.sprite = null;
-            img_Reward.enabled = false;
-        }
-
-        if (txt_RewardName != null)
-        {
-            txt_RewardName.text = "";
-        }
+        if (txtMessage != null)
+            txtMessage.text = string.Empty;
     }
 
-    private void UpdateCoinUI()
+    private void AddButton(
+        Button button,
+        UnityEngine.Events.UnityAction action)
     {
-        if (txt_Coin != null)
-        {
-            txt_Coin.text = playerCoin.ToString();
-        }
+        if (button != null)
+            button.onClick.AddListener(action);
+    }
+
+    private void RemoveButton(
+        Button button,
+        UnityEngine.Events.UnityAction action)
+    {
+        if (button != null)
+            button.onClick.RemoveListener(action);
     }
 
     private Transform FindDeepChild(string childName)
     {
-        Transform[] children = GetComponentsInChildren<Transform>(true);
+        Transform[] children =
+            GetComponentsInChildren<Transform>(true);
 
         foreach (Transform child in children)
         {
@@ -243,13 +353,3 @@ public class GachaMenu : MenuBase
         return null;
     }
 }
-
-[System.Serializable]
-    public class GachaReward
-    {
-        public GemData gemData;
-        public int amount = 1;
-
-        [Range(1, 100)]
-        public int rate = 10;
-    }

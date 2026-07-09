@@ -1,17 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class TitleMenu : MenuBase
 {
     public override MenuType menuType => MenuType.TitleMenu;
+    [SerializeField] private string lobbySceneName = "Lobby";
     [SerializeField] private Button btn_Play;
     [SerializeField] private Button btn_Help;
     [SerializeField] private Button btn_Credits;
     [SerializeField] private Button btn_Settings;
     [SerializeField] private Button btn_Language;
-    [SerializeField] private Button btn_Trophy;
+    [SerializeField] private Button btn_Achievement;
 
     private void Start()
     {
@@ -37,8 +39,8 @@ public class TitleMenu : MenuBase
             btn_Settings = transform.Find("Btn_Settings")?.GetComponent<Button>();
         if (btn_Language == null)
             btn_Language = transform.Find("Btn_Language")?.GetComponent<Button>();
-        if (btn_Trophy == null)
-            btn_Trophy = transform.Find("Btn_Trophy")?.GetComponent<Button>();
+        if (btn_Achievement == null)
+            btn_Achievement = transform.Find("Btn_Achievement")?.GetComponent<Button>();
     }
 
     protected override void LoadComponentRuntime()
@@ -54,7 +56,7 @@ public class TitleMenu : MenuBase
         btn_Credits.onClick.AddListener(OnCreditsButtonClicked);
         btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
         btn_Language.onClick.AddListener(OnLanguageButtonClicked);
-        btn_Trophy.onClick.AddListener(OnTrophyButtonClicked);
+        btn_Achievement.onClick.AddListener(OnAchievementButtonClicked);
     }
 
     public override void Close()
@@ -65,7 +67,7 @@ public class TitleMenu : MenuBase
         btn_Credits.onClick.RemoveListener(OnCreditsButtonClicked);
         btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
         btn_Language.onClick.RemoveListener(OnLanguageButtonClicked);
-        btn_Trophy.onClick.RemoveListener(OnTrophyButtonClicked);
+        btn_Achievement.onClick.RemoveListener(OnAchievementButtonClicked);
     }
 
     // Button callback stubs
@@ -75,8 +77,7 @@ public class TitleMenu : MenuBase
 
         Time.timeScale = 1f;
 
-        LoadingData.TargetMenu = MenuType.GameplayMenu;
-
+        LoadingData.TargetSceneName = "Lobby";
         UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }
 
@@ -103,9 +104,9 @@ public class TitleMenu : MenuBase
         UIManager.Instance.ChangeMenu(MenuType.LanguageMenu);
     }
 
-    private void OnTrophyButtonClicked()
+    private void OnAchievementButtonClicked()
     {
-        UIManager.Instance.ChangeMenu(MenuType.TrophyMenu);
+        UIManager.Instance.ChangeMenu(MenuType.AchievementMenu);
     }
     
     // *NOTE - Gợi event từ menu ra nơi khác

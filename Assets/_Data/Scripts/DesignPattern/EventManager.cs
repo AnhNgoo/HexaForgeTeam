@@ -25,6 +25,8 @@ public enum GameEvent
     OnTestEventFromOtherToMenu = 17,
     OnShowTutorial = 18,
     OnHideTutorial = 19,
+    OnShowPickUpItemPanel = 20,
+    OnHidePickUpItemPanel = 21,
 }
 public static class EventManager
 {

@@ -33,11 +33,25 @@ public class LocalizationManager : MonoBehaviour
         }
     }
 
-    public string Get(string key)
+    public string GetText(string key)
     {
         if (currentDict.TryGetValue(key, out string value))
             return value;
 
         return key;
     }
+
+    public void SetLanguage(int language)
+    {
+        LoadLanguage(
+            language == 0
+                ? Language.English
+                : Language.Vietnamese);
+
+        PlayerPrefs.SetInt("LANGUAGE", language);
+        PlayerPrefs.Save();
+
+        LocalizedText.RefreshAll();
+    }
+
 }
