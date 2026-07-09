@@ -50,6 +50,11 @@ public class CharacterInput : MonoBehaviour
             Debug.LogWarning("InputActions is null in CharacterInput");
             return;
         }
+        bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
+        if (!isUIGameplay) // Bỏ qua các input khi không phải trong UI gameplay 
+        {
+            return;
+        }
 
         moveInput = inputActions.Keyboard.Move.ReadValue<Vector2>();
         walk = inputActions.Keyboard.Walk.IsPressed();

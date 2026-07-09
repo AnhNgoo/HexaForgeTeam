@@ -18,8 +18,5 @@ public abstract class AttackStepBase : IAttackStep
     /// Nhớ phải gọi base.Attack(character) để chạy phần chung của tất cả các bước tấn công, nếu không sẽ bị lỗi animation và trigger attack
     /// </summary>
     /// <param name="character"></param>
-    public virtual void Attack(CharacterBase character)
-    {
-        character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
-    }
+    public abstract void Attack(CharacterBase character);
 }

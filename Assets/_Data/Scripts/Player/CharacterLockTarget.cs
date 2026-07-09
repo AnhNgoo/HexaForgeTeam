@@ -77,6 +77,7 @@ public class CharacterLockTarget : LoadComponents
             ObjectPooling.Instance?.ReturnToPool(PoolType.LockTargetMarker, lockTargetMarker); // Trả marker cũ về pool nếu có
         CameraManager.Instance?.SetCamera(CameraType.Normal, followTarget, followTarget);
         IsLockingTarget = false;
+        lookAtTarget = null;
     }
 
     /// <summary>
