@@ -5,9 +5,11 @@ using UnityEngine;
 
 public class EarthBreaker : CharacterSkillBase
 {
+    private HitPauseEffect hitPauseEffect = new HitPauseEffect();
     //Battlecry -> JumpAttack -> Idle
     //Battlecry: là animation gồng
     //JumpAttack: là animation nhảy lên và đập xuống
+
     public EarthBreaker(CharacterBase character, CharacterSkillData skillData) : base(character, skillData)
     {
 
@@ -20,6 +22,8 @@ public class EarthBreaker : CharacterSkillBase
             Debug.LogError("EarthBreaker skill chỉ có thể được sử dụng bởi Kael");
             return;
         }
+        character.CharacterCinematic.PlayCinematic();
+
         character.CharacterAnimation.CrossFade("Skill_1_1", 0.1f);
 
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_1") > 0.15f);
@@ -56,6 +60,10 @@ public class EarthBreaker : CharacterSkillBase
 
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.6f);
 
+        hitPauseEffect.PlayHitPause(1.3f, 0.1f); // Tạm dừng thời gian khi đòn tấn công trúng mục tiêu
+
+        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.9f);
         character.StateController.ChangeState(new IdleState(character));
+        character.CharacterCinematic.StopCinematic();
     }
 }

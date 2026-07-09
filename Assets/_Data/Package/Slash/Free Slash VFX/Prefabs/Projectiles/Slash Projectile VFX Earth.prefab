@@ -1,3 +1,5 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
 --- !u!1 &3038515511254748200
 GameObject:
   m_ObjectHideFlags: 0
@@ -19393,6 +19395,7 @@ GameObject:
   - component: {fileID: 4416080445347060708}
   - component: {fileID: 4416080445347060709}
   - component: {fileID: 4416080445347060710}
+  - component: {fileID: 941001116792977075}
   m_Layer: 0
   m_Name: Slash Projectile VFX Earth
   m_TagString: Untagged
@@ -24259,6 +24262,21 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &941001116792977075
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416080445347060711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f421297964672ed4b8246b0b1ee0ef17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SpawnWhenFinish: {fileID: 0}
+  speed: 20
+  distance: 30
 --- !u!1 &4416080446063441733
 GameObject:
   m_ObjectHideFlags: 0
@@ -24270,6 +24288,7 @@ GameObject:
   - component: {fileID: 4416080446063441732}
   - component: {fileID: 4416080446063441754}
   - component: {fileID: 4416080446063441755}
+  - component: {fileID: 7311250514237202320}
   m_Layer: 0
   m_Name: Decal
   m_TagString: Untagged
@@ -29073,6 +29092,24 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &7311250514237202320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416080446063441733}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 75c365dabbe897b499c6ddc7e013d494, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  decalOffsetY: 0.25
+  maxDistance: 3
+  rotation: {x: 0, y: 90, z: 90}
+  slash: {fileID: 4416080445347060709}
+  capsuleHeight: 0.5
+  capsuleRadius: 0.4
 --- !u!1 &4416080446205361348
 GameObject:
   m_ObjectHideFlags: 0

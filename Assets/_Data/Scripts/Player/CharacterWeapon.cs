@@ -11,7 +11,7 @@ public class CharacterWeapon : MonoBehaviour
     public Transform WeaponHoldPoint => weaponHoldPoint;
     [SerializeField] protected WeaponData weaponStored;
 
-
+    public bool HasWeapon => currentWeapon != null; // Kiểm tra xem nhân vật có vũ khí hay không, nếu không có thì dùng combo tay không
     protected GameObject currentWeaponObject;
     protected CharacterBase character;
 
@@ -76,13 +76,5 @@ public class CharacterWeapon : MonoBehaviour
             EquipWeapon(weaponStored);
             weaponStored = null;
         }
-    }
-
-    public void ChangeWeapon()
-    {
-        if (character.CharacterInput.IsChangingWeapon ||
-              EquipmentSystem.Instance.GetWeaponCount() == 0) return;
-
-        character.StateController.ChangeState(new ChangeWeaponState(character));
     }
 }
