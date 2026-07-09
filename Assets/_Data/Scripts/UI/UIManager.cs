@@ -26,6 +26,10 @@ public enum MenuType
     HUDMenuTest = 13,
     TrophyMenu = 14,
     LanguageMenu = 15,
+    GraphicsMenu = 16,     // Đảm bảo có dòng này
+    ControllerMenu = 17,   // Đảm bảo có dòng này
+    GameSystemMenu = 18,
+    AchievementMenu = 19,
 
     LobbyCharacterMenu = 100,
     LobbyInventoryMenu = 101,
