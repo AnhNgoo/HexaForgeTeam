@@ -7,7 +7,7 @@ public class PlayInteractionZone : MonoBehaviour
     [SerializeField] private GameObject interactionUI;
 
     [Header("Game Scene")]
-    [SerializeField] private string gameSceneName = "Game Scene";
+    [SerializeField] private string gameSceneName = "Tutorial";
 
     [Header("Interaction Key")]
     [SerializeField] private KeyCode playKey = KeyCode.F;
@@ -63,17 +63,23 @@ public class PlayInteractionZone : MonoBehaviour
             return;
 
         isLoading = true;
+
         SetInteractionUI(false);
 
         Time.timeScale = 1f;
 
-        Debug.Log("Loading game scene: " + gameSceneName);
+        LoadingData.TargetSceneName = gameSceneName;
 
-        // Single: xóa Lobby và chuyển hẳn sang gameplay.
-        SceneManager.LoadScene(
-            gameSceneName,
-            LoadSceneMode.Single
-        );
+        Debug.Log("Open Loading Menu");
+
+        if (LobbyUIOverlayManager.Instance != null)
+        {
+            LobbyUIOverlayManager.Instance.OpenMenu(MenuType.LoadingMenu);
+        }
+        else
+        {
+            SceneManager.LoadScene(gameSceneName);
+        }
     }
 
     private bool IsPlayer(Collider other)

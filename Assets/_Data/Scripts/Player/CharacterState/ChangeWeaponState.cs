@@ -26,6 +26,7 @@ public class ChangeWeaponState : ICharacterState
     {
         character.CharacterInput.IsChangingWeapon = false;
         character.CharacterAnimation.ResetState();
+        character.CharacterCombat.ResetCombo();
     }
 
     public void FixedUpdate()

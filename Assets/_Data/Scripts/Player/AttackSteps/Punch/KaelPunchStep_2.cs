@@ -15,14 +15,13 @@ public class KaelPunchStep_2 : AttackStepBase
     {
         if (character is not Kael kael) return;
 
-        Debug.Log("KaelPunchStep_2 Attack");
         if (kael.IsGiantForm)
         {
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
 
-            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            character.CharacterMeleeHitbox.AttackHitBox(kael.hitEffect_1);
             ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_1,
                                         kael.kaelGiantPunchEffectPoint_2.transform.position,
                                         kael.kaelGiantPunchEffectPoint_2.transform.rotation);
@@ -32,7 +31,7 @@ public class KaelPunchStep_2 : AttackStepBase
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 
-            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            character.CharacterMeleeHitbox.AttackHitBox(kael.hitEffect_1);
             ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_2,
                                         kael.punchEffectPoint_2.transform.position,
                                         kael.punchEffectPoint_2.transform.rotation);

@@ -1,257 +1,221 @@
-using System;
-using System.Collections.Generic;
+using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class CharacterMenu : MenuBase
 {
     public override MenuType menuType => MenuType.CharacterMenu;
 
-    [Serializable]
-    public class CharacterItem
-    {
-        [Header("Character")]
-        public string characterId;
-        public string characterName;
+    [Header("Character System")]
+    [SerializeField] private CharacterSelectUI characterSelectUI;
+    [SerializeField] private CharacterPreviewManager previewManager;
 
-        [Header("UI")]
-        public Button btn_Character;
-        public Sprite fullBodySprite;
-
-        [Tooltip("Khung hoặc dấu hiển thị avatar đang được chọn")]
-        public GameObject selectedMark;
-
-        [NonSerialized]
-        public UnityAction buttonAction;
-    }
-
-    [Header("Characters")]
-    [SerializeField]
-    private List<CharacterItem> characters = new List<CharacterItem>();
-
-    [Header("Character Display")]
-    [SerializeField] private Image img_Character;
-    [SerializeField] private TextMeshProUGUI txt_CharacterName;
-
-    [Header("Buttons")]
-    [SerializeField] private Button btn_Select;
-    [SerializeField] private Button btn_Back;
+    [Header("UI Objects")]
+    [SerializeField] private GameObject characterPanel;
+    [SerializeField] private Button btnConfirm;
+    [SerializeField] private Button btnClose;
+    [SerializeField] private TMP_Text txtStatus;
 
     [Header("Navigation")]
-    [SerializeField] private MenuType backMenu = MenuType.TitleMenu;
+    [SerializeField] private MenuType fallbackMenu =
+        MenuType.GameplayMenu;
 
-    private int selectedIndex = -1;
-
-    private const string SelectedCharacterKey = "SelectedCharacterId";
+    private CharacterType originalCharacter;
+    private bool hasOriginalCharacter;
+    private Coroutine initializeRoutine;
 
     protected override void LoadComponent()
     {
-        // Nên kéo thả trực tiếp trong Inspector.
+        if (characterPanel == null)
+        {
+            characterPanel =
+                FindDeepChild("CharacterPanel")?.gameObject;
+        }
+
+        if (characterSelectUI == null)
+        {
+            characterSelectUI =
+                GetComponentInChildren<CharacterSelectUI>(true);
+        }
+
+        if (btnConfirm == null)
+        {
+            btnConfirm =
+                FindDeepChild("Confirmbtn")?.GetComponent<Button>();
+        }
+
+        /*
+         * Trong hierarchy cua ban nut dong la CloseButton_1.
+         * Nen keo truc tiep nut nay vao btnClose.
+         */
     }
 
     protected override void LoadComponentRuntime()
     {
+        LoadComponent();
     }
 
     public override void Open(object data = null)
     {
         base.Open(data);
 
+        LoadComponentRuntime();
+
+        if (characterPanel != null)
+            characterPanel.SetActive(true);
+
+        RemoveEvents();
         AddEvents();
-        ShowSavedCharacter();
+
+        hasOriginalCharacter = false;
+        SetStatus(string.Empty);
+
+        if (initializeRoutine != null)
+            StopCoroutine(initializeRoutine);
+
+        initializeRoutine =
+            StartCoroutine(InitializeCharacterUI());
     }
 
     public override void Close()
     {
+        if (initializeRoutine != null)
+        {
+            StopCoroutine(initializeRoutine);
+            initializeRoutine = null;
+        }
+
         RemoveEvents();
 
+        if (characterPanel != null)
+            characterPanel.SetActive(false);
+
         base.Close();
+    }
+
+    private IEnumerator InitializeCharacterUI()
+    {
+        float timeout = 5f;
+
+        while (CharacterManager.Instance == null &&
+               timeout > 0f)
+        {
+            timeout -= Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        initializeRoutine = null;
+
+        if (CharacterManager.Instance == null)
+        {
+            SetStatus("CharacterManager is missing.");
+
+            if (btnConfirm != null)
+                btnConfirm.interactable = false;
+
+            yield break;
+        }
+
+        /*
+         * CharacterManager trong SetupLobby la manager chinh.
+         * Khong can keo CharacterManager con cua UI vao script nay.
+         */
+        if (AccountLevelManager.Instance != null)
+        {
+            CharacterManager.Instance
+                .CheckUnlockCharacter();
+        }
+
+        originalCharacter =
+            CharacterManager.Instance.GetSelectedCharacter();
+
+        hasOriginalCharacter = true;
+
+        if (characterSelectUI != null)
+            characterSelectUI.RefreshUI();
+
+        RefreshLobbyPreview();
+
+        if (btnConfirm != null)
+            btnConfirm.interactable = true;
+    }
+
+    private void AddEvents()
+    {
+        if (btnConfirm != null)
+            btnConfirm.onClick.AddListener(OnConfirmClicked);
+
+        if (btnClose != null)
+            btnClose.onClick.AddListener(OnCancelClicked);
+    }
+
+    private void RemoveEvents()
+    {
+        if (btnConfirm != null)
+            btnConfirm.onClick.RemoveListener(OnConfirmClicked);
+
+        if (btnClose != null)
+            btnClose.onClick.RemoveListener(OnCancelClicked);
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            OnBackButtonClicked();
-        }
+            OnCancelClicked();
     }
 
-    private void AddEvents()
+    private void OnConfirmClicked()
     {
-        RemoveEvents();
-
-        for (int i = 0; i < characters.Count; i++)
+        if (CharacterManager.Instance == null)
         {
-            int index = i;
-
-            CharacterItem character = characters[i];
-
-            if (character == null || character.btn_Character == null)
-                continue;
-
-            character.buttonAction = () => ShowCharacter(index);
-
-            character.btn_Character.onClick.AddListener(
-                character.buttonAction
-            );
-        }
-
-        if (btn_Select != null)
-            btn_Select.onClick.AddListener(OnSelectButtonClicked);
-
-        if (btn_Back != null)
-            btn_Back.onClick.AddListener(OnBackButtonClicked);
-    }
-
-    private void RemoveEvents()
-    {
-        foreach (CharacterItem character in characters)
-        {
-            if (character == null ||
-                character.btn_Character == null ||
-                character.buttonAction == null)
-            {
-                continue;
-            }
-
-            character.btn_Character.onClick.RemoveListener(
-                character.buttonAction
-            );
-
-            character.buttonAction = null;
-        }
-
-        if (btn_Select != null)
-            btn_Select.onClick.RemoveListener(OnSelectButtonClicked);
-
-        if (btn_Back != null)
-            btn_Back.onClick.RemoveListener(OnBackButtonClicked);
-    }
-
-    private void ShowSavedCharacter()
-    {
-        if (characters.Count == 0)
-        {
-            ClearDisplay();
+            SetStatus("CharacterManager is missing.");
             return;
         }
 
-        string savedId = PlayerPrefs.GetString(
-            SelectedCharacterKey,
-            ""
-        );
+        CharacterType selected =
+            CharacterManager.Instance.GetSelectedCharacter();
 
-        int savedIndex = characters.FindIndex(
-            character =>
-                character != null &&
-                character.characterId == savedId
-        );
+        SetStatus("Selected: " + selected);
 
-        if (savedIndex >= 0)
-        {
-            ShowCharacter(savedIndex);
-        }
-        else
-        {
-            ShowCharacter(0);
-        }
+        RefreshLobbyPreview();
+        CloseToLobby();
     }
 
-    private void ShowCharacter(int index)
+    private void OnCancelClicked()
     {
-        if (index < 0 || index >= characters.Count)
-            return;
-
-        CharacterItem character = characters[index];
-
-        if (character == null)
-            return;
-
-        selectedIndex = index;
-
-        if (img_Character != null)
+        /*
+         * CharacterSelectUI cua Trung luu ngay khi bam avatar.
+         * Khi bam X hoac Escape, khoi phuc nhan vat ban dau.
+         */
+        if (hasOriginalCharacter &&
+            CharacterManager.Instance != null)
         {
-            img_Character.sprite = character.fullBodySprite;
-            img_Character.enabled =
-                character.fullBodySprite != null;
+            CharacterManager.Instance.SelectCharacter(
+                originalCharacter);
 
-            img_Character.preserveAspect = true;
+            if (characterSelectUI != null)
+                characterSelectUI.RefreshUI();
+
+            RefreshLobbyPreview();
         }
 
-        if (txt_CharacterName != null)
-        {
-            txt_CharacterName.text =
-                character.characterName;
-        }
-
-        UpdateSelectedMark();
-
-        Debug.Log(
-            "Đang xem nhân vật: " +
-            character.characterName
-        );
+        CloseToLobby();
     }
 
-    private void UpdateSelectedMark()
+    private void RefreshLobbyPreview()
     {
-        for (int i = 0; i < characters.Count; i++)
+        if (previewManager == null)
         {
-            CharacterItem character = characters[i];
-
-            if (character == null ||
-                character.selectedMark == null)
-            {
-                continue;
-            }
-
-            character.selectedMark.SetActive(
-                i == selectedIndex
-            );
-        }
-    }
-
-    private void OnSelectButtonClicked()
-    {
-        if (selectedIndex < 0 ||
-            selectedIndex >= characters.Count)
-        {
-            Debug.LogWarning("Chưa chọn nhân vật.");
-            return;
+            previewManager =
+                FindFirstObjectByType<CharacterPreviewManager>();
         }
 
-        CharacterItem selectedCharacter =
-            characters[selectedIndex];
-
-        if (selectedCharacter == null)
-            return;
-
-        PlayerPrefs.SetString(
-            SelectedCharacterKey,
-            selectedCharacter.characterId
-        );
-
-        PlayerPrefs.Save();
-
-        CharacterSelectionData.SelectedCharacterId =
-            selectedCharacter.characterId;
-
-        Debug.Log(
-            "Đã chọn nhân vật: " +
-            selectedCharacter.characterName
-        );
-
-        Time.timeScale = 1f;
-
-        LoadingData.TargetMenu = MenuType.GameplayMenu;
-
-        UIManager.Instance.ChangeMenu(
-            MenuType.LoadingMenu
-        );
+        if (previewManager != null)
+            previewManager.RefreshPreview();
     }
 
-    private void OnBackButtonClicked()
+    private void CloseToLobby()
     {
         if (LobbyUIOverlayManager.Instance != null)
         {
@@ -259,30 +223,41 @@ public class CharacterMenu : MenuBase
             return;
         }
 
-        UIManager.Instance.ChangeMenu(
-            MenuType.TitleMenu
-        );
-    }
-
-    private void ClearDisplay()
-    {
-        selectedIndex = -1;
-
-        if (img_Character != null)
+        if (UIManager.Instance == null)
         {
-            img_Character.sprite = null;
-            img_Character.enabled = false;
+            gameObject.SetActive(false);
+            return;
         }
 
-        if (txt_CharacterName != null)
-            txt_CharacterName.text = "";
+        MenuType backMenu =
+            UIManager.Instance.PreviousMenuType;
 
-        if (btn_Select != null)
-            btn_Select.interactable = false;
+        if (backMenu == MenuType.None ||
+            backMenu == MenuType.CharacterMenu)
+        {
+            backMenu = fallbackMenu;
+        }
+
+        UIManager.Instance.ChangeMenu(backMenu);
     }
-}
 
-public static class CharacterSelectionData
-{
-    public static string SelectedCharacterId;
+    private void SetStatus(string message)
+    {
+        if (txtStatus != null)
+            txtStatus.text = message;
+    }
+
+    private Transform FindDeepChild(string childName)
+    {
+        Transform[] children =
+            GetComponentsInChildren<Transform>(true);
+
+        foreach (Transform child in children)
+        {
+            if (child.name == childName)
+                return child;
+        }
+
+        return null;
+    }
 }

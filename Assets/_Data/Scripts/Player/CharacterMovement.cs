@@ -54,7 +54,7 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private float gravity = -100f;
 
     public bool IsGrounded { get; set; } = false;
-    public bool CanMoveAttack { get; set; } = false;
+    public CollisionFlags flags { get; private set; } // Cờ giúp phát hiện va chạm với mặt đất, tường hoặc trần nhà
     public Vector2 MoveDirection { get; private set; }
     private Vector3 CurrentMove; // Hướng di chuyển cuối cùng sau khi áp dụng tất cả các hiệu ứng (dodge, lunge, jump, v.v.)
 
@@ -113,7 +113,7 @@ public class CharacterMovement : LoadComponents
         Vector3 finalMove = CurrentMove;
         finalMove.y = verticalVelocity;
 
-        CollisionFlags flags =
+        flags =
             cc.Move(finalMove * Time.deltaTime);
 
         // Hit ceiling
@@ -190,14 +190,18 @@ public class CharacterMovement : LoadComponents
         IsDodging = false;
     }
 
-    public void Lunge(Vector2 direction, float moveSpeed)
+    public void Lunge(Vector3 direction, float moveSpeed)
     {
         if (Time.time < _movementLockedUntil)
         {
             Stop();
             return;
         }
-        Movement(direction, moveSpeed, lungeSpeedMultiplier);
+
+        CurrentMove =
+            direction.normalized *
+            moveSpeed *
+            lungeSpeedMultiplier;
     }
     public void Jump()
     {

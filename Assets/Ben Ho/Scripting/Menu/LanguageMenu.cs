@@ -16,7 +16,12 @@ public class LanguageMenu : MenuBase
     [SerializeField] private TMP_Text txt_English;
     [SerializeField] private TMP_Text txt_Vietnamese;
 
-    private int selectedLanguage;
+    private int selectedLanguage = 0;
+    // 0 = English
+    // 1 = Vietnamese
+    
+    [SerializeField] private Image englishFrame;
+    [SerializeField] private Image vietnameseFrame;
 
     private readonly Color selectedColor =
         new Color32(255, 210, 80, 255);
@@ -38,16 +43,15 @@ public class LanguageMenu : MenuBase
     {
         base.Open(data);
 
-        selectedLanguage =
-            PlayerPrefs.GetInt("LANGUAGE", 0);
+        selectedLanguage = PlayerPrefs.GetInt("LANGUAGE", 0);
 
-        RefreshUI();
-
-        btn_English.onClick.AddListener(OnEnglishClicked);
-        btn_Vietnamese.onClick.AddListener(OnVietnameseClicked);
+        btn_English.onClick.AddListener(SelectEnglish);
+        btn_Vietnamese.onClick.AddListener(SelectVietnamese);
 
         btn_Confirm.onClick.AddListener(OnConfirmClicked);
         btn_Cancel.onClick.AddListener(OnCancelClicked);
+
+        UpdateButtonState();
     }
 
     public override void Close()
@@ -61,16 +65,16 @@ public class LanguageMenu : MenuBase
         btn_Cancel.onClick.RemoveAllListeners();
     }
 
-    private void OnEnglishClicked()
+    private void SelectEnglish()
     {
         selectedLanguage = 0;
-        RefreshUI();
+        UpdateButtonState();
     }
 
-    private void OnVietnameseClicked()
+    private void SelectVietnamese()
     {
         selectedLanguage = 1;
-        RefreshUI();
+        UpdateButtonState();
     }
 
     private void RefreshUI()
@@ -90,7 +94,7 @@ public class LanguageMenu : MenuBase
 
     private void OnConfirmClicked()
     {
-
+        LocalizationManager.Instance.SetLanguage(selectedLanguage);
 
         UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
@@ -98,5 +102,11 @@ public class LanguageMenu : MenuBase
     private void OnCancelClicked()
     {
         UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
+    }
+
+    private void UpdateButtonState()
+    {
+        englishFrame.enabled = selectedLanguage == 0;
+        vietnameseFrame.enabled = selectedLanguage == 1;
     }
 }

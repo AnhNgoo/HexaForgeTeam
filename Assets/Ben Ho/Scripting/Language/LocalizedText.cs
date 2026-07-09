@@ -1,48 +1,44 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using System.Collections.Generic;
 
-[RequireComponent(typeof(TMP_Text))]
 public class LocalizedText : MonoBehaviour
 {
-    private static readonly List<LocalizedText>
-        Instances = new();
-
     [SerializeField]
     private string key;
 
-    private TMP_Text textComponent;
+    private TMP_Text text;
+
+    private static readonly List<LocalizedText> all =
+        new List<LocalizedText>();
 
     private void Awake()
     {
-        textComponent =
-            GetComponent<TMP_Text>();
-    }
+        text = GetComponent<TMP_Text>();
 
-    private void OnEnable()
-    {
-        if (!Instances.Contains(this))
-            Instances.Add(this);
+        if (!all.Contains(this))
+            all.Add(this);
 
         Refresh();
     }
 
-    private void OnDisable()
+    private void OnDestroy()
     {
-        Instances.Remove(this);
+        all.Remove(this);
     }
 
     public void Refresh()
     {
         if (LocalizationManager.Instance == null)
             return;
+
+        text.text =
+            LocalizationManager.Instance.GetText(key);
     }
 
     public static void RefreshAll()
     {
-        foreach (var item in Instances)
-        {
+        foreach (var item in all)
             item.Refresh();
-        }
     }
 }

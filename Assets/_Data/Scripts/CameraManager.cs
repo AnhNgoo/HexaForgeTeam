@@ -9,13 +9,16 @@ public enum CameraType
     None = -1,
     Normal = 0,
     LockTarget = 1,
+    CinematicAttack = 2,
     // Thêm các loại camera khác nếu cần
 }
 public class CameraManager : Singleton<CameraManager>
 {
     [SerializeField] private List<CameraRig> cameras = new List<CameraRig>();
+    [SerializeField] private List<CameraType> cameraTypes = new List<CameraType>();
     [SerializeField] private CameraType normalCameraId = CameraType.Normal;
     [SerializeField] private CameraType lockTargetCameraId = CameraType.LockTarget;
+    [SerializeField] private CameraType cinematicAttackCameraId = CameraType.CinematicAttack;
     [SerializeField] private AvoidObstacleForCamera avoidObstacleForCamera;
     [SerializeField] private CameraShake cameraShake;
     private readonly Dictionary<CameraType, CameraRig> cameraLookup = new Dictionary<CameraType, CameraRig>();
@@ -40,6 +43,7 @@ public class CameraManager : Singleton<CameraManager>
             cameras = new List<CameraRig>();
             AddCameraRigFromChild(normalCameraId, "NormalCamera");
             AddCameraRigFromChild(lockTargetCameraId, "LockTargetCamera");
+            AddCameraRigFromChild(cinematicAttackCameraId, "CinematicAttackCamera");
         }
         BuildCameraLookup();
 
@@ -137,11 +141,11 @@ public class CameraManager : Singleton<CameraManager>
     {
         foreach (CameraRig rig in cameras)
         {
-            if (rig?.virtualCamera == null)
+            if (rig?.virtualCamera == null) // Nếu camera rig hoặc virtual camera là null thì bỏ qua
                 continue;
 
             //Nếu là camera được chọn thì set active 
-            rig.virtualCamera.gameObject.SetActive(rig == activeCamera);
+            rig.virtualCamera.Priority = (rig == activeCamera) ? 10 : 0;
         }
     }
 
