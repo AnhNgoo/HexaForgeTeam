@@ -28,6 +28,7 @@ public enum MenuType
     LanguageMenu = 15,
     GraphicsMenu = 16,
     ControllerMenu = 17,
+    GameSystemMenu = 18,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -70,7 +71,21 @@ public class UIManager : Singleton<UIManager>
         menus.Clear();
         foreach (MenuBase menu in menuList)
         {
-            menus.Add(new MenuData { menuType = menu.menuType, menuBase = menu });
+            Transform parent =
+                menu.transform.parent;
+
+            bool nestedInsideAnotherMenu =
+                parent != null &&
+                parent.GetComponentInParent<MenuBase>(true) != null;
+
+            if (nestedInsideAnotherMenu)
+                continue;
+
+            menus.Add(new MenuData
+            {
+                menuType = menu.menuType,
+                menuBase = menu
+            });
         }
     }
 
