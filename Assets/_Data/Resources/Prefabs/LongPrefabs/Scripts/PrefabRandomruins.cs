@@ -9,12 +9,12 @@ public class PrefabRandomruins : MonoBehaviour
     public Transform target;    
     
     public void SpawnRuin()
-    {
+    {   
         foreach (SpawnData data in spawnDatas)
         {
             if (data.prefabs == null) continue;
 
-            int spawnCount = Mathf.Min(2, data.spawnPoints.Length, data.prefabs.Length);
+            int spawnCount = Mathf.Min(data.spawnPoints.Length, data.prefabs.Length);
 
             List<int> prefabIndexes = Enumerable.Range(0, data.prefabs.Length).ToList();
             for (int i = 0; i < prefabIndexes.Count; i++)
