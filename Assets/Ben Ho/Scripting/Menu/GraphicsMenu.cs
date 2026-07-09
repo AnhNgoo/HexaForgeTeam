@@ -74,6 +74,10 @@ public class GraphicsMenu : MenuBase
     [Header("Setting Tabs")]
     [SerializeField] private SettingsTabUI tabs;
 
+    [Header("Embedded System Settings")]
+    [SerializeField]
+    private SystemSettingsPanel systemSettingsPanel;
+
     [Header("Dropdown")]
     [SerializeField] private TMP_Dropdown dropdownResolution;
 
@@ -452,22 +456,50 @@ public class GraphicsMenu : MenuBase
     private void Back()
     {
         LoadSettings();
-        UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
+
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.CloseGameSystemMenu();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            SettingMenuData.BackMenu);
     }
 
     private void OpenAudio()
     {
-        UIManager.Instance.ChangeMenu(MenuType.SettingMenu);
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowAudio();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.SettingMenu);
     }
 
     private void SelectGraphics()
     {
-        tabs.SetSelected(MenuType.GraphicsMenu);
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowGraphics();
+            return;
+        }
+
+        tabs?.SetSelected(MenuType.GraphicsMenu);
     }
 
     private void OpenController()
     {
-        UIManager.Instance.ChangeMenu(MenuType.ControllerMenu);
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowController();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.ControllerMenu);
     }
 
     private void SetToggle(Toggle toggle, bool value)
