@@ -10,6 +10,7 @@ public class CharacterSkill : MonoBehaviour
     public CharacterSkillData SkillData2 => skillData2;
     public bool CanUseSkill1 { get; set; } = true;
     public bool CanUseSkill2 { get; set; } = true;
+    public bool IsUsingSkill { get; set; } = false;
     private ICharacterSkill skill1;
     private ICharacterSkill skill2;
     private CharacterBase characterBase;

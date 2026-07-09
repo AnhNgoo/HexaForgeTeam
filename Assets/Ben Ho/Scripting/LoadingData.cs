@@ -5,4 +5,5 @@ using UnityEngine;
 public static class LoadingData
 {
     public static MenuType TargetMenu = MenuType.GameplayMenu;
+    public static string TargetSceneName = "";
 }

@@ -8,6 +8,10 @@ public class StateController
 
     public void ChangeState(ICharacterState newState)
     {
+        if (currentState == newState)
+        {
+            return;
+        }
         currentState?.Exit();
         currentState = newState;
         currentState?.Enter();

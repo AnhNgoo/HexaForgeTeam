@@ -21,6 +21,6 @@ public class AutoLocalizedText : MonoBehaviour
     public void Refresh()
     {
         txt.text =
-            LocalizationManager.Instance.Get(key);
+            LocalizationManager.Instance.GetText(key);
     }
 }

@@ -1,31 +1,50 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LobbyMenuInteractionZone : MonoBehaviour
 {
     [Header("Interaction UI")]
     [SerializeField] private GameObject interactionUI;
+    [SerializeField] private Button interactionButton;
+    [SerializeField] private bool useDistanceCheck = true;
+    [SerializeField] private float interactionDistance = 3f;
+    [SerializeField] private Transform player;
+    [SerializeField] private string playerTag = "Player";
 
     [Header("Primary Interaction")]
     [SerializeField] private KeyCode primaryKey = KeyCode.F;
     [SerializeField] private MenuType primaryMenu = MenuType.StoreMenu;
+    [SerializeField] private bool useKeyboardShortcut;
 
     [Header("Secondary Interaction")]
     [SerializeField] private bool useSecondaryInteraction;
     [SerializeField] private KeyCode secondaryKey = KeyCode.G;
     [SerializeField] private MenuType secondaryMenu =
-        MenuType.InventoryGemMenu;
+        MenuType.InventoryRuneMenu;
 
     private bool playerInside;
-
     private void Start()
     {
+        CacheInteractionButton();
+        BindInteractionButton();
+        CachePlayer();
         SetInteractionUI(false);
+    }
+
+    private void OnDestroy()
+    {
+        UnbindInteractionButton();
     }
 
     private void Update()
     {
         LobbyUIOverlayManager manager =
             LobbyUIOverlayManager.Instance;
+
+        if (useDistanceCheck)
+        {
+            UpdatePlayerInsideByDistance();
+        }
 
         // Đang đứng ngoài vùng thì luôn tắt UI.
         if (!playerInside)
@@ -50,9 +69,10 @@ public class LobbyMenuInteractionZone : MonoBehaviour
 
         if (manager == null)
         {
-            if (Input.GetKeyDown(primaryKey) ||
-                (useSecondaryInteraction &&
-                 Input.GetKeyDown(secondaryKey)))
+            if (useKeyboardShortcut &&
+                (Input.GetKeyDown(primaryKey) ||
+                 (useSecondaryInteraction &&
+                  Input.GetKeyDown(secondaryKey))))
             {
                 Debug.LogError(
                     "Không tìm thấy LobbyUIOverlayManager. " +
@@ -64,17 +84,106 @@ public class LobbyMenuInteractionZone : MonoBehaviour
             return;
         }
 
-        if (Input.GetKeyDown(primaryKey))
+        if (useKeyboardShortcut &&
+            Input.GetKeyDown(primaryKey))
         {
-            manager.OpenMenu(primaryMenu);
+            OpenPrimaryMenu();
             return;
         }
 
-        if (useSecondaryInteraction &&
+        if (useKeyboardShortcut &&
+            useSecondaryInteraction &&
             Input.GetKeyDown(secondaryKey))
         {
             manager.OpenMenu(secondaryMenu);
         }
+    }
+
+    private void CacheInteractionButton()
+    {
+        if (interactionButton != null)
+            return;
+
+        if (interactionUI == null)
+            return;
+
+        interactionButton =
+            interactionUI.GetComponent<Button>();
+
+        if (interactionButton == null)
+        {
+            interactionButton =
+                interactionUI.GetComponentInChildren<Button>(true);
+        }
+    }
+
+    private void BindInteractionButton()
+    {
+        if (interactionButton == null)
+            return;
+
+        interactionButton.onClick.RemoveListener(OpenPrimaryMenu);
+        interactionButton.onClick.AddListener(OpenPrimaryMenu);
+    }
+
+    private void UnbindInteractionButton()
+    {
+        if (interactionButton == null)
+            return;
+
+        interactionButton.onClick.RemoveListener(OpenPrimaryMenu);
+    }
+
+    private void OpenPrimaryMenu()
+    {
+        LobbyUIOverlayManager manager =
+            LobbyUIOverlayManager.Instance;
+
+        if (manager == null)
+        {
+            Debug.LogError(
+                "Không tìm thấy LobbyUIOverlayManager. " +
+                "Hãy tạo GameObject LobbyUIOverlayManager trong scene Lobby."
+            );
+
+            return;
+        }
+
+        SetInteractionUI(false);
+        manager.OpenMenu(primaryMenu);
+    }
+
+    private void CachePlayer()
+    {
+        GameObject playerObject =
+            GameObject.FindGameObjectWithTag(playerTag);
+
+        if (playerObject != null)
+        {
+            player = playerObject.transform;
+        }
+    }
+
+    private void UpdatePlayerInsideByDistance()
+    {
+        if (player == null)
+        {
+            CachePlayer();
+        }
+
+        if (player == null)
+        {
+            playerInside = false;
+            return;
+        }
+
+        float sqrDistance =
+            (player.position - transform.position).sqrMagnitude;
+
+        float sqrInteractionDistance =
+            interactionDistance * interactionDistance;
+
+        playerInside = sqrDistance <= sqrInteractionDistance;
     }
 
     private void OnTriggerEnter(Collider other)

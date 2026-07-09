@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class LoadingMenu : MenuBase
 {
@@ -70,7 +71,17 @@ public class LoadingMenu : MenuBase
 
         yield return new WaitForSecondsRealtime(0.2f);
 
-        UIManager.Instance.ChangeMenu(LoadingData.TargetMenu);
+        if (!string.IsNullOrEmpty(LoadingData.TargetSceneName))
+        {
+            string sceneName = LoadingData.TargetSceneName;
+            LoadingData.TargetSceneName = "";
+
+            SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+        }
+        else
+        {
+            UIManager.Instance.ChangeMenu(LoadingData.TargetMenu);
+        }
     }
 
     private void SetProgress(float value)

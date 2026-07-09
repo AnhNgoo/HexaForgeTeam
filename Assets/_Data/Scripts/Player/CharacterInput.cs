@@ -21,12 +21,17 @@ public class CharacterInput : MonoBehaviour
     public bool Attack => attack;
     [SerializeField] private bool healthRecovery = false;
     public bool HealthRecovery => healthRecovery;
+
     [SerializeField] private bool lockTarget = false;
     public bool LockTarget => lockTarget;
     [SerializeField] private bool skill_1 = false;
     public bool Skill_1 => skill_1;
     [SerializeField] private bool skill_2 = false;
     public bool Skill_2 => skill_2;
+
+    public bool IsMoving => moveInput != Vector2.zero;
+    public bool IsChangingWeapon { get; set; } = false;
+    public bool IsHealthRecovering { get; set; } = false;
 
     private InputActions inputActions => InputManager.InputActions;
     private CharacterBase characterBase;
@@ -43,6 +48,11 @@ public class CharacterInput : MonoBehaviour
         if (inputActions == null)
         {
             Debug.LogWarning("InputActions is null in CharacterInput");
+            return;
+        }
+        bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
+        if (!isUIGameplay) // Bỏ qua các input khi không phải trong UI gameplay 
+        {
             return;
         }
 

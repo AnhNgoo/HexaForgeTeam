@@ -1,10 +1,18 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Audio;
+using TMPro;
 
 public class SettingMenu : MenuBase
 {
     public override MenuType menuType => MenuType.SettingMenu;
+
+    [Header("Embedded System Settings")]
+    [SerializeField]
+    private SystemSettingsPanel systemSettingsPanel;
+
+    [Header("Setting Tabs")]
+    [SerializeField] private SettingsTabUI tabs;
 
     [Header("Audio Mixer")]
     [SerializeField] private AudioMixer audioMixer;
@@ -66,16 +74,102 @@ public class SettingMenu : MenuBase
     {
         base.Open(data);
 
+        // Phong truong hop Open duoc goi nhieu lan.
+        RemoveTabEvents();
+        RemoveEvents();
+
         LoadSettings();
+
+        AddTabEvents();
         AddEvents();
+
         PreviewSettings();
+        tabs?.SetSelected(MenuType.SettingMenu);
     }
 
     public override void Close()
     {
+        RemoveTabEvents();
         RemoveEvents();
 
         base.Close();
+        
+    }
+
+    private void AddTabEvents()
+    {
+        if (tabs.btnAudio != null)
+            tabs.btnAudio.onClick.AddListener(OpenAudioTab);
+
+        if (tabs.btnGraphics != null)
+            tabs.btnGraphics.onClick.AddListener(OpenGraphicsTab);
+
+        if (tabs.btnController != null)
+            tabs.btnController.onClick.AddListener(OpenControllerTab);
+    }
+
+    private void RemoveTabEvents()
+    {
+        if (tabs.btnAudio != null)
+            tabs.btnAudio.onClick.RemoveListener(OpenAudioTab);
+
+        if (tabs.btnGraphics != null)
+            tabs.btnGraphics.onClick.RemoveListener(OpenGraphicsTab);
+
+        if (tabs.btnController != null)
+            tabs.btnController.onClick.RemoveListener(OpenControllerTab);
+    }
+
+    private void OpenAudioTab()
+    {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowAudio();
+            return;
+        }
+
+        tabs?.SetSelected(MenuType.SettingMenu);
+    }
+
+    private void OpenGraphicsTab()
+    {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowGraphics();
+            return;
+        }
+
+        ChangeSettingTab(MenuType.GraphicsMenu);
+    }
+
+    private void OpenControllerTab()
+    {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowController();
+            return;
+        }
+
+        ChangeSettingTab(MenuType.ControllerMenu);
+    }
+
+    private void ChangeSettingTab(MenuType targetMenu)
+    {
+        if (UIManager.Instance == null)
+        {
+            Debug.LogError(
+                "Khong tim thay UIManager.Instance.");
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(targetMenu);
+
+        if (UIManager.Instance.CurrentMenuType != targetMenu)
+        {
+            Debug.LogError(
+                $"UIManager khong tim thay menu: {targetMenu}. " +
+                "Hay Load Components lai tren UIManager.");
+        }
     }
 
     private void AddEvents()
@@ -236,6 +330,11 @@ public class SettingMenu : MenuBase
 
     private void OnBackButtonClicked()
     {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.CloseGameSystemMenu();
+            return;
+        }
         Debug.Log("Setting back button clicked");
 
         LoadSettings();

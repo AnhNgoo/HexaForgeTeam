@@ -24,7 +24,7 @@ public class MouseManager : Singleton<MouseManager>
         {
             ShowMouse();
         }
-        else if (Input.GetKeyDown(KeyCode.RightAlt) && isMouseVisible)
+        else if (InputActions.Keyboard.LeftMouse.triggered && isMouseVisible)
         {
             HideMouse();
         }

@@ -17,15 +17,15 @@ public enum MenuType
     InventoryMenu = 4,
     SettingMenu = 5,
     PauseMenu = 6,
-    LevelUpMenu = 7,
+    LevelMenu = 7,
     GachaMenu = 8,
     StoreMenu = 9,
-    InventoryGemMenu = 10,
+    InventoryRuneMenu = 10,
     HelpMenu = 11,
     CharacterMenu = 12,
     HUDMenuTest = 13,
-    TrophyMenu = 13,
-    LanguageMenu = 14,
+    TrophyMenu = 14,
+    LanguageMenu = 15,
 
     LobbyCharacterMenu = 100,
     LobbyInventoryMenu = 101,
@@ -76,7 +76,21 @@ public class UIManager : Singleton<UIManager>
         menus.Clear();
         foreach (MenuBase menu in menuList)
         {
-            menus.Add(new MenuData { menuType = menu.menuType, menuBase = menu });
+            Transform parent =
+                menu.transform.parent;
+
+            bool nestedInsideAnotherMenu =
+                parent != null &&
+                parent.GetComponentInParent<MenuBase>(true) != null;
+
+            if (nestedInsideAnotherMenu)
+                continue;
+
+            menus.Add(new MenuData
+            {
+                menuType = menu.menuType,
+                menuBase = menu
+            });
         }
     }
 
