@@ -117418,6 +117418,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 474030527805132030, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
+      propertyPath: walkSpeedMultiplier
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 474030527805132030, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
       propertyPath: sprintSpeedMultiplier
       value: 1.5
       objectReference: {fileID: 0}
@@ -199455,13 +199459,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1854738028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 23.23, y: 8.9, z: 15.72}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 14.1, y: 6.19, z: -0.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1111122387}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!4 &1854847671 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7969879144478416408, guid: 41654be1f40a7ed49972bf97137e607a, type: 3}
@@ -231087,43 +231091,51 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.size
-      value: 5
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
+      propertyPath: enemiesInCamp.Array.data[0].enemyType
+      value: 69
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[1].enemyType
-      value: 50
+      value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[2].enemyType
-      value: 50
+      value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[3].enemyType
-      value: 50
+      value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[4].enemyType
       value: 65
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
-      propertyPath: enemiesInCamp.Array.data[1].spawnPoint
+      propertyPath: enemiesInCamp.Array.data[0].spawnPoint
       value: 
       objectReference: {fileID: 1854738029}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
+      propertyPath: enemiesInCamp.Array.data[1].spawnPoint
+      value: 
+      objectReference: {fileID: 530547976}
+    - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[2].spawnPoint
       value: 
-      objectReference: {fileID: 1283561464}
+      objectReference: {fileID: 530547976}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[3].spawnPoint
       value: 
-      objectReference: {fileID: 1673783438}
+      objectReference: {fileID: 530547976}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[4].spawnPoint
       value: 
       objectReference: {fileID: 530547976}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[1].isPatroller
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[1].savedHealth
@@ -231131,7 +231143,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[2].isPatroller
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[2].savedHealth
@@ -231139,7 +231151,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[3].isPatroller
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5419717355955508894, guid: 136bc7562d509994595dd3c4d0c90d46, type: 3}
       propertyPath: enemiesInCamp.Array.data[3].savedHealth

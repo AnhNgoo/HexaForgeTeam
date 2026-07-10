@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using System.Collections.Generic;
 
 public class EnemyHitbox : MonoBehaviour
 {
@@ -7,6 +8,7 @@ public class EnemyHitbox : MonoBehaviour
     private Collider _hitboxCollider;
     private AttackDataSO _attackDataSnapshot;
     public event Action<Collider> OnHitTarget;
+    private readonly HashSet<ITakeDamage> _damagedTargets = new HashSet<ITakeDamage>();
     [SerializeField] private bool _dealDamageOnHit = true; // Thêm biến để kiểm soát việc
 
     private void Awake()
@@ -23,41 +25,52 @@ public class EnemyHitbox : MonoBehaviour
 
     public void EnableHitBox()
     {
+        _damagedTargets.Clear();
         if (_hitboxCollider != null) _hitboxCollider.enabled = true;
-        Debug.Log($"{gameObject.name} đã kích hoạt hitbox!");
     }
 
     public void DisableHitBox()
     {
         if (_hitboxCollider != null) _hitboxCollider.enabled = false;
-        Debug.Log($"{gameObject.name} đã vô hiệu hóa hitbox!");
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        ITakeDamage damageable = other.GetComponentInParent<ITakeDamage>();
+        if (damageable == null) return;
+
+        if (_dealDamageOnHit)
         {
-            if (_dealDamageOnHit)
+            if (_enemyBase == null)
             {
-                if (_enemyBase == null)
-                {
-                    Debug.LogWarning($"{gameObject.name} chưa được Initialize.");
-                    return;
-                }
-
-                AttackDataSO attackData = _attackDataSnapshot ?? _enemyBase.Combat.CurrentAttackData;
-
-                float multiplier = attackData != null ? attackData.damageMultiplier : 1f;
-
-                float finalDamage = _enemyBase.Data.damage * multiplier;
-
-                _enemyBase.ExtendLeash(_enemyBase.Data.maxLeashDistance + 5f);
-
-                Debug.Log($"{gameObject.name} gây sát thương {finalDamage} lên Player " + $"(sát thương cơ bản: {_enemyBase.Data.damage}, " + $"hệ số: {multiplier})");
-
-                // To_Do: Gọi hàm xử lý sát thương lên Player tại đây, ví dụ: other.GetComponent<PlayerHealth>().TakeDamage(attackData.damage);
+                Debug.LogWarning($"{gameObject.name} chưa được Initialize.");
+                return;
             }
-            OnHitTarget?.Invoke(other);
+
+            if (_damagedTargets.Contains(damageable))
+                return;
+
+            _damagedTargets.Add(damageable);
+
+            AttackDataSO attackData = _attackDataSnapshot ?? _enemyBase.Combat.CurrentAttackData;
+
+            float multiplier = attackData != null ? attackData.damageMultiplier : 1f;
+            float finalDamage = _enemyBase.Data.damage * multiplier;
+
+            _enemyBase.ExtendLeash(_enemyBase.Data.maxLeashDistance + 5f);
+
+            DamageInfo damageInfo = new DamageInfo
+            {
+                damageAmount = finalDamage,
+                attacker = _enemyBase.gameObject
+            };
+
+            damageable.TakeDamage(damageInfo);
+            CameraShake.Instance?.Shake();
+
+            Debug.Log($"{gameObject.name} gây sát thương {finalDamage} lên Player " + $"(sát thương cơ bản: {_enemyBase.Data.damage}, hệ số: {multiplier})");
         }
+
+        OnHitTarget?.Invoke(other);
     }
 }

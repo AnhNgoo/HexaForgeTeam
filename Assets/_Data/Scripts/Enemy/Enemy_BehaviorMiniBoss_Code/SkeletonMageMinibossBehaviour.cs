@@ -6,6 +6,7 @@ public class SkeletonMageMinibossBehaviour : EnemyMinibossBehaviour
     [SerializeField, Range(0f, 1f)] private float auraDamageReduction = 0.3f;
     [SerializeField] private float frenzyDuration = 5f;
     [SerializeField] private float frenzyAttackSpeedMultiplier = 1.5f;
+    [SerializeField] private int maxAliveMinions = 6;
 
     private readonly List<EnemyBase> _aliveMinions = new();
     private float _frenzyEndTime;
@@ -69,5 +70,14 @@ public class SkeletonMageMinibossBehaviour : EnemyMinibossBehaviour
 
         _aliveMinions.Clear();
         _frenzyEndTime = 0f;
+    }
+
+    public int AvailableMinionSlots
+    {
+        get
+        {
+            CleanupMinions();
+            return Mathf.Max(0, maxAliveMinions - _aliveMinions.Count);
+        }
     }
 }

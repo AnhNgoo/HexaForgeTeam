@@ -14,6 +14,7 @@ public class EnemyState_Attack : EnemyState
         _attackEndTime = 0f; //Khởi tạo thời gian kết thúc của đòn tấn công hiện tại, có thể điều chỉnh giá trị này dựa trên thời gian của animation tấn công hoặc thời gian hồi chiêu của đòn tấn công
         _isWaitingCooldown = false; //Khởi tạo trạng thái chờ đợi hồi chiêu của đòn tấn công, có thể điều chỉnh giá trị này dựa trên thời gian của animation tấn công hoặc thời gian hồi chiêu của đòn tấn công
         _nextStrafeTime = 0f; //Khởi tạo thời gian tiếp theo mà Enemy có thể thực hiện động tác di chuyển tấn công (strafe), có thể điều chỉnh giá trị này dựa trên thời gian của animation tấn công hoặc thời gian hồi chiêu của đòn tấn công
+        _enemyBase.Locomotion.SetAngularSpeed(_enemyBase.Data.attackTurnSpeed);
         Debug.Log($"{_enemyBase.gameObject.name} đã vào trạng thái Attack.");
     }
 
@@ -62,7 +63,7 @@ public class EnemyState_Attack : EnemyState
 
         Quaternion targetRotation = Quaternion.LookRotation(lookDirection.normalized);
 
-        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(_enemyBase.MyTransform.rotation, targetRotation, 900f * Time.deltaTime);
+        _enemyBase.MyTransform.rotation = Quaternion.RotateTowards(_enemyBase.MyTransform.rotation, targetRotation, _enemyBase.Data.attackTurnSpeed * Time.deltaTime);
 
         if (Time.time < _attackEndTime) return; //Nếu đang trong thời gian của đòn tấn công hiện tại thì không thực hiện logic tấn công mới để tránh lỗi spam tấn công liên tục
 
@@ -80,7 +81,7 @@ public class EnemyState_Attack : EnemyState
 
         float facingAngle = Vector3.Angle(_enemyBase.MyTransform.forward, lookDirection.normalized);
 
-        if (facingAngle > 20f)
+        if (facingAngle > _enemyBase.Data.attackFacingAngle) //Nếu Enemy đang không đối mặt với người chơi trong phạm vi góc cho phép để tấn công, giúp Enemy có thể điều chỉnh hướng tấn công một cách hợp lý thay vì chỉ tập trung vào tấn công khi đang lệch hướng, tạo sự đa dạng trong hành vi của Enemy và tránh lỗi spam tấn công liên tục khi người chơi đang ở gần
         {
             _enemyBase.Locomotion.StopMoving();
             return;
@@ -244,9 +245,9 @@ public class EnemyState_Attack : EnemyState
 
         _isWaitingCooldown = true;
 
-        int movementHash =
-            _enemyBase.AnimatorController.HasAnimationState(
-                _enemyBase.AnimatorController.WalkHash)
+        _enemyBase.Locomotion.SetAngularSpeed(_enemyBase.Data.recoveryTurnSpeed);
+
+        int movementHash = _enemyBase.AnimatorController.HasAnimationState(_enemyBase.AnimatorController.WalkHash)
             ? _enemyBase.AnimatorController.WalkHash
             : _enemyBase.AnimatorController.ChaseHash;
 
@@ -296,6 +297,7 @@ public class EnemyState_Attack : EnemyState
     public override void Exit()
     {
         base.Exit();
+        _enemyBase.Locomotion.SetAngularSpeed(_enemyBase.Data.chaseAngularSpeed);
         _enemyBase.Combat.ForceCloseHitbox(); //Đảm bảo rằng hitbox sẽ được đóng đúng thời điểm khi rời khỏi trạng thái Attack, tránh lỗi hitbox vẫn mở sau khi animation kết thúc
         Debug.Log($"{_enemyBase.gameObject.name} đã rời khỏi trạng thái Attack.");
     }

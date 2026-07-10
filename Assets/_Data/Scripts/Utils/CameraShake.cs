@@ -14,6 +14,9 @@ public class CameraShake : Singleton<CameraShake>
 	}
 	public void Shake()
 	{
+		if (impulseSource == null)
+			return;
+
 		impulseSource.GenerateImpulse();
 	}
 }

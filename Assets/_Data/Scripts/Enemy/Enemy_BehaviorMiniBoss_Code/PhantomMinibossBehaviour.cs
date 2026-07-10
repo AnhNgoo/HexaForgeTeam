@@ -161,6 +161,12 @@ public class PhantomMinibossBehaviour : EnemyMinibossBehaviour
             if (!NavMesh.SamplePosition(candidate, out NavMeshHit hit, navMeshSampleRadius, NavMesh.AllAreas))
                 continue;
 
+            float currentY = Enemy.MyTransform.position.y;
+            float maxVerticalDifference = 1.5f;
+
+            if (Mathf.Abs(hit.position.y - currentY) > maxVerticalDifference)
+                continue;
+
             if (!Enemy.Detection.IsPointInLeash(hit.position))
                 continue;
 
@@ -170,7 +176,11 @@ public class PhantomMinibossBehaviour : EnemyMinibossBehaviour
                 continue;
 
             bestDistance = distanceFromPlayer;
-            destination = hit.position;
+
+            Vector3 finalPosition = hit.position;
+            finalPosition.y = Enemy.MyTransform.position.y;
+
+            destination = finalPosition;
             found = true;
         }
 

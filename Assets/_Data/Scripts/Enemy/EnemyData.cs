@@ -16,6 +16,12 @@ public class EnemyData : ScriptableObject
     public float loseTargetRange = 15f; //Khoảng cách mất mục tiêu
     public float povAngle = 90f; //Góc nhìn
     public float angularSpeed = 720f; //Tốc độ xoay mặt khi theo dõi mục tiêu
+    [Header("Combat Rotation")]
+    public float chaseAngularSpeed = 720f; //Tốc độ xoay khi đang Chase. Cao hơn để enemy bám player nhanh.
+    public float attackTurnSpeed = 540f; //Tốc độ xoay thủ công trong Attack state. Không nên quá cao với enemy nặng.
+    public float recoveryTurnSpeed = 360f; //Tốc độ xoay sau khi đánh xong / trong khoảng chờ cooldown.
+    public float attackFacingAngle = 25f; //Enemy được phép đánh khi lệch góc bao nhiêu độ so với player.
+    public float combatAwarenessDuration = 1f; //Thời gian mà Enemy vẫn giữ mục tiêu trong trạng thái nghi ngờ sau khi mất tầm nhìn, giúp Enemy không bị mất mục tiêu ngay lập tức khi player chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách phát hiện
     [Header("Award Settings")]
     public int minGoldReward = 10; //Số lượng vàng thưởng khi tiêu diệt Enemy
     public int maxGoldReward = 20; //Số lượng vàng thưởng tối đa khi tiêu diệt Enemy

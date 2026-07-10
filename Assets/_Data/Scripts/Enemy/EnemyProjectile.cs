@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
@@ -24,6 +25,7 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     private bool _isLaunched = false;
 
     private CancellationTokenSource _lifeCts;
+    private readonly HashSet<ITakeDamage> _damagedTargets = new HashSet<ITakeDamage>();
 
     public void Launch(EnemyBase sourceEnemy, float damage, float speed, Vector3 direction, float lifetime)
     {
@@ -59,8 +61,19 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player"))
+        ITakeDamage damageable = other.GetComponentInParent<ITakeDamage>();
+
+        if (damageable != null)
         {
+            DamageInfo damageInfo = new DamageInfo
+            {
+                damageAmount = _damage,
+                attacker = _sourceEnemy != null ? _sourceEnemy.gameObject : gameObject
+            };
+
+            damageable.TakeDamage(damageInfo);
+            CameraShake.Instance?.Shake();
+
             ApplyEffect(other);
 
             DebugNote.Green("Đạn trúng Player mất " + _damage + " máu!");
@@ -73,12 +86,6 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
                     _sourceEnemy.GetComponent<ShadeMinibossBehaviour>()?.NotifyShadowBindSuccess();
             }
 
-            ReturnToPool();
-        }
-        // Kiểm tra nếu va chạm với lớp chướng ngại vật (Sử dụng dịch Bit để so sánh lớp sau này có thể mở rộng để kiểm tra nhiều lớp khác nhau mà không cần nhiều ||)
-        else if (((1 << other.gameObject.layer) & LayerMask.GetMask("Obstacle", "Environment")) != 0)
-        {
-            DebugNote.Red("Đạn va chạm với môi trường và bị hủy!");
             ReturnToPool();
         }
     }
@@ -94,7 +101,7 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
         if (effectType == EnemyProjectileEffectType.None)
             return;
 
-        CharacterMovement movement = other.GetComponent<CharacterMovement>();
+        CharacterMovement movement = other.GetComponentInParent<CharacterMovement>();
         if (movement == null)
             return;
 
