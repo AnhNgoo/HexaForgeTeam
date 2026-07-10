@@ -24,85 +24,60 @@ public class GameSystemTabItem
 
 public class GameSystemMenu : MenuBase
 {
-    public override MenuType menuType =>
-        MenuType.GameSystemMenu;
+    public override MenuType menuType => MenuType.GameSystemMenu;
 
-    [Header("Tab Menu Items")]
-    [SerializeField]
-    private GameSystemTabItem[] tabItems;
+    [Header("Tabs")]
+    [SerializeField] private ToggleGroup tabToggleGroup;
+    [SerializeField] private GameSystemTabItem[] tabItems;
 
-    [Header("Content Panels")]
-    [SerializeField] private GameObject mapPanel;
-
-    [SerializeField]
-    private InventoryMenu inventoryMenu;
-
-    [SerializeField]
-    private GameObject playerStatePanel;
-
-    [SerializeField]
-    private GameObject systemPanel;
+    [Header("Panels")]
+    [SerializeField] private WorldMapPanel mapPanel;
+    [SerializeField] private InventoryMenu inventoryMenu;
+    [SerializeField] private PlayerStatePanel playerStatePanel;
+    [SerializeField] private SystemSettingsPanel systemSettingsPanel;
 
     [Header("Buttons")]
     [SerializeField] private Button btnClose;
 
-    [Header("Opening")]
-    [SerializeField] private GameSystemTab defaultTab =
-        GameSystemTab.Map;
+    [Header("Default")]
+    [SerializeField] private GameSystemTab defaultTab = GameSystemTab.Map;
 
-    [Header("Icon Colors")]
-    [SerializeField] private Color normalIconColor =
-        Color.white;
-
-    [SerializeField] private Color selectedIconColor =
-        new Color(1f, 0.78f, 0.25f, 1f);
+    [Header("Visual")]
+    [SerializeField] private Color normalIconColor = Color.white;
+    [SerializeField] private Color selectedIconColor = new Color(1f, 0.78f, 0.25f, 1f);
 
     private GameSystemTab currentTab;
-    [Header("Toggle Group")]
-    [SerializeField] private ToggleGroup tabToggleGroup;
-
     private UnityAction<bool>[] tabActions;
-
-    private int openedFrame;
     private bool eventsAdded;
-    private bool cursorCaptured;
+    private int openedFrame;
 
+    private bool cursorCaptured;
     private CursorLockMode previousCursorLock;
     private bool previousCursorVisible;
 
-    protected override void LoadComponent()
-    {
-    }
-
-    protected override void LoadComponentRuntime()
-    {
-    }
+    protected override void LoadComponent() { }
+    protected override void LoadComponentRuntime() { }
 
     public override void Open(object data = null)
     {
         base.Open(data);
 
         openedFrame = Time.frameCount;
-
         CaptureCursor();
         AddEvents();
 
-        GameSystemTab openingTab = defaultTab;
+        GameSystemTab tab = data is GameSystemTab requestedTab
+            ? requestedTab
+            : defaultTab;
 
-        if (data is GameSystemTab requestedTab)
-            openingTab = requestedTab;
-
-        SelectTab(openingTab);
-
-        // Không thay đổi Time.timeScale.
+        SelectTab(tab);
     }
 
     public override void Close()
     {
         RemoveEvents();
-        CloseAllContent();
+        CloseAllPanels();
         RestoreCursor();
-
         base.Close();
     }
 
@@ -125,24 +100,23 @@ public class GameSystemMenu : MenuBase
     {
         currentTab = tab;
 
-        bool showMap =
-            tab == GameSystemTab.Map;
+        SetMapActive(tab == GameSystemTab.Map);
+        SetInventoryActive(tab == GameSystemTab.Inventory);
+        SetPlayerStateActive(tab == GameSystemTab.PlayerState);
+        SetSystemActive(tab == GameSystemTab.System);
 
-        bool showInventory =
-            tab == GameSystemTab.Inventory;
+        RefreshTabs();
+    }
 
-        bool showPlayerState =
-            tab == GameSystemTab.PlayerState;
+    private void SetMapActive(bool active)
+    {
+        if (mapPanel == null)
+            return;
 
-        bool showSystem =
-            tab == GameSystemTab.System;
-
-        SetActive(mapPanel, showMap);
-        SetInventoryActive(showInventory);
-        SetActive(playerStatePanel, showPlayerState);
-        SetActive(systemPanel, showSystem);
-
-        RefreshTabVisuals();
+        if (active)
+            mapPanel.Open();
+        else
+            mapPanel.Close();
     }
 
     private void SetInventoryActive(bool active)
@@ -151,18 +125,34 @@ public class GameSystemMenu : MenuBase
             return;
 
         if (active)
-        {
-            if (!inventoryMenu.gameObject.activeSelf)
-                inventoryMenu.Open();
-        }
+            inventoryMenu.Open();
         else
-        {
-            if (inventoryMenu.gameObject.activeSelf)
-                inventoryMenu.Close();
-        }
+            inventoryMenu.Close();
     }
 
-    private void RefreshTabVisuals()
+    private void SetPlayerStateActive(bool active)
+    {
+        if (playerStatePanel == null)
+            return;
+
+        if (active)
+            playerStatePanel.Open();
+        else
+            playerStatePanel.Close();
+    }
+
+    private void SetSystemActive(bool active)
+    {
+        if (systemSettingsPanel == null)
+            return;
+
+        if (active)
+            systemSettingsPanel.Open();
+        else
+            systemSettingsPanel.Close();
+    }
+
+    private void RefreshTabs()
     {
         if (tabItems == null)
             return;
@@ -172,29 +162,19 @@ public class GameSystemMenu : MenuBase
             if (item == null)
                 continue;
 
-            bool selected =
-                item.tab == currentTab;
+            bool selected = item.tab == currentTab;
 
             if (item.toggle != null)
-            {
-                item.toggle.SetIsOnWithoutNotify(
-                    selected);
-            }
+                item.toggle.SetIsOnWithoutNotify(selected);
 
-            SetActive(
-                item.background,
-                !selected);
+            if (item.background != null)
+                item.background.SetActive(!selected);
 
-            SetActive(
-                item.backgroundActive,
-                selected);
+            if (item.backgroundActive != null)
+                item.backgroundActive.SetActive(selected);
 
             if (item.icon != null)
-            {
-                item.icon.color = selected
-                    ? selectedIconColor
-                    : normalIconColor;
-            }
+                item.icon.color = selected ? selectedIconColor : normalIconColor;
         }
     }
 
@@ -205,45 +185,27 @@ public class GameSystemMenu : MenuBase
 
         if (tabItems != null)
         {
-            tabActions =
-                new UnityAction<bool>[tabItems.Length];
+            tabActions = new UnityAction<bool>[tabItems.Length];
 
-            for (int i = 0;
-                i < tabItems.Length;
-                i++)
+            for (int i = 0; i < tabItems.Length; i++)
             {
-                GameSystemTabItem item =
-                    tabItems[i];
+                GameSystemTabItem item = tabItems[i];
 
-                if (item == null ||
-                    item.toggle == null)
-                {
+                if (item == null || item.toggle == null)
                     continue;
-                }
 
                 if (tabToggleGroup != null)
-                {
-                    item.toggle.group =
-                        tabToggleGroup;
-                }
+                    item.toggle.group = tabToggleGroup;
 
                 GameSystemTab tab = item.tab;
+                tabActions[i] = isOn => OnTabChanged(tab, isOn);
 
-                tabActions[i] =
-                    isOn => OnTabToggleChanged(
-                        tab,
-                        isOn);
-
-                item.toggle.onValueChanged.AddListener(
-                    tabActions[i]);
+                item.toggle.onValueChanged.AddListener(tabActions[i]);
             }
         }
 
         if (btnClose != null)
-        {
-            btnClose.onClick.AddListener(
-                CloseToGameplay);
-        }
+            btnClose.onClick.AddListener(CloseToGameplay);
 
         eventsAdded = true;
     }
@@ -253,55 +215,46 @@ public class GameSystemMenu : MenuBase
         if (!eventsAdded)
             return;
 
-        if (tabItems != null &&
-            tabActions != null)
+        if (tabItems != null && tabActions != null)
         {
-            int count = Mathf.Min(
-                tabItems.Length,
-                tabActions.Length);
+            int count = Mathf.Min(tabItems.Length, tabActions.Length);
 
             for (int i = 0; i < count; i++)
             {
-                if (tabItems[i] == null ||
-                    tabItems[i].toggle == null ||
-                    tabActions[i] == null)
-                {
-                    continue;
-                }
-
-                tabItems[i].toggle.onValueChanged
-                    .RemoveListener(tabActions[i]);
+                if (tabItems[i]?.toggle != null && tabActions[i] != null)
+                    tabItems[i].toggle.onValueChanged.RemoveListener(tabActions[i]);
             }
         }
 
         if (btnClose != null)
-        {
-            btnClose.onClick.RemoveListener(
-                CloseToGameplay);
-        }
+            btnClose.onClick.RemoveListener(CloseToGameplay);
 
         tabActions = null;
         eventsAdded = false;
     }
 
-    private void CloseAllContent()
+    private void OnTabChanged(GameSystemTab tab, bool isOn)
     {
-        SetActive(mapPanel, false);
+        if (!isOn)
+            return;
+
+        SelectTab(tab);
+    }
+
+    private void CloseAllPanels()
+    {
+        SetMapActive(false);
         SetInventoryActive(false);
-        SetActive(playerStatePanel, false);
-        SetActive(systemPanel, false);
+        SetPlayerStateActive(false);
+        SetSystemActive(false);
     }
 
     public void CloseToGameplay()
     {
-        if (UIManager.Instance == null)
-        {
+        if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        else
             gameObject.SetActive(false);
-            return;
-        }
-
-        UIManager.Instance.ChangeMenu(
-            MenuType.GameplayMenu);
     }
 
     private void CaptureCursor()
@@ -309,18 +262,13 @@ public class GameSystemMenu : MenuBase
         if (cursorCaptured)
             return;
 
-        previousCursorLock =
-            Cursor.lockState;
+        previousCursorLock = Cursor.lockState;
+        previousCursorVisible = Cursor.visible;
 
-        previousCursorVisible =
-            Cursor.visible;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
 
         cursorCaptured = true;
-
-        Cursor.lockState =
-            CursorLockMode.None;
-
-        Cursor.visible = true;
     }
 
     private void RestoreCursor()
@@ -328,34 +276,15 @@ public class GameSystemMenu : MenuBase
         if (!cursorCaptured)
             return;
 
-        Cursor.lockState =
-            previousCursorLock;
-
-        Cursor.visible =
-            previousCursorVisible;
+        Cursor.lockState = previousCursorLock;
+        Cursor.visible = previousCursorVisible;
 
         cursorCaptured = false;
-    }
-
-    private void SetActive(
-        GameObject target,
-        bool value)
-    {
-        if (target != null)
-            target.SetActive(value);
     }
 
     private void OnDestroy()
     {
         RemoveEvents();
         RestoreCursor();
-    }
-
-    private void OnTabToggleChanged(GameSystemTab tab, bool isOn)
-    {
-        if (!isOn)
-            return;
-
-        SelectTab(tab);
     }
 }

@@ -30,7 +30,6 @@ public class SystemSettingsPanel : MonoBehaviour
 
     [Header("Colors")]
     [SerializeField] private Color normalColor = Color.white;
-
     [SerializeField] private Color selectedColor =
         new Color(0.925f, 0.804f, 0.624f, 1f);
 
@@ -41,10 +40,27 @@ public class SystemSettingsPanel : MonoBehaviour
     private SystemSettingPage currentPage;
     private bool hasCurrentPage;
     private bool isClosing;
+    private bool openedByGameSystem;
+
+    public void Open()
+    {
+        openedByGameSystem = true;
+        gameObject.SetActive(true);
+        ShowPage(defaultPage);
+        openedByGameSystem = false;
+    }
+
+    public void Close()
+    {
+        CloseAllPages();
+        hasCurrentPage = false;
+        gameObject.SetActive(false);
+    }
 
     private void OnEnable()
     {
-        ShowPage(defaultPage);
+        if (!openedByGameSystem)
+            ShowPage(defaultPage);
     }
 
     private void OnDisable()
@@ -107,8 +123,7 @@ public class SystemSettingsPanel : MonoBehaviour
         UpdateVisual(page);
     }
 
-    private bool IsPageActive(
-        SystemSettingPage page)
+    private bool IsPageActive(SystemSettingPage page)
     {
         switch (page)
         {
@@ -135,38 +150,23 @@ public class SystemSettingsPanel : MonoBehaviour
 
         isClosing = true;
 
-        if (audioMenu != null &&
-            audioMenu.gameObject.activeSelf)
-        {
+        if (audioMenu != null && audioMenu.gameObject.activeSelf)
             audioMenu.Close();
-        }
 
-        if (graphicsMenu != null &&
-            graphicsMenu.gameObject.activeSelf)
-        {
+        if (graphicsMenu != null && graphicsMenu.gameObject.activeSelf)
             graphicsMenu.Close();
-        }
 
-        if (controllerMenu != null &&
-            controllerMenu.gameObject.activeSelf)
-        {
+        if (controllerMenu != null && controllerMenu.gameObject.activeSelf)
             controllerMenu.Close();
-        }
 
         isClosing = false;
     }
 
-    private void UpdateVisual(
-        SystemSettingPage page)
+    private void UpdateVisual(SystemSettingPage page)
     {
-        bool audioSelected =
-            page == SystemSettingPage.Audio;
-
-        bool graphicsSelected =
-            page == SystemSettingPage.Graphics;
-
-        bool controllerSelected =
-            page == SystemSettingPage.Controller;
+        bool audioSelected = page == SystemSettingPage.Audio;
+        bool graphicsSelected = page == SystemSettingPage.Graphics;
+        bool controllerSelected = page == SystemSettingPage.Controller;
 
         SetActive(audioLine, audioSelected);
         SetActive(graphicsLine, graphicsSelected);
@@ -177,28 +177,23 @@ public class SystemSettingsPanel : MonoBehaviour
         SetLabel(controllerLabel, controllerSelected);
     }
 
-    private void SetActive(
-        GameObject target,
-        bool value)
+    private void SetActive(GameObject target, bool value)
     {
         if (target != null)
             target.SetActive(value);
     }
 
-    private void SetLabel(
-        TMP_Text label,
-        bool selected)
+    private void SetLabel(TMP_Text label, bool selected)
     {
         if (label != null)
-        {
-            label.color =
-                selected ? selectedColor : normalColor;
-        }
+            label.color = selected ? selectedColor : normalColor;
     }
 
     public void CloseGameSystemMenu()
     {
         if (gameSystemMenu != null)
             gameSystemMenu.CloseToGameplay();
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
     }
 }

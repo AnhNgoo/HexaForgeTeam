@@ -948,15 +948,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 3238515344672959081, guid: 0ecb8e5db0390a7469d50804b5eaf919, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.86
+      value: -7.3399963
       objectReference: {fileID: 0}
     - target: {fileID: 3238515344672959081, guid: 0ecb8e5db0390a7469d50804b5eaf919, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 4.45
+      value: -5.5200005
       objectReference: {fileID: 0}
     - target: {fileID: 3238515344672959081, guid: 0ecb8e5db0390a7469d50804b5eaf919, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -18.050001
+      value: 10.290001
       objectReference: {fileID: 0}
     - target: {fileID: 6934108368584024657, guid: 0ecb8e5db0390a7469d50804b5eaf919, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1099,9 +1099,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   uiSceneName: UI Menu
   lobbyGraphicRaycaster: {fileID: 0}
-  player: {fileID: 1315127096}
+  player: {fileID: 0}
   playerControls:
-  - {fileID: 1315127095}
+  - {fileID: 0}
   lobbyEventSystem: {fileID: 2110891138}
   pauseWorldWhileUIOpen: 0
   unlockCursorWhileUIOpen: 1
@@ -1187,7 +1187,7 @@ MonoBehaviour:
   interactionButton: {fileID: 92617615}
   useDistanceCheck: 1
   interactionDistance: 3
-  player: {fileID: 1315127096}
+  player: {fileID: 0}
   playerTag: Player
   primaryKey: 102
   primaryMenu: 8
@@ -1195,92 +1195,6 @@ MonoBehaviour:
   useSecondaryInteraction: 1
   secondaryKey: 103
   secondaryMenu: 10
---- !u!1001 &1315127094
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 474030527805132030, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: sprintSpeedMultiplier
-      value: 1.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 5622718792372774388, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: currentWeapon
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 7824076402893897213, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: damageInterval
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 11.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 6.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 5.4
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8913729754669744197, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-      propertyPath: m_Name
-      value: 'Kael '
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4556065009519339001, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
---- !u!114 &1315127095 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 4270505418311378056, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-  m_PrefabInstance: {fileID: 1315127094}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 46c5717625816fd4782c9fa80320056f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1315127096 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8791990868333242387, guid: 61f6984840a43f84384f49573bcb4c03, type: 3}
-  m_PrefabInstance: {fileID: 1315127094}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1332788258
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1483,7 +1397,7 @@ MonoBehaviour:
   interactionButton: {fileID: 105805818}
   useDistanceCheck: 1
   interactionDistance: 3
-  player: {fileID: 1315127096}
+  player: {fileID: 0}
   playerTag: Player
   primaryKey: 102
   primaryMenu: 14
@@ -1685,7 +1599,7 @@ MonoBehaviour:
   interactionButton: {fileID: 748950766}
   useDistanceCheck: 1
   interactionDistance: 3
-  player: {fileID: 1315127096}
+  player: {fileID: 0}
   playerTag: Player
   primaryKey: 102
   primaryMenu: 12
@@ -17683,7 +17597,6 @@ SceneRoots:
   - {fileID: 1421690156}
   - {fileID: 301278265}
   - {fileID: 97841727}
-  - {fileID: 1315127094}
   - {fileID: 1072121493}
   - {fileID: 173356082}
   - {fileID: 1126794974}
