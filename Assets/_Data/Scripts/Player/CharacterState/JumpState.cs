@@ -37,6 +37,18 @@ public class JumpState : ICharacterState
             return;
         }
 
+        if (character.CharacterInput.Dodge)
+        {
+            character.Dodge();
+            return;
+        }
+
+        if (character.CharacterInput.Attack)
+        {
+            character.Attack();
+            return;
+        }
+
         if (character.CharacterInput.WallJump && character.CharacterMovement.WallEdge) //Chuyển về WallJumpState nếu nhấn wall jump và đang ở gần tường
         {
             character.StateController.ChangeState(new WallJumpState(character));

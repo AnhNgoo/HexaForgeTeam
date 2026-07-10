@@ -27,6 +27,7 @@ public class IdleState : ICharacterState
 
     public void Update()
     {
+        Debug.Log("IdleState");
         character.LookAtTarget();
         if (character.CharacterInput.MoveInput != Vector2.zero)
         {
@@ -52,7 +53,7 @@ public class IdleState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.RecoveryBottle > 0)
+        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.RecoveryBottle > 0 && !character.CharacterInput.IsHealthRecovering)
         {
             character.StateController.ChangeState(new HealthRecoveryState(character));
             return;

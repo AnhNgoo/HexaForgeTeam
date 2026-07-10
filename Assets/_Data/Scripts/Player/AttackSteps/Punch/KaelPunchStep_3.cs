@@ -23,7 +23,7 @@ public class KaelPunchStep_3 : AttackStepBase
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
 
-            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            character.CharacterMeleeHitbox.AttackHitBox(kael.hitEffect_1);
             ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_1,
                                         kael.kaelGiantPunchEffectPoint_3.transform.position,
                                         kael.kaelGiantPunchEffectPoint_3.transform.rotation);
@@ -34,7 +34,7 @@ public class KaelPunchStep_3 : AttackStepBase
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 
 
-            character.CharacterCombat.AttackHitBox(kael.hitEffect_1);
+            character.CharacterMeleeHitbox.AttackHitBox(kael.hitEffect_1);
             ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_3,
                                         kael.punchEffectPoint_3.transform.position,
                                         kael.punchEffectPoint_3.transform.rotation);

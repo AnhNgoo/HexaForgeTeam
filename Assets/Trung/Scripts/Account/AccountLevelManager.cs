@@ -33,6 +33,18 @@ public class AccountLevelManager :
     private void Start()
 {
     UpdateUI();
+
+    string displayName =
+        PlayerPrefs.GetString(
+            "DisplayName",
+            "Unknown");
+
+    if (AccountLevelUI.Instance != null)
+    {
+        AccountLevelUI.Instance
+            .SetUserName(
+                displayName);
+    }
 }
 
     public void AddExp(
@@ -174,18 +186,22 @@ if (accountData.level == 25)
         return accountData.level - 1;
     }
 
-    private void SaveData()
+private void SaveData()
     {
-        SaveLoadManager.Instance
-    .SaveData.accountLevel =
-    accountData.level;
+        SaveLoadManager.Instance.SaveData.accountLevel = accountData.level;
+        SaveLoadManager.Instance.SaveData.accountExp = accountData.currentExp;
+        SaveLoadManager.Instance.SaveGame();
 
-SaveLoadManager.Instance
-    .SaveData.accountExp =
-    accountData.currentExp;
-
-SaveLoadManager.Instance
-    .SaveGame();
+        // Gộp chung 1 block if và chỉ dùng MarkDirty() để hệ thống tự động lưu sau 5s, tránh spam API
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance.MarkDirty();
+            
+            if (LeaderboardManager.Instance != null)
+            {
+                LeaderboardManager.Instance.UpdatePowerScore();
+            }
+        }
     }
 
     private void LoadData()
@@ -207,4 +223,5 @@ accountData.currentExp =
 
     SaveData();
 }
+
 }

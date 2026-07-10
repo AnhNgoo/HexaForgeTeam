@@ -36,7 +36,7 @@ public class EnemyLootDropper : MonoBehaviour
 
         int goldAmount = Random.Range(minGold, maxGold + 1); //Tạo số vàng thưởng ngẫu nhiên trong khoảng từ minGold đến maxGold, có thể điều chỉnh để tạo ra các loại phần thưởng khác nhau tùy thuộc vào loại Enemy hoặc ngẫu nhiên
 
-        GoldManager.Instance.AddGold(goldAmount); //Gọi hàm AddGold của GoldManager để cộng số vàng thưởng vào tổng số vàng của player, có thể mở rộng sau này để thêm các loại phần thưởng khác như item hoặc điểm kinh nghiệm
+        GoldManager.Instance?.AddGold(goldAmount); //Gọi hàm AddGold của GoldManager để cộng số vàng thưởng vào tổng số vàng của player, có thể mở rộng sau này để thêm các loại phần thưởng khác như item hoặc điểm kinh nghiệm
 
         DebugNote.Green($"Player nhận được {goldAmount} vàng từ Enemy {gameObject.name}!");
     }

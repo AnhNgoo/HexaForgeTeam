@@ -29,46 +29,64 @@ public class GemManager : MonoBehaviour
 
     #region Add
 
-    public void AddGem(
-        int amount)
+    public void AddGem(int amount)
+{
+    currentGem += amount;
+    SaveLoadManager.Instance
+    .SaveData
+    .lifetimeGemEarned += amount;
+
+    SaveLoadManager.Instance
+        .SaveData.gem =
+        currentGem;
+
+    SaveLoadManager.Instance
+        .SaveGame();
+
+    if (PlayFabDataManager.Instance != null)
     {
-        currentGem += amount;
-
-SaveLoadManager.Instance
-    .SaveData.gem =
-    currentGem;
-
-SaveLoadManager.Instance
-    .SaveGame();
-
-UpdateGemUI();
+        PlayFabDataManager.Instance
+    .MarkDirty();
     }
+
+    UpdateGemUI();
+    if (LeaderboardManager.Instance != null)
+{
+    LeaderboardManager.Instance
+        .UpdatePowerScore();
+}
+}
 
     #endregion
 
     #region Spend
 
-    public bool SpendGem(
-        int amount)
+    public bool SpendGem(int amount)
+{
+    if (currentGem < amount)
     {
-        if (currentGem < amount)
-        {
-            return false;
-        }
-
-       currentGem -= amount;
-
-SaveLoadManager.Instance
-    .SaveData.gem =
-    currentGem;
-
-SaveLoadManager.Instance
-    .SaveGame();
-
-UpdateGemUI();
-
-        return true;
+        return false;
     }
+
+    currentGem -= amount;
+
+    SaveLoadManager.Instance
+        .SaveData.gem =
+        currentGem;
+
+    SaveLoadManager.Instance
+        .SaveGame();
+
+    if (PlayFabDataManager.Instance != null)
+    {
+        PlayFabDataManager.Instance
+    .MarkDirty();
+    }
+
+    UpdateGemUI();
+
+    return true;
+}
 
     #endregion
 

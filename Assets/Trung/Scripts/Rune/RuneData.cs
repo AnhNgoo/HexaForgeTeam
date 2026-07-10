@@ -77,9 +77,9 @@ public class RuneData
 
 public string runeLore;
 
-    public bool isEquipped;
+    // public bool isEquipped;
 
-    public int equippedSlotIndex = -1;
+    // public int equippedSlotIndex = -1;
     public bool ignoreHardCap = false;
 
     public List<RuneAffixData> affixes =

@@ -16,24 +16,29 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterInput))]
 [RequireComponent(typeof(CharacterHealth))]
 [RequireComponent(typeof(CharacterRecovery))]
+[RequireComponent(typeof(SafeZoneChecker))]
+[RequireComponent(typeof(CharacterMeleeHitbox))]
+[RequireComponent(typeof(CharacterCinematic))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
     public CharacterData CharacterData => characterData;
-    [Header("Check Obstacle In Front Settings")]
-    [SerializeField] protected LayerMask obstacleLayer; // Lớp của chướng ngại vật để kiểm tra va chạm khi di chuyển hoặc áp sát mục tiêu
-    [SerializeField] protected float ZoffsetCheckObstacleInFront = 1.5f; // Khoảng cách Z để kiểm tra chướng ngại vật trước mặt
-    [SerializeField] protected float radiusCheckObstacleInFront = 1f; // Bán kính để kiểm tra chướng ngại vật trước mặt
+    [Header("Dust Effect Settings")]
+    [SerializeField] protected ParticleSystem dustEffect;
+    protected bool isDustEffectPlaying = false;
     [Header("Check Near Enemy Settings")]
     [SerializeField] protected LayerMask enemyLayer; // Lớp của kẻ địch để kiểm tra va chạm khi kiểm tra kẻ địch gần trước mặt
+    [SerializeField] protected float ZoffsetCheckForNearEnemy = 2f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected float radiusCheckForNearEnemy = 1.5f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
+    [SerializeField] protected bool debugModeCheckForNearEnemy = false; // Bật để hiển thị gizmo kiểm tra kẻ địch gầns
+    [Header("Melee Snap Threshold")]
     [SerializeField] protected Vector2 meleeSnapThreshold = new Vector2(2.5f, 15f); // Tầm áp sát tối thiểu và tối đa để kích hoạt snap
-    [SerializeField] protected float ZoffsetCheckForNearEnemy = 1.5f; // Khoảng cách Z để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
-    [SerializeField] protected float radiusCheckForNearEnemy = 1f; // Bán kính để kiểm tra kẻ địch gần trước mặt không để tắt root motion khi tấn công
 
     [Header("Character Models")]
     [SerializeField] protected GameObject visuals;
     [SerializeField] protected GameObject characterVisual;
+    [Tooltip("Tay phải của nhân vật, gán thủ công với gameobject của nhân vật có tên là handslot.r")]
     [SerializeField] protected GameObject handRight;
     public GameObject HandRight => handRight;
 
@@ -58,12 +63,17 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public CharacterHealth CharacterHealth => characterHealth;
     [SerializeField] protected CharacterRecovery characterRecovery;
     public CharacterRecovery CharacterRecovery => characterRecovery;
+    [SerializeField] protected CharacterMeleeHitbox characterMeleeHitbox;
+    public CharacterMeleeHitbox CharacterMeleeHitbox => characterMeleeHitbox;
+    [SerializeField] protected CharacterCinematic characterCinematic;
+    public CharacterCinematic CharacterCinematic => characterCinematic;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
     public GameObject middleEffectPoint;
     public GameObject bottomEffectPoint;
     public PoolType hitEffect_1 = PoolType.HitEffect_1;
+    public PoolType hitEffect_2 = PoolType.HitEffect_2;
     public GameObject punchEffectPoint_1;
     public PoolType punchEffect_1 = PoolType.PunchEffect_1;
     public GameObject punchEffectPoint_2;
@@ -72,13 +82,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public PoolType punchEffect_3 = PoolType.PunchEffect_2;
     public GameObject punchEffectPoint_4;
     public PoolType punchEffect_4 = PoolType.PunchEffect_2;
-
-    [Header("Character Base Settings")]
-    [SerializeField] protected float attackSpeedMultiplier = 0.01f;
-    [SerializeField] protected string attackParameterName = "AttackSpeed";
     protected StateController stateController;
     public StateController StateController => stateController;
-    private Cooldown dodgeCooldown = new Cooldown();
+    protected Cooldown dodgeCooldown = new Cooldown();
     public bool IsHealthRecovering { get; set; } = false;
     public DashShadowEffect dashShadowEffect { get; set; }
 
@@ -92,6 +98,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterRotate = GetComponent<CharacterRotate>();
         if (visuals == null)
             visuals = transform.Find("Visuals").gameObject;
+        if (characterVisual == null)
+            characterVisual = visuals.transform.GetChild(0)?.gameObject;
         if (characterWeapon == null)
             characterWeapon = GetComponent<CharacterWeapon>();
         if (characterCombat == null)
@@ -106,6 +114,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterHealth = GetComponent<CharacterHealth>();
         if (characterRecovery == null)
             characterRecovery = GetComponent<CharacterRecovery>();
+        if (characterMeleeHitbox == null)
+            characterMeleeHitbox = GetComponent<CharacterMeleeHitbox>();
+        if (characterCinematic == null)
+            characterCinematic = GetComponent<CharacterCinematic>();
+        if (dustEffect == null)
+            dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
     }
 
@@ -121,6 +135,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (effectPoints == null)
             return;
 
+        if (middleEffectPoint == null)
+            middleEffectPoint = effectPoints.transform.Find("MiddleEffectPoint").gameObject;
+        if (bottomEffectPoint == null)
+            bottomEffectPoint = effectPoints.transform.Find("BottomEffectPoint").gameObject;
         if (punchEffectPoint_1 == null)
             punchEffectPoint_1 = effectPoints?.transform.Find("PunchEffectPoint_1")?.gameObject;
         if (punchEffectPoint_2 == null)
@@ -144,23 +162,28 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (data != null)
             characterData = Instantiate(data);
 
-        CharacterInput.Init(this);
-        characterHealth.Init(characterData.stats.maxHealth);
-        characterRecovery.Init(this);
-        characterAnimation.Init(characterVisual);
-        characterWeapon.Init(handRight.transform);
-        characterLockTarget.SetFollowTarget();
-        characterCombat?.Init(this, InitAttackCombos(), InitPunchCombos());
-        InitSkills();
-        GetDashShadowEffect(characterVisual);
-        EquipmentSystem.Instance?.Init(characterWeapon);
+        try
+        {
+            CharacterInput.Init(this);
+            characterHealth.Init(characterData.stats.maxHealth);
+            characterRecovery.Init(this);
+            characterAnimation.Init(characterVisual);
+            characterWeapon.Init(this, handRight.transform);
+            characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
+            characterMeleeHitbox.Init(this);
+            InitSkills();
+            GetDashShadowEffect(characterVisual);
+            EquipmentSystem.Instance?.Init(characterWeapon);
+            InteractionManager.Instance?.Init(this.transform);
+            CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Thiếu dữ liệu, vui lòng gán đầy đủ dữ liệu, biến cho nhân vật: " + e.Message);
+        }
+
     }
 
-    // Điều chỉnh tốc độ animation tấn công dựa trên tốc độ tấn công của character
-    public virtual void SetAttackSpeed(float speed)
-    {
-        characterAnimation.SetAnimationSpeed(attackParameterName, speed * attackSpeedMultiplier);
-    }
     #endregion
     protected virtual void Start()
     {
@@ -177,6 +200,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterMovement.SetMoveDirection(characterInput.MoveInput);
         if (characterInput.LockTarget)
             OnLockTarget();
+
+        PlayDustEffect();
     }
 
     protected virtual void FixedUpdate()
@@ -207,7 +232,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
                                                 characterMovement.MoveDirection.y);
 
         if (characterInput.Walk)
-
         {
             characterMovement.Walk(characterMovement.MoveDirection, speed);
             characterAnimation.CrossFadeOneshot("Walk", 0.1f);
@@ -341,6 +365,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterRotate.LookAt(characterLockTarget.Target.position);
     }
 
+    #region Take Damage
     [Button("Take Damage (Test)")]
     public void TakeDamage(DamageInfo damageInfo)
     {
@@ -348,10 +373,11 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
 
-        if (!damageInfo.isFromSafeZoneEffect)
+        if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
         {
             characterMovement.KnockBack(damageInfo.attacker);
             stateController.ChangeState(new HitState(this));
+            CameraShake.Instance?.Shake();
         }
 
         Debug.Log($"{gameObject.name} took {finalDamage} damage. Remaining health: {characterHealth.CurrentHealth}");
@@ -362,6 +388,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         }
     }
 
+    #endregion
+
     private void Die()
     {
         stateController.ChangeState(new DeathState(this));
@@ -370,17 +398,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     protected virtual void GetDashShadowEffect(GameObject characterVisual)
     {
         dashShadowEffect = characterVisual.GetComponent<DashShadowEffect>();
-    }
-
-    protected virtual bool CheckObstacleInFront()
-    {
-        Collider[] hitColliders = Physics.OverlapSphere(transform.position + transform.forward * ZoffsetCheckObstacleInFront, radiusCheckObstacleInFront, obstacleLayer);
-
-        if (hitColliders.Length > 0) // Nếu có ít nhất 1 chướng ngại vật thì true
-        {
-            return true;
-        }
-        return false;
     }
 
     /// <summary>
@@ -408,9 +425,82 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
         if (scrollY > 0f)
         {
-            Debug.Log("Mouse wheel scrolled up");
-            characterWeapon.ChangeWeapon();
+            if (CharacterInput.IsChangingWeapon ||
+             EquipmentSystem.Instance.GetWeaponCount() == 0 ||
+             characterCombat.IsAttacking ||
+             characterSkill.IsUsingSkill
+             ) return;
+
+            StateController.ChangeState(new ChangeWeaponState(this));
         }
     }
     #endregion
+
+    #region Effect
+
+    protected virtual void PlayDustEffect()
+    {
+        if (dustEffect == null)
+            return;
+
+        if (characterMovement.IsGrounded && characterInput.IsMoving && !isDustEffectPlaying)
+        {
+            dustEffect.Play();
+            isDustEffectPlaying = true;
+        }
+        else if ((!characterMovement.IsGrounded || !characterInput.IsMoving) && isDustEffectPlaying)
+        {
+            dustEffect.Stop();
+            isDustEffectPlaying = false;
+        }
+
+    }
+
+    #endregion
+
+    #region Áp sát mục tiêu khi tấn công
+    //Hỗ trợ áp sát mục tiêu khi tấn công
+    protected void MeleeSnapToTarget()
+    {
+        if (CharacterLockTarget == null ||
+        !CharacterLockTarget.IsLockingTarget ||
+        !characterMovement.IsGrounded) // Chỉ áp sát nếu đang khóa mục tiêu
+            return;
+
+        Transform target = CharacterLockTarget.Target;
+
+        float distanceToTarget = Vector3.Distance(transform.position, target.position);
+        if (distanceToTarget < meleeSnapThreshold.x || distanceToTarget > meleeSnapThreshold.y) return; // Nếu mục tiêu quá gần hoặc quá xa, không áp sát
+
+        LungeToTarget();
+    }
+
+    protected virtual async void LungeToTarget()
+    {
+        CharacterMovement.IsLunging = true;
+
+        float distanceToTarget = Vector3.Distance(transform.position, CharacterLockTarget.Target.position);
+
+        while (distanceToTarget > meleeSnapThreshold.x && (characterMovement.flags & CollisionFlags.Sides) == 0) // Dừng khi đạt khoảng cách tối thiểu hoặc va chạm với tường
+        {
+            Vector3 directionToTarget = (CharacterLockTarget.Target.position - transform.position).normalized;
+            CharacterMovement.Lunge(directionToTarget, characterData.stats.speed);
+
+            distanceToTarget = Vector3.Distance(transform.position, CharacterLockTarget.Target.position);
+            await UniTask.Yield();
+        }
+        CharacterMovement.Stop();
+        CharacterMovement.IsLunging = false;
+    }
+
+    #endregion
+
+    protected virtual void OnDrawGizmos()
+    {
+        if (debugModeCheckForNearEnemy)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position + transform.forward * ZoffsetCheckForNearEnemy, radiusCheckForNearEnemy);
+        }
+    }
 }

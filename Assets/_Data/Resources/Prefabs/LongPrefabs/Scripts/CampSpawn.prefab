@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1107832777124989276
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4264310565568162699}
+  - component: {fileID: 5263831747184199745}
+  m_Layer: 0
+  m_Name: CampSpawn
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4264310565568162699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1107832777124989276}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5263831747184199745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1107832777124989276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 62e04de66684a9f4ab9f38de0f9810ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  spawnDistance: 45
+  despawnDistance: 45
+  enemiesInCamp:
+  - enemyType: 65
+    spawnPoint: {fileID: 0}
+    isPatroller: 0
+    isDead: 0
+    savedHealth: -1
+    spawnedEnemyObject: {fileID: 0}
+    enemyInstance: {fileID: 0}
+  - enemyType: 66
+    spawnPoint: {fileID: 0}
+    isPatroller: 0
+    isDead: 0
+    savedHealth: -1
+    spawnedEnemyObject: {fileID: 0}
+    enemyInstance: {fileID: 0}
+  - enemyType: 50
+    spawnPoint: {fileID: 0}
+    isPatroller: 1
+    isDead: 0
+    savedHealth: -1
+    spawnedEnemyObject: {fileID: 0}
+    enemyInstance: {fileID: 0}
+  spawnPointsParent: {fileID: 0}
+  defaultEnemyType: 1
+  defaultIsPatroller: 0
+  showSpawnPointsGizmos: 1
+  enemyGizmoDataList:
+  - enemyType: 50
+    enemyData: {fileID: 11400000, guid: 551f6bd90ba11f44791e8d21b80765dd, type: 2}
+  - enemyType: 51
+    enemyData: {fileID: 11400000, guid: 5724e48d9b7b0be4d9f5e236eceb1fcb, type: 2}
+  - enemyType: 52
+    enemyData: {fileID: 11400000, guid: f61fa835c72f8a24fad95516b79439c7, type: 2}
+  - enemyType: 54
+    enemyData: {fileID: 11400000, guid: 493f671f3306ec940af138fc67b70108, type: 2}
+  - enemyType: 57
+    enemyData: {fileID: 11400000, guid: 27b7e91ef08c9f141ba9465f4cb156b9, type: 2}
+  - enemyType: 58
+    enemyData: {fileID: 11400000, guid: ff3b96ffc8d436142bed1cea1ec4afed, type: 2}
+  - enemyType: 55
+    enemyData: {fileID: 11400000, guid: cb77e663c3819f840ae72f0650d743d1, type: 2}
+  - enemyType: 56
+    enemyData: {fileID: 11400000, guid: 1b22e22db09b2b34fbd3d3e7331c293f, type: 2}
+  - enemyType: 53
+    enemyData: {fileID: 11400000, guid: 5724e48d9b7b0be4d9f5e236eceb1fcb, type: 2}
+  spawnPointGizmoHeight: 1
