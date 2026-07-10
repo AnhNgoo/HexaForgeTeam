@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
@@ -9,10 +8,46 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 {
     [SerializeField] private SafeZone safeZone;
     public SafeZone SafeZone => safeZone;
-    [SerializeField] private SafeZoneData safeZoneData;
+    [SerializeField][InlineEditor()] private SafeZoneData safeZoneData;
     [SerializeField] private List<Transform> targetCenterPoints = new List<Transform>();
+    [SerializeField] private bool autoStartOnPlay = true;
+    [SerializeField] private float resetAfterBossDelay = 1f;
     public bool IsSafeZoneCompleted { get; private set; } = false;
     public bool IsActiveSafeZone { get; private set; } = false; //Khi kích hoạt vật thể mới bị bo đốt
+
+    public int CurrentPhaseIndex { get; private set; }
+    private Transform currentTargetCenterPoint;
+    public event Action<int, Vector3> OnSafeZonePhaseCompleted;
+
+    public void Start()
+    {
+        if (autoStartOnPlay)
+            StartSafeZoneFlow().Forget();
+    }
+
+    public async UniTaskVoid StartSafeZoneFlow(bool skipDelay = false)
+    {
+        CreateSafeZone();
+
+        if (safeZoneData == null || safeZoneData.safeZoneStats == null)
+            return;
+
+        currentTargetCenterPoint = GetTargetCenterPoint();
+
+        if (currentTargetCenterPoint == null)
+        {
+            Debug.LogWarning("[SafeZone] Không tìm thấy TargetCenterPoint.");
+            return;
+        }
+
+        for (int i = 0; i < safeZoneData.safeZoneStats.Count; i++)
+        {
+            await ShrinkSafeZoneTurn(safeZoneData.safeZoneStats[i], skipDelay);
+        }
+
+        IsSafeZoneCompleted = true;
+        OnSafeZonePhaseCompleted?.Invoke(CurrentPhaseIndex, safeZone.CurrentCenterPoint);
+    }
 
     [Button("Step 1: Create Safe Zone")]
     public void CreateSafeZone()
@@ -42,28 +77,52 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     [Button("Step 2: Start Shrink Safe Zone")]
     public async void ShrinkSafeZone()
     {
+        StartSafeZoneFlow().Forget();
+    }
+
+    [Button("Debug: Shrink Now")]
+    public void DebugShrinkNow()
+    {
+        StartSafeZoneFlow(true).Forget();
+    }
+
+    private async UniTask ShrinkSafeZoneTurn(SafeZoneStat stat, bool skipDelay)
+    {
         if (safeZone == null) return;
         if (safeZone.IsShrinking) return;
-        if (targetCenterPoints.Count == 0) return; // Không có điểm trung tâm nào để thu nhỏ vòng bo
-        ResetSafeZone(safeZone);
-        IsActiveSafeZone = true; //Khi kích hoạt vật thể mới bị bo đốt
 
-        SafeZoneStat stat = safeZoneData.safeZoneStat;
+        IsSafeZoneCompleted = false;
+        IsActiveSafeZone = true;
 
-        await UniTask.Delay(TimeSpan.FromSeconds(stat.timeDelay)); // Delay trước khi bắt đầu thu nhỏ vòng bo
+        if (!skipDelay)
+            await UniTask.Delay(TimeSpan.FromSeconds(stat.timeDelay));
 
-        Vector3 targetCenterPoint = GetTargetCenterPoint().position;
+        CurrentPhaseIndex++;
 
-        safeZone.ShrinkSafeZone(targetCenterPoint, stat.radius, stat.shrinkDuration);
+        safeZone.ShrinkSafeZone(
+            currentTargetCenterPoint.position,
+            stat.radius,
+            stat.shrinkDuration
+        );
 
         while (safeZone.IsShrinking)
-        {
-            // Chờ cho đến khi vòng bo hoàn thành việc thu nhỏ trước khi tiếp tục
             await UniTask.Yield();
-        }
+    }
 
-        //Đánh dấu bo cuối để gọi boss, dùng để check và gọi boss sau này
-        IsSafeZoneCompleted = true;
+    public async void ResetSafeZoneAfterBossDead()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(resetAfterBossDelay));
+
+        CurrentPhaseIndex = 0;
+        IsSafeZoneCompleted = false;
+
+        if (safeZone != null)
+            ObjectPooling.Instance.ReturnToPool(PoolType.SafeZone, safeZone.gameObject);
+
+        safeZone = null;
+        targetCenterPoints.Clear();
+
+        StartSafeZoneFlow().Forget();
     }
 
     private void ResetSafeZone(SafeZone safeZone)

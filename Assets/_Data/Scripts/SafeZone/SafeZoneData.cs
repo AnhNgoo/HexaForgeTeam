@@ -1,13 +1,12 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "SafeZoneData", menuName = "ScriptableObjects/SafeZoneData", order = 1)]
 public class SafeZoneData : ScriptableObject
 {
-    public float startRadius;
-    public SafeZoneStat safeZoneStat;
+    public float startRadius = 120f;
+    public List<SafeZoneStat> safeZoneStats = new();
 }
 
 [Serializable]

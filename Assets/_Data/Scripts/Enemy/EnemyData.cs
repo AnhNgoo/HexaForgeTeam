@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Enemy Data", menuName = "Enemy/Enemy Data")]
@@ -26,6 +27,9 @@ public class EnemyData : ScriptableObject
     public int minGoldReward = 10; //Số lượng vàng thưởng khi tiêu diệt Enemy
     public int maxGoldReward = 20; //Số lượng vàng thưởng tối đa khi tiêu diệt Enemy
     public bool isBoss; //Công tắc để xác định nếu Enemy là boss, có thể dùng để điều chỉnh phần thưởng và hành vi của Enemy khi bị tiêu diệt
+    [ShowIf(nameof(isBoss))]
+    [BoxGroup("UI")]
+    public string bossDisplayName;
     [Header("Territory Settings")]
     public float maxLeashDistance = 25f; //Khoảng cách tối đa mà Enemy có thể rời khỏi vị trí spawn của nó, nếu vượt quá khoảng cách này sẽ tự động quay về vị trí spawn để tránh việc Enemy bị lạc quá xa và không thể tương tác với player
     public float roamRadius = 10f; //Bán kính mà Enemy có thể di chuyển xung quanh vị trí spawn khi không phát hiện mục tiêu, có thể dùng để tạo ra hành vi đi lang thang tự nhiên cho Enemy khi không có mục tiêu nào trong tầm nhìn
