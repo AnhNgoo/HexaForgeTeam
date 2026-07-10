@@ -24,10 +24,20 @@ public enum MenuType
     HelpMenu = 11,
     CharacterMenu = 12,
     HUDMenuTest = 13,
-    AchievementMenu = 14,
+    TrophyMenu = 14,
     LanguageMenu = 15,
-    GraphicsMenu = 16,
-    ControllerMenu = 17,
+    GraphicsMenu = 16,     // Đảm bảo có dòng này
+    ControllerMenu = 17,   // Đảm bảo có dòng này
+    GameSystemMenu = 18,
+    AchievementMenu = 19,
+
+    LobbyCharacterMenu = 100,
+    LobbyInventoryMenu = 101,
+    LobbyAchievementMenu = 102,
+    LobbyGachaMenu = 103,
+    LobbyAccountLevelMenu = 104,
+    LobbyDialogueMenu = 105,
+    LobbyLeaderboardMenu = 106,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -70,7 +80,21 @@ public class UIManager : Singleton<UIManager>
         menus.Clear();
         foreach (MenuBase menu in menuList)
         {
-            menus.Add(new MenuData { menuType = menu.menuType, menuBase = menu });
+            Transform parent =
+                menu.transform.parent;
+
+            bool nestedInsideAnotherMenu =
+                parent != null &&
+                parent.GetComponentInParent<MenuBase>(true) != null;
+
+            if (nestedInsideAnotherMenu)
+                continue;
+
+            menus.Add(new MenuData
+            {
+                menuType = menu.menuType,
+                menuBase = menu
+            });
         }
     }
 

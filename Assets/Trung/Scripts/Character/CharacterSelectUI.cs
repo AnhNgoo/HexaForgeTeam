@@ -51,12 +51,9 @@ private Image RuneIcon2;
 
 [SerializeField]
 private Image RuneIcon3;
-public enum RuneColor
-{
-    Red,
-    Green,
-    Blue
-}
+[SerializeField]
+    private Button BuildRuneButton;
+
 [Header("Rune Icons")]
 [SerializeField]
 private Sprite RedRuneSprite;
@@ -103,6 +100,10 @@ private Sprite BlueRuneSprite;
                 transform.Find(nameof(ElaraButton))
                 ?.GetComponent<Button>();
         }
+        if (BuildRuneButton == null)
+    {
+        BuildRuneButton = transform.Find(nameof(BuildRuneButton))?.GetComponent<Button>();
+    }
     }
 
     protected override void LoadComponentRuntime()
@@ -114,6 +115,10 @@ private Sprite BlueRuneSprite;
     {
         SetupButtons();
 
+        RefreshUI();
+    }
+    private void OnEnable()
+    {
         RefreshUI();
     }
 
@@ -146,6 +151,11 @@ private Sprite BlueRuneSprite;
             ElaraButton.onClick.AddListener(
                 SelectElara);
         }
+        if (BuildRuneButton != null)
+    {
+        BuildRuneButton.onClick.RemoveAllListeners();
+        BuildRuneButton.onClick.AddListener(OnBuildRuneClicked);
+    }
     }
 
     public void RefreshUI()
@@ -182,30 +192,27 @@ private Sprite BlueRuneSprite;
         CharacterType selected =
             CharacterManager.Instance
             .GetSelectedCharacter();
-            if (kaelHighlight != null)
-     RefreshCharacterInfo(selected);
-{
-    kaelHighlight.SetActive(
-        selected == CharacterType.Kael);
-}
+            RefreshCharacterInfo(selected);
 
-if (lyraHighlight != null)
-{
-    lyraHighlight.SetActive(
-        selected == CharacterType.Lyra);
-}
+    if (kaelHighlight != null)
+    {
+        kaelHighlight.SetActive(selected == CharacterType.Kael);
+    }
 
-if (aresHighlight != null)
-{
-    aresHighlight.SetActive(
-        selected == CharacterType.Ares);
-}
+    if (lyraHighlight != null)
+    {
+        lyraHighlight.SetActive(selected == CharacterType.Lyra);
+    }
 
-if (elaraHighlight != null)
-{
-    elaraHighlight.SetActive(
-        selected == CharacterType.Elara);
-}
+    if (aresHighlight != null)
+    {
+        aresHighlight.SetActive(selected == CharacterType.Ares);
+    }
+
+    if (elaraHighlight != null)
+    {
+        elaraHighlight.SetActive(selected == CharacterType.Elara);
+    }
 
         if (StatusText != null)
         {
@@ -238,48 +245,40 @@ if (elaraHighlight != null)
             CharacterType.Elara);
     }
 
-    private void SelectCharacter(
-        CharacterType type)
-    {
-        if (!CharacterManager.Instance
-            .IsUnlocked(type))
-        {
-            if (StatusText != null)
-            {
-                StatusText.text =
-                    "Character Locked";
-            }
-
-            return;
-        }
-
-        CharacterManager.Instance
-            .SelectCharacter(type);
-        CharacterPreviewManager preview =
-    FindFirstObjectByType<CharacterPreviewManager>();
-
-if (preview != null)
+    private void SelectCharacter(CharacterType type)
 {
-    preview.RefreshPreview();
-}
-
+    if (!CharacterManager.Instance.IsUnlocked(type))
+    {
         if (StatusText != null)
         {
-            StatusText.text =
-                $"Selected: {type}";
+            StatusText.text = "<color=#FF4C4C>CHARACTER LOCKED</color>";
         }
-
-        RefreshUI();
+        return;
     }
-    private void RefreshCharacterInfo(
-    CharacterType type)
+
+    CharacterManager.Instance.SelectCharacter(type);
+    CharacterPreviewManager preview = FindFirstObjectByType<CharacterPreviewManager>();
+
+    if (preview != null)
+    {
+        preview.RefreshPreview();
+    }
+
+    if (StatusText != null)
+    {
+        StatusText.text = $"<color=#00FFCC>DEPLOYED: {type.ToString().ToUpper()}</color>";
+    }
+
+    RefreshUI();
+}
+    private void RefreshCharacterInfo(CharacterType type)
 {
     switch (type)
     {
         case CharacterType.Kael:
 
             CharacterNameText.text = "KAEL";
-            RoleText.text = "⚔ Chiến Binh";
+            RoleText.text = "Chiến Binh";
 
             StatText.text =
                 "HP: 1350\n" +
@@ -290,17 +289,12 @@ if (preview != null)
             DescriptionText.text =
                 "Crit Rate cao, dựa vào Dodge";
 
-            SetRuneIcons(
-                RuneColor.Red,
-                RuneColor.Red,
-                RuneColor.Green);
-
             break;
 
         case CharacterType.Lyra:
 
             CharacterNameText.text = "LYRA";
-            RoleText.text = "🔮 Pháp Sư";
+            RoleText.text = "Pháp Sư";
 
             StatText.text =
                 "HP: 1200\n" +
@@ -311,17 +305,12 @@ if (preview != null)
             DescriptionText.text =
                 "Burst DMG lớn, cần giữ khoảng cách";
 
-            SetRuneIcons(
-                RuneColor.Red,
-                RuneColor.Blue,
-                RuneColor.Blue);
-
             break;
 
         case CharacterType.Ares:
 
             CharacterNameText.text = "ARES";
-            RoleText.text = "🛡 Đỡ Đòn";
+            RoleText.text = "Đỡ Đòn";
 
             StatText.text =
                 "HP: 2800\n" +
@@ -332,17 +321,12 @@ if (preview != null)
             DescriptionText.text =
                 "Tanky, Parry lấy năng lượng";
 
-            SetRuneIcons(
-                RuneColor.Green,
-                RuneColor.Green,
-                RuneColor.Blue);
-
             break;
 
         case CharacterType.Elara:
 
             CharacterNameText.text = "ELARA";
-            RoleText.text = "⚖ Hybrid";
+            RoleText.text = "Hybrid";
 
             StatText.text =
                 "HP: 2000\n" +
@@ -353,43 +337,60 @@ if (preview != null)
             DescriptionText.text =
                 "Tự hồi máu, buff hỗ trợ";
 
-            SetRuneIcons(
-                RuneColor.Red,
-                RuneColor.Green,
-                RuneColor.Blue);
-
             break;
     }
-}
-private void SetRuneIcons(
-    RuneColor rune1,
-    RuneColor rune2,
-    RuneColor rune3)
-{
-    RuneIcon1.sprite =
-        GetRuneSprite(rune1);
 
-    RuneIcon2.sprite =
-        GetRuneSprite(rune2);
+    CharacterRuneEquip currentBuild = CharacterManager.Instance.GetCharacterRuneBuild(type);
+    Image[] targetIcons = new Image[3] { RuneIcon1, RuneIcon2, RuneIcon3 };
 
-    RuneIcon3.sprite =
-        GetRuneSprite(rune3);
-}
-private Sprite GetRuneSprite(
-    RuneColor color)
-{
-    switch (color)
+    for (int i = 0; i < targetIcons.Length; i++)
     {
-        case RuneColor.Red:
-            return RedRuneSprite;
+        if (targetIcons[i] == null) continue;
 
-        case RuneColor.Green:
-            return GreenRuneSprite;
+        if (currentBuild != null && !string.IsNullOrEmpty(currentBuild.equippedRuneIDs[i]))
+        {
+            string runeID = currentBuild.equippedRuneIDs[i];
+            RuneData equippedRune = null;
 
-        case RuneColor.Blue:
-            return BlueRuneSprite;
+            if (RuneInventoryManager.Instance != null)
+            {
+                for (int k = 0; k < RuneInventoryManager.Instance.runes.Count; k++)
+                {
+                    if (RuneInventoryManager.Instance.runes[k].runeID == runeID)
+                    {
+                        equippedRune = RuneInventoryManager.Instance.runes[k];
+                        break;
+                    }
+                }
+            }
+
+            if (equippedRune != null)
+            {
+                targetIcons[i].color = Color.white;
+                if (equippedRune.runeColor == RuneColor.Red) targetIcons[i].sprite = RedRuneSprite;
+                if (equippedRune.runeColor == RuneColor.Green) targetIcons[i].sprite = GreenRuneSprite;
+                if (equippedRune.runeColor == RuneColor.Blue) targetIcons[i].sprite = BlueRuneSprite;
+            }
+        }
+        else
+        {
+            targetIcons[i].color = new Color(1f, 1f, 1f, 0.2f);
+            if (type == CharacterType.Kael) targetIcons[i].sprite = (i == 2) ? GreenRuneSprite : RedRuneSprite;
+            if (type == CharacterType.Lyra) targetIcons[i].sprite = (i == 0) ? RedRuneSprite : BlueRuneSprite;
+            if (type == CharacterType.Ares) targetIcons[i].sprite = (i == 2) ? BlueRuneSprite : GreenRuneSprite;
+            if (type == CharacterType.Elara) targetIcons[i].sprite = (i == 0) ? RedRuneSprite : (i == 1) ? GreenRuneSprite : BlueRuneSprite;
+        }
     }
-
-    return null;
 }
+private void OnBuildRuneClicked()
+    {
+        if (UIManager.Instance == null) return;
+
+        UIManager.Instance.ChangeMenu(MenuType.LobbyInventoryMenu);
+
+        if (InventoryUI.Instance != null)
+        {
+            InventoryUI.Instance.RefreshInventory();
+        }
+    }
 }

@@ -20,6 +20,10 @@ public class ControllerMenu : MenuBase
     [Header("Setting Tabs")]
     [SerializeField] private SettingsTabUI tabs;
 
+    [Header("Embedded System Settings")]
+    [SerializeField]
+    private SystemSettingsPanel systemSettingsPanel;
+
     [Header("Arrow Selectors")]
     [SerializeField] private ArrowSelectorUI controlTypeSelector;
 
@@ -314,22 +318,50 @@ public class ControllerMenu : MenuBase
     private void Back()
     {
         LoadSettings();
-        UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
+
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.CloseGameSystemMenu();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            SettingMenuData.BackMenu);
     }
 
     private void OpenAudio()
     {
-        UIManager.Instance.ChangeMenu(MenuType.SettingMenu);
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowAudio();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.SettingMenu);
     }
 
     private void OpenGraphics()
     {
-        UIManager.Instance.ChangeMenu(MenuType.GraphicsMenu);
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowGraphics();
+            return;
+        }
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.GraphicsMenu);
     }
 
     private void SelectController()
     {
-        tabs.SetSelected(MenuType.ControllerMenu);
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowController();
+            return;
+        }
+
+        tabs?.SetSelected(MenuType.ControllerMenu);
     }
 
     private int WrapIndex(int index, int length)

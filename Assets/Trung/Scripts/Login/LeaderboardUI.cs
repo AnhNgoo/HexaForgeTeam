@@ -19,7 +19,6 @@ public class LeaderboardUI : MonoBehaviour
 
     private void Start()
     {
-        panel.SetActive(false);
     }
 
     public void OpenPanel()

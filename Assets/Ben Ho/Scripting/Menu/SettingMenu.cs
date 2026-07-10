@@ -7,6 +7,10 @@ public class SettingMenu : MenuBase
 {
     public override MenuType menuType => MenuType.SettingMenu;
 
+    [Header("Embedded System Settings")]
+    [SerializeField]
+    private SystemSettingsPanel systemSettingsPanel;
+
     [Header("Setting Tabs")]
     [SerializeField] private SettingsTabUI tabs;
 
@@ -118,16 +122,34 @@ public class SettingMenu : MenuBase
 
     private void OpenAudioTab()
     {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowAudio();
+            return;
+        }
+
         tabs?.SetSelected(MenuType.SettingMenu);
     }
 
     private void OpenGraphicsTab()
     {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowGraphics();
+            return;
+        }
+
         ChangeSettingTab(MenuType.GraphicsMenu);
     }
 
     private void OpenControllerTab()
     {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowController();
+            return;
+        }
+
         ChangeSettingTab(MenuType.ControllerMenu);
     }
 
@@ -308,6 +330,11 @@ public class SettingMenu : MenuBase
 
     private void OnBackButtonClicked()
     {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.CloseGameSystemMenu();
+            return;
+        }
         Debug.Log("Setting back button clicked");
 
         LoadSettings();
