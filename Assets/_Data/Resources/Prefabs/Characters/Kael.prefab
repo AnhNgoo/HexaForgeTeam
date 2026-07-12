@@ -363,6 +363,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 388910664700589713, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+      propertyPath: nextAttackTime
+      value: 0.9
+      objectReference: {fileID: 0}
     - target: {fileID: 2866307409479486588, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: earthBreakerEffectPoint
       value: 
@@ -401,15 +405,15 @@ PrefabInstance:
       objectReference: {fileID: 7685807319425756070}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 109.32549
+      value: 115.031784
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.64
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 22.02839
+      value: 25.749258
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalRotation.w
@@ -494,6 +498,17 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 2796254568787554388, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 3898037821049706184}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1264465636776731448 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2852138053520553456, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 3898037821049706184}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5614537235687248146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aced1425cc780bf4994bfb9b8eae893c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2179980713057502717 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2907148696939025205, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
@@ -610,6 +625,7 @@ MonoBehaviour:
   ZoffsetCheckForNearEnemy: 2
   radiusCheckForNearEnemy: 1.5
   debugModeCheckForNearEnemy: 0
+  meleeSnapThreshold: {x: 2.5, y: 15}
   visuals: {fileID: 6153443004006498989}
   characterVisual: {fileID: 5302392714553701219}
   handRight: {fileID: 3883520678484357988}
@@ -623,10 +639,13 @@ MonoBehaviour:
   characterInput: {fileID: 8113121125163882698}
   characterHealth: {fileID: 4511952887523380499}
   characterRecovery: {fileID: 2638037874438516610}
+  characterMeleeHitbox: {fileID: 1264465636776731448}
+  characterCinematic: {fileID: 5866679722787718725}
   effectPoints: {fileID: 3067278483885023289}
   middleEffectPoint: {fileID: 3303615179395203270}
   bottomEffectPoint: {fileID: 2179980713057502717}
   hitEffect_1: 26
+  hitEffect_2: 27
   punchEffectPoint_1: {fileID: 3947472029192380678}
   punchEffect_1: 9
   punchEffectPoint_2: {fileID: 7903114145141739832}
@@ -635,11 +654,7 @@ MonoBehaviour:
   punchEffect_3: 10
   punchEffectPoint_4: {fileID: 7472462583451826700}
   punchEffect_4: 10
-  attackSpeedMultiplier: 0.01
-  attackParameterName: AttackSpeed
-  meleeSnapThreshold: {x: 2.5, y: 15}
   meleeAttackEffectPoint_1: {fileID: 6772295478168396761}
-  hitEffect_2: 27
   meleeAttackEffect_1: 3
   meleeAttackEffectPoint_2: {fileID: 8469191348768166187}
   meleeAttackEffect_2: 3
@@ -665,6 +680,17 @@ MonoBehaviour:
   kaelGiantAuraEffect_1: 25
   kaelGiantPunchEffect_1: 23
   kaelGiantPunchEffect_2: 24
+--- !u!114 &5866679722787718725 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7454089195184410765, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 3898037821049706184}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5614537235687248146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13b6c6f5242cc9c4eb978e1647ee468a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &6131254192104371322 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7137655160330117810, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
