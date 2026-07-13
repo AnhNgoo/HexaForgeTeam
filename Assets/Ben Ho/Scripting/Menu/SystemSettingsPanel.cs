@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public enum SystemSettingPage
 {
@@ -10,6 +11,11 @@ public enum SystemSettingPage
 
 public class SystemSettingsPanel : MonoBehaviour
 {
+    [Header("Tab Buttons")]
+    [SerializeField] private Button btnAudio;
+    [SerializeField] private Button btnGraphics;
+    [SerializeField] private Button btnController;
+
     [Header("Setting Pages")]
     [SerializeField] private SettingMenu audioMenu;
     [SerializeField] private GraphicsMenu graphicsMenu;
@@ -37,36 +43,64 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private SystemSettingPage defaultPage =
         SystemSettingPage.Audio;
 
-    private SystemSettingPage currentPage;
-    private bool hasCurrentPage;
-    private bool isClosing;
-    private bool openedByGameSystem;
+    private bool eventsAdded;
 
     public void Open()
     {
-        openedByGameSystem = true;
         gameObject.SetActive(true);
+        AddEvents();
         ShowPage(defaultPage);
-        openedByGameSystem = false;
     }
 
     public void Close()
     {
+        RemoveEvents();
         CloseAllPages();
-        hasCurrentPage = false;
         gameObject.SetActive(false);
     }
 
     private void OnEnable()
     {
-        if (!openedByGameSystem)
-            ShowPage(defaultPage);
+        AddEvents();
     }
 
     private void OnDisable()
     {
-        CloseAllPages();
-        hasCurrentPage = false;
+        RemoveEvents();
+    }
+
+    private void AddEvents()
+    {
+        if (eventsAdded)
+            return;
+
+        if (btnAudio != null)
+            btnAudio.onClick.AddListener(ShowAudio);
+
+        if (btnGraphics != null)
+            btnGraphics.onClick.AddListener(ShowGraphics);
+
+        if (btnController != null)
+            btnController.onClick.AddListener(ShowController);
+
+        eventsAdded = true;
+    }
+
+    private void RemoveEvents()
+    {
+        if (!eventsAdded)
+            return;
+
+        if (btnAudio != null)
+            btnAudio.onClick.RemoveListener(ShowAudio);
+
+        if (btnGraphics != null)
+            btnGraphics.onClick.RemoveListener(ShowGraphics);
+
+        if (btnController != null)
+            btnController.onClick.RemoveListener(ShowController);
+
+        eventsAdded = false;
     }
 
     public void ShowAudio()
@@ -86,70 +120,22 @@ public class SystemSettingsPanel : MonoBehaviour
 
     public void ShowPage(SystemSettingPage page)
     {
-        if (isClosing)
-            return;
-
-        if (hasCurrentPage &&
-            currentPage == page &&
-            IsPageActive(page))
-        {
-            UpdateVisual(page);
-            return;
-        }
-
         CloseAllPages();
 
-        currentPage = page;
-        hasCurrentPage = true;
+        if (page == SystemSettingPage.Audio && audioMenu != null)
+            audioMenu.Open();
 
-        switch (page)
-        {
-            case SystemSettingPage.Audio:
-                if (audioMenu != null)
-                    audioMenu.Open();
-                break;
+        if (page == SystemSettingPage.Graphics && graphicsMenu != null)
+            graphicsMenu.Open();
 
-            case SystemSettingPage.Graphics:
-                if (graphicsMenu != null)
-                    graphicsMenu.Open();
-                break;
-
-            case SystemSettingPage.Controller:
-                if (controllerMenu != null)
-                    controllerMenu.Open();
-                break;
-        }
+        if (page == SystemSettingPage.Controller && controllerMenu != null)
+            controllerMenu.Open();
 
         UpdateVisual(page);
     }
 
-    private bool IsPageActive(SystemSettingPage page)
-    {
-        switch (page)
-        {
-            case SystemSettingPage.Audio:
-                return audioMenu != null &&
-                       audioMenu.gameObject.activeSelf;
-
-            case SystemSettingPage.Graphics:
-                return graphicsMenu != null &&
-                       graphicsMenu.gameObject.activeSelf;
-
-            case SystemSettingPage.Controller:
-                return controllerMenu != null &&
-                       controllerMenu.gameObject.activeSelf;
-        }
-
-        return false;
-    }
-
     private void CloseAllPages()
     {
-        if (isClosing)
-            return;
-
-        isClosing = true;
-
         if (audioMenu != null && audioMenu.gameObject.activeSelf)
             audioMenu.Close();
 
@@ -158,8 +144,6 @@ public class SystemSettingsPanel : MonoBehaviour
 
         if (controllerMenu != null && controllerMenu.gameObject.activeSelf)
             controllerMenu.Close();
-
-        isClosing = false;
     }
 
     private void UpdateVisual(SystemSettingPage page)

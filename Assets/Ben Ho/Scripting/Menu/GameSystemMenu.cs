@@ -26,6 +26,9 @@ public class GameSystemMenu : MenuBase
 {
     public override MenuType menuType => MenuType.GameSystemMenu;
 
+    [Header("Always Visible")]
+    [SerializeField] private GameObject mainTabMenu;
+
     [Header("Tabs")]
     [SerializeField] private ToggleGroup tabToggleGroup;
     [SerializeField] private GameSystemTabItem[] tabItems;
@@ -62,9 +65,15 @@ public class GameSystemMenu : MenuBase
     {
         base.Open(data);
 
+        transform.SetAsLastSibling();
+
+        if (mainTabMenu != null)
+        {
+            mainTabMenu.SetActive(true);
+            mainTabMenu.transform.SetAsLastSibling();
+        }
+
         openedFrame = Time.frameCount;
-        CaptureCursor();
-        AddEvents();
 
         GameSystemTab tab = data is GameSystemTab requestedTab
             ? requestedTab
@@ -75,9 +84,6 @@ public class GameSystemMenu : MenuBase
 
     public override void Close()
     {
-        RemoveEvents();
-        CloseAllPanels();
-        RestoreCursor();
         base.Close();
     }
 
@@ -89,10 +95,36 @@ public class GameSystemMenu : MenuBase
         if (Keyboard.current == null)
             return;
 
-        if (Keyboard.current.iKey.wasPressedThisFrame ||
-            Keyboard.current.escapeKey.wasPressedThisFrame)
+        if (Keyboard.current.mKey.wasPressedThisFrame)
         {
-            CloseToGameplay();
+            SelectTab(GameSystemTab.Map);
+            return;
+        }
+
+        if (Keyboard.current.iKey.wasPressedThisFrame)
+        {
+            SelectTab(GameSystemTab.Inventory);
+            return;
+        }
+
+        if (Keyboard.current.pKey.wasPressedThisFrame)
+        {
+            SelectTab(GameSystemTab.PlayerState);
+            return;
+        }
+
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            if (currentTab == GameSystemTab.System)
+            {
+                CloseToGameplay();
+            }
+            else
+            {
+                SelectTab(GameSystemTab.System);
+            }
+
+            return;
         }
     }
 
@@ -104,6 +136,12 @@ public class GameSystemMenu : MenuBase
         SetInventoryActive(tab == GameSystemTab.Inventory);
         SetPlayerStateActive(tab == GameSystemTab.PlayerState);
         SetSystemActive(tab == GameSystemTab.System);
+
+        if (mainTabMenu != null)
+        {
+            mainTabMenu.SetActive(true);
+            mainTabMenu.transform.SetAsLastSibling();
+        }
 
         RefreshTabs();
     }
@@ -285,6 +323,19 @@ public class GameSystemMenu : MenuBase
     private void OnDestroy()
     {
         RemoveEvents();
+        RestoreCursor();
+    }
+
+    private void OnEnable()
+    {
+        AddEvents();
+        CaptureCursor();
+    }
+
+    private void OnDisable()
+    {
+        RemoveEvents();
+        CloseAllPanels();
         RestoreCursor();
     }
 }
