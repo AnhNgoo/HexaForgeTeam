@@ -17,9 +17,9 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private Button btnController;
 
     [Header("Setting Pages")]
-    [SerializeField] private SettingMenu audioMenu;
-    [SerializeField] private GraphicsMenu graphicsMenu;
-    [SerializeField] private ControllerMenu controllerMenu;
+    [SerializeField] private ScrollRect audioPage;
+    [SerializeField] private ScrollRect graphicsPage;
+    [SerializeField] private ScrollRect controllerPage;
 
     [Header("Parent Menu")]
     [SerializeField] private GameSystemMenu gameSystemMenu;
@@ -36,14 +36,14 @@ public class SystemSettingsPanel : MonoBehaviour
 
     [Header("Colors")]
     [SerializeField] private Color normalColor = Color.white;
-    [SerializeField] private Color selectedColor =
-        new Color(0.925f, 0.804f, 0.624f, 1f);
+    [SerializeField] private Color selectedColor = new Color(0.925f, 0.804f, 0.624f, 1f);
 
     [Header("Opening")]
-    [SerializeField] private SystemSettingPage defaultPage =
-        SystemSettingPage.Audio;
+    [SerializeField] private SystemSettingPage defaultPage = SystemSettingPage.Audio;
+    [SerializeField] private bool resetScrollWhenOpenPage = true;
 
     private bool eventsAdded;
+    private SystemSettingPage currentPage;
 
     public void Open()
     {
@@ -62,6 +62,7 @@ public class SystemSettingsPanel : MonoBehaviour
     private void OnEnable()
     {
         AddEvents();
+        ShowPage(defaultPage);
     }
 
     private void OnDisable()
@@ -120,30 +121,35 @@ public class SystemSettingsPanel : MonoBehaviour
 
     public void ShowPage(SystemSettingPage page)
     {
-        CloseAllPages();
+        currentPage = page;
 
-        if (page == SystemSettingPage.Audio && audioMenu != null)
-            audioMenu.Open();
-
-        if (page == SystemSettingPage.Graphics && graphicsMenu != null)
-            graphicsMenu.Open();
-
-        if (page == SystemSettingPage.Controller && controllerMenu != null)
-            controllerMenu.Open();
+        SetPage(audioPage, page == SystemSettingPage.Audio);
+        SetPage(graphicsPage, page == SystemSettingPage.Graphics);
+        SetPage(controllerPage, page == SystemSettingPage.Controller);
 
         UpdateVisual(page);
     }
 
     private void CloseAllPages()
     {
-        if (audioMenu != null && audioMenu.gameObject.activeSelf)
-            audioMenu.Close();
+        SetPage(audioPage, false);
+        SetPage(graphicsPage, false);
+        SetPage(controllerPage, false);
+    }
 
-        if (graphicsMenu != null && graphicsMenu.gameObject.activeSelf)
-            graphicsMenu.Close();
+    private void SetPage(ScrollRect page, bool active)
+    {
+        if (page == null)
+            return;
 
-        if (controllerMenu != null && controllerMenu.gameObject.activeSelf)
-            controllerMenu.Close();
+        page.gameObject.SetActive(active);
+
+        if (active && resetScrollWhenOpenPage)
+        {
+            Canvas.ForceUpdateCanvases();
+            page.verticalNormalizedPosition = 1f;
+            page.horizontalNormalizedPosition = 0f;
+        }
     }
 
     private void UpdateVisual(SystemSettingPage page)
