@@ -53,12 +53,16 @@ public class ChangeWeaponState : ICharacterState
     {
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("ChangeWeapon", changeWeaponIndex) >= timeTriggerChangeWeapon);
 
-        int nextWeaponIndex = EquipmentSystem.Instance.CurrentWeaponIndex + 1;
-        if (nextWeaponIndex >= EquipmentSystem.Instance.GetWeaponCount())
+        int nextWeaponIndex = WeaponInventorySystem.Instance.CurrentWeaponIndex + 1;
+        while (nextWeaponIndex < WeaponInventorySystem.Instance.WeaponSlots.Count && WeaponInventorySystem.Instance.GetWeaponAtIndex(nextWeaponIndex) == null)
+        {
+            nextWeaponIndex++; // Tìm vũ khí tiếp theo không null
+        }
+        if (nextWeaponIndex >= WeaponInventorySystem.Instance.GetWeaponCount())
         {
             nextWeaponIndex = -1; // Quay lại vũ khí đầu tiên nếu vượt quá danh sách
         }
-        EquipmentSystem.Instance.ChangeWeapon(nextWeaponIndex);
+        WeaponInventorySystem.Instance.ChangeWeapon(nextWeaponIndex);
 
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("ChangeWeapon", changeWeaponIndex) >= changeWeaponCompleteThreshold);
 

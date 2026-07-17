@@ -79,6 +79,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -1785759799273620305, guid: 27f0ba2cfc8ff6d44ab044c2f55801af, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 27f0ba2cfc8ff6d44ab044c2f55801af, type: 3}
       propertyPath: m_Name
       value: Lyra
@@ -119,6 +123,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 34115255236702020, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+      propertyPath: skillData1
+      value: 
+      objectReference: {fileID: 11400000, guid: 9357e486cf3297b42990bac19eeca990, type: 2}
+    - target: {fileID: 34115255236702020, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+      propertyPath: skillData2
+      value: 
+      objectReference: {fileID: 11400000, guid: 9357e486cf3297b42990bac19eeca990, type: 2}
     - target: {fileID: 388910664700589713, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: cooldownTime
       value: 0
@@ -133,15 +145,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 111.05
+      value: 117.3
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.83
+      value: 3.2
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 27.5
+      value: 25.4
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalRotation.w
@@ -231,6 +243,8 @@ MonoBehaviour:
   characterInput: {fileID: 4239970442180518997}
   characterHealth: {fileID: 8420978362355167628}
   characterRecovery: {fileID: 7988487931685770013}
+  characterMeleeHitbox: {fileID: 6614862917098332071}
+  characterCinematic: {fileID: 1957478234567277274}
   effectPoints: {fileID: 6976594298739711142}
   middleEffectPoint: {fileID: 7464771951311961177}
   bottomEffectPoint: {fileID: 6052880652090603874}
@@ -249,6 +263,12 @@ MonoBehaviour:
   hitEffect: 39
   arcaneChargeEffect: 37
   lyraProjectile: 38
+  lyraAuraSkill_2_1: 43
+  lyraAuraSkill_2_2: 44
+  lyraAuraSkill_2_3: 45
+  lyraSkill_2_DetectionAreaEffect: 46
+  lyraSkill_2_Projectile: 47
+  lyraSkill_2_HitEffect: 48
 --- !u!82 &4377074813862401284
 AudioSource:
   m_ObjectHideFlags: 0
@@ -260,7 +280,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: abf1338bff5f1724f8f8ce816679247c, type: 3}
-  m_PlayOnAwake: 1
+  m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
   Loop: 0
@@ -367,6 +387,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2786fb19b81b48944a49d56bfc0ae57b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1957478234567277274 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7454089195184410765, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 8960019985531120215}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552299898475163021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13b6c6f5242cc9c4eb978e1647ee468a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2244364666717650482 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7169158249027933285, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
@@ -440,6 +471,17 @@ ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 2796254568787554388, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 8960019985531120215}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6614862917098332071 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2852138053520553456, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 8960019985531120215}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552299898475163021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aced1425cc780bf4994bfb9b8eae893c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6976594298739711142 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2056373963296012017, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}

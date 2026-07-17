@@ -68,6 +68,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [SerializeField] protected CharacterCinematic characterCinematic;
     public CharacterCinematic CharacterCinematic => characterCinematic;
 
+
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
     public GameObject middleEffectPoint;
@@ -86,7 +87,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public StateController StateController => stateController;
     protected Cooldown dodgeCooldown = new Cooldown();
     public bool IsHealthRecovering { get; set; } = false;
-    public DashShadowEffect dashShadowEffect { get; set; }
+    public DashShadowEffect DashShadowEffect { get; set; }
+    public GhostEffect GhostEffect { get; set; }
 
     protected override void LoadComponent()
     {
@@ -171,9 +173,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterWeapon.Init(this, handRight.transform);
             characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
             characterMeleeHitbox.Init(this);
+
             InitSkills();
             GetDashShadowEffect(characterVisual);
-            EquipmentSystem.Instance?.Init(characterWeapon);
+            GetGhostEffect(characterVisual);
+
+            WeaponInventorySystem.Instance?.Init(characterWeapon);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
         }
@@ -397,7 +402,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     protected virtual void GetDashShadowEffect(GameObject characterVisual)
     {
-        dashShadowEffect = characterVisual.GetComponent<DashShadowEffect>();
+        DashShadowEffect = characterVisual.GetComponent<DashShadowEffect>();
+    }
+
+    public virtual void GetGhostEffect(GameObject characterVisual)
+    {
+        GhostEffect = characterVisual.GetComponent<GhostEffect>();
     }
 
     /// <summary>
@@ -420,13 +430,15 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
+        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu)
+            return;
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
         if (scrollY > 0f)
         {
             if (CharacterInput.IsChangingWeapon ||
-             EquipmentSystem.Instance.GetWeaponCount() == 0 ||
+             WeaponInventorySystem.Instance.CheckWeaponInSlots() == false ||
              characterCombat.IsAttacking ||
              characterSkill.IsUsingSkill
              ) return;
@@ -494,13 +506,4 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     }
 
     #endregion
-
-    protected virtual void OnDrawGizmos()
-    {
-        if (debugModeCheckForNearEnemy)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(transform.position + transform.forward * ZoffsetCheckForNearEnemy, radiusCheckForNearEnemy);
-        }
-    }
 }

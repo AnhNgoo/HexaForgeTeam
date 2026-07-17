@@ -58,7 +58,7 @@ public class DodgeState : ICharacterState
     {
         while (character.CharacterMovement.IsDodging)
         {
-            character.dashShadowEffect.CreateShadowEffect();
+            character.DashShadowEffect.CreateShadowEffect();
             await UniTask.Delay((int)(shadowSpawnInterval * 1000)); // Tạo bóng mỗi 0.1 giây, có thể điều chỉnh tùy theo nhu cầu
         }
     }

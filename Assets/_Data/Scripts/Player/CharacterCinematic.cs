@@ -39,11 +39,15 @@ public class CharacterCinematic : MonoBehaviour
             ObjectPooling.Instance.ReturnToPool(PoolType.CinematicUI, cinematicUIObj);
     }
 
-    public void PlayCinematic()
+    public void PlayCinematic(bool hasAnchor = true)
     {
         if (cinematicAnchorObj != null)
             ObjectPooling.Instance.ReturnToPool(cinematicAnchor, cinematicAnchorObj);
-        cinematicAnchorObj = ObjectPooling.Instance.SpawnFromPool(cinematicAnchor, transform.position + transform.forward * cinematicAnchorDistance, transform.rotation);
+
+        if (hasAnchor)
+        {
+            cinematicAnchorObj = ObjectPooling.Instance.SpawnFromPool(cinematicAnchor, transform.position + transform.forward * cinematicAnchorDistance, transform.rotation);
+        }
 
         if (cinematicUIObj != null)
             ObjectPooling.Instance.ReturnToPool(PoolType.CinematicUI, cinematicUIObj);
@@ -51,7 +55,13 @@ public class CharacterCinematic : MonoBehaviour
 
         if (CameraManager.Instance != null)
         {
-            CameraManager.Instance.SetCamera(CameraType.CinematicAttack, cinematicAnchorObj.transform, cinematicAnchorObj.transform);
+            if (hasAnchor)
+            {
+                CameraManager.Instance.SetCamera(CameraType.CinematicAttack, cinematicAnchorObj.transform, cinematicAnchorObj.transform);
+                return;
+            }
+
+            CameraManager.Instance.SetCamera(CameraType.CinematicAttack, transform, transform);
         }
     }
 
