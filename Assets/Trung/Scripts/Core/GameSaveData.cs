@@ -13,6 +13,9 @@ public class GameSaveData
 
 public int lifetimeGemEarned = 0;
 
+    // TIỀN TỆ MỚI: Mảnh Cổ Tự (Rune Shards)
+    public int runeShards = 0;
+
     // Character
     public CharacterUnlockData characterData =
         new CharacterUnlockData();

@@ -1,8 +1,7 @@
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
-using System;
+using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 [System.Serializable]
 public class TutorialPanel
@@ -10,182 +9,142 @@ public class TutorialPanel
     public TutorialType tutorialType;
     public GameObject panel;
 }
+
 public class GameplayMenu : MenuBase
 {
-    public override MenuType menuType => MenuType.GameplayMenu;
+    public override MenuType menuType =>
+        MenuType.GameplayMenu;
 
     [Header("Player Stats")]
     [SerializeField] private PlayerStats playerStats;
 
-    [Header("Stats Slider")]
+    [Header("Stats Sliders")]
     [SerializeField] private Slider slider_HP;
     [SerializeField] private Slider slider_MP;
     [SerializeField] private Slider slider_Stamina;
 
-    [Header("Level")]
+    [Header("Level And Gold")]
     [SerializeField] private TextMeshProUGUI txt_Level;
-    [Header("Gold")]
     [SerializeField] private TextMeshProUGUI txt_Gold;
 
-    [Header("Buttons")]
-    [SerializeField] private Button btn_Settings;
-    [SerializeField] private Button btn_Inventory;
+    [Header("Shortcuts")]
+    [SerializeField] private MenuType inventoryMenuType =
+        MenuType.InventoryMenu;
 
     [Header("Tutorial")]
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private TutorialPanel[] tutorialPanels;
+
     [Header("Pick Up Item Panel")]
     [SerializeField] private GameObject pickUpItemPanel;
     [SerializeField] private TextMeshProUGUI text_Keyboard;
     [SerializeField] private TextMeshProUGUI text_Description;
+    
 
-    private bool _isGoldSubscribed;
+    private bool isGoldSubscribed;
 
     protected override void LoadComponent()
     {
         if (slider_HP == null)
-            slider_HP = transform.Find("Slider_HP")?.GetComponent<Slider>();
+        {
+            slider_HP =
+                FindDeepChild("Slider_HP")
+                    ?.GetComponent<Slider>();
+        }
 
         if (slider_MP == null)
-            slider_MP = transform.Find("Slider_MP")?.GetComponent<Slider>();
+        {
+            slider_MP =
+                FindDeepChild("Slider_MP")
+                    ?.GetComponent<Slider>();
+        }
 
         if (slider_Stamina == null)
-            slider_Stamina = transform.Find("Slider_Stamina")?.GetComponent<Slider>();
+        {
+            slider_Stamina =
+                FindDeepChild("Slider_Stamina")
+                    ?.GetComponent<Slider>();
+        }
 
         if (txt_Level == null)
-            txt_Level = transform.Find("Txt_Level")?.GetComponent<TextMeshProUGUI>();
+        {
+            txt_Level =
+                FindDeepChild("Txt_Level")
+                    ?.GetComponent<TextMeshProUGUI>();
+        }
 
-        if (btn_Settings == null)
-            btn_Settings = transform.Find("Btn_Settings")?.GetComponent<Button>();
-
-        if (btn_Inventory == null)
-            btn_Inventory = transform.Find("Btn_Inventory")?.GetComponent<Button>();
+        if (txt_Gold == null)
+        {
+            txt_Gold =
+                FindDeepChild("Txt_Gold")
+                    ?.GetComponent<TextMeshProUGUI>();
+        }
 
         if (tutorialPanel == null)
-            tutorialPanel = transform.Find("Panel_Tutorial")?.gameObject;
+        {
+            tutorialPanel =
+                FindDeepChild("Panel_Tutorial")
+                    ?.gameObject;
+        }
 
         if (pickUpItemPanel == null)
-            pickUpItemPanel = transform.Find("Panel_PickUpItem")?.gameObject;
+        {
+            pickUpItemPanel =
+                FindDeepChild("Panel_PickUpItem")
+                    ?.gameObject;
+        }
 
         if (text_Keyboard == null)
-            text_Keyboard = transform.Find("Panel_PickUpItem/Text_Keyboard")?.GetComponent<TextMeshProUGUI>();
+        {
+            text_Keyboard =
+                FindDeepChild("Text_Keyboard")
+                    ?.GetComponent<TextMeshProUGUI>();
+        }
 
         if (text_Description == null)
-            text_Description = transform.Find("Panel_PickUpItem/Text_Description")?.GetComponent<TextMeshProUGUI>();
-        if (txt_Gold == null)
-            txt_Gold = transform.Find("Txt_Gold")?.GetComponent<TextMeshProUGUI>();
+        {
+            text_Description =
+                FindDeepChild("Text_Description")
+                    ?.GetComponent<TextMeshProUGUI>();
+        }
     }
 
     protected override void LoadComponentRuntime()
     {
+        LoadComponent();
+
         if (playerStats == null)
-            playerStats = FindObjectOfType<PlayerStats>();
-    }
-
-    public override void Open(object data = null)
-    {
-        base.Open(data);
-
-        Time.timeScale = 1f;
-
-        btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
-        btn_Inventory.onClick.AddListener(OnInventoryButtonClicked);
-
-        UpdatePlayerStatsUI();
-
-        if (GoldManager.Instance != null)
         {
-            GoldManager.Instance.OnGoldChanged += UpdateGoldUI;
-            UpdateGoldUI(GoldManager.Instance.CurrentGold);
+            playerStats =
+                FindObjectOfType<PlayerStats>();
         }
-    }
-
-    public override void Close()
-    {
-        base.Close();
-
-        btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
-        btn_Inventory.onClick.RemoveListener(OnInventoryButtonClicked);
-
-        if (GoldManager.Instance != null)
-            GoldManager.Instance.OnGoldChanged -= UpdateGoldUI;
-    }
-
-    private void UpdateGoldUI(int gold)
-    {
-        if (txt_Gold != null)
-            txt_Gold.text = gold.ToString();
     }
 
     protected override void Awake()
     {
         base.Awake();
+
+        LoadComponentRuntime();
         HidePickUpItemPanel(null);
+        HideTutorialPanel(null);
 
-        EventManager.Subscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
-        EventManager.Subscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
-        EventManager.Subscribe(GameEvent.OnShowPickUpItemPanel, ShowPickUpItemPanel);
-        EventManager.Subscribe(GameEvent.OnHidePickUpItemPanel, HidePickUpItemPanel);
+        EventManager.Subscribe(
+            GameEvent.OnShowTutorial,
+            ShowTutorialPanel);
+
+        EventManager.Subscribe(
+            GameEvent.OnHideTutorial,
+            HideTutorialPanel);
+
+        EventManager.Subscribe(
+            GameEvent.OnShowPickUpItemPanel,
+            ShowPickUpItemPanel);
+
+        EventManager.Subscribe(
+            GameEvent.OnHidePickUpItemPanel,
+            HidePickUpItemPanel);
     }
 
-
-    private void OnDestroy()
-    {
-        EventManager.Unsubscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
-        EventManager.Unsubscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
-        EventManager.Unsubscribe(GameEvent.OnShowPickUpItemPanel, ShowPickUpItemPanel);
-        EventManager.Unsubscribe(GameEvent.OnHidePickUpItemPanel, HidePickUpItemPanel);
-    }
-    private void Update()
-    {
-        UpdatePlayerStatsUI();
-    }
-
-    private void UpdatePlayerStatsUI()
-    {
-        if (playerStats == null) return;
-
-        if (slider_HP != null)
-        {
-            slider_HP.maxValue = playerStats.maxHP;
-            slider_HP.value = playerStats.currentHP;
-        }
-
-        if (slider_MP != null)
-        {
-            slider_MP.maxValue = playerStats.maxMP;
-            slider_MP.value = playerStats.currentMP;
-        }
-
-        if (slider_Stamina != null)
-        {
-            slider_Stamina.maxValue = playerStats.maxStamina;
-            slider_Stamina.value = playerStats.currentStamina;
-        }
-
-        if (txt_Level != null)
-        {
-            txt_Level.text = "Lv. " + playerStats.level;
-        }
-    }
-
-    private void OnSettingsButtonClicked()
-    {
-        Debug.Log("Settings button clicked");
-
-        Time.timeScale = 1f;
-
-        UIManager.Instance.ChangeMenu(MenuType.PauseMenu);
-    }
-
-    private void OnInventoryButtonClicked()
-    {
-        Debug.Log("Inventory button clicked");
-
-        UIManager.Instance.ChangeMenu(MenuType.InventoryMenu);
-    }
-
-    #region Gold
     private void OnEnable()
     {
         SubscribeGold();
@@ -196,88 +155,281 @@ public class GameplayMenu : MenuBase
         UnsubscribeGold();
     }
 
-    private void SubscribeGold()
+    private void OnDestroy()
     {
-        if (_isGoldSubscribed || GoldManager.Instance == null)
+        UnsubscribeGold();
+
+        EventManager.Unsubscribe(
+            GameEvent.OnShowTutorial,
+            ShowTutorialPanel);
+
+        EventManager.Unsubscribe(
+            GameEvent.OnHideTutorial,
+            HideTutorialPanel);
+
+        EventManager.Unsubscribe(
+            GameEvent.OnShowPickUpItemPanel,
+            ShowPickUpItemPanel);
+
+        EventManager.Unsubscribe(
+            GameEvent.OnHidePickUpItemPanel,
+            HidePickUpItemPanel);
+    }
+
+    public override void Open(object data = null)
+    {
+        base.Open(data);
+
+        LoadComponentRuntime();
+        SubscribeGold();
+        UpdatePlayerStatsUI();
+
+        // Souls-like: gameplay continues while menus are open.
+        // Do not modify Time.timeScale here.
+    }
+
+    public override void Close()
+    {
+        UnsubscribeGold();
+        base.Close();
+    }
+
+    private void Update()
+    {
+        UpdatePlayerStatsUI();
+        HandleShortcutInput();
+    }
+
+    private void HandleShortcutInput()
+    {
+        // GameSystemInputRouter handles M/I/P/ESC.
+    }
+
+    public void OpenInventoryMenu()
+    {
+        if (UIManager.Instance == null)
             return;
 
-        GoldManager.Instance.OnGoldChanged += UpdateGoldUI;
-        _isGoldSubscribed = true;
+        UIManager.Instance.ChangeMenu(
+            inventoryMenuType);
+    }
 
-        UpdateGoldUI(GoldManager.Instance.CurrentGold);
+    public void OpenPauseMenu()
+    {
+        if (UIManager.Instance == null)
+            return;
+
+        UIManager.Instance.ChangeMenu(
+            MenuType.PauseMenu);
+    }
+
+    public void OnInventoryButtonClicked()
+    {
+        OpenInventoryMenu();
+    }
+
+    public void OnSettingsButtonClicked()
+    {
+        OpenPauseMenu();
+    }
+
+    private void UpdatePlayerStatsUI()
+    {
+        if (playerStats == null)
+        {
+            playerStats =
+                FindObjectOfType<PlayerStats>();
+
+            if (playerStats == null)
+                return;
+        }
+
+        if (slider_HP != null)
+        {
+            slider_HP.maxValue =
+                playerStats.maxHP;
+
+            slider_HP.value =
+                playerStats.currentHP;
+        }
+
+        if (slider_MP != null)
+        {
+            slider_MP.maxValue =
+                playerStats.maxMP;
+
+            slider_MP.value =
+                playerStats.currentMP;
+        }
+
+        if (slider_Stamina != null)
+        {
+            slider_Stamina.maxValue =
+                playerStats.maxStamina;
+
+            slider_Stamina.value =
+                playerStats.currentStamina;
+        }
+
+        if (txt_Level != null)
+        {
+            txt_Level.text =
+                "Lv. " + playerStats.level;
+        }
+    }
+
+    #region Gold
+
+    private void SubscribeGold()
+    {
+        if (isGoldSubscribed)
+            return;
+
+        if (GoldManager.Instance == null)
+            return;
+
+        GoldManager.Instance.OnGoldChanged +=
+            UpdateGoldUI;
+
+        isGoldSubscribed = true;
+
+        UpdateGoldUI(
+            GoldManager.Instance.CurrentGold);
     }
 
     private void UnsubscribeGold()
     {
-        if (!_isGoldSubscribed || GoldManager.Instance == null)
+        if (!isGoldSubscribed)
             return;
 
-        GoldManager.Instance.OnGoldChanged -= UpdateGoldUI;
-        _isGoldSubscribed = false;
+        if (GoldManager.Instance != null)
+        {
+            GoldManager.Instance.OnGoldChanged -=
+                UpdateGoldUI;
+        }
+
+        isGoldSubscribed = false;
     }
+
+    private void UpdateGoldUI(int gold)
+    {
+        if (txt_Gold != null)
+        {
+            txt_Gold.text =
+                gold.ToString();
+        }
+    }
+
     #endregion
 
     #region Tutorial
 
     private void ShowTutorialPanel(object data)
     {
-        if (data is not TutorialType tutorialType)
+        if (!(data is TutorialType tutorialType))
         {
-            Debug.LogWarning("Invalid data type for ShowTutorialPanel. Expected TutorialType.");
+            Debug.LogWarning(
+                "ShowTutorialPanel requires TutorialType.");
+
             return;
         }
 
-        if (tutorialPanel == null) return;
-
-        tutorialPanel.SetActive(true);
-
-        foreach (var panel in tutorialPanels)
+        if (tutorialPanel != null)
         {
-            if (panel.panel != null)
+            tutorialPanel.SetActive(true);
+        }
+
+        if (tutorialPanels == null)
+            return;
+
+        foreach (TutorialPanel item in tutorialPanels)
+        {
+            if (item == null ||
+                item.panel == null)
             {
-                panel.panel.SetActive(panel.tutorialType == tutorialType);
+                continue;
             }
+
+            item.panel.SetActive(
+                item.tutorialType == tutorialType);
         }
     }
 
     private void HideTutorialPanel(object data)
     {
-        if (tutorialPanel == null) return;
-
-        tutorialPanel.SetActive(false);
-
-        foreach (var panel in tutorialPanels)
+        if (tutorialPanel != null)
         {
-            if (panel.panel != null)
+            tutorialPanel.SetActive(false);
+        }
+
+        if (tutorialPanels == null)
+            return;
+
+        foreach (TutorialPanel item in tutorialPanels)
+        {
+            if (item != null &&
+                item.panel != null)
             {
-                panel.panel.SetActive(false);
+                item.panel.SetActive(false);
             }
         }
     }
+
     #endregion
 
-    #region PickUpItemPanel
-    private void HidePickUpItemPanel(object obj)
+    #region Pick Up Item
+
+    private void ShowPickUpItemPanel(object data)
     {
-        if (pickUpItemPanel == null) return;
-
-        pickUpItemPanel.SetActive(false);
-    }
-
-    private void ShowPickUpItemPanel(object obj)
-    {
-        if (pickUpItemPanel == null) return;
-
-        if (obj is not string interactionName)
+        if (!(data is string interactionName))
         {
-            Debug.LogWarning("Invalid data type for ShowPickUpItemPanel. Expected string.");
+            Debug.LogWarning(
+                "ShowPickUpItemPanel requires string.");
+
             return;
         }
 
-        text_Keyboard.text = InputManager.InputActions.Keyboard.Interact.GetBindingDisplayString();
-        text_Description.text = interactionName;
+        if (pickUpItemPanel == null)
+            return;
+
+        if (text_Keyboard != null)
+        {
+            text_Keyboard.text =
+                InputManager.InputActions.Keyboard
+                    .Interact
+                    .GetBindingDisplayString();
+        }
+
+        if (text_Description != null)
+        {
+            text_Description.text =
+                interactionName;
+        }
+
         pickUpItemPanel.SetActive(true);
     }
 
+    private void HidePickUpItemPanel(object data)
+    {
+        if (pickUpItemPanel != null)
+        {
+            pickUpItemPanel.SetActive(false);
+        }
+    }
+
     #endregion
+
+    private Transform FindDeepChild(string childName)
+    {
+        Transform[] children =
+            GetComponentsInChildren<Transform>(true);
+
+        foreach (Transform child in children)
+        {
+            if (child.name == childName)
+                return child;
+        }
+
+        return null;
+    }
 }

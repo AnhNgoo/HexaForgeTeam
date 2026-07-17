@@ -287,24 +287,17 @@ DebugCurrent();
     #region Debug
 
     private void DebugCurrent()
+{
+    if (!debugMode) return;
+
+    if (CurrentInteract == null)
     {
-        if (!debugMode)
-        {
-            return;
-        }
-
-        if (CurrentInteract == null)
-        {
-            Debug.Log(
-                "[InteractV2] Empty");
-
-            return;
-        }
-
-        Debug.Log(
-            "[InteractV2] Current : " +
-            CurrentInteract.InteractText);
+        Debug.Log("<color=#888888>[InteractV2] Interaction list is empty.</color>");
+        return;
     }
+
+    Debug.Log($"<color=#AAAAAA>[InteractV2] Current target focus: {CurrentInteract.InteractText}</color>");
+}
 
     #endregion
 

@@ -27,8 +27,8 @@ public class InteractV2 : MonoBehaviour
 private bool openPanel;
 
 [SerializeField]
-private LobbyPanelType panelType;
-    
+private MenuType menuType =
+    MenuType.None;
 
     #region Property
 
@@ -126,21 +126,39 @@ private LobbyPanelType panelType;
     #region Execute
 
     public virtual void Execute()
-    {
-        if (!playerInside)
-        {
-            return;
-        }
-        if (openPanel)
 {
-    LobbyPanelManager.Instance.OpenPanel(panelType);
-    return;
-}
-
-        SendMessage(
-            "OnInteract",
-            SendMessageOptions.DontRequireReceiver);
+    if (!playerInside)
+    {
+        return;
     }
+
+    NPCDialogue dialogue =
+        GetComponent<NPCDialogue>();
+
+    if (dialogue != null)
+    {
+        if (DialogueUI.Instance != null)
+        {
+            DialogueUI.Instance.Show(
+                dialogue.GetDialogue());
+        }
+
+        return;
+    }
+
+    if (openPanel)
+    {
+        UIManager.Instance
+        .ChangeMenu(menuType);
+
+        return;
+    }
+
+    SendMessage(
+        "OnInteract",
+        SendMessageOptions
+            .DontRequireReceiver);
+}
 
     #endregion
 

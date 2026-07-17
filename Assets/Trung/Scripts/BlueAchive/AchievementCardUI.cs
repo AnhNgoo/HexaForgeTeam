@@ -17,6 +17,8 @@ public class AchievementCardUI :
 
     [SerializeField]
     private TMP_Text RewardText;
+    [SerializeField]
+private Slider progressSlider;
 
     [SerializeField]
     private Button ClaimButton;
@@ -53,6 +55,12 @@ public class AchievementCardUI :
                 transform.Find("RewardText")
                 ?.GetComponent<TMP_Text>();
         }
+        if (progressSlider == null)
+{
+    progressSlider =
+        transform.Find("Progress")
+        ?.GetComponent<Slider>();
+}
 
         if (ClaimButton == null)
         {
@@ -111,6 +119,17 @@ public class AchievementCardUI :
                 $" / " +
                 $"{achievementData.targetProgress}";
         }
+        if (progressSlider != null)
+{
+    progressSlider.maxValue =
+        achievementData.targetProgress;
+
+    progressSlider.value =
+        Mathf.Clamp(
+            achievementData.currentProgress,
+            0,
+            achievementData.targetProgress);
+}
 
         if (RewardText != null)
         {
