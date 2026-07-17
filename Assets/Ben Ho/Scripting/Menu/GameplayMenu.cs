@@ -220,23 +220,7 @@ public class GameplayMenu : MenuBase
 
     private void HandleShortcutInput()
     {
-        if (Keyboard.current == null ||
-            UIManager.Instance == null)
-        {
-            return;
-        }
-
-        if (UIManager.Instance.CurrentMenuType !=
-            MenuType.GameplayMenu)
-        {
-            return;
-        }
-
-        if (Keyboard.current.iKey.wasPressedThisFrame)
-        {
-            UIManager.Instance.ChangeMenu(
-                MenuType.GameSystemMenu);
-        }
+        // GameSystemInputRouter handles M/I/P/ESC.
     }
 
     public void OpenInventoryMenu()
