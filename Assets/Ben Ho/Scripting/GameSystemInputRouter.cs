@@ -5,32 +5,69 @@ public class GameSystemInputRouter : MonoBehaviour
 {
     private void Update()
     {
-        if (Keyboard.current == null || UIManager.Instance == null)
+        if (Keyboard.current == null ||
+            UIManager.Instance == null)
+        {
             return;
-
-        MenuType current = UIManager.Instance.CurrentMenuType;
-
-        if (current == MenuType.GameSystemMenu)
-            return;
-
-        if (current != MenuType.GameplayMenu && current != MenuType.None)
-            return;
+        }
 
         if (Keyboard.current.mKey.wasPressedThisFrame)
-            OpenGameSystem(GameSystemTab.Map);
+        {
+            ToggleGameSystem(GameSystemTab.Map);
+            return;
+        }
 
         if (Keyboard.current.iKey.wasPressedThisFrame)
-            OpenGameSystem(GameSystemTab.Inventory);
+        {
+            ToggleGameSystem(GameSystemTab.Inventory);
+            return;
+        }
 
         if (Keyboard.current.pKey.wasPressedThisFrame)
-            OpenGameSystem(GameSystemTab.PlayerState);
+        {
+            ToggleGameSystem(GameSystemTab.PlayerState);
+            return;
+        }
 
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
-            OpenGameSystem(GameSystemTab.System);
+        {
+            ToggleGameSystem(GameSystemTab.System);
+            return;
+        }
     }
 
-    private void OpenGameSystem(GameSystemTab tab)
+    private void ToggleGameSystem(GameSystemTab tab)
     {
-        UIManager.Instance.OpenOverlayMenu(MenuType.GameSystemMenu, tab);
+        MenuType current =
+            UIManager.Instance.CurrentMenuType;
+
+        if (current != MenuType.GameplayMenu &&
+            current != MenuType.None &&
+            current != MenuType.GameSystemMenu)
+        {
+            return;
+        }
+
+        GameSystemMenu currentGameSystem =
+            UIManager.Instance.CurrentMenu as GameSystemMenu;
+
+        if (current == MenuType.GameSystemMenu &&
+            currentGameSystem != null &&
+            currentGameSystem.CurrentTab == tab)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+            return;
+        }
+
+        if (current == MenuType.GameSystemMenu &&
+            currentGameSystem != null)
+        {
+            currentGameSystem.SelectTab(tab);
+            return;
+        }
+
+        UIManager.Instance.OpenOverlayMenu(
+            MenuType.GameSystemMenu,
+            tab);
     }
 }

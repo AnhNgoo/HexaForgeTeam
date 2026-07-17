@@ -420,19 +420,45 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
+        if (!context.performed)
+            return;
+
+        if (!CanUseChangeWeaponInput())
+            return;
+
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
-        if (scrollY > 0f)
-        {
-            if (CharacterInput.IsChangingWeapon ||
-             EquipmentSystem.Instance.GetWeaponCount() == 0 ||
-             characterCombat.IsAttacking ||
-             characterSkill.IsUsingSkill
-             ) return;
+        if (scrollY <= 0f)
+            return;
 
-            StateController.ChangeState(new ChangeWeaponState(this));
-        }
+        if (CharacterInput == null || CharacterInput.IsChangingWeapon)
+            return;
+
+        if (EquipmentSystem.Instance == null)
+            return;
+
+        if (EquipmentSystem.Instance.GetWeaponCount() == 0)
+            return;
+
+        if (characterCombat != null && characterCombat.IsAttacking)
+            return;
+
+        if (characterSkill != null && characterSkill.IsUsingSkill)
+            return;
+
+        StateController.ChangeState(new ChangeWeaponState(this));
+    }
+
+    private bool CanUseChangeWeaponInput()
+    {
+        if (UIManager.Instance == null)
+            return true;
+
+        MenuType currentMenu = UIManager.Instance.CurrentMenuType;
+
+        return currentMenu == MenuType.None ||
+            currentMenu == MenuType.GameplayMenu;
     }
     #endregion
 

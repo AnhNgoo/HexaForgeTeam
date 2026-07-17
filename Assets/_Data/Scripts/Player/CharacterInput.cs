@@ -50,14 +50,16 @@ public class CharacterInput : MonoBehaviour
             Debug.LogWarning("InputActions is null in CharacterInput");
             return;
         }
-        bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
-        if (!isUIGameplay) // Bỏ qua các input khi không phải trong UI gameplay 
+
+        if (!CanReadMovementInput())
         {
+            ClearInput();
             return;
         }
 
         moveInput = inputActions.Keyboard.Move.ReadValue<Vector2>();
         walk = inputActions.Keyboard.Walk.IsPressed();
+
         if (inputActions.Keyboard.Sprint.triggered && !sprint)
         {
             sprint = true;
@@ -75,5 +77,30 @@ public class CharacterInput : MonoBehaviour
         lockTarget = inputActions.Keyboard.LockTarget.triggered;
         skill_1 = inputActions.Keyboard.Skill_1.triggered;
         skill_2 = inputActions.Keyboard.Skill_2.triggered;
+    }
+
+    private bool CanReadMovementInput()
+    {
+        if (UIManager.Instance == null)
+            return true;
+
+        MenuType currentMenu = UIManager.Instance.CurrentMenuType;
+
+        return currentMenu == MenuType.None ||
+            currentMenu == MenuType.GameplayMenu;
+    }
+
+    private void ClearInput()
+    {
+        moveInput = Vector2.zero;
+        walk = false;
+        dodge = false;
+        jump = false;
+        wallJump = false;
+        attack = false;
+        healthRecovery = false;
+        lockTarget = false;
+        skill_1 = false;
+        skill_2 = false;
     }
 }

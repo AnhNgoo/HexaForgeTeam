@@ -50,6 +50,7 @@ public class GameSystemMenu : MenuBase
     [SerializeField] private Color selectedIconColor = new Color(1f, 0.78f, 0.25f, 1f);
 
     private GameSystemTab currentTab;
+    public GameSystemTab CurrentTab => currentTab;
     private UnityAction<bool>[] tabActions;
     private bool eventsAdded;
     private int openedFrame;
@@ -89,43 +90,6 @@ public class GameSystemMenu : MenuBase
 
     private void Update()
     {
-        if (Time.frameCount == openedFrame)
-            return;
-
-        if (Keyboard.current == null)
-            return;
-
-        if (Keyboard.current.mKey.wasPressedThisFrame)
-        {
-            SelectTab(GameSystemTab.Map);
-            return;
-        }
-
-        if (Keyboard.current.iKey.wasPressedThisFrame)
-        {
-            SelectTab(GameSystemTab.Inventory);
-            return;
-        }
-
-        if (Keyboard.current.pKey.wasPressedThisFrame)
-        {
-            SelectTab(GameSystemTab.PlayerState);
-            return;
-        }
-
-        if (Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            if (currentTab == GameSystemTab.System)
-            {
-                CloseToGameplay();
-            }
-            else
-            {
-                SelectTab(GameSystemTab.System);
-            }
-
-            return;
-        }
     }
 
     public void SelectTab(GameSystemTab tab)
