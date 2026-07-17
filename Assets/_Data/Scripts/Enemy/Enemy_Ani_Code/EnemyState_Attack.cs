@@ -53,6 +53,11 @@ public class EnemyState_Attack : EnemyState
             return;
         }
 
+        if (_enemyBase.MinibossBehaviour != null && _enemyBase.MinibossBehaviour.UpdateSpecialMovement(playerTransform))
+        {
+            return;
+        }
+
         //Luôn xoay về hướng người chơi khi tấn công để tạo hiệu ứng tương tác và tăng tính chân thực của Enemy, có thể điều chỉnh lại logic quay nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể đứng yên khi tấn công mà không quay về hướng người chơi)
         Vector3 lookDirection = playerTransform.position - _enemyBase.MyTransform.position;
 
@@ -108,8 +113,8 @@ public class EnemyState_Attack : EnemyState
 
             _isWaitingCooldown = false;
             _enemyBase.Locomotion.StopMoving();
-            _enemyBase.Combat.PerformAttack(chosenAttack); //Thực hiện đòn tấn công đã chọn, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có hiệu ứng đặc biệt khi thực hiện đòn tấn công)
-            _attackEndTime = Time.time + chosenAttack.attackDuration; //Cập nhật thời gian kết thúc của đòn tấn công hiện tại dựa trên thời gian của đòn tấn công đã chọn, có thể điều chỉnh lại logic này nếu muốn tạo sự khác biệt giữa các loại Enemy (ví dụ: một số loại Enemy có thể có thời gian tấn công dài hơn hoặc ngắn hơn)
+            float effectiveDuration = _enemyBase.Combat.PerformAttack(chosenAttack); //Thực hiện đòn tấn công đã chọn và nhận về thời gian hiệu lực của đòn tấn công, giúp kiểm soát thời gian giữa các đòn tấn công và tránh lỗi spam tấn công liên tục
+            _attackEndTime = Time.time + effectiveDuration; //Cập nhật thời gian kết thúc của đòn tấn công hiện tại dựa trên thời gian hiệu lực của đòn tấn công, giúp kiểm soát thời gian giữa các đòn tấn công và tránh lỗi spam tấn công liên tục
         }
         else
         {

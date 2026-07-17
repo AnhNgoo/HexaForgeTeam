@@ -12,8 +12,11 @@ public class SafeZoneData : ScriptableObject
 [Serializable]
 public class SafeZoneStat
 {
+    [Tooltip("Thời gian delay trước khi vòng bo bắt đầu thu nhỏ")]
     public float timeDelay;
+    [Tooltip("Thời gian thu nhỏ vòng bo")]
     public float shrinkDuration;
+    [Tooltip("Bán kính của vòng bo")]
     public float radius;
 }
 

@@ -9,6 +9,7 @@ public class EnemyHitbox : MonoBehaviour
     private AttackDataSO _attackDataSnapshot;
     public event Action<Collider> OnHitTarget;
     private readonly HashSet<ITakeDamage> _damagedTargets = new HashSet<ITakeDamage>();
+    private float _runtimeDamageMultiplier = 1f;
     [SerializeField] private bool _dealDamageOnHit = true; // Thêm biến để kiểm soát việc
 
     private void Awake()
@@ -17,15 +18,23 @@ public class EnemyHitbox : MonoBehaviour
         DisableHitBox(); // Đảm bảo hitbox được tắt khi khởi tạo
 
     }
-    public void Initialize(EnemyBase enemyBase, AttackDataSO attackData = null)
+    public void Initialize(EnemyBase enemyBase, AttackDataSO attackData = null, float runtimeDamageMultiplier = 1f)
     {
         _enemyBase = enemyBase;
         _attackDataSnapshot = attackData;
+        _runtimeDamageMultiplier = runtimeDamageMultiplier;
     }
 
     public void EnableHitBox()
     {
         _damagedTargets.Clear();
+        // Hitbox gắn sẵn trên cơ thể không có AttackData snapshot.
+        // Khi animation mở hitbox, chụp multiplier của attack hiện tại.
+        if (_attackDataSnapshot == null && _enemyBase != null)
+        {
+            _runtimeDamageMultiplier = _enemyBase.Combat.CurrentAttackDamageMultiplier;
+        }
+
         if (_hitboxCollider != null) _hitboxCollider.enabled = true;
     }
 
@@ -55,7 +64,7 @@ public class EnemyHitbox : MonoBehaviour
             AttackDataSO attackData = _attackDataSnapshot ?? _enemyBase.Combat.CurrentAttackData;
 
             float multiplier = attackData != null ? attackData.damageMultiplier : 1f;
-            float finalDamage = _enemyBase.Data.damage * multiplier;
+            float finalDamage = _enemyBase.Data.damage * multiplier * _runtimeDamageMultiplier;
 
             _enemyBase.ExtendLeash(_enemyBase.Data.maxLeashDistance + 5f);
 

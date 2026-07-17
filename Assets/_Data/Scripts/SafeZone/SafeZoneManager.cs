@@ -3,6 +3,9 @@ using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SafeZoneManager : Singleton<SafeZoneManager>
 {
@@ -17,7 +20,8 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
     public int CurrentPhaseIndex { get; private set; }
     private Transform currentTargetCenterPoint;
-    public event Action<int, Vector3> OnSafeZonePhaseCompleted;
+    [ReadOnly, SerializeField] private List<Transform> usedTargetCenterPoints = new();
+    public event Action<int, Transform> OnSafeZonePhaseCompleted;
 
     public void Start()
     {
@@ -46,7 +50,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         }
 
         IsSafeZoneCompleted = true;
-        OnSafeZonePhaseCompleted?.Invoke(CurrentPhaseIndex, safeZone.CurrentCenterPoint);
+        OnSafeZonePhaseCompleted?.Invoke(CurrentPhaseIndex, currentTargetCenterPoint);
     }
 
     [Button("Step 1: Create Safe Zone")]
@@ -75,7 +79,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     }
 
     [Button("Step 2: Start Shrink Safe Zone")]
-    public async void ShrinkSafeZone()
+    public void ShrinkSafeZone()
     {
         StartSafeZoneFlow().Forget();
     }
@@ -134,11 +138,13 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     }
     private void GetAllTargetCenterPoint()
     {
-        // Lấy tất cả các điểm trung tâm của vòng bo để làm điểm spawn
-        GameObject[] centerPointObjects = GameObject.FindGameObjectsWithTag("TargetCenterPoint");
+        GameObject[] centerPointObjects =
+            GameObject.FindGameObjectsWithTag("TargetCenterPoint");
+
         foreach (GameObject obj in centerPointObjects)
         {
-            targetCenterPoints.Add(obj.transform);
+            if (!usedTargetCenterPoints.Contains(obj.transform))
+                targetCenterPoints.Add(obj.transform);
         }
     }
 
@@ -149,7 +155,9 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
         int randomIndex = UnityEngine.Random.Range(0, targetCenterPoints.Count);
         Transform randomCenterPoint = targetCenterPoints[randomIndex];
-        targetCenterPoints.RemoveAt(randomIndex); // Loại bỏ điểm đã sử dụng để tránh trùng lặp
+        targetCenterPoints.RemoveAt(randomIndex);
+        usedTargetCenterPoints.Add(randomCenterPoint);
+
         return randomCenterPoint;
     }
 
@@ -163,4 +171,54 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         }
         return null;
     }
+
+#if UNITY_EDITOR
+    #region Gizmos
+    private void OnDrawGizmosSelected()
+    {
+        if (safeZoneData == null || safeZoneData.safeZoneStats == null)
+            return;
+
+        DrawStartZoneGizmo();
+
+        GameObject[] targetPoints = GameObject.FindGameObjectsWithTag("TargetCenterPoint");
+
+        foreach (GameObject targetPoint in targetPoints)
+        {
+            DrawPhaseGizmos(targetPoint.transform.position);
+        }
+    }
+
+    private void DrawStartZoneGizmo()
+    {
+        GameObject startPoint = GameObject.FindGameObjectWithTag("StartCenterPoint");
+
+        if (startPoint == null)
+            return;
+
+        Handles.color = Color.white;
+        Handles.DrawWireDisc(startPoint.transform.position, Vector3.up, safeZoneData.startRadius);
+
+        Handles.Label(startPoint.transform.position + Vector3.forward * safeZoneData.startRadius, $"Start | Radius: {safeZoneData.startRadius:0.#}");
+    }
+
+    private void DrawPhaseGizmos(Vector3 center)
+    {
+        int phaseCount = safeZoneData.safeZoneStats.Count;
+
+        for (int i = 0; i < phaseCount; i++)
+        {
+            SafeZoneStat stat = safeZoneData.safeZoneStats[i];
+
+            float colorPosition = phaseCount <= 1 ? 0f : i / (phaseCount - 1f);
+
+            Handles.color = Color.Lerp(Color.yellow, Color.red, colorPosition);
+
+            Handles.DrawWireDisc(center, Vector3.up, stat.radius);
+
+            Handles.Label(center + Vector3.forward * stat.radius, $"Shrink Turn {i + 1} | Radius: {stat.radius:0.#}");
+        }
+    }
+    #endregion
+#endif
 }

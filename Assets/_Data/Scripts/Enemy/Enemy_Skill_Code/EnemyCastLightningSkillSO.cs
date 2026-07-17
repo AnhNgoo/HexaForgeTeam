@@ -123,7 +123,7 @@ public class EnemyCastLightningSkillSO : EnemyAttackSkillSO
         }
 
         // Khởi tạo hitbox với thông tin từ context và kích hoạt nó.
-        hitbox.Initialize(context.Enemy, context.AttackData);
+        hitbox.Initialize(context.Enemy, context.AttackData, context.RuntimeDamageMultiplier);
         hitbox.EnableHitBox();
 
         await MoveLightningDownAsync(lightning, spawnPosition, landingPosition);

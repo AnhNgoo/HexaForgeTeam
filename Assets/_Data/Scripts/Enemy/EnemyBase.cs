@@ -280,10 +280,10 @@ public class EnemyBase : LoadComponents, IPoolable
     }
 
     #region Debug
-    [Button("Test: Đánh 1 đòn (Raw Dmg: 20, Poise Dmg: 30)", ButtonSizes.Large)]
+    [Button("Test: Đánh 1 đòn (Raw Dmg: 500, Poise Dmg: 30)", ButtonSizes.Large)]
     public void DebugTakeHit()
     {
-        _damageReceiver.TakeHit(20f, 30f, transform);
+        _damageReceiver.TakeHit(500f, 30f, transform);
     }
     #endregion
 }

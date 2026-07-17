@@ -40,4 +40,14 @@ public abstract class EnemyMinibossBehaviour : MonoBehaviour
         ResetBehaviour();
     }
 
+    public virtual bool UpdateSpecialMovement(Transform target)
+    {
+        return false;
+    }
+
+    public virtual float ModifyAttackAnimationSpeed(float speed) => speed;
+    public virtual float ModifyProjectileSpeed(float speed) => speed;
+    public virtual float ConsumeNextAttackDamageMultiplier() => 1f;
+    public virtual AttackDataSO ChooseForcedAttack(float distance) => null;
+    public virtual void OnAttackStarted(AttackDataSO attack) { }
 }
