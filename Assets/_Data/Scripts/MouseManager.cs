@@ -39,12 +39,6 @@ public class MouseManager : Singleton<MouseManager>
             RotateCamera();
     }
 
-    private bool IsGameSystemMenuOpen()
-    {
-        return UIManager.Instance != null &&
-            UIManager.Instance.CurrentMenuType == MenuType.GameSystemMenu;
-    }
-
 
     // Xoay cam theo chuột
     private void RotateCamera()
