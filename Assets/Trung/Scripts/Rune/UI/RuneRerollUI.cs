@@ -14,9 +14,9 @@ public class RuneRerollUI : MonoBehaviour
     [SerializeField] private Transform cardPreviewParent;
     [SerializeField] private RuneCardUI cardPrefabSample;
 
-    [Header("Affix Row Container (Nơi chứa các dòng để chọn)")]
+    [Header("Affix Row Container")]
     [SerializeField] private Transform affixRowsContainer;
-    [SerializeField] private Button affixRowButtonPrefab; // Prefab Nút bấm đại diện cho 1 dòng Affix
+    [SerializeField] private Button affixRowButtonPrefab;
 
     [Header("Action Buttons")]
     [SerializeField] private Button rerollActionButton;
@@ -26,17 +26,21 @@ public class RuneRerollUI : MonoBehaviour
     [SerializeField] private TMP_Text costText;
     [SerializeField] private TMP_Text statusNoticeText;
 
-    [Header("Cheat/Cost Settings")]
-    [SerializeField] private int baseRerollCost = 150; // Tẩy dòng tốn 150 mảnh mặc định
+    [Header("Item Config")]
+    [SerializeField] private string rerollItemID = "REROLL_SCROLL_01";
+    [SerializeField] private string rerollItemName = "Reroll Scroll";
 
-    [Header("Target Reroll Settings (Chức năng định hướng dòng)")]
-    [SerializeField] private Toggle useTargetRerollToggle;     // Checkbox dùng để bật/tắt chế độ chọn dòng (Giao diện Tiếng Anh: Target Reroll)
-    [SerializeField] private TMP_Dropdown statTargetDropdown;  // Bảng thả xuống chọn thuộc tính đích hướng
+    [Header("Cost Settings")]
+    [SerializeField] private int randomRerollShardCost = 150; 
+    [SerializeField] private int targetRerollShardCost = 300; 
 
-    // Bộ đệm lưu trữ dữ liệu tính năng
+    [Header("Target Reroll Settings")]
+    [SerializeField] private Toggle useTargetRerollToggle;
+    [SerializeField] private TMP_Dropdown statTargetDropdown;
+
     private RuneData targetRuneData;
-    private int selectedAffixIndex = -1; // Chỉ số dòng đang chọn để tẩy (-1 là chưa chọn)
-    private bool isAnimating = false;    // Trạng thái đang chạy hiệu ứng gacha cuộn chữ
+    private int selectedAffixIndex = -1;
+    private bool isAnimating = false;
 
     private void Awake()
     {
@@ -48,40 +52,36 @@ public class RuneRerollUI : MonoBehaviour
     {
         if (rerollPanelRoot != null) rerollPanelRoot.SetActive(false);
 
-        // Đăng ký sự kiện nút bấm
         if (rerollActionButton != null) rerollActionButton.onClick.AddListener(OnRerollActionButtonPressed);
         if (closePanelButton != null) closePanelButton.onClick.AddListener(ClosePanel);
 
-        // Đăng ký sự kiện thay đổi Dropdown/Toggle
         if (useTargetRerollToggle != null) useTargetRerollToggle.onValueChanged.AddListener((x) => UpdateCostVisual());
         if (statTargetDropdown != null) statTargetDropdown.onValueChanged.AddListener((x) => UpdateCostVisual());
 
         PopulateDropdownStats();
     }
 
-    /// <summary>
-    /// Hàm công khai dùng để gọi lật mở Panel Tẩy dòng từ Card bên ngoài sảnh
-    /// </summary>
     public void OpenPanel(RuneData rune)
     {
         if (rune == null) return;
-        if (isAnimating) return; // Đang quay số cấm mở đè
+        if (isAnimating) return;
 
         targetRuneData = rune;
-        selectedAffixIndex = -1; // Reset dòng tích chọn
+        selectedAffixIndex = -1;
+
+        if (useTargetRerollToggle != null)
+        {
+            useTargetRerollToggle.isOn = false;
+        }
 
         if (rerollPanelRoot != null) rerollPanelRoot.SetActive(true);
 
-        // Tạo bản xem trước Card ở góc Panel
         ClearContainer(cardPreviewParent);
         if (cardPrefabSample != null)
         {
             RuneCardUI previewCard = Instantiate(cardPrefabSample, cardPreviewParent);
-            
-            // FIX 1: Đổi tham số thứ 2 thành 'false' để bài ngửa mặt lên ngay lập tức
             previewCard.Setup(rune, false); 
 
-            // FIX 2: Ép RectTransform của lá bài nằm khít chuẩn 100% vào chính giữa tâm ô Preview
             RectTransform rect = previewCard.GetComponent<RectTransform>();
             if (rect != null)
             {
@@ -91,13 +91,13 @@ public class RuneRerollUI : MonoBehaviour
                 rect.anchoredPosition = Vector2.zero;
                 rect.localPosition = Vector3.zero;
             }
-            previewCard.transform.localScale = Vector3.one; // Trả lại kích thước scale gốc chuẩn
+            previewCard.transform.localScale = Vector3.one;
 
             if (previewCard.GetComponent<CanvasGroup>() != null) 
                 previewCard.GetComponent<CanvasGroup>().blocksRaycasts = false;
         }
 
-        if (statusNoticeText != null) statusNoticeText.text = "Select an Affix line from below to reroll.";
+        if (statusNoticeText != null) statusNoticeText.SetTextSafe("Select an Affix line from below to reroll.");
 
         RefreshAffixRows();
         UpdateCostVisual();
@@ -105,14 +105,13 @@ public class RuneRerollUI : MonoBehaviour
 
     public void ClosePanel()
     {
-        if (isAnimating) return; // Đang chạy hiệu ứng cuộn chữ chặn không cho tắt UI ngang xương
+        if (isAnimating) return;
 
         if (rerollPanelRoot != null) rerollPanelRoot.SetActive(false);
         targetRuneData = null;
         selectedAffixIndex = -1;
 
-        // Làm tươi lại giao diện hòm đồ chính để cập nhật chỉ số mới
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
     }
 
     private void RefreshAffixRows()
@@ -122,17 +121,15 @@ public class RuneRerollUI : MonoBehaviour
 
         for (int i = 0; i < targetRuneData.affixes.Count; i++)
         {
-            int index = i; // Khóa chỉ số cho delegate button tránh lỗi loop index
+            int index = i;
             RuneAffixData affix = targetRuneData.affixes[i];
 
             Button rowBtn = Instantiate(affixRowButtonPrefab, affixRowsContainer);
             TMP_Text btnText = rowBtn.GetComponentInChildren<TMP_Text>();
 
-            // Định dạng text hiển thị dòng thuộc tính (Ví dụ: [ATK] +45)
             string isPercent = IsPercentStat(affix.statType) ? "%" : "";
-            if (btnText != null) btnText.text = $"{GetStatName(affix.statType)}: +{affix.value}{isPercent}";
+            if (btnText != null) btnText.SetTextSafe($"{GetStatName(affix.statType)}: +{affix.value}{isPercent}");
 
-            // Đổi màu viền/nền nếu dòng này đang được click chọn để chuẩn bị tẩy
             Image rowImg = rowBtn.GetComponent<Image>();
             if (rowImg != null) rowImg.color = (selectedAffixIndex == index) ? Color.yellow : Color.white;
 
@@ -140,7 +137,7 @@ public class RuneRerollUI : MonoBehaviour
             {
                 if (isAnimating) return;
                 selectedAffixIndex = index;
-                RefreshAffixRows(); // Vẽ lại để đổi màu highlight vàng
+                RefreshAffixRows();
                 UpdateCostVisual();
             });
         }
@@ -149,57 +146,86 @@ public class RuneRerollUI : MonoBehaviour
     private void UpdateCostVisual()
     {
         bool isTargetMode = useTargetRerollToggle != null && useTargetRerollToggle.isOn;
-        // Chế độ Target Reroll định hướng dòng chuẩn tốn gấp 3 lần chi phí cày cuốc
-        int currentCost = isTargetMode ? baseRerollCost * 3 : baseRerollCost;
 
         if (costText != null)
         {
             if (selectedAffixIndex == -1)
             {
-                costText.text = "Cost: -- Shards"; // SỬA CHỮ GEMS THÀNH SHARDS
+                costText.SetTextSafe("Cost: --");
                 if (rerollActionButton != null) rerollActionButton.interactable = false;
             }
             else
             {
-                costText.text = $"Cost: <color=#FFD700>{currentCost} Shards</color>"; // SỬA CHỮ GEMS THÀNH SHARDS
+                if (isTargetMode)
+                {
+                    costText.SetTextSafe($"Cost: <color=#FFD700>1 {rerollItemName}</color> + <color=#CC66FF>{targetRerollShardCost} Shards</color>");
+                }
+                else
+                {
+                    costText.SetTextSafe($"Cost: <color=#CC66FF>{randomRerollShardCost} Shards</color>");
+                }
+
                 if (rerollActionButton != null) rerollActionButton.interactable = true;
             }
         }
 
-        // Ẩn/Hiện bảng thả xuống chọn thuộc tính tương ứng theo trạng thái checkbox
         if (statTargetDropdown != null) statTargetDropdown.gameObject.SetActive(isTargetMode);
     }
 
-    /// <summary>
-    /// Sự kiện cốt lõi xử lý khi người chơi nhấn nút REROLL hành động
-    /// </summary>
     private void OnRerollActionButtonPressed()
     {
         if (targetRuneData == null || selectedAffixIndex == -1 || isAnimating) return;
 
         bool isTargetMode = useTargetRerollToggle != null && useTargetRerollToggle.isOn;
-        int totalCost = isTargetMode ? baseRerollCost * 3 : baseRerollCost;
 
-        // =========================================================================
-        // SỬA ĐỔI TIỀN TỆ: KIỂM TRA SỐ DƯ VÀ TRỪ RUNE SHARDS THAY VÌ GEM
-        // =========================================================================
-        if (RuneShardManager.Instance == null || !RuneShardManager.Instance.SpendShards(totalCost))
+        if (isTargetMode)
         {
-            if (LobbyNotifyManager.Instance != null)
+            if (InventoryItemManager.Instance == null || InventoryItemManager.Instance.GetItemQuantity(rerollItemID) < 1)
             {
-                LobbyNotifyManager.Instance.ShowNotify("Not enough Rune Shards to reroll affixes!", Color.red);
+                if (LobbyNotifyManager.Instance != null)
+                {
+                    LobbyNotifyManager.Instance.ShowNotify($"Not enough {rerollItemName} to reroll affixes!", Color.red);
+                }
+                return;
             }
-            return; // Khóa chặn, không cho chạy vòng lặp xáo chữ bên dưới
+
+            if (RuneShardManager.Instance == null || RuneShardManager.Instance.GetCurrentShards() < targetRerollShardCost)
+            {
+                if (LobbyNotifyManager.Instance != null)
+                {
+                    LobbyNotifyManager.Instance.ShowNotify("Not enough Rune Shards!", Color.red);
+                }
+                return;
+            }
+
+            if (!InventoryItemManager.Instance.SpendItem(rerollItemID, 1))
+            {
+                return;
+            }
+
+            if (!RuneShardManager.Instance.SpendShards(targetRerollShardCost))
+            {
+                return;
+            }
+        }
+        else
+        {
+            if (RuneShardManager.Instance == null || !RuneShardManager.Instance.SpendShards(randomRerollShardCost))
+            {
+                if (LobbyNotifyManager.Instance != null)
+                {
+                    LobbyNotifyManager.Instance.ShowNotify("Not enough Rune Shards to random roll!", Color.red);
+                }
+                return;
+            }
         }
 
-        // Chốt dòng thuộc tính đích nếu bật chế độ định hướng định hình
         RuneStatType finalTargetStat = RuneStatType.HP;
         if (isTargetMode && statTargetDropdown != null)
         {
             finalTargetStat = (RuneStatType)statTargetDropdown.value;
         }
 
-        // Khởi chạy Coroutine hiệu ứng xáo chữ nhấp nháy đồ họa tăng tính hồi hộp
         StartCoroutine(RerollGachaRoutine(isTargetMode, finalTargetStat));
     }
 
@@ -209,60 +235,49 @@ public class RuneRerollUI : MonoBehaviour
         if (rerollActionButton != null) rerollActionButton.interactable = false;
         if (closePanelButton != null) closePanelButton.interactable = false;
 
-        // Lấy tham chiếu trực tiếp text dòng đang được đập đi xây lại
         Transform selectedRow = affixRowsContainer.GetChild(selectedAffixIndex);
         TMP_Text btnText = selectedRow.GetComponentInChildren<TMP_Text>();
 
-        float duration = 1.8f; // Chạy hiệu ứng cuộn chữ trong 1.8 giây
+        float duration = 1.8f;
         float elapsed = 0f;
         float delayTick = 0.06f;
 
         while (elapsed < duration)
         {
             elapsed += delayTick;
-            // Lấy ngẫu nhiên thuộc tính từ Pool để nhấp nháy cuộn chữ liên tục
             RuneStatType randomStat = GetRandomStatPool();
             if (btnText != null)
             {
                 string ModePrefix = isTargetMode ? "LOCKING" : "ROLLING";
-                btnText.text = $"<color=#FFD700>{ModePrefix} → </color>{GetStatName(randomStat)}";
+                btnText.SetTextSafe($"<color=#FFD700>{ModePrefix} → </color>{GetStatName(randomStat)}");
             }
             yield return new WaitForSeconds(delayTick);
         }
 
-        // === THỰC HIỆN ĐỔI CHỈ SỐ THỰC TẾ TRONG LOGIC DỮ LIỆU ===
         RuneAffixData activeAffix = targetRuneData.affixes[selectedAffixIndex];
         
         if (isTargetMode)
         {
-            // Chế độ Target Mode: Ép ra chính xác loại chỉ số mà người chơi chọn trên Dropdown
             activeAffix.statType = targetStat;
         }
         else
         {
-            // Chế độ Thường: Xúc xắc ngẫu nhiên thuộc tính mới
             activeAffix.statType = GetRandomStatPool();
         }
 
-        // Tính toán lại giá trị thuộc tính mới ngẫu nhiên dựa trên phẩm chất độ hiếm của ngọc
         activeAffix.value = GenerateNewValueByRarity(targetRuneData.runeRarity, activeAffix.statType);
 
-        // Lưu dữ liệu ngọc cổ tự vào hệ thống file cục bộ và đánh dấu dirty cloud
         if (RuneInventoryManager.Instance != null)
         {
-            RuneInventoryManager.Instance.AddRune(null); // Kích hoạt lệnh gián tiếp Save/Refresh của InventoryManager bằng cách truyền null (hoặc gọi hàm lưu nếu có)
+            RuneInventoryManager.Instance.SaveRunes();
         }
 
-        // Cập nhật lại giao diện xem trước Card sau khi chỉ số phụ đã biến đổi
         ClearContainer(cardPreviewParent);
         if (cardPrefabSample != null)
         {
             RuneCardUI previewCard = Instantiate(cardPrefabSample, cardPreviewParent);
-            
-            // FIX 1: Đổi tham số thứ 2 thành 'false' để bài tiếp tục ngửa mặt sau khi quay xong
             previewCard.Setup(targetRuneData, false);
 
-            // FIX 2: Ép RectTransform nằm khít chính giữa tâm ô Preview sau khi quay xong
             RectTransform rect = previewCard.GetComponent<RectTransform>();
             if (rect != null)
             {
@@ -272,13 +287,12 @@ public class RuneRerollUI : MonoBehaviour
                 rect.anchoredPosition = Vector2.zero;
                 rect.localPosition = Vector3.zero;
             }
-            previewCard.transform.localScale = Vector3.one; // Trả lại kích thước scale gốc chuẩn
+            previewCard.transform.localScale = Vector3.one;
         }
 
-        if (statusNoticeText != null) statusNoticeText.text = "<color=#00FFCC>Affix successfully transmuted!</color>";
+        if (statusNoticeText != null) statusNoticeText.SetTextSafe("<color=#00FFCC>Affix successfully transmuted!</color>");
         if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Reroll Complete!", Color.green);
 
-        // Ép đồng bộ lại chỉ số tổng sảnh sảnh lập tức đề phòng người chơi đang đeo viên này trên người
         if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
 
         isAnimating = false;
@@ -289,7 +303,6 @@ public class RuneRerollUI : MonoBehaviour
 
     private RuneStatType GetRandomStatPool()
     {
-        // Trả về ngẫu nhiên thuộc tính trừ dòng AllStats tối thượng
         return (RuneStatType)Random.Range(0, 14);
     }
 
@@ -308,7 +321,6 @@ public class RuneRerollUI : MonoBehaviour
         if (statTargetDropdown == null) return;
         statTargetDropdown.options.Clear();
 
-        // Nạp danh sách 14 thuộc tính cơ bản vào bảng thả xuống (Bỏ dòng AllStats đặc biệt)
         for (int i = 0; i < 14; i++)
         {
             statTargetDropdown.options.Add(new TMP_Dropdown.OptionData(GetStatName((RuneStatType)i)));

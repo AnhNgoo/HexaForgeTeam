@@ -333,7 +333,7 @@ if (LobbyNotifyManager.Instance != null)
         }
     }
 
-    private void SaveRunes()
+    public void SaveRunes()
     {
         SaveLoadManager.Instance.SaveData.runes = runes;
         SaveLoadManager.Instance.SaveGame();
@@ -347,4 +347,23 @@ if (LobbyNotifyManager.Instance != null)
             PlayFabDataManager.Instance.MarkDirty();
         }
     }
+    public void RemoveRunesRange(List<string> runeIDs)
+{
+    if (runeIDs == null || runeIDs.Count == 0) return;
+
+    bool anyRemoved = false;
+    foreach (string id in runeIDs)
+    {
+        RuneData r = runes.FirstOrDefault(x => x.runeID == id);
+        if (r != null)
+        {
+            runes.Remove(r);
+            anyRemoved = true;
+        }
+    }
+    if (anyRemoved)
+    {
+        SaveRunes();
+    }
+}
 }

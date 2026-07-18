@@ -304,9 +304,9 @@ public class RuneEquipUI : MonoBehaviour
             RuneInventoryManager.Instance.UnequipRune(rune, currentType);
             RefreshEquipUI();
 
-            if (InventoryUI.Instance != null)
+            if (RuneInventoryUI.Instance != null)
             {
-                InventoryUI.Instance.RefreshInventory();
+                RuneInventoryUI.Instance.RefreshInventory();
             }
         }
     }
@@ -433,7 +433,7 @@ public class RuneEquipUI : MonoBehaviour
     {
         viewingCharacter = CharacterType.Kael;
         RefreshEquipUI();
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
         
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
@@ -445,7 +445,7 @@ public class RuneEquipUI : MonoBehaviour
     {
         viewingCharacter = CharacterType.Lyra;
         RefreshEquipUI();
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
 
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
@@ -457,7 +457,7 @@ public class RuneEquipUI : MonoBehaviour
     {
         viewingCharacter = CharacterType.Ares;
         RefreshEquipUI();
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
 
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
@@ -469,7 +469,7 @@ public class RuneEquipUI : MonoBehaviour
     {
         viewingCharacter = CharacterType.Elara;
         RefreshEquipUI();
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
 
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {

@@ -216,8 +216,8 @@ private Sprite BlueRuneSprite;
 
         if (StatusText != null)
         {
-            StatusText.text =
-                $"Selected: {selected}";
+            StatusText.SetTextSafe(
+                $"Selected: {selected}");
         }
     }
 
@@ -251,7 +251,7 @@ private Sprite BlueRuneSprite;
     {
         if (StatusText != null)
         {
-            StatusText.text = "<color=#FF4C4C>CHARACTER LOCKED</color>";
+            StatusText.SetTextSafe("<color=#FF4C4C>CHARACTER LOCKED</color>");
         }
         return;
     }
@@ -266,7 +266,7 @@ private Sprite BlueRuneSprite;
 
     if (StatusText != null)
     {
-        StatusText.text = $"<color=#00FFCC>DEPLOYED: {type.ToString().ToUpper()}</color>";
+        StatusText.SetTextSafe($"<color=#00FFCC>DEPLOYED: {type.ToString().ToUpper()}</color>");
     }
 
     RefreshUI();
@@ -277,65 +277,65 @@ private Sprite BlueRuneSprite;
     {
         case CharacterType.Kael:
 
-            CharacterNameText.text = "KAEL";
-            RoleText.text = "Chiến Binh";
+            CharacterNameText.SetTextSafe("KAEL");
+            RoleText.SetTextSafe("Chiến Binh");
 
-            StatText.text =
+            StatText.SetTextSafe(
                 "HP: 1350\n" +
                 "ATK: 400\n" +
                 "DEF: 160\n" +
-                "SPD: 430";
+                "SPD: 430");
 
-            DescriptionText.text =
-                "Crit Rate cao, dựa vào Dodge";
+            DescriptionText.SetTextSafe(
+                "Crit Rate cao, dựa vào Dodge");
 
             break;
 
         case CharacterType.Lyra:
 
-            CharacterNameText.text = "LYRA";
-            RoleText.text = "Pháp Sư";
+            CharacterNameText.SetTextSafe("LYRA");
+            RoleText.SetTextSafe("Pháp Sư");
 
-            StatText.text =
+            StatText.SetTextSafe(
                 "HP: 1200\n" +
                 "MATK: 480\n" +
                 "DEF: 130\n" +
-                "SPD: 290";
+                "SPD: 290");
 
-            DescriptionText.text =
-                "Burst DMG lớn, cần giữ khoảng cách";
+            DescriptionText.SetTextSafe(
+                "Burst DMG lớn, cần giữ khoảng cách");
 
             break;
 
         case CharacterType.Ares:
 
-            CharacterNameText.text = "ARES";
-            RoleText.text = "Đỡ Đòn";
+            CharacterNameText.SetTextSafe("ARES");
+            RoleText.SetTextSafe("Đỡ Đòn");
 
-            StatText.text =
+            StatText.SetTextSafe(
                 "HP: 2800\n" +
                 "ATK: 220\n" +
                 "DEF: 550\n" +
-                "SPD: 220";
+                "SPD: 220");
 
-            DescriptionText.text =
-                "Tanky, Parry lấy năng lượng";
+            DescriptionText.SetTextSafe(
+                "Tanky, Parry lấy năng lượng");
 
             break;
 
         case CharacterType.Elara:
 
-            CharacterNameText.text = "ELARA";
-            RoleText.text = "Hybrid";
+            CharacterNameText.SetTextSafe("ELARA");
+            RoleText.SetTextSafe("Hybrid");
 
-            StatText.text =
+            StatText.SetTextSafe(
                 "HP: 2000\n" +
                 "MATK: 280\n" +
                 "DEF: 250\n" +
-                "SPD: 320";
+                "SPD: 320");
 
-            DescriptionText.text =
-                "Tự hồi máu, buff hỗ trợ";
+            DescriptionText.SetTextSafe(
+                "Tự hồi máu, buff hỗ trợ");
 
             break;
     }
@@ -386,11 +386,11 @@ private void OnBuildRuneClicked()
     {
         if (UIManager.Instance == null) return;
 
-        UIManager.Instance.ChangeMenu(MenuType.LobbyInventoryMenu);
+        UIManager.Instance.ChangeMenu(MenuType.LobbyRuneInventoryMenu);
 
-        if (InventoryUI.Instance != null)
+        if (RuneInventoryUI.Instance != null)
         {
-            InventoryUI.Instance.RefreshInventory();
+            RuneInventoryUI.Instance.RefreshInventory();
         }
     }
 }

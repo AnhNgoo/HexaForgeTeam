@@ -103,13 +103,12 @@ public class GemManager : MonoBehaviour
     #region UI
 
     private void UpdateGemUI()
+{
+    if (LobbyHUDTopBar.Instance != null)
     {
-        if (gemText != null)
-        {
-            gemText.text =
-                currentGem.ToString();
-        }
+        LobbyHUDTopBar.Instance.RefreshCurrencyUI();
     }
+}
     
 
     #endregion
