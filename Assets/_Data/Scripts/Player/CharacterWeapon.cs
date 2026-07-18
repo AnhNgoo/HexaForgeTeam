@@ -51,7 +51,6 @@ public class CharacterWeapon : MonoBehaviour
     {
         if (currentWeapon != null)
         {
-            Debug.Log($"Unequipping weapon khoa");
             ObjectPooling.Instance.ReturnToPool(currentWeapon.weapon, currentWeaponObject);
             currentWeapon = null;
         }

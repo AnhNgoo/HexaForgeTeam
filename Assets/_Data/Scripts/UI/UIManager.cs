@@ -57,8 +57,6 @@ public class UIManager : Singleton<UIManager>
         public MenuBase menuBase;
     }
 
-
-
     protected override void LoadComponent()
     {
         base.LoadComponent();

@@ -38,7 +38,8 @@ public abstract class InteractBase : LoadComponents
     {
         if (!playerInRange || !InteractionManager.Instance.IsCurrentInteraction(this)) return;
 
-        if (InputManager.InputActions.Keyboard.Interact.triggered)
+        if (InputManager.InputActions.Keyboard.Interact.triggered &&
+            UIManager.Instance.CurrentMenuType == MenuType.GameplayMenu)
         {
             InteractAction();
         }

@@ -34,8 +34,8 @@ public abstract class CharacterSkillBase : ICharacterSkill
         }
         cooldown.StartCooldown(skillData.cooldown);
         character.StateController.ChangeState(new CombatState(character));
-        ExecuteSkill().Forget();
+        ExecuteSkill();
     }
 
-    protected abstract UniTask ExecuteSkill();
+    protected abstract void ExecuteSkill();
 }

@@ -225,6 +225,15 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Discard"",
+                    ""type"": ""Button"",
+                    ""id"": ""c6b6d1f4-87ea-446c-a3b2-3fdecdbfc663"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -436,6 +445,17 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""action"": ""ChangeWeapon"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3e7136a-7435-4943-8dc5-99b13f403b01"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Discard"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -459,6 +479,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         m_Keyboard_Sprint = m_Keyboard.FindAction("Sprint", throwIfNotFound: true);
         m_Keyboard_Interact = m_Keyboard.FindAction("Interact", throwIfNotFound: true);
         m_Keyboard_ChangeWeapon = m_Keyboard.FindAction("ChangeWeapon", throwIfNotFound: true);
+        m_Keyboard_Discard = m_Keyboard.FindAction("Discard", throwIfNotFound: true);
     }
 
     ~@InputActions()
@@ -554,6 +575,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Keyboard_Sprint;
     private readonly InputAction m_Keyboard_Interact;
     private readonly InputAction m_Keyboard_ChangeWeapon;
+    private readonly InputAction m_Keyboard_Discard;
     /// <summary>
     /// Provides access to input actions defined in input action map "Keyboard".
     /// </summary>
@@ -626,6 +648,10 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @ChangeWeapon => m_Wrapper.m_Keyboard_ChangeWeapon;
         /// <summary>
+        /// Provides access to the underlying input action "Keyboard/Discard".
+        /// </summary>
+        public InputAction @Discard => m_Wrapper.m_Keyboard_Discard;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Keyboard; }
@@ -696,6 +722,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @ChangeWeapon.started += instance.OnChangeWeapon;
             @ChangeWeapon.performed += instance.OnChangeWeapon;
             @ChangeWeapon.canceled += instance.OnChangeWeapon;
+            @Discard.started += instance.OnDiscard;
+            @Discard.performed += instance.OnDiscard;
+            @Discard.canceled += instance.OnDiscard;
         }
 
         /// <summary>
@@ -752,6 +781,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @ChangeWeapon.started -= instance.OnChangeWeapon;
             @ChangeWeapon.performed -= instance.OnChangeWeapon;
             @ChangeWeapon.canceled -= instance.OnChangeWeapon;
+            @Discard.started -= instance.OnDiscard;
+            @Discard.performed -= instance.OnDiscard;
+            @Discard.canceled -= instance.OnDiscard;
         }
 
         /// <summary>
@@ -897,5 +929,12 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnChangeWeapon(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Discard" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDiscard(InputAction.CallbackContext context);
     }
 }
