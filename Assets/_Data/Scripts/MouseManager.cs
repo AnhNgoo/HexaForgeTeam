@@ -20,12 +20,6 @@ public class MouseManager : Singleton<MouseManager>
 
     private void Update()
     {
-        if (IsGameSystemMenuOpen())
-        {
-            ShowMouse();
-            return;
-        }
-
         if (InputActions.Keyboard.Escape.triggered && !isMouseVisible)
         {
             ShowMouse();
@@ -36,12 +30,6 @@ public class MouseManager : Singleton<MouseManager>
         }
 
         RotateCamera();
-    }
-
-    private bool IsGameSystemMenuOpen()
-    {
-        return UIManager.Instance != null &&
-            UIManager.Instance.CurrentMenuType == MenuType.GameSystemMenu;
     }
 
 
