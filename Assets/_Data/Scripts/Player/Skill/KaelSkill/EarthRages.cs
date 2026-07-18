@@ -11,7 +11,7 @@ public class EarthRages : CharacterSkillBase
 
     }
 
-    protected override async UniTask ExecuteSkill()
+    protected override async void ExecuteSkill()
     {
         if (character is not Kael kael)
         {

@@ -35,14 +35,14 @@ public class LevelUpPopupUI : LoadComponents
 
         if (TitleText != null)
         {
-            TitleText.text =
-                title;
+            TitleText.SetTextSafe(
+                title);
         }
 
         if (RewardText != null)
         {
-            RewardText.text =
-                reward;
+            RewardText.SetTextSafe(
+                reward);
         }
 
         CancelInvoke();

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class RuneFusionManager : MonoBehaviour
 {
@@ -10,10 +11,13 @@ public class RuneFusionManager : MonoBehaviour
     [Range(0f, 100f)] [SerializeField] private float rareToEpicRate = 60f;
     [Range(0f, 100f)] [SerializeField] private float epicToLegendaryRate = 35f;
 
-    [Header("Gem Cost (Chi phí đập ngọc)")]
+    [Header("Rune Shard Cost (Chi phí đập ngọc mới)")]
     [SerializeField] private int costCommon = 100;
     [SerializeField] private int costRare = 300;
     [SerializeField] private int costEpic = 800;
+
+    [Header("Protection Item Config")]
+    [SerializeField] private string charmItemID = "FUSION_CHARM_01";
 
     private void Awake()
     {
@@ -21,100 +25,101 @@ public class RuneFusionManager : MonoBehaviour
         else Destroy(gameObject);
     }
 
-    /// <summary>
-    /// Hàm cốt lõi thực hiện việc ép ngọc từ danh sách 3 ID ngọc mồi
-    /// </summary>
-    public bool TryFuseRunes(List<string> ingredientRuneIDs, out bool isSuccess, out RuneData resultRune)
+    public bool TryFuseRunes(List<string> ingredientRuneIDs, bool useProtection, out bool isSuccess, out RuneData resultRune)
     {
         isSuccess = false;
         resultRune = null;
 
-        // 1. Kiểm tra số lượng đầu vào
         if (ingredientRuneIDs == null || ingredientRuneIDs.Count != 3)
         {
-            Debug.LogError("[Fusion] Phải bỏ đủ đúng 3 viên ngọc nguyên liệu!");
+            Debug.LogError("[ÉP NGỌC] Đầu vào phải có đúng 3 nguyên liệu!");
             return false;
         }
 
-        if (RuneInventoryManager.Instance == null) return false;
-
-        // 2. Trích xuất dữ liệu thực tế từ túi đồ để kiểm tra tính hợp lệ
         List<RuneData> ingredients = new List<RuneData>();
         foreach (string id in ingredientRuneIDs)
         {
-            RuneData found = RuneInventoryManager.Instance.runes.Find(r => r.runeID == id);
-            if (found != null) ingredients.Add(found);
+            RuneData r = RuneInventoryManager.Instance.runes.FirstOrDefault(x => x.runeID == id);
+            if (r != null) ingredients.Add(r);
         }
 
         if (ingredients.Count != 3)
         {
-            Debug.LogError("[Fusion] Có viên ngọc nguyên liệu không tồn tại hoặc dữ liệu ma!");
+            Debug.LogError("[ÉP NGỌC] Không tìm thấy đủ 3 viên ngọc nguyên liệu trong hòm đồ!");
             return false;
         }
 
-        // 3. Kiểm tra xem 3 viên có cùng độ hiếm (Rarity) hay không
-        RuneRarity baseRarity = ingredients[0].runeRarity;
-        if (ingredients[1].runeRarity != baseRarity || ingredients[2].runeRarity != baseRarity)
+        RuneRarity materialRarity = ingredients[0].runeRarity;
+        if (materialRarity == RuneRarity.Legendary)
         {
-            Debug.LogWarning("[Fusion] 3 viên ngọc bắt buộc phải cùng độ hiếm!");
+            Debug.LogError("[ÉP NGỌC] Cấp bậc Huyền thoại (Legendary) đã là tối đa, không thể dung hợp thêm!");
             return false;
         }
 
-        if (baseRarity == RuneRarity.Legendary)
-        {
-            Debug.LogWarning("[Fusion] Ngọc Huyền Thoại đã là cấp tối đa, không thể nâng cấp thêm!");
-            return false;
-        }
-
-        // =========================================================================
-        // SỬA ĐỔI TIỀN TỆ: KIỂM TRA SỐ DƯ RUNE SHARDS VÀ KHẤU TRỪ TIỀN AN TOÀN
-        // =========================================================================
-        int requiredShards = GetFusionCost(baseRarity);
-
-        if (RuneShardManager.Instance == null || RuneShardManager.Instance.GetCurrentShards() < requiredShards)
-        {
-            if (LobbyNotifyManager.Instance != null)
-            {
-                LobbyNotifyManager.Instance.ShowNotify("Not enough Rune Shards for Fusion!", Color.red);
-            }
-            return false; // Chặn đập đồ, giữ nguyên vẹn 3 viên ngọc mồi
-        }
-
-        // Thực hiện trừ tiền thông qua hàm SpendShards an toàn mới tạo
-        RuneShardManager.Instance.SpendShards(requiredShards);
-
-        // 5. Tính toán tỷ lệ Đỏ/Đen (Thành công hay Hụt)
-        float successChance = GetSuccessRate(baseRarity);
-        float roll = Random.Range(0f, 100f);
-
-        // 6. Tiến hành xóa sạch 3 viên ngọc nguyên liệu khỏi túi đồ
         foreach (RuneData r in ingredients)
         {
-            RuneInventoryManager.Instance.RemoveRune(r.runeID);
+            if (r.runeRarity != materialRarity)
+            {
+                Debug.LogError("[ÉP NGỌC] Cả 3 nguyên liệu mồi phải cùng một cấp độ hiếm!");
+                return false;
+            }
         }
 
-        if (roll <= successChance)
+        int shardCost = GetFusionCost(materialRarity);
+        if (RuneShardManager.Instance == null || RuneShardManager.Instance.GetCurrentShards() < shardCost)
         {
-            // === ĐẬP TRÚNG (THÀNH CÔNG) ===
-            isSuccess = true;
-            
-            // Ép trực tiếp bậc hiếm tiếp theo
-            RuneRarity nextRarity = baseRarity + 1; 
-            
-            // Sinh ngọc ngẫu nhiên mới dựa trên độ hiếm thế hệ tiếp theo
-            resultRune = GenerateRandomRune(nextRarity);
-            RuneInventoryManager.Instance.AddRune(resultRune);
-            Debug.Log($"[Fusion] ĐẬP ĐỒ THÀNH CÔNG! Bạn nhận được ngọc {nextRarity}: {resultRune.runeName}");
+            Debug.LogWarning("[ÉP NGỌC] Không đủ Rune Shards để tiến hành dung hợp!");
+            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Not enough Rune Shards!", Color.red);
+            return false;
+        }
+
+        bool isCharmApplied = useProtection && InventoryItemManager.Instance != null && InventoryItemManager.Instance.GetItemQuantity(charmItemID) >= 1;
+
+        if (isCharmApplied)
+        {
+            InventoryItemManager.Instance.SpendItem(charmItemID, 1);
+            RuneShardManager.Instance.SpendShards(shardCost);
         }
         else
         {
-            // === ĐẬP HỤT (THẤT BẠI) ===
-            isSuccess = false;
-            Debug.Log("[Fusion] ĐẬP ĐỒ THẤT BẠI! Ngọc nguyên liệu đã tan thành mây khói...");
+            RuneShardManager.Instance.SpendShards(shardCost);
         }
 
-        // Làm mới lại hòm đồ UI sau khi đổi dữ liệu túi đồ
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryManager.Instance != null)
+        {
+            RuneInventoryManager.Instance.RemoveRunesRange(ingredientRuneIDs);
+        }
+
+        float roll = Random.Range(0f, 100f);
+        float chance = isCharmApplied ? 100f : GetSuccessRate(materialRarity);
+
+        if (roll <= chance)
+        {
+            isSuccess = true;
+            RuneRarity nextRarity = materialRarity + 1;
+            resultRune = GenerateRandomRune(nextRarity);
+
+            if (RuneInventoryManager.Instance != null)
+            {
+                RuneInventoryManager.Instance.AddRune(resultRune);
+            }
+            Debug.Log($"[ÉP NGỌC] Đập đồ thành công! Nhận được: {resultRune.runeName} ({resultRune.runeRarity})");
+        }
+        else
+        {
+            isSuccess = false;
+            int refundShards = Mathf.RoundToInt(shardCost * 0.2f);
+            if (RuneShardManager.Instance != null && refundShards > 0)
+            {
+                RuneShardManager.Instance.AddShards(refundShards);
+            }
+            Debug.Log($"[ÉP NGỌC] Đập đồ thất bại, nguyên liệu bốc cháy. Hoàn trả 20% chi phí (+{refundShards} Shards).");
+        }
+
+        if (RuneInventoryUI.Instance != null)
+        {
+            RuneInventoryUI.Instance.RefreshInventory();
+        }
         return true;
     }
 
@@ -133,29 +138,141 @@ public class RuneFusionManager : MonoBehaviour
     {
         switch (rarity)
         {
-            case RuneRarity.Common: return commonToRareRate; // 85%
-            case RuneRarity.Rare: return rareToEpicRate;     // 60%
-            case RuneRarity.Epic: return epicToLegendaryRate; // 35%
+            case RuneRarity.Common: return commonToRareRate;
+            case RuneRarity.Rare: return rareToEpicRate;
+            case RuneRarity.Epic: return epicToLegendaryRate;
         }
         return 0f;
     }
 
-    /// <summary>
-    /// Hàm sinh chỉ số ngọc ngẫu nhiên cho viên ngọc mới ra lò
-    /// </summary>
     private RuneData GenerateRandomRune(RuneRarity rarity)
     {
         RuneColor randomColor = (RuneColor)Random.Range(0, 3);
         RuneData newRune = new RuneData(randomColor, rarity);
 
-        newRune.runeName = $"{rarity} {randomColor} Rune";
-        newRune.runeLore = "A crystal forged from the ashes of fractured elements.";
-
-        RuneStatType randomStat = (RuneStatType)Random.Range(0, 14);
-        float randomValue = rarity == RuneRarity.Rare ? Random.Range(10f, 30f) : rarity == RuneRarity.Epic ? Random.Range(30f, 70f) : Random.Range(70f, 150f);
-        
-        newRune.affixes.Add(new RuneAffixData(randomStat, randomValue));
+        AssignRuneLore(newRune);
+        GenerateAffixes(newRune);
 
         return newRune;
+    }
+
+    private void GenerateAffixes(RuneData rune)
+    {
+        int affixCount = GetAffixCount(rune.runeRarity);
+        List<RuneStatType> usedStats = new List<RuneStatType>();
+
+        for (int i = 0; i < affixCount; i++)
+        {
+            RuneStatType statType = GetRandomStat(usedStats);
+            usedStats.Add(statType);
+            float value = GetRandomValue(statType, rune.runeRarity);
+            rune.affixes.Add(new RuneAffixData(statType, value));
+        }
+    }
+
+    private int GetAffixCount(RuneRarity runeRarity)
+    {
+        switch (runeRarity)
+        {
+            case RuneRarity.Common: return 1;
+            case RuneRarity.Rare: return 2;
+            case RuneRarity.Epic: return 3;
+            case RuneRarity.Legendary: return 4;
+        }
+        return 1;
+    }
+
+    private RuneStatType GetRandomStat(List<RuneStatType> usedStats)
+    {
+        List<RuneStatType> pool = new List<RuneStatType>()
+        {
+            RuneStatType.HP, RuneStatType.HPPercent, RuneStatType.MP, RuneStatType.MPPercent,
+            RuneStatType.Stamina, RuneStatType.StaminaPercent, RuneStatType.ATK, RuneStatType.ATKPercent,
+            RuneStatType.DEF, RuneStatType.DEFPercent, RuneStatType.CritChance, RuneStatType.CritDamage,
+            RuneStatType.ArmorPenetration, RuneStatType.StaminaRegen
+        };
+
+        for (int i = pool.Count - 1; i >= 0; i--)
+        {
+            if (usedStats.Contains(pool[i])) pool.RemoveAt(i);
+        }
+        return pool[Random.Range(0, pool.Count)];
+    }
+
+    private float GetRandomValue(RuneStatType statType, RuneRarity rarity)
+    {
+        switch (statType)
+        {
+            case RuneStatType.HP: return GetValueByRarity(rarity, 80f, 180f, 180f, 350f, 350f, 650f, 650f, 1200f);
+            case RuneStatType.MP: return GetValueByRarity(rarity, 25f, 60f, 60f, 120f, 120f, 220f, 220f, 400f);
+            case RuneStatType.Stamina: return GetValueByRarity(rarity, 15f, 40f, 40f, 80f, 80f, 140f, 140f, 250f);
+            case RuneStatType.ATK: return GetValueByRarity(rarity, 3f, 8f, 8f, 18f, 18f, 35f, 35f, 60f);
+            case RuneStatType.DEF: return GetValueByRarity(rarity, 2f, 6f, 6f, 14f, 14f, 28f, 28f, 50f);
+            case RuneStatType.HPPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 20f);
+            case RuneStatType.MPPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
+            case RuneStatType.StaminaPercent: return GetValueByRarity(rarity, 3f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
+            case RuneStatType.ATKPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
+            case RuneStatType.DEFPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
+            case RuneStatType.CritChance: return GetValueByRarity(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 18f);
+            case RuneStatType.CritDamage: return GetValueByRarity(rarity, 4f, 8f, 8f, 15f, 15f, 25f, 25f, 40f);
+            case RuneStatType.ArmorPenetration: return GetValueByRarity(rarity, 2f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
+            case RuneStatType.StaminaRegen: return GetValueByRarity(rarity, 3f, 6f, 6f, 10f, 10f, 18f, 18f, 30f);
+        }
+        return 1f;
+    }
+
+    private float GetValueByRarity(RuneRarity rarity, float cMin, float cMax, float rMin, float rMax, float eMin, float eMax, float lMin, float lMax)
+    {
+        switch (rarity)
+        {
+            case RuneRarity.Common: return Random.Range(cMin, cMax);
+            case RuneRarity.Rare: return Random.Range(rMin, rMax);
+            case RuneRarity.Epic: return Random.Range(eMin, eMax);
+            case RuneRarity.Legendary: return Random.Range(lMin, lMax);
+        }
+        return 1f;
+    }
+
+    private void AssignRuneLore(RuneData rune)
+    {
+        switch (rune.runeColor)
+        {
+            case RuneColor.Red: AssignRedLore(rune); break;
+            case RuneColor.Green: AssignGreenLore(rune); break;
+            case RuneColor.Blue: AssignBlueLore(rune); break;
+        }
+    }
+
+    private void AssignRedLore(RuneData rune)
+    {
+        switch (rune.runeRarity)
+        {
+            case RuneRarity.Common: rune.runeName = "Ashfang"; rune.runeLore = "Its heat faded long ago, yet the scar remains."; break;
+            case RuneRarity.Rare: rune.runeName = "Blood Oath"; rune.runeLore = "The knight survived the battle. His comrades did not."; break;
+            case RuneRarity.Epic: rune.runeName = "Heart of Ruin"; rune.runeLore = "Every beat echoed like a war drum beneath the earth."; break;
+            case RuneRarity.Legendary: rune.runeName = "Crimson Crown"; rune.runeLore = "Kings burned kingdoms to wear it for a single night."; break;
+        }
+    }
+
+    private void AssignGreenLore(RuneData rune)
+    {
+        switch (rune.runeRarity)
+        {
+            case RuneRarity.Common: rune.runeName = "Wiltroot"; rune.runeLore = "It grew where no light should ever reach."; break;
+            case RuneRarity.Rare: rune.runeName = "Verdant Pulse"; rune.runeLore = "The forest whispered back when spoken to."; break;
+            case RuneRarity.Epic: rune.runeName = "Hollow Bloom"; rune.runeLore = "Flowers fed on the dead beneath the ruins."; break;
+            case RuneRarity.Legendary: rune.runeName = "Worldsap Core"; rune.runeLore = "Its roots once held an entire civilization together."; break;
+        }
+    }
+
+    private void AssignBlueLore(RuneData rune)
+    {
+        switch (rune.runeRarity)
+        {
+            case RuneRarity.Common: rune.runeName = "Frost Vein"; rune.runeLore = "Cold enough to silence fear itself."; break;
+            case RuneRarity.Rare: rune.runeName = "Moon Shard"; rune.runeLore = "Fragments of a sky long forgotten."; break;
+            case RuneRarity.Epic: rune.runeName = "Deep Current"; rune.runeLore = "Something ancient moved beneath the tide."; break;
+            case RuneRarity.Legendary: rune.runeName = "Eye of Eternity"; rune.runeLore = "It watched the end before time understood death."; break;
+        }
     }
 }

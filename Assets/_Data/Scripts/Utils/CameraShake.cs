@@ -7,16 +7,23 @@ using Cinemachine;
 public class CameraShake : Singleton<CameraShake>
 {
 	[SerializeField] private CinemachineImpulseSource impulseSource;
+	private bool isShaking = false;
 
 	public void SetImpulseSource(CinemachineImpulseSource source)
 	{
 		impulseSource = source;
 	}
-	public void Shake()
+	public async void Shake()
 	{
 		if (impulseSource == null)
 			return;
 
-		impulseSource.GenerateImpulse();
+		if (!isShaking)
+		{
+			isShaking = true;
+			impulseSource.GenerateImpulse();
+			await System.Threading.Tasks.Task.Delay(500); // Wait for 0.5 seconds
+			isShaking = false;
+		}
 	}
 }

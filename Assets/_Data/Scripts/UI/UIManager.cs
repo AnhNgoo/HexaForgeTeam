@@ -32,12 +32,13 @@ public enum MenuType
     AchievementMenu = 19,
 
     LobbyCharacterMenu = 100,
-    LobbyInventoryMenu = 101,
+    LobbyRuneInventoryMenu = 101,
     LobbyAchievementMenu = 102,
     LobbyGachaMenu = 103,
     LobbyAccountLevelMenu = 104,
     LobbyDialogueMenu = 105,
     LobbyLeaderboardMenu = 106,
+    LobbyShopMenu = 107,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -56,8 +57,6 @@ public class UIManager : Singleton<UIManager>
         public MenuType menuType;
         public MenuBase menuBase;
     }
-
-
 
     protected override void LoadComponent()
     {

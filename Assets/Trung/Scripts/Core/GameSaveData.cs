@@ -27,4 +27,6 @@ public int lifetimeGemEarned = 0;
     // Rune Inventory
     public List<RuneData> runes =
         new List<RuneData>();
+    public bool isTutorialCompleted = false;
+    public List<InventoryItemData> inventoryItems = new List<InventoryItemData>();
 }
