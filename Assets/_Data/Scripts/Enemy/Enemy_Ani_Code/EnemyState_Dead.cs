@@ -17,7 +17,7 @@ public class EnemyState_Dead : EnemyState
 
         if (_enemyBase.MainCollider != null)
         {
-            _enemyBase.MainCollider.enabled = true;
+            _enemyBase.MainCollider.enabled = false; // Vô hiệu hóa collider chính để tránh va chạm sau khi chết
         }
         _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.DieHash); // Phát animation chết
 

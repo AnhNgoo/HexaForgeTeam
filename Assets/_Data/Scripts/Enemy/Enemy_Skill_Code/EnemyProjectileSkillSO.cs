@@ -20,12 +20,17 @@ public class EnemyProjectileSkillSO : EnemyAttackSkillSO
         if (spawnPoint == null) return;
 
         GameObject projectileInstance = ObjectPooling.Instance.SpawnFromPool(attackData.projectilePoolType, spawnPoint.position, Quaternion.identity);
+
+        if (projectileInstance == null) return;
+
         EnemyProjectile projectileScript = projectileInstance.GetComponent<EnemyProjectile>();
         if (projectileScript == null) return;
 
-        float finalDamage = enemy.Data.damage * attackData.damageMultiplier;
+        float finalDamage = enemy.Data.damage * attackData.damageMultiplier * context.RuntimeDamageMultiplier;
+        float projectileSpeed = enemy.MinibossBehaviour?.ModifyProjectileSpeed(attackData.projectileSpeed) ?? attackData.projectileSpeed;
+
         Vector3 shootDirection = (target.position + Vector3.up * 0.5f) - spawnPoint.position; //Điều chỉnh hướng bắn để nhắm vào phần thân trên của target
 
-        projectileScript.Launch(enemy, finalDamage, attackData.projectileSpeed, shootDirection, attackData.projectileLifetime);
+        projectileScript.Launch(enemy, finalDamage, projectileSpeed, shootDirection, attackData.projectileLifetime);
     }
 }

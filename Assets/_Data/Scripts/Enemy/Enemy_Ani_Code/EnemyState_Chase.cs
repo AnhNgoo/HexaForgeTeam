@@ -9,6 +9,7 @@ public class EnemyState_Chase : EnemyState
         base.Enter();
         _enemyBase.AnimatorController.PlayAnimation(_enemyBase.AnimatorController.ChaseHash); // Phát animation chạy khi vào trạng thái này
         _enemyBase.Locomotion.SetSpeed(_enemyBase.Data.moveSpeed); // Đặt tốc độ di chuyển khi truy đuổi
+        _enemyBase.Locomotion.SetAngularSpeed(_enemyBase.Data.chaseAngularSpeed);
         Debug.Log($"{_enemyBase.gameObject.name} đã vào trạng thái Chase.");
     }
 

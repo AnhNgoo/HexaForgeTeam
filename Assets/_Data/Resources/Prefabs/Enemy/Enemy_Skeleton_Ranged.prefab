@@ -1,5 +1,88 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8165132184347294
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 817071865613006884}
+  - component: {fileID: 4393552932304009089}
+  - component: {fileID: 1953997453532054347}
+  m_Layer: 8
+  m_Name: Skeleton_Quiver
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &817071865613006884
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8165132184347294}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.34026355, y: -0.94033015, z: -0.000000020551566, w: -0.000000007436688}
+  m_LocalPosition: {x: 0, y: -0.12275572, z: -0.29700017}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2857295732614186073}
+  m_LocalEulerAnglesHint: {x: 0, y: -180, z: -39.786}
+--- !u!33 &4393552932304009089
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8165132184347294}
+  m_Mesh: {fileID: -858885227824056797, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
+--- !u!23 &1953997453532054347
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8165132184347294}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: -8468983757882266563, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &290727508806879251
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,7 +551,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15ad93e91c5b88d489b481a8f716269a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyData: {fileID: 11400000, guid: 5724e48d9b7b0be4d9f5e236eceb1fcb, type: 2}
+  enemyData: {fileID: 11400000, guid: 8c99e2106a597a045986d2c5042e3569, type: 2}
   _health: {fileID: 862338660668005307}
   _combat: {fileID: 8311683013735983356}
   _detection: {fileID: 650471500707039634}
@@ -2339,69 +2422,3 @@ Transform:
   - {fileID: 3877312695309216283}
   m_Father: {fileID: 2071244594525945842}
   m_LocalEulerAnglesHint: {x: 0.07551102, y: 0.000012125087, z: -0.000018223052}
---- !u!1001 &926734323869638607
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 2857295732614186073}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -0.12275572
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -0.29700017
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: -0.000000007436688
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0.34026355
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0.94033015
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0.000000020551566
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: -180
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: -39.786
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_Name
-      value: Skeleton_Quiver
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-      propertyPath: m_Layer
-      value: 8
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
---- !u!4 &817071865613006884 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: f345654aae9df554aa7abb5fd83a74a8, type: 3}
-  m_PrefabInstance: {fileID: 926734323869638607}
-  m_PrefabAsset: {fileID: 0}

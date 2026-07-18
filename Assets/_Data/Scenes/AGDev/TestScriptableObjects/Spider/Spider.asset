@@ -12,18 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77e7e114724ec234f9108d3323199aa4, type: 3}
   m_Name: Spider
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  damage: 10
+  maxHealth: 800
+  damage: 80
   maxDefense: 5
   maxPoise: 20
-  moveSpeed: 3
-  patrolSpeed: 2
-  staggerDuration: 2
+  moveSpeed: 25
+  patrolSpeed: 15
+  staggerDuration: 0.7
   detectRange: 10
   loseTargetRange: 15
   povAngle: 90
-  minGoldReward: 10
-  maxGoldReward: 20
+  angularSpeed: 720
+  chaseAngularSpeed: 1080
+  attackTurnSpeed: 900
+  recoveryTurnSpeed: 720
+  attackFacingAngle: 25
+  combatAwarenessDuration: 1
+  minGoldReward: 80
+  maxGoldReward: 150
   isBoss: 0
-  maxLeashDistance: 20
+  maxLeashDistance: 30
   roamRadius: 5
