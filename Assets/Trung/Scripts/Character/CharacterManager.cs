@@ -118,12 +118,10 @@ if (ui != null)
         .SaveData.characterData =
         data;
 
-    SaveLoadManager.Instance
-        .SaveGame();
-        if (PlayFabDataManager.Instance != null)
+    SaveLoadManager.Instance.SaveGame();
+if (PlayFabDataManager.Instance != null)
 {
-    PlayFabDataManager.Instance
-        .SaveCloud();
+    PlayFabDataManager.Instance.MarkDirty(); 
 }
 if (PlayFabDataManager.Instance != null)
 {

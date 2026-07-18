@@ -11,7 +11,8 @@ public class MouseManager : Singleton<MouseManager>
     [SerializeField][Range(0, 1)] private float xMultiplierSensitivity = 1f;
     private InputActions InputActions => InputManager.InputActions;
 
-    private bool isMouseVisible = true;
+    public bool IsMouseVisible { get; private set; } = true;
+    private MenuType lastMenuState = MenuType.None;
 
     private void Start()
     {
@@ -20,28 +21,22 @@ public class MouseManager : Singleton<MouseManager>
 
     private void Update()
     {
-        if (IsGameSystemMenuOpen())
+        if (UIManager.Instance?.CurrentMenuType != lastMenuState)
         {
-            ShowMouse();
-            return;
+            if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu)
+            {
+                HideMouse();
+            }
+            else
+            {
+                ShowMouse();
+            }
+            lastMenuState = UIManager.Instance.CurrentMenuType;
         }
 
-        if (InputActions.Keyboard.Escape.triggered && !isMouseVisible)
-        {
-            ShowMouse();
-        }
-        else if (InputActions.Keyboard.LeftMouse.triggered && isMouseVisible)
-        {
-            HideMouse();
-        }
 
-        RotateCamera();
-    }
-
-    private bool IsGameSystemMenuOpen()
-    {
-        return UIManager.Instance != null &&
-            UIManager.Instance.CurrentMenuType == MenuType.GameSystemMenu;
+        if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu)
+            RotateCamera();
     }
 
 
@@ -66,8 +61,7 @@ public class MouseManager : Singleton<MouseManager>
     // Hiển chuột
     public void ShowMouse()
     {
-        Debug.Log("Show Mouse");
-        isMouseVisible = true;
+        IsMouseVisible = true;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
     }
@@ -75,8 +69,7 @@ public class MouseManager : Singleton<MouseManager>
     // Ẩn chuột
     public void HideMouse()
     {
-        Debug.Log("Hide Mouse");
-        isMouseVisible = false;
+        IsMouseVisible = false;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }

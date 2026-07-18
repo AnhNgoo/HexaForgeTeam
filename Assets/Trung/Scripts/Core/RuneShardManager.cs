@@ -99,7 +99,7 @@ public class RuneShardManager : MonoBehaviour
     {
         if (shardText != null)
         {
-            shardText.text = currentShards.ToString();
+            shardText.SetTextSafe(currentShards.ToString());
         }
     }
 

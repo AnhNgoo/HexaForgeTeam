@@ -12,9 +12,15 @@ public class PickUpWeapon : InteractBase, IPoolable
 
     protected override void InteractAction()
     {
+        if (WeaponInventorySystem.Instance.CheckEmptyWeaponSlots() == false)
+        {
+            NotifyUI notifyUI = ObjectPooling.Instance.SpawnFromPool(PoolType.NotifyUI).GetComponent<NotifyUI>();
+            notifyUI.SetDescription("The weapon slots are full.");
+            return;
+        }
         if (weaponData != null)
         {
-            EquipmentSystem.Instance.AddWeapon(weaponData);
+            WeaponInventorySystem.Instance.AddWeapon(weaponData);
             EventManager.Notify(GameEvent.OnHidePickUpItemPanel);
             InteractionManager.Instance?.UnregisterInteractable(this);
             ObjectPooling.Instance.ReturnToPool(PoolType, gameObject);

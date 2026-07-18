@@ -36,18 +36,18 @@ public class RunResultSummary : MonoBehaviour
         // 2. Hiển thị thông báo dạng TIẾNG ANH chuẩn chỉnh, không lo lỗi font
         if (txtStatsNotify != null)
         {
-            txtStatsNotify.text = $"<b><color=#FFCC00>VICTORY ACHIEVED</color></b>\n\n" +
+            txtStatsNotify.SetTextSafe($"<b><color=#FFCC00>VICTORY ACHIEVED</color></b>\n\n" +
                                   $"Monsters Vanquished: <color=#FF3333>{kills}</color>\n" +
-                                  $"Battle Score: <color=#FFFF66>{score}</color>";
+                                  $"Battle Score: <color=#FFFF66>{score}</color>");
         }
 
         if (txtRewards != null)
         {
-            txtRewards.text = $"<b><color=#00FFCC>REWARDS ACQUIRED</color></b>\n\n" +
+            txtRewards.SetTextSafe($"<b><color=#00FFCC>REWARDS ACQUIRED</color></b>\n\n" +
                               $"- Crystals: <color=#33FFFF>+{calculatedGem}</color>\n" +
                               $"- Rune Shards: <color=#CC66FF>+{calculatedShards}</color>\n" + // ĐỔI HIỂN THỊ THÀNH TIỀN MỚI
                               $"- Account EXP: <color=#33FF33>+{calculatedExp}</color>\n" +
-                              $"- Weapon Shards: <color=#FFA500>+{upgradeShards}</color>";
+                              $"- Weapon Shards: <color=#FFA500>+{upgradeShards}</color>");
         }
 
         // Bật bảng UI kết quả

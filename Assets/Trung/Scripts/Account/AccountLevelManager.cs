@@ -39,12 +39,6 @@ public class AccountLevelManager :
             "DisplayName",
             "Unknown");
 
-    if (AccountLevelUI.Instance != null)
-    {
-        AccountLevelUI.Instance
-            .SetUserName(
-                displayName);
-    }
 }
 
     public void AddExp(
@@ -133,17 +127,13 @@ if (accountData.level == 25)
 
     private void UpdateUI()
 {
-    if (AccountLevelUI.Instance == null)
+    if (LobbyHUDTopBar.Instance != null)
     {
-        return;
-    }
-
-    AccountLevelUI.Instance
-        .Refresh(
+        LobbyHUDTopBar.Instance.RefreshLevelUI(
             accountData.level,
             accountData.currentExp,
-            GetRequiredExp(
-                accountData.level));
+            GetRequiredExp(accountData.level));
+    }
 }
 
     private void ShowLevelUpPopup(

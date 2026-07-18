@@ -29,34 +29,44 @@ public class RuneDetailInfoPanel : MonoBehaviour
     [Header("Special Asset (Ngọc Cổ Tự Ultimate - Nếu có)")]
     [SerializeField] private GameObject ultimateRuneImage;
 
-    // Biến lưu trữ thông tin viên ngọc đang được chọn xem chi tiết
     private RuneData currentData;
 
     private void Awake()
+{
+    if (Instance == null)
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        if (panelRoot != null) panelRoot.SetActive(false);
-
-        // Đăng ký sự kiện lắng nghe cho các nút bấm ngoài Panel lớn
-        if (actionButton != null) actionButton.onClick.AddListener(OnActionButtonClick);
-        if (deleteButton != null) deleteButton.onClick.AddListener(OnDeleteButtonClick);
-        if (rerollPanelButton != null) rerollPanelButton.onClick.AddListener(() => {
-            if (rerollPanelButton != null) rerollPanelButton.onClick.AddListener(() => {
-    if (currentData != null && RuneRerollUI.Instance != null) {
-        RuneRerollUI.Instance.OpenPanel(currentData); // ĐỔI THÀNH OpenPanel theo đúng file RuneRerollUI.cs mới
+        Instance = this;
     }
-});
+
+    if (panelRoot != null)
+    {
+        panelRoot.SetActive(false);
+    }
+
+    if (actionButton != null)
+    {
+        actionButton.onClick.RemoveAllListeners();
+        actionButton.onClick.AddListener(OnActionButtonClick);
+    }
+
+    if (deleteButton != null)
+    {
+        deleteButton.onClick.RemoveAllListeners();
+        deleteButton.onClick.AddListener(OnDeleteButtonClick);
+    }
+
+    if (rerollPanelButton != null)
+    {
+        rerollPanelButton.onClick.RemoveAllListeners();
+        rerollPanelButton.onClick.AddListener(() =>
+        {
+            if (currentData != null && RuneRerollUI.Instance != null)
+            {
+                RuneRerollUI.Instance.OpenPanel(currentData);
+            }
         });
     }
+}
 
     private void Update()
     {
@@ -238,52 +248,70 @@ public class RuneDetailInfoPanel : MonoBehaviour
         }
 
         // Làm mới lại giao diện hòm đồ lưới và cập nhật lại trạng thái nút chữ trên bảng to
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
         UpdateActionText();
     }
 
-    // XỬ LÝ SỰ KIỆN: Khi click nút Xóa ngọc trực tiếp ngoài bảng Info lớn
     private void OnDeleteButtonClick()
-    {
-        if (currentData == null || RuneInventoryManager.Instance == null) return;
+{
+    if (currentData == null) return;
 
-        // FIXED: Trước khi xóa thực thể dữ liệu gốc khỏi túi đồ, ta phải ép nhân vật tháo viên này ra (nếu đang đeo) để tránh kẹt dữ liệu ma (Ghost Data)
-        CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
-        foreach (CharacterType charType in allChars)
+    int refundGem = GetRefundGemByRarity(currentData.runeRarity);
+    int shardReward = 100; // Mỗi viên mặc định tháo được 100 mảnh
+
+    CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+    foreach (CharacterType charType in allChars)
+    {
+        var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+        if (build != null)
         {
-            var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
-            if (build != null)
+            for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
             {
-                for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
+                if (build.equippedRuneIDs[slot] == currentData.runeID)
                 {
-                    if (build.equippedRuneIDs[slot] == currentData.runeID)
-                    {
-                        build.equippedRuneIDs[slot] = ""; // Tháo ngọc an toàn khỏi slot trang bị
-                    }
+                    build.equippedRuneIDs[slot] = "";
                 }
             }
         }
-
-        int refundGem = GetRefundGemByRarity(currentData.runeRarity);
-        GemManager.Instance.AddGem(refundGem);
-
-        RuneInventoryManager.Instance.RemoveRune(currentData.runeID);
-
-        Debug.Log($"<color=#FFFF66><b>[PHÂN TÁCH NGỌC]</b> Đã hủy viên ngọc {currentData.runeName}. Hoàn lại +{refundGem} Gems vào tài khoản.</color>");
-        if (LobbyNotifyManager.Instance != null) 
-            LobbyNotifyManager.Instance.ShowNotify($"Rune dismantled! Recycled +{refundGem} Crystals.", Color.green);
-
-        // Làm mới giao diện hòm đồ lưới
-        if (InventoryUI.Instance != null) InventoryUI.Instance.RefreshInventory();
-        
-        // FIXED: Ép đồng bộ và làm mới lại giao diện trang bị (Equip Slots) để cập nhật ô ngọc trống ngay lập tức
-        if (RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
-        
-        // Làm mới tổng chỉ số Lobby
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-
-        ClosePanel();
     }
+
+    if (GemManager.Instance != null && refundGem > 0)
+    {
+        GemManager.Instance.AddGem(refundGem);
+    }
+
+    if (RuneShardManager.Instance != null && shardReward > 0)
+    {
+        RuneShardManager.Instance.AddShards(shardReward);
+    }
+
+    if (RuneInventoryManager.Instance != null)
+    {
+        RuneInventoryManager.Instance.RemoveRune(currentData.runeID);
+    }
+
+    ClosePanel();
+
+    if (RuneInventoryUI.Instance != null)
+    {
+        RuneInventoryUI.Instance.RefreshInventory();
+    }
+
+    if (RuneEquipUI.Instance != null)
+    {
+        RuneEquipUI.Instance.RefreshEquipUI();
+    }
+
+    if (LobbyStatManager.Instance != null)
+    {
+        LobbyStatManager.Instance.RecalculateStats();
+    }
+
+    if (LobbyNotifyManager.Instance != null)
+    {
+        LobbyNotifyManager.Instance.ShowNotify($"Dismantled Rune! Recovered {refundGem} Gems & {shardReward} Shards.", Color.green);
+    }
+}
 
     private int GetRefundGemByRarity(RuneRarity rarity)
     {

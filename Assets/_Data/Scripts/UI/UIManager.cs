@@ -32,12 +32,13 @@ public enum MenuType
     AchievementMenu = 19,
 
     LobbyCharacterMenu = 100,
-    LobbyInventoryMenu = 101,
+    LobbyRuneInventoryMenu = 101,
     LobbyAchievementMenu = 102,
     LobbyGachaMenu = 103,
     LobbyAccountLevelMenu = 104,
     LobbyDialogueMenu = 105,
     LobbyLeaderboardMenu = 106,
+    LobbyShopMenu = 107,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -56,8 +57,6 @@ public class UIManager : Singleton<UIManager>
         public MenuType menuType;
         public MenuBase menuBase;
     }
-
-
 
     protected override void LoadComponent()
     {
@@ -150,26 +149,4 @@ public class UIManager : Singleton<UIManager>
         }
     }
 
-    public void OpenOverlayMenu(MenuType menuType, object data = null)
-    {
-        menus.RemoveAll(m => m == null || m.menuBase == null);
-
-        var menuData = menus.FirstOrDefault(m => m.menuType == menuType);
-        if (menuData == null || menuData.menuBase == null)
-        {
-            LoadMenus();
-            menuData = menus.FirstOrDefault(m => m.menuType == menuType);
-            if (menuData == null || menuData.menuBase == null)
-            {
-                Debug.LogError("Overlay menu not found: " + menuType);
-                return;
-            }
-        }
-
-        PreviousMenuType = CurrentMenuType;
-        CurrentMenu = menuData.menuBase;
-        CurrentMenu.Open(data);
-        CurrentMenu.transform.SetAsLastSibling();
-        CurrentMenuType = menuType;
-    }
 }

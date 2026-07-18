@@ -27,6 +27,11 @@ public enum GameEvent
     OnHideTutorial = 19,
     OnShowPickUpItemPanel = 20,
     OnHidePickUpItemPanel = 21,
+    OnAddWeaponToInventory = 22,
+    OnSelectItemInInventory = 23,
+    OnDeselectItemInInventory = 24,
+    OnDiscardItemInInventory = 25,
+    OnUpdateDisplayWeapon = 26,
 }
 public static class EventManager
 {
