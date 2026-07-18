@@ -9,7 +9,7 @@ public class InventoryRuneMenu : MenuBase
 
     [Header("Rune UI")]
     [SerializeField] private GameObject inventoryPanel;
-    [SerializeField] private InventoryUI inventoryUI;
+    [SerializeField] private RuneInventoryUI inventoryUI;
     [SerializeField] private RuneEquipUI runeEquipUI;
 
     [Header("Buttons")]
@@ -19,7 +19,7 @@ public class InventoryRuneMenu : MenuBase
     [SerializeField] private MenuType standaloneFallback =
         MenuType.GameplayMenu;
 
-    private InventoryUI previousInventoryUI;
+    private RuneInventoryUI previousInventoryUI;
     private Coroutine openRoutine;
     private bool openedFromGacha;
 
@@ -37,7 +37,7 @@ public class InventoryRuneMenu : MenuBase
         if (inventoryUI == null)
         {
             inventoryUI =
-                GetComponentInChildren<InventoryUI>(true);
+                GetComponentInChildren<RuneInventoryUI>(true);
         }
 
         if (runeEquipUI == null)
@@ -108,7 +108,7 @@ public class InventoryRuneMenu : MenuBase
             yield break;
         }
 
-        InventoryUI.Instance = inventoryUI;
+        RuneInventoryUI.Instance = inventoryUI;
 
         if (inventoryPanel != null)
             inventoryPanel.SetActive(true);
@@ -150,19 +150,19 @@ public class InventoryRuneMenu : MenuBase
             return;
 
         previousInventoryUI =
-            InventoryUI.Instance != inventoryUI
-                ? InventoryUI.Instance
+            RuneInventoryUI.Instance != inventoryUI
+                ? RuneInventoryUI.Instance
                 : null;
 
         // RuneCardUI sử dụng InventoryUI.Instance.
-        InventoryUI.Instance = inventoryUI;
+        RuneInventoryUI.Instance = inventoryUI;
     }
 
     private void RestoreInventoryUI()
     {
-        if (InventoryUI.Instance == inventoryUI)
+        if (RuneInventoryUI.Instance == inventoryUI)
         {
-            InventoryUI.Instance =
+            RuneInventoryUI.Instance =
                 previousInventoryUI;
         }
 

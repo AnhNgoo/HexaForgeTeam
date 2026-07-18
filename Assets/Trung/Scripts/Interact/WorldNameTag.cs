@@ -17,7 +17,7 @@ public class WorldNameTag : MonoBehaviour
 
         if (nameText != null)
         {
-            nameText.text = displayName;
+            nameText.SetTextSafe(displayName);
         }
     }
 
@@ -34,7 +34,7 @@ public class WorldNameTag : MonoBehaviour
     {
         if (nameText != null)
         {
-            nameText.text = displayName;
+            nameText.SetTextSafe(displayName);
         }
     }
 #endif

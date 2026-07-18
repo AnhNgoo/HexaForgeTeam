@@ -102,22 +102,22 @@ private Slider progressSlider;
 
         if (TitleText != null)
         {
-            TitleText.text =
-                achievementData.title;
+            TitleText.SetTextSafe(
+                achievementData.title);
         }
 
         if (DescriptionText != null)
         {
-            DescriptionText.text =
-                achievementData.description;
+            DescriptionText.SetTextSafe(
+                achievementData.description);
         }
 
         if (ProgressText != null)
         {
-            ProgressText.text =
+            ProgressText.SetTextSafe(
                 $"{achievementData.currentProgress}" +
                 $" / " +
-                $"{achievementData.targetProgress}";
+                $"{achievementData.targetProgress}");
         }
         if (progressSlider != null)
 {
@@ -133,8 +133,8 @@ private Slider progressSlider;
 
         if (RewardText != null)
         {
-            RewardText.text =
-                $"{achievementData.rewardGem} Gems";
+            RewardText.SetTextSafe(
+                $"{achievementData.rewardGem} Gems");
         }
 
         if (ClaimButton != null)
@@ -151,21 +151,21 @@ private Slider progressSlider;
             {
                 if (achievementData.isClaimed)
                 {
-                    buttonText.text =
-                        "Claimed";
+                    buttonText.SetTextSafe(
+                        "Claimed");
                 }
                 else if
                 (
                     achievementData.isCompleted
                 )
                 {
-                    buttonText.text =
-                        "Claim";
+                    buttonText.SetTextSafe(
+                        "Claim");
                 }
                 else
                 {
-                    buttonText.text =
-                        "Locked";
+                    buttonText.SetTextSafe(
+                        "Locked");
                 }
             }
         }

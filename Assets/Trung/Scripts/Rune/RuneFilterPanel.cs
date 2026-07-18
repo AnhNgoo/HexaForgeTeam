@@ -194,9 +194,9 @@ public class RuneFilterPanel : MonoBehaviour
 
     private void NotifyInventoryRefresh()
     {
-        if (InventoryUI.Instance != null && InventoryUI.Instance.gameObject.activeInHierarchy)
+        if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy)
         {
-            InventoryUI.Instance.RefreshInventory();
+            RuneInventoryUI.Instance.RefreshInventory();
         }
     }
 

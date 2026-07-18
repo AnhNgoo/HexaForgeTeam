@@ -105,7 +105,7 @@ public class Interact : MonoBehaviour
 
         if (txtInteract != null)
         {
-            txtInteract.text = interactText;
+            txtInteract.SetTextSafe(interactText);
         }
 
         if (interactButton != null)

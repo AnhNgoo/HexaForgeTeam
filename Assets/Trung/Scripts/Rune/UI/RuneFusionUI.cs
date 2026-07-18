@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using DG.Tweening; // Yêu cầu đã Import DoTween vào Project
+using DG.Tweening;
 
 public class RuneFusionUI : MonoBehaviour
 {
@@ -30,12 +30,14 @@ public class RuneFusionUI : MonoBehaviour
     [Header("Prefab Sample Display")]
     [SerializeField] private RuneCardUI cardPrefabSample;
 
-    // Danh sách lưu trữ nguyên liệu
+    [Header("Protection Item Config")]
+    [SerializeField] private string charmItemID = "FUSION_CHARM_01";
+    [SerializeField] private Toggle useCharmToggle;
+
     private List<RuneData> selectedRunes = new List<RuneData>();
     private List<RuneCardUI> spawnedVisualCards = new List<RuneCardUI>();
     private bool isAnimating = false;
 
-    // Quản lý thực thể thẻ bài phần thưởng sau khi dung hợp thành công
     private RuneCardUI rewardCardInstance = null;
 
     private void Awake()
@@ -47,47 +49,54 @@ public class RuneFusionUI : MonoBehaviour
     {
         if (fuseButton != null) fuseButton.onClick.AddListener(OnFuseButtonClicked);
         if (clearAllButton != null) clearAllButton.onClick.AddListener(ClearFusionSlots);
+        if (useCharmToggle != null) useCharmToggle.onValueChanged.AddListener((x) => UpdateFusionPanelVisual());
         
+        ResetToggleState();
+    }
+
+    private void OnEnable()
+    {
+        ResetToggleState();
+    }
+
+    private void ResetToggleState()
+    {
+        if (useCharmToggle != null)
+        {
+            useCharmToggle.isOn = false;
+        }
         UpdateFusionPanelVisual();
     }
 
-    /// <summary>
-    /// Hàm được gọi khi người chơi nhấp chọn một viên ngọc từ hòm đồ lưới
-    /// </summary>
     public void AddRuneToFusion(RuneData runeData)
     {
         if (isAnimating) return;
 
-        // Nếu trên màn hình đang có viên ngọc phần thưởng của lượt trước, tự dọn đi để bắt đầu lượt mới
         ClearRewardCard();
 
-        // 1. Kiểm tra nếu viên ngọc này đã được thêm vào trước đó rồi thì bỏ qua
         if (selectedRunes.Exists(r => r.runeID == runeData.runeID)) return;
 
-        // 2. Không cho phép bỏ quá 3 viên
         if (selectedRunes.Count >= 3)
         {
-            if (resultText != null) resultText.text = "<color=#FF4C4C>Ingredient slots are full!</color>";
+            if (resultText != null) resultText.SetTextSafe("<color=#FF4C4C>Ingredient slots are full!</color>");
             if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Material slots are full!", Color.red);
             return;
         }
 
-        // 3. Kiểm tra tính đồng nhất về độ hiếm của nguyên liệu
         if (selectedRunes.Count > 0 && selectedRunes[0].runeRarity != runeData.runeRarity)
         {
-            if (resultText != null) resultText.text = "<color=#FFFF66>Material rarity must be identical!</color>";
+            if (resultText != null) resultText.SetTextSafe("<color=#FFFF66>Material rarity must be identical!</color>");
             if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Runes must be of the same rarity!", Color.yellow);
             return;
         }
 
         if (runeData.runeRarity == RuneRarity.Legendary)
         {
-            if (resultText != null) resultText.text = "<color=#FFFF66>Legendary runes cannot be fused further!</color>";
+            if (resultText != null) resultText.SetTextSafe("<color=#FFFF66>Legendary runes cannot be fused further!</color>");
             if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Legendary tier has reached maximum level!", Color.yellow);
             return;
         }
 
-        // 4. Đưa vào danh sách và tạo Object hiển thị mô phỏng lên ô trống tương ứng
         selectedRunes.Add(runeData);
         int currentSlotIndex = selectedRunes.Count - 1;
 
@@ -98,7 +107,6 @@ public class RuneFusionUI : MonoBehaviour
             
             if (visualCard.GetComponent<Collider2D>() != null) visualCard.GetComponent<Collider2D>().enabled = false;
 
-            // Ép lại trục RectTransform để thẻ bài nằm chính giữa tâm của ô Slot trống
             RectTransform rect = visualCard.GetComponent<RectTransform>();
             if (rect != null)
             {
@@ -106,7 +114,6 @@ public class RuneFusionUI : MonoBehaviour
                 rect.localPosition = Vector3.zero;
             }
             
-            // Cho thẻ bài nhỏ lại 
             float targetScale = 0.5f; 
             visualCard.transform.localScale = Vector3.zero;
             visualCard.transform.DOScale(new Vector3(targetScale, targetScale, targetScale), 0.25f).SetEase(Ease.OutBack);
@@ -128,7 +135,6 @@ public class RuneFusionUI : MonoBehaviour
         }
         spawnedVisualCards.Clear();
         
-        // Dọn sạch cả thẻ phần thưởng khi bấm nút Clear hòm đồ hoặc đổi Panel
         ClearRewardCard();
         
         if (resultText != null) resultText.text = "Select 3 runes of the same rarity to begin fusion...";
@@ -144,55 +150,65 @@ public class RuneFusionUI : MonoBehaviour
         }
     }
 
-private void UpdateFusionPanelVisual()
-{
-    if (selectedRunes.Count == 0)
+    private void UpdateFusionPanelVisual()
     {
-        if (chanceText != null) chanceText.text = "Success Rate: --%";
-        if (costText != null) costText.text = "Cost: 0 Shards"; 
-        if (fuseButton != null) fuseButton.interactable = false;
-        return;
+        if (selectedRunes.Count == 0)
+        {
+            if (chanceText != null) chanceText.text = "Success Rate: --%";
+            if (costText != null) costText.text = "Cost: 0 Shards"; 
+            if (fuseButton != null) fuseButton.interactable = false;
+            return;
+        }
+
+        RuneRarity currentRarity = selectedRunes[0].runeRarity;
+        bool wantToUseCharm = useCharmToggle != null && useCharmToggle.isOn;
+        bool hasCharm = InventoryItemManager.Instance != null && InventoryItemManager.Instance.GetItemQuantity(charmItemID) >= 1;
+        bool isCharmActive = wantToUseCharm && hasCharm;
+
+        if (chanceText != null)
+        {
+            if (isCharmActive)
+            {
+                chanceText.text = "Success Rate: <color=#00FFCC>100% (Charm Protected)</color>";
+            }
+            else
+            {
+                float rate = currentRarity == RuneRarity.Common ? 85f : currentRarity == RuneRarity.Rare ? 60f : 35f;
+                chanceText.text = $"Success Rate: <color=green>{rate}%</color>";
+            }
+        }
+
+        if (costText != null)
+        {
+            int cost = currentRarity == RuneRarity.Common ? 100 : currentRarity == RuneRarity.Rare ? 300 : 800;
+            if (wantToUseCharm)
+            {
+                costText.text = $"Cost: <color=yellow>{cost} Shards</color> + <color=#FFA500>1 Charm</color>";
+            }
+            else
+            {
+                costText.text = $"Cost: <color=yellow>{cost} Shards</color>";
+            }
+        }
+
+        if (fuseButton != null)
+        {
+            fuseButton.interactable = (selectedRunes.Count == 3);
+        }
     }
 
-    RuneRarity currentRarity = selectedRunes[0].runeRarity;
-    
-    if (chanceText != null)
-    {
-        float rate = currentRarity == RuneRarity.Common ? 85f : currentRarity == RuneRarity.Rare ? 60f : 35f;
-        chanceText.text = $"Success Rate: <color=green>{rate}%</color>";
-    }
-
-    if (costText != null)
-    {
-        int cost = currentRarity == RuneRarity.Common ? 100 : currentRarity == RuneRarity.Rare ? 300 : 800;
-        costText.text = $"Cost: <color=yellow>{cost} Shards</color>"; 
-    }
-
-    if (fuseButton != null)
-    {
-        fuseButton.interactable = (selectedRunes.Count == 3);
-    }
-}
-    /// <summary>
-    /// Hàm tự động điền nguyên liệu thông minh gán vào nút AutoFillButton ngoài giao diện
-    /// </summary>
     public void AutoFillIngredients()
     {
         if (isAnimating || RuneInventoryManager.Instance == null) return;
 
-        // 1. Dọn sạch các ô chứa hiện tại để tính toán bộ mồi mới
         ClearFusionSlots();
 
-        // 2. Lấy toàn bộ danh sách ngọc thực tế trong túi đồ
         List<RuneData> allRunes = RuneInventoryManager.Instance.runes;
-
-        // 3. Phân loại ngọc hợp lệ dựa trên cấu trúc bộ lọc RuneFilterPanel hiện tại
         List<RuneData> filteredRunes = new List<RuneData>();
         foreach (RuneData r in allRunes)
         {
-            if (r == null || r.runeRarity == RuneRarity.Legendary) continue; // Ngọc Legendary không được đập tiếp
+            if (r == null || r.runeRarity == RuneRarity.Legendary) continue;
 
-            // Nếu bảng bộ lọc đang mở, chỉ lấy ngọc vượt qua điều kiện lọc. Nếu bảng đóng, lấy tuốt.
             if (RuneFilterPanel.Instance != null)
             {
                 if (RuneFilterPanel.Instance.EvaluateRuneFilter(r)) filteredRunes.Add(r);
@@ -203,14 +219,12 @@ private void UpdateFusionPanelVisual()
             }
         }
 
-        // 4. Thuật toán tìm nhóm độ hiếm hợp lệ để tự điền (Ưu tiên Common -> Rare -> Epic)
         RuneRarity[] checkOrder = { RuneRarity.Common, RuneRarity.Rare, RuneRarity.Epic };
         RuneRarity selectedTargetRarity = RuneRarity.Common;
         bool foundValidGroup = false;
 
         foreach (RuneRarity targetRarity in checkOrder)
         {
-            // Đếm xem trong danh sách ngọc đang hiển thị/lọc có đủ 3 viên thuộc độ hiếm này không
             int matchCount = 0;
             foreach (RuneData r in filteredRunes)
             {
@@ -221,11 +235,10 @@ private void UpdateFusionPanelVisual()
             {
                 selectedTargetRarity = targetRarity;
                 foundValidGroup = true;
-                break; // Tìm thấy cấp hiếm thấp nhất đủ điều kiện -> Thoát vòng lặp để gán đồ
+                break;
             }
         }
 
-        // 5. Nếu không cấp độ hiếm nào gom đủ 3 viên rảnh rỗi
         if (!foundValidGroup)
         {
             if (resultText != null) resultText.text = "<color=#FF4C4C>AutoFill failed: Need at least 3 matching runes!</color>";
@@ -234,15 +247,14 @@ private void UpdateFusionPanelVisual()
             return;
         }
 
-        // 6. Đổ 3 viên tìm được vào ô dung hợp mô phỏng
         int addedCount = 0;
         foreach (RuneData r in filteredRunes)
         {
             if (r.runeRarity == selectedTargetRarity)
             {
-                AddRuneToFusion(r); // Gọi lại hàm nạp visual card có sẵn của bạn
+                AddRuneToFusion(r);
                 addedCount++;
-                if (addedCount >= 3) break; // Đủ 3 viên nguyên liệu hợp chuẩn -> Hoàn tất
+                if (addedCount >= 3) break;
             }
         }
 
@@ -256,13 +268,23 @@ private void UpdateFusionPanelVisual()
     {
         if (selectedRunes.Count != 3 || isAnimating) return;
 
+        bool wantToUseCharm = useCharmToggle != null && useCharmToggle.isOn;
+        if (wantToUseCharm && InventoryItemManager.Instance != null && InventoryItemManager.Instance.GetItemQuantity(charmItemID) < 1)
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify("You do not possess any Protection Charms!", Color.red);
+            }
+            return;
+        }
+
         List<string> ids = new List<string>();
         foreach (RuneData r in selectedRunes) ids.Add(r.runeID);
 
-        StartFusionAnimationSequence(ids);
+        StartFusionAnimationSequence(ids, wantToUseCharm);
     }
 
-    private void StartFusionAnimationSequence(List<string> ingredientIDs)
+    private void StartFusionAnimationSequence(List<string> ingredientIDs, bool useProtection)
     {
         isAnimating = true;
         ClearRewardCard(); 
@@ -271,7 +293,6 @@ private void UpdateFusionPanelVisual()
 
         Sequence fusionSequence = DOTween.Sequence();
 
-        // 1. Nhấc cả 3 viên ngọc mồi co cụm bay thẳng vào vị trí Tâm
         for (int i = 0; i < spawnedVisualCards.Count; i++)
         {
             if (spawnedVisualCards[i] == null) continue;
@@ -281,15 +302,13 @@ private void UpdateFusionPanelVisual()
             fusionSequence.Join(spawnedVisualCards[i].transform.DORotate(new Vector3(0, 0, 360f), 0.6f, RotateMode.FastBeyond360));
         }
 
-        // 2. Khi trúng tâm, phát nổ và hiển thị kết quả
         fusionSequence.OnComplete(() =>
         {
             bool isSuccess;
             RuneData resultRune;
             
-            bool execute = RuneFusionManager.Instance.TryFuseRunes(ingredientIDs, out isSuccess, out resultRune);
+            bool execute = RuneFusionManager.Instance.TryFuseRunes(ingredientIDs, useProtection, out isSuccess, out resultRune);
 
-            // Xóa sạch nguyên liệu cũ
             foreach (RuneCardUI visual in spawnedVisualCards) if (visual != null) Destroy(visual.gameObject);
             spawnedVisualCards.Clear();
             selectedRunes.Clear();
@@ -300,7 +319,6 @@ private void UpdateFusionPanelVisual()
                 {
                     if (resultText != null) resultText.text = $"<color=#00FFCC>FUSION SUCCESSFUL!\nForged: {resultRune.runeName}</color>";
                     if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Fusion successful! Higher tier rune acquired.", Color.green);
-                    Debug.Log($"<color=#00FFCC><b>[ÉP NGỌC]</b> Triệu hồi thành công viên ngọc cấp cao mới: {resultRune.runeName}</color>");
 
                     Camera.main.transform.DOShakePosition(0.3f, 15f, 20);
 
@@ -309,7 +327,6 @@ private void UpdateFusionPanelVisual()
                         rewardCardInstance = Instantiate(cardPrefabSample, fusionCenterPoint);
                         rewardCardInstance.Setup(resultRune, false);
 
-                        // Ép viên phần thưởng nằm khít ngay tại vị trí Tâm kết quả
                         RectTransform rewardRect = rewardCardInstance.GetComponent<RectTransform>();
                         if (rewardRect != null)
                         {
@@ -329,16 +346,15 @@ private void UpdateFusionPanelVisual()
                 }
                 else
                 {
-                    if (resultText != null) resultText.text = "<color=#FF4C4C>FUSION FAILED!\nMaterials broke into shards.</color>";
-                    if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Fusion failed! Ingredients shattered.", Color.red);
-                    Debug.Log("<color=#FF3333><b>[ÉP NGỌC]</b> Đập đồ thất bại, nguyên liệu thô đã bốc cháy thành tro bụi.</color>");
+                    if (resultText != null) resultText.text = "<color=#FF4C4C>FUSION FAILED!\n20% Shards refunded.</color>";
+                    if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Fusion failed! Partial shards refunded.", Color.red);
 
                     fusionCenterPoint.DOShakePosition(0.4f, 25f, 30);
                 }
             }
 
             isAnimating = false;
-            UpdateFusionPanelVisual();
+            ResetToggleState();
         });
     }
 }

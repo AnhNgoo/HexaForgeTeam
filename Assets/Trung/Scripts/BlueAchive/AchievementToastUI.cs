@@ -50,14 +50,14 @@ public class AchievementToastUI :
     {
         if (TitleText != null)
         {
-            TitleText.text =
-                title;
+            TitleText.SetTextSafe(
+                title);
         }
 
         if (DescriptionText != null)
         {
-            DescriptionText.text =
-                description;
+            DescriptionText.SetTextSafe(
+                description);
         }
 
         if (VisualRoot != null)
