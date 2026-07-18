@@ -20,7 +20,10 @@ public class MouseManager : Singleton<MouseManager>
 
     private void Update()
     {
-        if (IsGameSystemMenuOpen())
+        if (InputActions == null)
+            return;
+
+        if (ShouldShowMouseForUI())
         {
             ShowMouse();
             return;
@@ -36,6 +39,17 @@ public class MouseManager : Singleton<MouseManager>
         }
 
         RotateCamera();
+    }
+
+    private bool ShouldShowMouseForUI()
+    {
+        if (UIManager.Instance == null)
+            return false;
+
+        MenuType currentMenu = UIManager.Instance.CurrentMenuType;
+
+        return currentMenu != MenuType.None &&
+            currentMenu != MenuType.GameplayMenu;
     }
 
     private bool IsGameSystemMenuOpen()

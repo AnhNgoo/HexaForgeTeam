@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public enum MapLocationType
 {
@@ -28,7 +29,13 @@ public class MapLocationData
     public float identifyRadius = 50f;
 }
 
-public class WorldMapPanel : MonoBehaviour
+public class WorldMapPanel : MonoBehaviour,
+    IPointerClickHandler,
+    IScrollHandler,
+    IPointerDownHandler,
+    IBeginDragHandler,
+    IDragHandler,
+    IEndDragHandler
 {
     [Header("Map")]
     [SerializeField] private RectTransform mapContent;
@@ -36,11 +43,12 @@ public class WorldMapPanel : MonoBehaviour
     [SerializeField] private RectTransform playerMarker;
 
     [Header("World Bounds")]
-    [SerializeField] private Vector2 worldMinXZ;
-    [SerializeField] private Vector2 worldMaxXZ;
+    [SerializeField] private Vector2 worldMinXZ = new Vector2(-1500f, -1500f);
+    [SerializeField] private Vector2 worldMaxXZ = new Vector2(1500f, 1500f);
 
     [Header("Player")]
     [SerializeField] private Transform player;
+    [SerializeField] private string playerTag = "Player";
 
     [Header("Markers")]
     [SerializeField] private MapLocationMarkerUI markerPrefab;
@@ -53,15 +61,62 @@ public class WorldMapPanel : MonoBehaviour
     [SerializeField] private TMP_Text txtDescription;
     [SerializeField] private TMP_Text txtCurrentArea;
 
-    private readonly List<MapLocationMarkerUI> spawnedMarkers = new List<MapLocationMarkerUI>();
+    [Header("Zoom")]
+    [SerializeField] private float minZoom = 1f;
+    [SerializeField] private float maxZoom = 3f;
+    [SerializeField] private float zoomSpeed = 0.15f;
+
+    [Header("Ping")]
+    [SerializeField] private RectTransform pingMarker;
+    [SerializeField] private bool leftClickToPing = true;
+    [SerializeField] private bool rightClickToClearPing = true;
+
+    [Header("Pan")]
+    [SerializeField] private bool allowLeftMousePan = true;
+    [SerializeField] private bool allowMiddleMousePan = true;
+    [SerializeField] private bool clampMapInsideView = true;
+    [SerializeField] private float dragThreshold = 5f;
+
+    private float currentZoom = 1f;
+    private bool draggingMap;
+    private bool hasDragged;
+    private Vector2 pointerDownPosition;
+
+    private readonly List<MapLocationMarkerUI> spawnedMarkers =
+        new List<MapLocationMarkerUI>();
+
+    private void Awake()
+    {
+        FindPlayerIfMissing();
+
+        if (markerRoot == null)
+            markerRoot = mapContent;
+    }
 
     public void Open()
     {
         gameObject.SetActive(true);
+
+        FindPlayerIfMissing();
+
+        currentZoom = 1f;
+        draggingMap = false;
+        hasDragged = false;
+
+        if (mapContent != null)
+        {
+            mapContent.gameObject.SetActive(true);
+            mapContent.localScale = Vector3.one;
+            mapContent.anchoredPosition = Vector2.zero;
+        }
+
         BuildMarkers();
         UpdatePlayerMarker();
         UpdateCurrentArea();
+        RefreshPingMarker();
         HideInfo();
+
+        ClampMapPosition();
     }
 
     public void Close()
@@ -76,15 +131,101 @@ public class WorldMapPanel : MonoBehaviour
         if (!gameObject.activeSelf)
             return;
 
+        FindPlayerIfMissing();
         UpdatePlayerMarker();
         UpdateCurrentArea();
+        RefreshPingMarker();
+    }
+
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        pointerDownPosition = eventData.position;
+        hasDragged = false;
+    }
+
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        bool leftDrag =
+            allowLeftMousePan &&
+            eventData.button == PointerEventData.InputButton.Left;
+
+        bool middleDrag =
+            allowMiddleMousePan &&
+            eventData.button == PointerEventData.InputButton.Middle;
+
+        draggingMap = leftDrag || middleDrag;
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (!draggingMap || mapContent == null)
+            return;
+
+        if (Vector2.Distance(pointerDownPosition, eventData.position) >= dragThreshold)
+            hasDragged = true;
+
+        mapContent.anchoredPosition += eventData.delta;
+        ClampMapPosition();
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        draggingMap = false;
+    }
+
+    public void OnScroll(PointerEventData eventData)
+    {
+        if (mapContent == null)
+            return;
+
+        float delta = eventData.scrollDelta.y;
+
+        if (Mathf.Approximately(delta, 0f))
+            return;
+
+        currentZoom = Mathf.Clamp(
+            currentZoom + delta * zoomSpeed,
+            minZoom,
+            maxZoom
+        );
+
+        mapContent.localScale = Vector3.one * currentZoom;
+        ClampMapPosition();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (hasDragged)
+            return;
+
+        if (ClickedLocationMarker(eventData))
+            return;
+
+        if (leftClickToPing &&
+            eventData.button == PointerEventData.InputButton.Left)
+        {
+            SetPingFromScreen(eventData);
+            return;
+        }
+
+        if (rightClickToClearPing &&
+            eventData.button == PointerEventData.InputButton.Right)
+        {
+            ClearPing();
+        }
     }
 
     private void BuildMarkers()
     {
         ClearMarkers();
 
-        if (markerPrefab == null || markerRoot == null)
+        if (markerPrefab == null)
+            return;
+
+        if (markerRoot == null)
+            markerRoot = mapContent;
+
+        if (markerRoot == null)
             return;
 
         foreach (MapLocationData location in locations)
@@ -92,10 +233,19 @@ public class WorldMapPanel : MonoBehaviour
             if (location == null || !location.discovered)
                 continue;
 
-            MapLocationMarkerUI marker = Instantiate(markerPrefab, markerRoot);
+            MapLocationMarkerUI marker =
+                Instantiate(markerPrefab, markerRoot);
+
             marker.Setup(location, this);
-            marker.GetComponent<RectTransform>().anchoredPosition =
-                WorldToMapPosition(location.worldPosition);
+
+            RectTransform markerRect =
+                marker.GetComponent<RectTransform>();
+
+            if (markerRect != null)
+            {
+                markerRect.anchoredPosition =
+                    WorldToMapPosition(location.worldPosition);
+            }
 
             spawnedMarkers.Add(marker);
         }
@@ -117,7 +267,11 @@ public class WorldMapPanel : MonoBehaviour
         if (player == null || playerMarker == null)
             return;
 
+        playerMarker.gameObject.SetActive(true);
         playerMarker.anchoredPosition = WorldToMapPosition(player.position);
+
+        playerMarker.localEulerAngles =
+            new Vector3(0f, 0f, -player.eulerAngles.y);
     }
 
     private void UpdateCurrentArea()
@@ -126,7 +280,8 @@ public class WorldMapPanel : MonoBehaviour
             return;
 
         MapLocationData area = GetCurrentArea(player.position);
-        txtCurrentArea.text = area != null ? area.locationName : "Unknown Area";
+        txtCurrentArea.text =
+            area != null ? area.locationName : "Unknown Area";
     }
 
     private MapLocationData GetCurrentArea(Vector3 position)
@@ -144,7 +299,8 @@ public class WorldMapPanel : MonoBehaviour
                 new Vector2(location.worldPosition.x, location.worldPosition.z)
             );
 
-            if (distance <= location.identifyRadius && distance < nearestDistance)
+            if (distance <= location.identifyRadius &&
+                distance < nearestDistance)
             {
                 nearest = location;
                 nearestDistance = distance;
@@ -159,15 +315,146 @@ public class WorldMapPanel : MonoBehaviour
         if (mapContent == null)
             return Vector2.zero;
 
-        float x = Mathf.InverseLerp(worldMinXZ.x, worldMaxXZ.x, worldPosition.x);
-        float y = Mathf.InverseLerp(worldMinXZ.y, worldMaxXZ.y, worldPosition.z);
+        float normalizedX =
+            Mathf.InverseLerp(
+                worldMinXZ.x,
+                worldMaxXZ.x,
+                worldPosition.x
+            );
+
+        float normalizedY =
+            Mathf.InverseLerp(
+                worldMinXZ.y,
+                worldMaxXZ.y,
+                worldPosition.z
+            );
 
         Rect rect = mapContent.rect;
 
         return new Vector2(
-            (x - mapContent.pivot.x) * rect.width,
-            (y - mapContent.pivot.y) * rect.height
+            (normalizedX - mapContent.pivot.x) * rect.width,
+            (normalizedY - mapContent.pivot.y) * rect.height
         );
+    }
+
+    private Vector3 MapToWorldPosition(Vector2 mapPosition)
+    {
+        Rect rect = mapContent.rect;
+
+        float normalizedX =
+            mapPosition.x / rect.width + mapContent.pivot.x;
+
+        float normalizedY =
+            mapPosition.y / rect.height + mapContent.pivot.y;
+
+        float worldX =
+            Mathf.Lerp(worldMinXZ.x, worldMaxXZ.x, normalizedX);
+
+        float worldZ =
+            Mathf.Lerp(worldMinXZ.y, worldMaxXZ.y, normalizedY);
+
+        float worldY =
+            player != null ? player.position.y : 0f;
+
+        return new Vector3(worldX, worldY, worldZ);
+    }
+
+    private void SetPingFromScreen(PointerEventData eventData)
+    {
+        if (mapContent == null)
+            return;
+
+        Vector2 localPoint;
+
+        bool valid =
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                mapContent,
+                eventData.position,
+                eventData.pressEventCamera,
+                out localPoint
+            );
+
+        if (!valid)
+            return;
+
+        if (!mapContent.rect.Contains(localPoint))
+            return;
+
+        Vector3 worldPosition = MapToWorldPosition(localPoint);
+
+        MapPingService.SetPing(worldPosition);
+        RefreshPingMarker();
+    }
+
+    private void RefreshPingMarker()
+    {
+        if (pingMarker == null)
+            return;
+
+        bool hasPing = MapPingService.HasPing;
+
+        pingMarker.gameObject.SetActive(hasPing);
+
+        if (!hasPing)
+            return;
+
+        if (mapContent != null && !mapContent.gameObject.activeSelf)
+            mapContent.gameObject.SetActive(true);
+
+        pingMarker.anchoredPosition =
+            WorldToMapPosition(MapPingService.PingWorldPosition);
+
+        pingMarker.SetAsLastSibling();
+    }
+
+    private void ClearPing()
+    {
+        if (pingMarker != null)
+            pingMarker.gameObject.SetActive(false);
+
+        MapPingService.ClearPing();
+    }
+
+    private void ClampMapPosition()
+    {
+        if (!clampMapInsideView || mapContent == null)
+            return;
+
+        RectTransform viewport =
+            mapContent.parent as RectTransform;
+
+        if (viewport == null)
+            return;
+
+        Vector2 contentSize =
+            mapContent.rect.size * currentZoom;
+
+        Vector2 viewportSize =
+            viewport.rect.size;
+
+        Vector2 maxOffset = new Vector2(
+            Mathf.Max(0f, (contentSize.x - viewportSize.x) * 0.5f),
+            Mathf.Max(0f, (contentSize.y - viewportSize.y) * 0.5f)
+        );
+
+        Vector2 position = mapContent.anchoredPosition;
+
+        position.x =
+            Mathf.Clamp(position.x, -maxOffset.x, maxOffset.x);
+
+        position.y =
+            Mathf.Clamp(position.y, -maxOffset.y, maxOffset.y);
+
+        mapContent.anchoredPosition = position;
+    }
+
+    private bool ClickedLocationMarker(PointerEventData eventData)
+    {
+        if (eventData.pointerPressRaycast.gameObject == null)
+            return false;
+
+        return eventData.pointerPressRaycast.gameObject
+            .GetComponentInParent<MapLocationMarkerUI>() != null;
     }
 
     public void ShowInfo(MapLocationData location)
@@ -192,5 +479,17 @@ public class WorldMapPanel : MonoBehaviour
     {
         if (infoRoot != null)
             infoRoot.SetActive(false);
+    }
+
+    private void FindPlayerIfMissing()
+    {
+        if (player != null)
+            return;
+
+        GameObject target =
+            GameObject.FindGameObjectWithTag(playerTag);
+
+        if (target != null)
+            player = target.transform;
     }
 }
