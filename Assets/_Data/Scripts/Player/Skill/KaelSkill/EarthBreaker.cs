@@ -15,7 +15,7 @@ public class EarthBreaker : CharacterSkillBase
 
     }
 
-    protected override async UniTask ExecuteSkill()
+    protected override async void ExecuteSkill()
     {
         if (character is not Kael kael)
         {

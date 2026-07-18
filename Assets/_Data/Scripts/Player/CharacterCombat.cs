@@ -127,7 +127,7 @@ public class CharacterCombat : LoadComponents
         characterBase.StateController.ChangeState(new IdleState(characterBase));
 
         if (comboIndex == combos.Length - 1)
-            cooldownAttackTimer.StartCooldown(nextAttackTime);
+            cooldownAttackTimer.StartCooldown(cooldownTime);
 
         // Đợi thêm một khoảng thời gian để xem người chơi có đánh tiếp không, nếu không thì reset combo
         float delay = comboIndex == combos.Length - 1 ? 0 : comboResetDelay; // Nếu là đòn cuối thì không cần delay nữa
