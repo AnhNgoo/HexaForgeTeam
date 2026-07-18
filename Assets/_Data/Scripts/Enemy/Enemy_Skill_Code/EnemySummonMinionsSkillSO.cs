@@ -46,10 +46,17 @@ public class EnemySummonMinionsSkillSO : EnemyAttackSkillSO
 
     private void SpawnMinions(EnemyAttackContext context, SkeletonMageMinibossBehaviour mage)
     {
-        for (int i = 0; i < summonCount; i++)
+        int spawnAmount = mage != null
+            ? Mathf.Min(summonCount, mage.AvailableMinionSlots)
+            : summonCount;
+
+        if (spawnAmount <= 0)
+            return;
+
+        for (int i = 0; i < spawnAmount; i++)
         {
             Vector3 dir =
-                Quaternion.Euler(0f, i * 360f / summonCount, 0f) *
+                Quaternion.Euler(0f, i * 360f / spawnAmount, 0f) *
                 context.Enemy.MyTransform.forward;
 
             Vector3 rawPos = context.Enemy.MyTransform.position + dir * spawnRadius;
@@ -68,24 +75,33 @@ public class EnemySummonMinionsSkillSO : EnemyAttackSkillSO
             EnemyBase minion = obj.GetComponent<EnemyBase>();
             if (minion == null) continue;
 
-            minion.InitSummoned(hit.position, context.Target);
+            minion.InitSummoned(hit.position, null, false);
             mage?.RegisterMinion(minion);
 
-            PlayAwakenAsync(minion).Forget();
+            PlayAwakenAsync(minion, context.Target).Forget();
         }
     }
 
-    private async UniTaskVoid PlayAwakenAsync(EnemyBase minion)
+    private async UniTaskVoid PlayAwakenAsync(EnemyBase minion, Transform target)
     {
         minion.Locomotion.StopMoving();
 
         Animator animator = minion.AnimatorController.Animator;
-        if (animator != null && animator.HasState(0, Animator.StringToHash(awakenAnimationState)))
-            animator.CrossFadeInFixedTime(awakenAnimationState, 0.05f);
+        int awakenHash = Animator.StringToHash(awakenAnimationState);
+
+        if (animator != null && animator.HasState(0, awakenHash))
+            animator.Play(awakenHash, 0, 0f);
 
         await UniTask.Delay(System.TimeSpan.FromSeconds(awakenLockDuration));
 
-        if (minion != null && minion.Health.CurrentHealth > 0f)
-            minion.StateMachine.ChangeState(minion.StateMachine.EnemyChaseState);
+        if (minion == null || minion.Health.CurrentHealth <= 0f)
+            return;
+
+        minion.Detection.SetPlayerReference(target);
+
+        if (target != null)
+            minion.Detection.ForceDetectTarget(target);
+        else
+            minion.StateMachine.ResetToDefaultState();
     }
 }

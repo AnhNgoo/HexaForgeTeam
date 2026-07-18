@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -28,7 +29,8 @@ public class GameplayMenu : MenuBase
     [SerializeField] private TextMeshProUGUI txt_Gold;
 
     [Header("Shortcuts")]
-    [SerializeField] private MenuType inventoryMenuType =
+    [SerializeField]
+    private MenuType inventoryMenuType =
         MenuType.InventoryMenu;
 
     [Header("Tutorial")]
@@ -39,7 +41,10 @@ public class GameplayMenu : MenuBase
     [SerializeField] private GameObject pickUpItemPanel;
     [SerializeField] private TextMeshProUGUI text_Keyboard;
     [SerializeField] private TextMeshProUGUI text_Description;
-    
+
+    [Header("Display Item")]
+    [SerializeField] private DisplayItem displayWeapon;
+
 
     private bool isGoldSubscribed;
 
@@ -107,12 +112,17 @@ public class GameplayMenu : MenuBase
                 FindDeepChild("Text_Description")
                     ?.GetComponent<TextMeshProUGUI>();
         }
+
+        if (displayWeapon == null)
+        {
+            displayWeapon =
+                FindDeepChild("DisplayWeapon")
+                    ?.GetComponent<DisplayItem>();
+        }
     }
 
     protected override void LoadComponentRuntime()
     {
-        LoadComponent();
-
         if (playerStats == null)
         {
             playerStats =
@@ -120,11 +130,20 @@ public class GameplayMenu : MenuBase
         }
     }
 
+    //NOTE - Sub gold quá nhiều nơi, bị double subscribe
+    private void OnEnable()
+    {
+        SubscribeGold();
+    }
+
+    private void OnDisable()
+    {
+        UnsubscribeGold();
+    }
+
     protected override void Awake()
     {
         base.Awake();
-
-        LoadComponentRuntime();
         HidePickUpItemPanel(null);
         HideTutorialPanel(null);
 
@@ -143,16 +162,8 @@ public class GameplayMenu : MenuBase
         EventManager.Subscribe(
             GameEvent.OnHidePickUpItemPanel,
             HidePickUpItemPanel);
-    }
 
-    private void OnEnable()
-    {
-        SubscribeGold();
-    }
-
-    private void OnDisable()
-    {
-        UnsubscribeGold();
+        EventManager.Subscribe(GameEvent.OnUpdateDisplayWeapon, UpdateDisplayWeapon);
     }
 
     private void OnDestroy()
@@ -174,6 +185,8 @@ public class GameplayMenu : MenuBase
         EventManager.Unsubscribe(
             GameEvent.OnHidePickUpItemPanel,
             HidePickUpItemPanel);
+
+        EventManager.Unsubscribe(GameEvent.OnUpdateDisplayWeapon, UpdateDisplayWeapon);
     }
 
     public override void Open(object data = null)
@@ -198,11 +211,32 @@ public class GameplayMenu : MenuBase
     {
         UpdatePlayerStatsUI();
         HandleShortcutInput();
+
+        if (InputManager.InputActions.Keyboard.Escape.triggered)
+        {
+            OpenInventoryMenu();
+        }
     }
 
     private void HandleShortcutInput()
     {
-        // GameSystemInputRouter handles M/I/P/ESC.
+        if (Keyboard.current == null ||
+            UIManager.Instance == null)
+        {
+            return;
+        }
+
+        if (UIManager.Instance.CurrentMenuType !=
+            MenuType.GameplayMenu)
+        {
+            return;
+        }
+
+        if (Keyboard.current.iKey.wasPressedThisFrame)
+        {
+            UIManager.Instance.ChangeMenu(
+                MenuType.GameSystemMenu);
+        }
     }
 
     public void OpenInventoryMenu()
@@ -419,6 +453,21 @@ public class GameplayMenu : MenuBase
 
     #endregion
 
+    #region Display Item
+
+    private void UpdateDisplayWeapon(object obj)
+    {
+        if (obj is WeaponData weaponData)
+        {
+            displayWeapon.SetDisplayItem(weaponData);
+        }
+        else
+        {
+            displayWeapon.SetDisplayItem(null);
+        }
+    }
+
+    #endregion
     private Transform FindDeepChild(string childName)
     {
         Transform[] children =

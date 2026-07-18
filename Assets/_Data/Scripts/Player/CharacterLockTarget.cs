@@ -39,7 +39,7 @@ public class CharacterLockTarget : LoadComponents
     {
         if (!IsLockingTarget) return;
 
-        if (lookAtTarget == null) // Nếu mục tiêu bị hủy hoặc mất, tự động mở khóa
+        if (!IsValidTarget(lookAtTarget)) // Nếu mục tiêu bị hủy hoặc mất, tự động mở khóa
         {
             ToggleLockTarget();
             return;
@@ -51,6 +51,21 @@ public class CharacterLockTarget : LoadComponents
             ToggleLockTarget();
         }
 
+    }
+
+    /// <summary>
+    /// Kiểm tra xem mục tiêu có hợp lệ để khóa hay không.
+    /// </summary>
+    private bool IsValidTarget(Transform target)
+    {
+        if (target == null)
+            return false;
+
+        EnemyBase enemy = target.GetComponentInParent<EnemyBase>();
+        if (enemy != null && enemy.Health.CurrentHealth <= 0f)
+            return false;
+
+        return true;
     }
     /// <summary>
     /// Bật/tắt khoá mục tiêu
@@ -111,6 +126,9 @@ public class CharacterLockTarget : LoadComponents
         foreach (Collider targetCollider in targetsInRange)
         {
             Transform target = targetCollider.transform;
+
+            if (!IsValidTarget(target))
+                continue;
 
             Vector3 viewportPosition = Camera.main.WorldToViewportPoint(target.position);
 

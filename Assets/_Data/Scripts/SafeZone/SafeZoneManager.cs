@@ -1,18 +1,57 @@
-using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using System;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SafeZoneManager : Singleton<SafeZoneManager>
 {
     [SerializeField] private SafeZone safeZone;
     public SafeZone SafeZone => safeZone;
-    [SerializeField] private SafeZoneData safeZoneData;
+    [SerializeField][InlineEditor()] private SafeZoneData safeZoneData;
     [SerializeField] private List<Transform> targetCenterPoints = new List<Transform>();
+    [SerializeField] private bool autoStartOnPlay = true;
+    [SerializeField] private float resetAfterBossDelay = 1f;
     public bool IsSafeZoneCompleted { get; private set; } = false;
     public bool IsActiveSafeZone { get; private set; } = false; //Khi kích hoạt vật thể mới bị bo đốt
+
+    public int CurrentPhaseIndex { get; private set; }
+    private Transform currentTargetCenterPoint;
+    [ReadOnly, SerializeField] private List<Transform> usedTargetCenterPoints = new();
+    public event Action<int, Transform> OnSafeZonePhaseCompleted;
+
+    public void Start()
+    {
+        if (autoStartOnPlay)
+            StartSafeZoneFlow().Forget();
+    }
+
+    public async UniTaskVoid StartSafeZoneFlow(bool skipDelay = false)
+    {
+        CreateSafeZone();
+
+        if (safeZoneData == null || safeZoneData.safeZoneStats == null)
+            return;
+
+        currentTargetCenterPoint = GetTargetCenterPoint();
+
+        if (currentTargetCenterPoint == null)
+        {
+            Debug.LogWarning("[SafeZone] Không tìm thấy TargetCenterPoint.");
+            return;
+        }
+
+        for (int i = 0; i < safeZoneData.safeZoneStats.Count; i++)
+        {
+            await ShrinkSafeZoneTurn(safeZoneData.safeZoneStats[i], skipDelay);
+        }
+
+        IsSafeZoneCompleted = true;
+        OnSafeZonePhaseCompleted?.Invoke(CurrentPhaseIndex, currentTargetCenterPoint);
+    }
 
     [Button("Step 1: Create Safe Zone")]
     public void CreateSafeZone()
@@ -40,30 +79,54 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     }
 
     [Button("Step 2: Start Shrink Safe Zone")]
-    public async void ShrinkSafeZone()
+    public void ShrinkSafeZone()
+    {
+        StartSafeZoneFlow().Forget();
+    }
+
+    [Button("Debug: Shrink Now")]
+    public void DebugShrinkNow()
+    {
+        StartSafeZoneFlow(true).Forget();
+    }
+
+    private async UniTask ShrinkSafeZoneTurn(SafeZoneStat stat, bool skipDelay)
     {
         if (safeZone == null) return;
         if (safeZone.IsShrinking) return;
-        if (targetCenterPoints.Count == 0) return; // Không có điểm trung tâm nào để thu nhỏ vòng bo
-        ResetSafeZone(safeZone);
-        IsActiveSafeZone = true; //Khi kích hoạt vật thể mới bị bo đốt
 
-        SafeZoneStat stat = safeZoneData.safeZoneStat;
+        IsSafeZoneCompleted = false;
+        IsActiveSafeZone = true;
 
-        await UniTask.Delay(TimeSpan.FromSeconds(stat.timeDelay)); // Delay trước khi bắt đầu thu nhỏ vòng bo
+        if (!skipDelay)
+            await UniTask.Delay(TimeSpan.FromSeconds(stat.timeDelay));
 
-        Vector3 targetCenterPoint = GetTargetCenterPoint().position;
+        CurrentPhaseIndex++;
 
-        safeZone.ShrinkSafeZone(targetCenterPoint, stat.radius, stat.shrinkDuration);
+        safeZone.ShrinkSafeZone(
+            currentTargetCenterPoint.position,
+            stat.radius,
+            stat.shrinkDuration
+        );
 
         while (safeZone.IsShrinking)
-        {
-            // Chờ cho đến khi vòng bo hoàn thành việc thu nhỏ trước khi tiếp tục
             await UniTask.Yield();
-        }
+    }
 
-        //Đánh dấu bo cuối để gọi boss, dùng để check và gọi boss sau này
-        IsSafeZoneCompleted = true;
+    public async void ResetSafeZoneAfterBossDead()
+    {
+        await UniTask.Delay(TimeSpan.FromSeconds(resetAfterBossDelay));
+
+        CurrentPhaseIndex = 0;
+        IsSafeZoneCompleted = false;
+
+        if (safeZone != null)
+            ObjectPooling.Instance.ReturnToPool(PoolType.SafeZone, safeZone.gameObject);
+
+        safeZone = null;
+        targetCenterPoints.Clear();
+
+        StartSafeZoneFlow().Forget();
     }
 
     private void ResetSafeZone(SafeZone safeZone)
@@ -75,11 +138,13 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     }
     private void GetAllTargetCenterPoint()
     {
-        // Lấy tất cả các điểm trung tâm của vòng bo để làm điểm spawn
-        GameObject[] centerPointObjects = GameObject.FindGameObjectsWithTag("TargetCenterPoint");
+        GameObject[] centerPointObjects =
+            GameObject.FindGameObjectsWithTag("TargetCenterPoint");
+
         foreach (GameObject obj in centerPointObjects)
         {
-            targetCenterPoints.Add(obj.transform);
+            if (!usedTargetCenterPoints.Contains(obj.transform))
+                targetCenterPoints.Add(obj.transform);
         }
     }
 
@@ -90,7 +155,9 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
         int randomIndex = UnityEngine.Random.Range(0, targetCenterPoints.Count);
         Transform randomCenterPoint = targetCenterPoints[randomIndex];
-        targetCenterPoints.RemoveAt(randomIndex); // Loại bỏ điểm đã sử dụng để tránh trùng lặp
+        targetCenterPoints.RemoveAt(randomIndex);
+        usedTargetCenterPoints.Add(randomCenterPoint);
+
         return randomCenterPoint;
     }
 
@@ -104,4 +171,54 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         }
         return null;
     }
+
+#if UNITY_EDITOR
+    #region Gizmos
+    private void OnDrawGizmosSelected()
+    {
+        if (safeZoneData == null || safeZoneData.safeZoneStats == null)
+            return;
+
+        DrawStartZoneGizmo();
+
+        GameObject[] targetPoints = GameObject.FindGameObjectsWithTag("TargetCenterPoint");
+
+        foreach (GameObject targetPoint in targetPoints)
+        {
+            DrawPhaseGizmos(targetPoint.transform.position);
+        }
+    }
+
+    private void DrawStartZoneGizmo()
+    {
+        GameObject startPoint = GameObject.FindGameObjectWithTag("StartCenterPoint");
+
+        if (startPoint == null)
+            return;
+
+        Handles.color = Color.white;
+        Handles.DrawWireDisc(startPoint.transform.position, Vector3.up, safeZoneData.startRadius);
+
+        Handles.Label(startPoint.transform.position + Vector3.forward * safeZoneData.startRadius, $"Start | Radius: {safeZoneData.startRadius:0.#}");
+    }
+
+    private void DrawPhaseGizmos(Vector3 center)
+    {
+        int phaseCount = safeZoneData.safeZoneStats.Count;
+
+        for (int i = 0; i < phaseCount; i++)
+        {
+            SafeZoneStat stat = safeZoneData.safeZoneStats[i];
+
+            float colorPosition = phaseCount <= 1 ? 0f : i / (phaseCount - 1f);
+
+            Handles.color = Color.Lerp(Color.yellow, Color.red, colorPosition);
+
+            Handles.DrawWireDisc(center, Vector3.up, stat.radius);
+
+            Handles.Label(center + Vector3.forward * stat.radius, $"Shrink Turn {i + 1} | Radius: {stat.radius:0.#}");
+        }
+    }
+    #endregion
+#endif
 }

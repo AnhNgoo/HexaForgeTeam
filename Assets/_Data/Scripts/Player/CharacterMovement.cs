@@ -52,6 +52,7 @@ public class CharacterMovement : LoadComponents
 
     [Header("Gravity Settings")]
     [SerializeField] private float gravity = -100f;
+    public bool UseGravity = true;
 
     public bool IsGrounded { get; set; } = false;
     public CollisionFlags flags { get; private set; } // Cờ giúp phát hiện va chạm với mặt đất, tường hoặc trần nhà
@@ -101,17 +102,21 @@ public class CharacterMovement : LoadComponents
 
     private void ApplyGravity()
     {
-        if (IsGrounded && verticalVelocity < 0)
+        if (UseGravity && IsGrounded && verticalVelocity < 0)
         {
             verticalVelocity = -2f;
         }
 
-        // Gravity
-        verticalVelocity += gravity * Time.deltaTime;
+        if (UseGravity)
+        {
+            verticalVelocity += gravity * Time.deltaTime;
+        }
 
-        // Final movement
         Vector3 finalMove = CurrentMove;
-        finalMove.y = verticalVelocity;
+        if (UseGravity)
+        {
+            finalMove.y = verticalVelocity;
+        }
 
         flags =
             cc.Move(finalMove * Time.deltaTime);
@@ -127,12 +132,12 @@ public class CharacterMovement : LoadComponents
             (flags & CollisionFlags.Below) != 0; // Cập nhật grounded sau khi di chuyển để đảm bảo chính xác
     }
 
-    private void Movement(Vector2 direction, float moveSpeed, float speedMultiplier)
+    public void Movement(Vector3 direction, float moveSpeed, float speedMultiplier = 1)
     {
         Vector3 moveDirection = new Vector3(
             direction.x,
-            0,
-            direction.y
+            direction.y,
+            direction.z
         );
 
         CurrentMove =
@@ -147,7 +152,7 @@ public class CharacterMovement : LoadComponents
             Stop();
             return;
         }
-        Movement(direction, moveSpeed, walkSpeedMultiplier);
+        Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, walkSpeedMultiplier);
     }
 
     public void Run(Vector2 direction, float moveSpeed)
@@ -157,7 +162,7 @@ public class CharacterMovement : LoadComponents
             Stop();
             return;
         }
-        Movement(direction, moveSpeed, runSpeedMultiplier);
+        Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, runSpeedMultiplier);
     }
 
     public void Sprint(Vector2 direction, float moveSpeed)
@@ -167,7 +172,7 @@ public class CharacterMovement : LoadComponents
             Stop();
             return;
         }
-        Movement(direction, moveSpeed, sprintSpeedMultiplier);
+        Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, sprintSpeedMultiplier);
     }
 
     public async void Dodge(Vector2 direction, float moveSpeed)
@@ -182,7 +187,7 @@ public class CharacterMovement : LoadComponents
         float dodgeTimer = 0f;
         while (dodgeTimer < dodgeDuration)
         {
-            Movement(direction, moveSpeed, dodgeSpeedMultiplier);
+            Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, dodgeSpeedMultiplier);
             dodgeTimer += Time.deltaTime;
             await UniTask.Yield();
         }
@@ -244,7 +249,7 @@ public class CharacterMovement : LoadComponents
             Stop();
             return;
         }
-        Movement(direction, moveSpeed, airSpeedMultiplier);
+        Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, airSpeedMultiplier);
     }
 
     public void Stop()

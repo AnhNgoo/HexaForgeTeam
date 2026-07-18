@@ -40,8 +40,8 @@ public class InteractItemUIV2 : MonoBehaviour
 
         if (interactText != null)
         {
-            interactText.text =
-                interact.InteractText;
+            interactText.SetTextSafe(
+                interact.InteractText);
 
             interactText.color =
                 selected

@@ -9,6 +9,7 @@ public class EnemyBurrowAttackSkillSO : EnemyAttackSkillSO
     [SerializeField] private string emergeState = "Underground to Head Only";
     [SerializeField] private string biteState = "Head Attack In Place";
 
+    [SerializeField] private float biteHitboxDelay = 0.45f;
     [SerializeField] private float burrowDownDuration = 0.7f;
     [SerializeField] private float emergeDuration = 0.45f;
     [SerializeField] private float biteHitboxDuration = 0.25f;
@@ -57,6 +58,9 @@ public class EnemyBurrowAttackSkillSO : EnemyAttackSkillSO
         FaceTarget(enemy, context.Target);
         animator?.CrossFadeInFixedTime(biteState, 0.05f);
 
+        await UniTask.Delay(System.TimeSpan.FromSeconds(biteHitboxDelay));
+
+        enemy.Combat.PlayAttackVFX();
         enemy.Combat.EnableHitbox(context.AttackData.hitboxType);
         behaviour?.NotifyBurrowEmerged();
 

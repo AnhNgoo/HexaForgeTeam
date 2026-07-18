@@ -35,6 +35,7 @@ public class DialogueUI : MonoBehaviour
 
     [SerializeField]
     private TMP_Text choice3Text;
+    private float allowInputTime = 0f;
 
     private void Awake()
     {
@@ -47,8 +48,7 @@ public class DialogueUI : MonoBehaviour
 
 private int currentIndex;
 
-    public void Show(
-    DialogueData data)
+    public void Show(DialogueData data)
 {
     if (data == null)
     {
@@ -56,33 +56,29 @@ private int currentIndex;
     }
 
     currentDialogue = data;
-
     currentIndex = 0;
 
-    UIManager.Instance.ChangeMenu(
-    MenuType.LobbyDialogueMenu);
+    UIManager.Instance.ChangeMenu(MenuType.LobbyDialogueMenu);
 
     if (npcNameText != null)
     {
-        npcNameText.text =
-            data.npcName;
+        npcNameText.SetTextSafe(data.npcName);
     }
 
     RefreshDialogue();
-
     SetChoiceVisible(false);
 
     if (InteractManagerV2.Instance != null)
     {
-        InteractManagerV2.Instance
-            .IsBusy = true;
+        InteractManagerV2.Instance.IsBusy = true;
     }
 
     if (InteractUIV2.Instance != null)
     {
-        InteractUIV2.Instance
-            .Hide();
+        InteractUIV2.Instance.Hide();
     }
+
+    allowInputTime = Time.unscaledTime + 0.15f;
 }
 
     public void Hide()
@@ -128,8 +124,7 @@ private int currentIndex;
 
         if (text != null)
         {
-            text.text =
-                choice.choiceText;
+            text.SetTextSafe(choice.choiceText);
         }
 
         button.onClick
@@ -175,9 +170,9 @@ private int currentIndex;
 {
     if (dialogueText != null)
     {
-        dialogueText.text =
+        dialogueText.SetTextSafe(
             currentDialogue
-            .dialogues[currentIndex];
+            .dialogues[currentIndex]);
     }
 }
 private void SetChoiceVisible(
@@ -228,7 +223,8 @@ private void Update()
 {
     if (root == null || !root.activeSelf) return;
 
-    // MỚI: Nếu các nút lựa chọn đang hiện, ngừng xử lý bấm F/Click chuột để tránh nhảy index loạn
+    if (Time.unscaledTime < allowInputTime) return;
+
     if (choice1Button != null && choice1Button.gameObject.activeSelf) return;
 
     if (!Input.GetKeyDown(KeyCode.F) && !Input.GetMouseButtonDown(0)) return;

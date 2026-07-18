@@ -80,6 +80,8 @@ public class AttackDataSO : ScriptableObject
     public Vector3 vfxOffset; //Offset để điều chỉnh vị trí gắn VFX khi đòn đánh được đánh ra, có thể dùng để tinh chỉnh vị trí gắn hiệu ứng khi tấn công để phù hợp với animation và mô hình của Enemy
     public Vector3 vfxEuler; //Rotation để điều chỉnh hướng gắn VFX khi đòn đánh được đánh ra, có thể dùng để tinh chỉnh hướng gắn hiệu ứng khi tấn công để phù hợp với animation và mô hình của Enemy
     public float vfxScale = 1f; //Scale để điều chỉnh kích thước gắn VFX khi đòn đánh được đánh ra, có thể dùng để tinh chỉnh kích thước gắn hiệu ứng khi tấn công để phù hợp với animation và mô hình của Enemy
+    [Header("Selection")]
+    public bool isFollowUpOnly; //Nếu true, đòn tấn công này chỉ có thể được sử dụng như một đòn tấn công tiếp theo sau một đòn tấn công khác, có thể dùng để tạo ra các combo tấn công hoặc các chuỗi tấn công đặc biệt
     [ShowIf(nameof(IsMelee))]
     [Header("Hitbox Settings")]
     [ShowIf(nameof(IsMelee))]

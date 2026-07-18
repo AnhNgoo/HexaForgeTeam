@@ -14,8 +14,39 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   telegraphPool: 61
   lightningPool: 62
-  collumnSpacing: 2
-  warningDuration: 1
-  intervalBetweenColumns: 0.12
+  minColumns: 3
+  maxColumns: 5
+  strikeRadius: 7
+  minColumnDistance: 1.5
+  maxPositionAttempts: 20
+  warningDuration: 0.3
+  intervalBetweenColumns: 0.2
   navMeshSampleRadius: 2
-  hitboxActiveDuration: 0.15
+  lightningGroundDuration: 1
+  lightningRotation: {x: -90, y: 0, z: 0}
+  lightningSpawnHeight: 12
+  lightningFallDuration: 0.12
+  fallCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
