@@ -19,6 +19,7 @@ public class EnemyCombat : MonoBehaviour
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
     public AttackDataSO CurrentAttackData => currentAttackData; //Cho phép các lớp khác truy cập dữ liệu tấn công hiện tại nhưng không cho phép thay đổi trực tiếp
 
+    public float CurrentAttackDamageMultiplier { get; private set; } = 1f;
     [SerializeField] private AttackSelectionMode selectionMode = AttackSelectionMode.Random;
     private AttackDataSO _lastAttack;
     public bool IsPerformingAttack { get; private set; }
@@ -35,36 +36,56 @@ public class EnemyCombat : MonoBehaviour
 
     private EnemyAttackContext CreateAttackContext()
     {
-        return new EnemyAttackContext(_enemyBase, currentAttackData, _enemyBase.Detection.CurrentTarget); //Tạo một EnemyAttackContext mới với thông tin về EnemyBase, dữ liệu tấn công hiện tại và mục tiêu hiện tại của Enemy, có thể mở rộng sau này để thêm các thông tin khác như vị trí của attacker, hướng tấn công, v.v.)
+        return new EnemyAttackContext(_enemyBase, currentAttackData, _enemyBase.Detection.CurrentTarget, CurrentAttackDamageMultiplier); //Tạo một EnemyAttackContext mới với thông tin về EnemyBase, dữ liệu tấn công hiện tại và mục tiêu hiện tại của Enemy, có thể mở rộng sau này để thêm các thông tin khác như vị trí của attacker, hướng tấn công, v.v.)
     }
 
-    public void PerformAttack(AttackDataSO chosenAttack)
+    public float PerformAttack(AttackDataSO chosenAttack)
     {
         IsPerformingAttack = true;
         currentAttackData = chosenAttack;
-        _attackCooldownTimers[currentAttackData] = Time.time; //Cập nhật thời gian hồi chiêu của đòn tấn công đã chọn, giúp kiểm soát thời gian giữa các đòn tấn công khác nhau
+        _attackCooldownTimers[currentAttackData] = Time.time;
 
+        EnemyMinibossBehaviour behaviour = _enemyBase.MinibossBehaviour;
+        CurrentAttackDamageMultiplier =
+            behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f;
+
+        behaviour?.OnAttackStarted(currentAttackData);
         currentAttackData.skillLogic?.OnAttackStart(CreateAttackContext());
 
-        Debug.Log($"[EnemyCombat] {gameObject.name} dùng attack: {currentAttackData.attackName}, skillLogic: {(currentAttackData.skillLogic != null ? currentAttackData.skillLogic.name : "NULL - fallback")}");
+        float attackSpeed = Mathf.Max(
+            0.01f,
+            behaviour?.ModifyAttackAnimationSpeed(1f) ?? 1f
+        );
 
-        if (_enemyBase.AnimatorController.Animator != null)
+        float effectiveDuration = currentAttackData.attackDuration / attackSpeed;
+
+        Animator animator = _enemyBase.AnimatorController.Animator;
+        if (animator != null)
         {
-            _enemyBase.AnimatorController.PlayAttackAnimation(currentAttackData); //Gọi hàm chơi animation tấn công từ EnemyAnimatorController
+            animator.speed = attackSpeed;
+            _enemyBase.AnimatorController.PlayAttackAnimation(currentAttackData);
 
-            _attackCts = new CancellationTokenSource(); //Tạo mới CancellationTokenSource cho tác vụ tấn công hiện tại
-            ReturnToIdleVisualAsync(_attackCts.Token).Forget(); //Bắt đầu tác vụ trả về trạng thái hình ảnh sau khi tấn công, có thể điều chỉnh thời gian chờ trong hàm này tùy thuộc vào thiết kế của animation tấn công
+            CancelVisualTask();
+            _attackCts = new CancellationTokenSource();
+            ReturnToIdleVisualAsync(effectiveDuration, _attackCts.Token).Forget();
         }
+
+        return effectiveDuration;
     }
 
     public AttackDataSO ChooseAttack(float distanceToPlayer)
     {
+        AttackDataSO forcedAttack = _enemyBase.MinibossBehaviour?.ChooseForcedAttack(distanceToPlayer);
+
+        if (forcedAttack != null) return forcedAttack;
+
         List<AttackDataSO> availableAttacks = new List<AttackDataSO>();
         foreach (var attackData in attackArsenal)
         {
             if (attackData == null) continue; //Nếu có phần tử null trong mảng dữ liệu tấn công, bỏ qua để tránh lỗi
 
-
+            if (attackData.isFollowUpOnly)
+                continue;
 
             if (_attackCooldownTimers.ContainsKey(attackData))
             {
@@ -116,14 +137,16 @@ public class EnemyCombat : MonoBehaviour
         return bestAttack;
     }
 
-    private async UniTaskVoid ReturnToIdleVisualAsync(CancellationToken token)
+    private async UniTaskVoid ReturnToIdleVisualAsync(float duration, CancellationToken token)
     {
         //Chờ cho đến khi animation tấn công kết thúc trước khi trả về trạng thái hình ảnh ban đầu, tránh lỗi hitbox vẫn mở sau khi animation kết thúc
-        bool isCancelled = await UniTask.Delay(System.TimeSpan.FromSeconds(currentAttackData.attackDuration), cancellationToken: token).SuppressCancellationThrow(); //Chờ 0.5 giây trước khi trả về trạng thái hình ảnh ban đầu, có thể điều chỉnh thời gian này tùy thuộc vào thiết kế của animation tấn công
+        bool isCancelled = await UniTask.Delay(System.TimeSpan.FromSeconds(duration), cancellationToken: token).SuppressCancellationThrow(); //Chờ 0.5 giây trước khi trả về trạng thái hình ảnh ban đầu, có thể điều chỉnh thời gian này tùy thuộc vào thiết kế của animation tấn công
 
         //Nếu bị hủy bỏ, không cần thực hiện việc trả về trạng thái hình ảnh
         if (isCancelled) return;
 
+        ResetAttackSpeed();
+        CurrentAttackDamageMultiplier = 1f;
         IsPerformingAttack = false;
 
         // Nếu sống sót qua Delay và quái vẫn đang ở trạng thái Attack
@@ -153,12 +176,15 @@ public class EnemyCombat : MonoBehaviour
 
         Transform spawnPoint = ResolveProjectileAnchor(currentAttackData);
         GameObject projectileGo = ObjectPooling.Instance.SpawnFromPool(currentAttackData.projectilePoolType, spawnPoint.position, Quaternion.identity); //Tạo ra projectile tại điểm xuất hiện với hướng mặc định
+        if (projectileGo == null) return;
         EnemyProjectile projectileScripts = projectileGo.GetComponent<EnemyProjectile>(); //Lấy component EnemyProjectile từ prefab để thiết lập sát thương và tốc độ
         if (projectileScripts != null)
         {
-            float finalDamage = _enemyBase.Data.damage * currentAttackData.damageMultiplier; //Tính toán sát thương cuối cùng của projectile dựa trên sát thương cơ bản của Enemy và hệ số sát thương của đòn tấn công
+            float finalDamage = _enemyBase.Data.damage * currentAttackData.damageMultiplier * CurrentAttackDamageMultiplier;
+
+            float projectileSpeed = _enemyBase.MinibossBehaviour?.ModifyProjectileSpeed(currentAttackData.projectileSpeed) ?? currentAttackData.projectileSpeed;
             Vector3 shootDirection = (target.position + Vector3.up * 0.5f) - spawnPoint.position; //Tính toán hướng bắn từ điểm xuất hiện đến vị trí của player, có thể điều chỉnh thêm Vector3.up để bắn vào phần thân trên của player thay vì chân
-            projectileScripts.Launch(_enemyBase, finalDamage, currentAttackData.projectileSpeed, shootDirection, currentAttackData.projectileLifetime); //Gọi hàm Launch của EnemyProjectile để thiết lập sát thương, tốc độ và hướng di chuyển cho projectile
+            projectileScripts.Launch(_enemyBase, finalDamage, projectileSpeed, shootDirection, currentAttackData.projectileLifetime); //Gọi hàm Launch của EnemyProjectile để thiết lập sát thương, tốc độ và hướng di chuyển cho projectile
         }
     }
 
@@ -166,7 +192,16 @@ public class EnemyCombat : MonoBehaviour
     {
         _enemyBase.HitboxRegistry.DisableAllHitboxes(); //Gọi hàm đóng tất cả hitbox từ EnemyHitboxRegistry để đảm bảo rằng tất cả hitbox sẽ được đóng, tránh lỗi hitbox vẫn mở sau khi animation kết thúc hoặc khi vào trạng thái Stagger hoặc Dead
         CancelVisualTask(); //Hủy bỏ tác vụ trả về trạng thái hình ảnh nếu đang tồn tại để tránh lỗi khi vào trạng thái Stagger hoặc Dead
+
+        ResetAttackSpeed();
+        CurrentAttackDamageMultiplier = 1f;
         IsPerformingAttack = false;
+    }
+
+    private void ResetAttackSpeed()
+    {
+        Animator animator = _enemyBase.AnimatorController.Animator;
+        if (animator != null) animator.speed = 1f;
     }
 
     public void EnableHitbox(EnemyHitboxType type)
@@ -259,6 +294,9 @@ public class EnemyCombat : MonoBehaviour
     public void HandleAttackEndEvent()
     {
         if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
+
+        ResetAttackSpeed();
+
         if (currentAttackData == null) return;
 
         if (currentAttackData.skillLogic != null)
@@ -270,6 +308,7 @@ public class EnemyCombat : MonoBehaviour
             DisableHitbox(currentAttackData.hitboxType);
         }
 
+        CurrentAttackDamageMultiplier = 1f;
         IsPerformingAttack = false;
     }
 

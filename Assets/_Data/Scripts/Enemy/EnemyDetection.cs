@@ -13,7 +13,7 @@ public class EnemyDetection : MonoBehaviour
     [Header("Pack AI Settings")]
     [SerializeField] private float alertRadius = 8f; //Bán kính mà Enemy sẽ cảnh báo đồng bọn khi phát hiện mục tiêu, có thể dùng để tìm các Enemy khác trong bán kính này và truyền thông tin về mục tiêu cho chúng
     [SerializeField] private LayerMask enemyLayerMask; //Lớp của các Enemy khác để tìm kiếm đồng bọn trong bán kính cảnh báo, có thể dùng để tìm các Enemy khác trong bán kính này và truyền thông tin về mục tiêu cho chúng
-
+    private float _lastTimeTargetVisible;
     private EnemyBase _enemyBase;
     public void Initialize(EnemyBase enemyBase)
     {
@@ -120,7 +120,7 @@ public class EnemyDetection : MonoBehaviour
                 }
                 else Debug.Log($"{gameObject.name} không thể nhìn thấy mục tiêu do có chướng ngại vật chắn giữa.");
             } // HƯỚNG 2: Player đứng sau lưng (Ngoài góc FOV nhưng vẫn trong bán kính phát hiện) nhưng lọt vào tầm nghe thính giác (50% tầm nhìn)
-            else if (dstToTarget <= detectRange * 0.5f)
+            else if (dstToTarget <= detectRange * 0.8f)
             {
                 if (!Physics.Raycast(eyePosition, directionToTarget, dstToTarget, obstacleLayerMask))
                 {
@@ -265,8 +265,15 @@ public class EnemyDetection : MonoBehaviour
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);
             return;
         }
+
+        if (HasLineOfSightTo(currentTarget, false))
+        {
+            _lastTimeTargetVisible = Time.time;
+            return;
+        }
+
         //Ngay lập tức mất mục tiêu chuyển sang nghi ngờ nếu có chướng ngại vật chắn giữa Enemy và mục tiêu để tránh trường hợp Enemy vẫn giữ mục tiêu mặc dù nó đã chạy ra khỏi tầm nhìn nhưng vẫn còn trong khoảng cách phát hiện
-        if (!HasLineOfSightTo(currentTarget, false))
+        if (Time.time - _lastTimeTargetVisible >= _enemyBase.Data.combatAwarenessDuration)
         {
             ForceLoseTarget();
             _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemySuspicionState);

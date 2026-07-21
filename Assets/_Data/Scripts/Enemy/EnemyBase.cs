@@ -105,7 +105,7 @@ public class EnemyBase : LoadComponents, IPoolable
         ActivateAIAfterFrame().Forget();
     }
 
-    public void InitSummoned(Vector3 spawnPosition, Transform target)
+    public void InitSummoned(Vector3 spawnPosition, Transform target, bool activateAI = true)
     {
         _spawnOrigin = spawnPosition;
         _spawnRotation = transform.rotation;
@@ -115,12 +115,13 @@ public class EnemyBase : LoadComponents, IPoolable
         _health.ResetHealth();
         _poiseSystem.ResetPoise();
         _detection.ResetDetection();
-        _detection.SetPlayerReference(target);
+        _detection.SetPlayerReference(activateAI ? target : null);
 
-        if (target != null)
+        if (activateAI && target != null)
             _detection.ForceDetectTarget(target);
 
-        ActivateAIAfterFrame().Forget();
+        if (activateAI)
+            ActivateAIAfterFrame().Forget();
     }
 
     public void Initialize()
@@ -279,10 +280,10 @@ public class EnemyBase : LoadComponents, IPoolable
     }
 
     #region Debug
-    [Button("Test: Đánh 1 đòn (Raw Dmg: 20, Poise Dmg: 30)", ButtonSizes.Large)]
+    [Button("Test: Đánh 1 đòn (Raw Dmg: 500, Poise Dmg: 30)", ButtonSizes.Large)]
     public void DebugTakeHit()
     {
-        _damageReceiver.TakeHit(20f, 30f, transform);
+        _damageReceiver.TakeHit(500f, 30f, transform);
     }
     #endregion
 }

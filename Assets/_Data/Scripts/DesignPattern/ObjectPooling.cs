@@ -67,6 +67,18 @@ public enum PoolType
     EnemyMinibossMage = 68,
     EnemyMinibossBrurrow = 69,
     MissHitEffect_1 = 100,
+    EnemyBruteBoss = 1001,
+    EnemyVenomousQueenBoss = 1002,
+    EnemyNightStalkerBoss = 1003,
+    EnemyThunderBeastBoss = 1004,
+    EnemyHellhoundBoss = 1005,
+    Pillar = 1006,
+    PillarTelegraph = 1007,
+    Shockwave = 1008,
+    EnemyVenomPoisonArea = 1009,
+    EnemyVenomSpray = 1010,
+    EnemyVenomTelegraph = 1011,
+    EnemyVenomPillar = 1012,
 }
 
 [System.Serializable]

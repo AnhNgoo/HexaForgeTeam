@@ -15,6 +15,9 @@ public class CameraShake : Singleton<CameraShake>
 	}
 	public async void Shake()
 	{
+		if (impulseSource == null)
+			return;
+
 		if (!isShaking)
 		{
 			isShaking = true;
