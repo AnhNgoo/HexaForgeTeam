@@ -32,7 +32,7 @@ public class LobbyStatManager : MonoBehaviour
         ApplyRuneStats();
         DebugBonusStats();
 
-        CharacterStat stat = FindFirstObjectByType<CharacterStat>();
+        PlayerStatTest stat = FindFirstObjectByType<PlayerStatTest>();
         if (stat != null)
         {
             stat.RecalculateStats();

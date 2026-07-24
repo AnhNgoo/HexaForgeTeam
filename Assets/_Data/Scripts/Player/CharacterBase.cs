@@ -19,6 +19,9 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(SafeZoneChecker))]
 [RequireComponent(typeof(CharacterMeleeHitbox))]
 [RequireComponent(typeof(CharacterCinematic))]
+[RequireComponent(typeof(CharacterStat))]
+[RequireComponent(typeof(CharacterStamina))]
+[RequireComponent(typeof(CharacterMP))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage
 {
     [Header("Character Data")]
@@ -67,6 +70,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public CharacterMeleeHitbox CharacterMeleeHitbox => characterMeleeHitbox;
     [SerializeField] protected CharacterCinematic characterCinematic;
     public CharacterCinematic CharacterCinematic => characterCinematic;
+    [SerializeField] protected CharacterStat characterStat;
+    public CharacterStat CharacterStat => characterStat;
+    [SerializeField] protected CharacterStamina characterStamina;
+    public CharacterStamina CharacterStamina => characterStamina;
+    [SerializeField] protected CharacterMP characterMP;
+    public CharacterMP CharacterMP => characterMP;
 
 
     [Header("Character Effect General")]
@@ -89,6 +98,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public bool IsHealthRecovering { get; set; } = false;
     public DashShadowEffect DashShadowEffect { get; set; }
     public GhostEffect GhostEffect { get; set; }
+    public bool IsHitStateActive { get; set; } = false;
 
     protected override void LoadComponent()
     {
@@ -120,6 +130,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterMeleeHitbox = GetComponent<CharacterMeleeHitbox>();
         if (characterCinematic == null)
             characterCinematic = GetComponent<CharacterCinematic>();
+        if (characterStat == null)
+            characterStat = GetComponent<CharacterStat>();
+        if (characterStamina == null)
+            characterStamina = GetComponent<CharacterStamina>();
+        if (characterMP == null)
+            characterMP = GetComponent<CharacterMP>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -156,8 +172,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     protected override void Awake()
     {
         base.Awake();
-
     }
+
     [Button("Init Character Data")]
     protected virtual void Init(CharacterData data)
     {
@@ -167,17 +183,20 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         try
         {
             CharacterInput.Init(this);
-            characterHealth.Init(characterData.stats.maxHealth);
             characterRecovery.Init(this);
             characterAnimation.Init(characterVisual);
             characterWeapon.Init(this, handRight.transform);
             characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
             characterMeleeHitbox.Init(this);
+            characterStat.Init(this);
+            characterStamina.Init(this);
+            characterMP.Init(this);
 
             InitSkills();
             GetDashShadowEffect(characterVisual);
             GetGhostEffect(characterVisual);
 
+            GoldManager.Instance?.ResetGold();
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
@@ -236,6 +255,11 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
                                                 0f,
                                                 characterMovement.MoveDirection.y);
 
+        if (!characterStamina.HasEnoughStamina(characterData.staminaCost.dodgeCost))
+        {
+            characterInput.DisableSprint();
+        }
+
         if (characterInput.Walk)
         {
             characterMovement.Walk(characterMovement.MoveDirection, speed);
@@ -246,6 +270,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
         if (characterInput.Sprint)
         {
+            ConsumeStaminaForSprint();
             characterMovement.Sprint(characterMovement.MoveDirection, speed);
             characterAnimation.CrossFadeOneshot("Sprint", 0.1f);
             characterRotate.Rotate(rotationDirection);
@@ -295,9 +320,24 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             return;
         }
     }
+
+    protected virtual void ConsumeStaminaForSprint()
+    {
+        if (characterStamina.HasEnoughStamina(characterData.staminaCost.sprintCost) &&
+                 characterInput.Sprint &&
+                 characterInput.MoveInput != Vector2.zero)
+        {
+            characterStamina.SubtractStaminaOverTime(characterData.staminaCost.sprintCost);
+        }
+    }
     #endregion
     public virtual void Dodge()
     {
+        if (!characterStamina.HasEnoughStamina(characterData.staminaCost.dodgeCost))
+            return;
+
+        characterStamina.SubtractStamina(characterData.staminaCost.dodgeCost);
+
         if (dodgeCooldown.IsOnCooldown)
             return;
 
@@ -309,7 +349,34 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     #region Attack 
     public virtual void Attack()
     {
+        if (!CheckStaminaAndMPForAttack())
+            return;
+
         characterCombat?.TryAttack();
+    }
+
+    protected virtual bool CheckStaminaAndMPForAttack()
+    {
+        if (characterData.characterTypes == CharacterTypes.Physical ||
+            characterWeapon.CurrentWeapon == null) // Nếu là nhân vật vật lý hoặc không cầm vũ khí thì kiểm tra stamina
+        {
+            if (!characterStamina.HasEnoughStamina(characterData.staminaCost.attackCost))
+                return false;
+
+            characterStamina.SubtractStamina(characterData.staminaCost.attackCost);
+            return true;
+        }
+
+        if (characterData.characterTypes == CharacterTypes.Magical) // Nếu là nhân vật phép thuật thì kiểm tra mana
+        {
+            if (!characterMP.HasEnoughMP(characterData.mpCost.attackCost))
+                return false;
+
+            characterMP.SubtractMP(characterData.mpCost.attackCost);
+            return true;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -354,6 +421,18 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         characterSkill?.UseSkill2();
     }
 
+    // Năng lượng tiêu hao khi sử dụng kỹ năng, có thể là mana hoặc stamina, tùy thuộc vào thiết kế của từng nhân vật
+    public virtual void ConsumeSkillCost(CharacterTypes characterType, float cost)
+    {
+        if (characterType == CharacterTypes.Magical)
+        {
+            characterMP.SubtractMP(cost);
+        }
+        else if (characterType == CharacterTypes.Physical)
+        {
+            characterStamina.SubtractStamina(cost);
+        }
+    }
     #endregion
     protected virtual void OnLockTarget()
     {
@@ -374,6 +453,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Button("Take Damage (Test)")]
     public void TakeDamage(DamageInfo damageInfo)
     {
+        if (characterHealth.CurrentHealth <= 0)
+            return;
+
         float finalDamage = damageInfo.damageAmount - characterData.stats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
         finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
@@ -381,8 +463,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
         {
             characterMovement.KnockBack(damageInfo.attacker);
-            stateController.ChangeState(new HitState(this));
             CameraShake.Instance?.Shake();
+            if (!IsHitStateActive) // Nếu đang không ở trạng thái HitState
+                stateController.ChangeState(new HitState(this));
         }
 
         Debug.Log($"{gameObject.name} took {finalDamage} damage. Remaining health: {characterHealth.CurrentHealth}");
@@ -391,6 +474,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         {
             Die();
         }
+
+        characterCombat.ResetCombo();
     }
 
     #endregion

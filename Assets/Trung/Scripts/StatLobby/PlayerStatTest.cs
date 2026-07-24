@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CharacterStat : MonoBehaviour
+public class PlayerStatTest : MonoBehaviour
 {
     [Header("Base Stats")]
 
