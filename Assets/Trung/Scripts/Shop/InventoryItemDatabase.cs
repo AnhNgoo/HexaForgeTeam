@@ -8,6 +8,10 @@ public class InventoryItemDatabase : MonoBehaviour
     [Header("All Items Database Configuration")]
     [SerializeField] private List<ShopItemSO> allGameItems = new List<ShopItemSO>();
 
+    [Header("Currency Icons Default")]
+    [SerializeField] private Sprite gemIconSprite;
+    [SerializeField] private Sprite runeShardIconSprite;
+
     private void Awake()
     {
         if (Instance == null)
@@ -32,6 +36,27 @@ public class InventoryItemDatabase : MonoBehaviour
                 return allGameItems[i];
             }
         }
+        return null;
+    }
+
+    public Sprite GetItemSprite(string itemID)
+    {
+        if (itemID == "GEM" || itemID == "CURRENCY_GEM")
+        {
+            return gemIconSprite;
+        }
+
+        if (itemID == "RUNE_SHARD" || itemID == "CURRENCY_SHARD")
+        {
+            return runeShardIconSprite;
+        }
+
+        ShopItemSO itemSO = GetItemSO(itemID);
+        if (itemSO != null)
+        {
+            return itemSO.itemIcon;
+        }
+
         return null;
     }
 }

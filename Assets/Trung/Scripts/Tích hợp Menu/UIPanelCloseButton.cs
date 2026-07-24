@@ -3,31 +3,24 @@ using UnityEngine.UI;
 
 public class UIPanelCloseButton : LoadComponents
 {
-    [SerializeField]
-    private Button button;
+    [SerializeField] private Button button;
 
     protected override void LoadComponent()
     {
-        if (button == null)
-        {
-            button =
-                GetComponent<Button>();
-        }
+        if (button == null) button = GetComponent<Button>();
     }
 
-    protected override void LoadComponentRuntime()
-    {
-    }
+    protected override void LoadComponentRuntime() { }
 
     private void Start()
     {
-        button.onClick.RemoveAllListeners();
-
-        button.onClick.AddListener(
-            ClosePanel);
+        if (button != null)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(ClosePanel);
+        }
     }
 
-    // BƯỚC THÊM MỚI: Bắt sự kiện phím ESC khi nút Close này đang hoạt động
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -36,14 +29,19 @@ public class UIPanelCloseButton : LoadComponents
         }
     }
 
-   private void ClosePanel()
+    private void ClosePanel()
     {
-        if (UIManager.Instance == null)
-        {
-            return;
-        }
+        if (UIManager.Instance == null) return;
 
-        UIManager.Instance.CloseAllMenus();
+        UnityEngine.SceneManagement.Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+        if (activeScene.name == "Run Scene")
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        }
+        else
+        {
+            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+        }
 
         if (InteractManagerV2.Instance != null)
         {

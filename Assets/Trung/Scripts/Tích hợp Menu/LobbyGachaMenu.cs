@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class LobbyGachaMenu : MenuBase
 {
-    [SerializeField] private GameObject gachaPanelRoot; // Kéo thả Gacha Panel lớn vào đây nếu cần điều khiển chủ động
+    [SerializeField] private GameObject gachaPanelRoot; 
 
     public override MenuType menuType =>
         MenuType.LobbyGachaMenu;
@@ -11,7 +11,6 @@ public class LobbyGachaMenu : MenuBase
     {
         base.Open(data);
 
-        // Ẩn cụm Cấp độ tài khoản, chỉ giữ lại cụm Tiền tệ khi mở Gacha
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowCurrencyOnly();
@@ -30,9 +29,8 @@ public class LobbyGachaMenu : MenuBase
             gachaPanelRoot.SetActive(false);
         }
 
-        base.Close();
+        gameObject.SetActive(false);
 
-        // Hiện lại đầy đủ cả Cấp độ lẫn Tiền tệ khi quay về sảnh trống
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowFullHUD();
