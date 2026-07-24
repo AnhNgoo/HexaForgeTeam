@@ -161,6 +161,19 @@ public class EnemyAnimatorController : MonoBehaviour
         _enemyBase.Combat.PlayAttackVFX(); //Gọi hàm phát hiệu ứng tấn công từ EnemyCombat để đảm bảo rằng hiệu ứng sẽ được kích hoạt đúng thời điểm trong animation tấn công
     }
 
+    private void EnableHitbox(EnemyHitboxType type)
+    {
+        if (!_enemyBase.Combat.IsPerformingAttack)
+            return;
+
+        _enemyBase.Combat.EnableHitbox(type);
+    }
+
+    private void DisableHitbox(EnemyHitboxType type)
+    {
+        _enemyBase.Combat.DisableHitbox(type);
+    }
+
     public void BlockReady()
     {
         _enemyBase.Guard?.OnBlockReady();
