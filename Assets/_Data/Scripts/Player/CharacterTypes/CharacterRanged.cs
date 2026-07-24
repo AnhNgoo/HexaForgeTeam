@@ -15,9 +15,12 @@ public class CharacterRanged : CharacterBase
     }
     public override void Attack()
     {
+        if (!CheckStaminaAndMPForAttack())
+            return;
+
         if (characterCombat.CurrentComboIndex == 0 && !characterWeapon.HasWeapon) // Chỉ áp sát mục tiêu nếu đây là đòn tấn công đầu tiên trong chuỗi combo
             MeleeSnapToTarget();
-        Debug.Log("Attack Ranged" + characterWeapon.HasWeapon);
+
         if (characterWeapon.HasWeapon) // nếu có vũ khí thì được vừa di chuyển vừa tấn công
             characterCombat?.TryAttack(true, 1);
         else // nếu không thì không được di chuyển khi tấn công
