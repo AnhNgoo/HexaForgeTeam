@@ -6,7 +6,8 @@ public enum SystemSettingPage
 {
     Audio = 0,
     Graphics = 1,
-    Controller = 2
+    Controller = 2,
+    Exit = 3
 }
 
 public class SystemSettingsPanel : MonoBehaviour
@@ -15,11 +16,12 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private Button btnAudio;
     [SerializeField] private Button btnGraphics;
     [SerializeField] private Button btnController;
-
+    [SerializeField] private Button btnExit;
     [Header("Setting Pages")]
     [SerializeField] private ScrollRect audioPage;
     [SerializeField] private ScrollRect graphicsPage;
     [SerializeField] private ScrollRect controllerPage;
+    [SerializeField] private ScrollRect exitPage;
 
     [Header("Parent Menu")]
     [SerializeField] private GameSystemMenu gameSystemMenu;
@@ -28,11 +30,13 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private GameObject audioLine;
     [SerializeField] private GameObject graphicsLine;
     [SerializeField] private GameObject controllerLine;
+    [SerializeField] private GameObject exitLine;
 
     [Header("Tab Labels")]
     [SerializeField] private TMP_Text audioLabel;
     [SerializeField] private TMP_Text graphicsLabel;
     [SerializeField] private TMP_Text controllerLabel;
+    [SerializeField] private TMP_Text exitLabel;
 
     [Header("Colors")]
     [SerializeField] private Color normalColor = Color.white;
@@ -84,6 +88,9 @@ public class SystemSettingsPanel : MonoBehaviour
         if (btnController != null)
             btnController.onClick.AddListener(ShowController);
 
+        if (btnExit != null)
+            btnExit.onClick.AddListener(ShowExit);
+
         eventsAdded = true;
     }
 
@@ -100,6 +107,9 @@ public class SystemSettingsPanel : MonoBehaviour
 
         if (btnController != null)
             btnController.onClick.RemoveListener(ShowController);
+
+        if (btnExit != null)
+            btnExit.onClick.RemoveListener(ShowExit);
 
         eventsAdded = false;
     }
@@ -119,6 +129,11 @@ public class SystemSettingsPanel : MonoBehaviour
         ShowPage(SystemSettingPage.Controller);
     }
 
+    public void ShowExit()
+    {
+        ShowPage(SystemSettingPage.Exit);
+    }
+
     public void ShowPage(SystemSettingPage page)
     {
         currentPage = page;
@@ -126,7 +141,7 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(audioPage, page == SystemSettingPage.Audio);
         SetPage(graphicsPage, page == SystemSettingPage.Graphics);
         SetPage(controllerPage, page == SystemSettingPage.Controller);
-
+        SetPage(exitPage, page == SystemSettingPage.Exit);
         UpdateVisual(page);
     }
 
@@ -135,6 +150,7 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(audioPage, false);
         SetPage(graphicsPage, false);
         SetPage(controllerPage, false);
+        SetPage(exitPage, false);
     }
 
     private void SetPage(ScrollRect page, bool active)
@@ -157,14 +173,16 @@ public class SystemSettingsPanel : MonoBehaviour
         bool audioSelected = page == SystemSettingPage.Audio;
         bool graphicsSelected = page == SystemSettingPage.Graphics;
         bool controllerSelected = page == SystemSettingPage.Controller;
-
+        bool exitSelected = page == SystemSettingPage.Exit;
         SetActive(audioLine, audioSelected);
         SetActive(graphicsLine, graphicsSelected);
         SetActive(controllerLine, controllerSelected);
+        SetActive(exitLine, exitSelected);
 
         SetLabel(audioLabel, audioSelected);
         SetLabel(graphicsLabel, graphicsSelected);
         SetLabel(controllerLabel, controllerSelected);
+        SetLabel(exitLabel, exitSelected);
     }
 
     private void SetActive(GameObject target, bool value)

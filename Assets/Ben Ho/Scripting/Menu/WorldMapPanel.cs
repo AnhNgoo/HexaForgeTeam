@@ -6,15 +6,15 @@ using UnityEngine.EventSystems;
 
 public enum MapLocationType
 {
-    SiteOfGrace,
+    Church,
     Castle,
     Dungeon,
+    Garden,
     Boss,
     Merchant,
     NPC,
-    Chest,
-    Portal,
-    Quest
+    Portal
+
 }
 
 [Serializable]
@@ -84,6 +84,9 @@ public class WorldMapPanel : MonoBehaviour,
 
     private readonly List<MapLocationMarkerUI> spawnedMarkers =
         new List<MapLocationMarkerUI>();
+
+    private readonly Dictionary<RuntimeMapStructure, MapLocationMarkerUI>
+    runtimeMarkers = new Dictionary<RuntimeMapStructure, MapLocationMarkerUI>();
 
     private void Awake()
     {
@@ -249,6 +252,11 @@ public class WorldMapPanel : MonoBehaviour,
 
             spawnedMarkers.Add(marker);
         }
+        foreach (RuntimeMapStructure structure
+                in RuntimeMapStructure.ActiveStructures)
+        {
+            SpawnRuntimeMarker(structure);
+        }
     }
 
     private void ClearMarkers()
@@ -260,6 +268,7 @@ public class WorldMapPanel : MonoBehaviour,
         }
 
         spawnedMarkers.Clear();
+        runtimeMarkers.Clear();
     }
 
     private void UpdatePlayerMarker()
@@ -491,5 +500,71 @@ public class WorldMapPanel : MonoBehaviour,
 
         if (target != null)
             player = target.transform;
+    }
+
+    private void OnEnable()
+    {
+        RuntimeMapStructure.Registered += HandleStructureRegistered;
+        RuntimeMapStructure.Unregistered += HandleStructureUnregistered;
+    }
+
+    private void OnDisable()
+    {
+        RuntimeMapStructure.Registered -= HandleStructureRegistered;
+        RuntimeMapStructure.Unregistered -= HandleStructureUnregistered;
+    }
+
+    private void SpawnRuntimeMarker(RuntimeMapStructure structure)
+    {
+        if (structure == null ||
+            markerPrefab == null ||
+            markerRoot == null ||
+            runtimeMarkers.ContainsKey(structure))
+        {
+            return;
+        }
+
+        MapLocationData location = structure.LocationData;
+
+        if (!location.discovered)
+            return;
+
+        MapLocationMarkerUI marker =
+            Instantiate(markerPrefab, markerRoot);
+
+        marker.Setup(location, this);
+
+        RectTransform markerRect =
+            marker.GetComponent<RectTransform>();
+
+        if (markerRect != null)
+        {
+            markerRect.anchoredPosition =
+                WorldToMapPosition(location.worldPosition);
+        }
+
+        runtimeMarkers.Add(structure, marker);
+        spawnedMarkers.Add(marker);
+    }
+
+    private void HandleStructureRegistered(RuntimeMapStructure structure)
+    {
+        if (gameObject.activeInHierarchy)
+            SpawnRuntimeMarker(structure);
+    }
+
+    private void HandleStructureUnregistered(RuntimeMapStructure structure)
+    {
+        if (structure == null ||
+            !runtimeMarkers.TryGetValue(structure, out MapLocationMarkerUI marker))
+        {
+            return;
+        }
+
+        runtimeMarkers.Remove(structure);
+        spawnedMarkers.Remove(marker);
+
+        if (marker != null)
+            Destroy(marker.gameObject);
     }
 }

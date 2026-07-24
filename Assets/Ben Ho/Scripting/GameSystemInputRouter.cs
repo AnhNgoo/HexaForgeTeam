@@ -66,8 +66,8 @@ public class GameSystemInputRouter : MonoBehaviour
             return;
         }
 
-        UIManager.Instance.OpenOverlayMenu(
-            MenuType.GameSystemMenu,
-            tab);
+        UIManager.Instance.ChangeMenu(
+        MenuType.GameSystemMenu,
+        tab);
     }
 }

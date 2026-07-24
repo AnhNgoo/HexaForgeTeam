@@ -1,176 +1,193 @@
-using UnityEngine;
 using TMPro;
-
-[System.Serializable]
-public class CompassLabel
-{
-    public string labelName;
-    public float worldAngle;
-    public RectTransform rect;
-}
+using UnityEngine;
 
 public class CompassDirectionUI : MonoBehaviour
 {
-    [Header("Target")]
+    [Header("Player")]
     [SerializeField] private Transform player;
+    [SerializeField] private Transform headingSource;
     [SerializeField] private string playerTag = "Player";
 
-    [Header("Direction UI")]
+    [Header("Compass")]
     [SerializeField] private RectTransform directionLine;
     [SerializeField] private RectTransform playerDirectionMarker;
-
-    [Header("Ping UI")]
     [SerializeField] private RectTransform directionPingMarker;
-    [SerializeField] private float visibleAngle = 90f;
-    [SerializeField] private float markerY = 20f;
 
-    [Header("Optional Direction Labels")]
-    [SerializeField] private CompassLabel[] compassLabels;
+    [Header("Cardinal Directions")]
+    [SerializeField] private TMP_Text northText;
+    [SerializeField] private TMP_Text eastText;
+    [SerializeField] private TMP_Text southText;
+    [SerializeField] private TMP_Text westText;
+
+    [Header("Layout")]
+    [SerializeField, Range(90f, 180f)]
+    private float displayedHalfAngle = 180f;
+
+    [SerializeField] private float edgePadding = 30f;
+    [SerializeField] private float playerMarkerY;
+    [SerializeField] private float pingMarkerY;
+    [SerializeField] private float cardinalTextY = 25f;
+
+    [Header("Ping")]
+    [SerializeField] private float arrivalDistance = 5f;
+    [SerializeField] private TMP_Text pingDistanceText;
 
     private void OnEnable()
     {
-        FindPlayer();
-
-        MapPingService.OnPingChanged += HandlePingChanged;
-        MapPingService.OnPingCleared += HidePingMarker;
-
-        HidePingMarker();
-    }
-
-    private void OnDisable()
-    {
-        MapPingService.OnPingChanged -= HandlePingChanged;
-        MapPingService.OnPingCleared -= HidePingMarker;
+        FindPlayerIfMissing();
+        RefreshFixedMarker();
     }
 
     private void LateUpdate()
     {
-        if (player == null)
-            FindPlayer();
+        FindPlayerIfMissing();
 
         if (player == null || directionLine == null)
             return;
 
-        // Thanh line luôn đứng yên, không xoay.
+        Transform directionTarget =
+            headingSource != null ? headingSource : player;
+
+        float headingAngle = directionTarget.eulerAngles.y;
+
+        // The line never rotates.
         directionLine.localEulerAngles = Vector3.zero;
 
-        // Player marker đứng giữa line. Nếu muốn icon xoay theo hướng nhân vật thì bật dòng rotation.
-        if (playerDirectionMarker != null)
-        {
-            playerDirectionMarker.anchoredPosition =
-                new Vector2(0f, markerY);
-
-            playerDirectionMarker.localEulerAngles =
-                new Vector3(0f, 0f, -player.eulerAngles.y);
-        }
-
-        UpdatePingMarker();
-        UpdateCompassLabels();
+        RefreshFixedMarker();
+        UpdateCardinalDirections(headingAngle);
+        UpdatePingMarker(headingAngle);
     }
 
-    private void UpdatePingMarker()
+    private void RefreshFixedMarker()
     {
-        if (directionPingMarker == null ||
-            directionLine == null ||
-            !MapPingService.HasPing)
+        if (playerDirectionMarker == null)
+            return;
+
+        playerDirectionMarker.gameObject.SetActive(true);
+        playerDirectionMarker.anchoredPosition =
+            new Vector2(0f, playerMarkerY);
+
+        // The player marker stays fixed and does not rotate.
+        playerDirectionMarker.localEulerAngles = Vector3.zero;
+    }
+
+    private void UpdateCardinalDirections(float headingAngle)
+    {
+        PositionCardinal(northText, "N", 0f, headingAngle);
+        PositionCardinal(eastText, "E", 90f, headingAngle);
+        PositionCardinal(southText, "S", 180f, headingAngle);
+        PositionCardinal(westText, "W", 270f, headingAngle);
+    }
+
+    private void PositionCardinal(
+        TMP_Text label,
+        string value,
+        float worldAngle,
+        float headingAngle)
+    {
+        if (label == null)
+            return;
+
+        label.text = value;
+
+        float angleDifference =
+            Mathf.DeltaAngle(headingAngle, worldAngle);
+
+        SetHorizontalPosition(
+            label.rectTransform,
+            angleDifference,
+            cardinalTextY
+        );
+
+        label.gameObject.SetActive(true);
+        label.rectTransform.localEulerAngles = Vector3.zero;
+    }
+
+    private void UpdatePingMarker(float headingAngle)
+    {
+        if (directionPingMarker == null || !MapPingService.HasPing)
         {
             HidePingMarker();
             return;
         }
 
-        Vector3 toPing =
+        Vector3 direction =
             MapPingService.PingWorldPosition - player.position;
 
-        toPing.y = 0f;
+        direction.y = 0f;
 
-        if (toPing.sqrMagnitude < 0.1f)
+        float distance = direction.magnitude;
+
+        if (distance <= arrivalDistance)
         {
+            MapPingService.ClearPing();
             HidePingMarker();
             return;
         }
 
-        float pingAngle =
-            Mathf.Atan2(toPing.x, toPing.z) * Mathf.Rad2Deg;
+        float pingWorldAngle =
+            Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
 
-        float angleDiff =
-            Mathf.DeltaAngle(player.eulerAngles.y, pingAngle);
+        float angleDifference =
+            Mathf.DeltaAngle(headingAngle, pingWorldAngle);
 
-        bool visible =
-            Mathf.Abs(angleDiff) <= visibleAngle;
+        directionPingMarker.gameObject.SetActive(true);
 
-        directionPingMarker.gameObject.SetActive(visible);
-
-        if (!visible)
-            return;
-
-        float halfWidth = directionLine.rect.width * 0.5f;
-
-        float x =
-            Mathf.Clamp(angleDiff / visibleAngle, -1f, 1f)
-            * halfWidth;
-
-        directionPingMarker.anchoredPosition =
-            new Vector2(x, markerY);
+        SetHorizontalPosition(
+            directionPingMarker,
+            angleDifference,
+            pingMarkerY
+        );
 
         directionPingMarker.localEulerAngles = Vector3.zero;
-    }
 
-    private void UpdateCompassLabels()
-    {
-        if (compassLabels == null || directionLine == null)
-            return;
-
-        float halfWidth = directionLine.rect.width * 0.5f;
-
-        foreach (CompassLabel label in compassLabels)
+        if (pingDistanceText != null)
         {
-            if (label == null || label.rect == null)
-                continue;
-
-            float angleDiff =
-                Mathf.DeltaAngle(player.eulerAngles.y, label.worldAngle);
-
-            bool visible =
-                Mathf.Abs(angleDiff) <= visibleAngle;
-
-            label.rect.gameObject.SetActive(visible);
-
-            if (!visible)
-                continue;
-
-            float x =
-                Mathf.Clamp(angleDiff / visibleAngle, -1f, 1f)
-                * halfWidth;
-
-            label.rect.anchoredPosition =
-                new Vector2(x, markerY + 25f);
-
-            label.rect.localEulerAngles = Vector3.zero;
-
-            TMP_Text text = label.rect.GetComponent<TMP_Text>();
-            if (text != null)
-                text.text = label.labelName;
+            pingDistanceText.gameObject.SetActive(true);
+            pingDistanceText.text =
+                Mathf.CeilToInt(distance) + "m";
         }
     }
 
-    private void HandlePingChanged(Vector3 worldPosition)
+    private void SetHorizontalPosition(
+        RectTransform target,
+        float angleDifference,
+        float y)
     {
-        if (directionPingMarker != null)
-            directionPingMarker.gameObject.SetActive(true);
+        float halfWidth =
+            directionLine.rect.width * 0.5f - edgePadding;
+
+        float normalizedPosition =
+            Mathf.Clamp(
+                angleDifference / displayedHalfAngle,
+                -1f,
+                1f
+            );
+
+        target.anchoredPosition =
+            new Vector2(normalizedPosition * halfWidth, y);
     }
 
     private void HidePingMarker()
     {
         if (directionPingMarker != null)
             directionPingMarker.gameObject.SetActive(false);
+
+        if (pingDistanceText != null)
+            pingDistanceText.gameObject.SetActive(false);
     }
 
-    private void FindPlayer()
+    private void FindPlayerIfMissing()
     {
-        GameObject target =
-            GameObject.FindGameObjectWithTag(playerTag);
+        if (player == null)
+        {
+            CharacterBase character = FindObjectOfType<CharacterBase>();
 
-        if (target != null)
-            player = target.transform;
+            if (character != null)
+                player = character.transform;
+        }
+
+        if (headingSource == null)
+            headingSource = player;
     }
 }
