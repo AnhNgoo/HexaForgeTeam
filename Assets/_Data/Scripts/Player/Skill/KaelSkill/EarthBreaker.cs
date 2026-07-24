@@ -22,6 +22,8 @@ public class EarthBreaker : CharacterSkillBase
             Debug.LogError("EarthBreaker skill chỉ có thể được sử dụng bởi Kael");
             return;
         }
+
+        character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost);
         character.CharacterCinematic.PlayCinematic();
 
         character.CharacterAnimation.CrossFade("Skill_1_1", 0.1f);

@@ -15,12 +15,18 @@ public class MysticOrbs : CharacterSkillBase
 
     protected override async void ExecuteSkill()
     {
+        if (skillData == null)
+        {
+            Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
+            return;
+        }
         if (character is not Lyra lyra)
         {
             Debug.LogError("MysticOrbs skill chỉ có thể được sử dụng bởi Lyra");
             return;
         }
 
+        character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost);
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
 
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_2_1") > 0.3f);
@@ -151,6 +157,7 @@ public class MysticOrbs : CharacterSkillBase
         if (projectile != null)
         {
             projectile.Initialize(character, targetEnemy, PoolType.LyraSkill_2_HitEffect);
+            projectile.OnEnemyDied += detectionAreaEffect.ClearEnemy; // Đăng ký sự kiện để loại bỏ kẻ địch khỏi danh sách khi nó chết
         }
     }
 }

@@ -14,4 +14,5 @@ public class CharacterSkillData : ScriptableObject
     public int damage;
     public float cooldown;
     public float duration;
+    public float skillCost; // năng lượng tiêu hao (có thể là mana hoặc stamina)
 }

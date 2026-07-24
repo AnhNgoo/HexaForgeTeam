@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using DG.Tweening;
 
 [System.Serializable]
 public class TutorialPanel
@@ -18,15 +19,19 @@ public class GameplayMenu : MenuBase
 
     [Header("Player Stats")]
     [SerializeField] private PlayerStats playerStats;
+    [SerializeField] private TextMeshProUGUI txt_Level;
+    [SerializeField] private TextMeshProUGUI txt_Gold;
+    [SerializeField] private DOTweenAnimation goldAnimation;
+    [SerializeField] private TextMeshProUGUI txt_AmountRecoveryBottle;
+    [SerializeField] private DOTweenAnimation recoveryBottleAnimation;
 
     [Header("Stats Sliders")]
     [SerializeField] private Slider slider_HP;
+    [SerializeField] private Slider slider_DelayHP;
     [SerializeField] private Slider slider_MP;
+    [SerializeField] private Slider slider_DelayMP;
     [SerializeField] private Slider slider_Stamina;
-
-    [Header("Level And Gold")]
-    [SerializeField] private TextMeshProUGUI txt_Level;
-    [SerializeField] private TextMeshProUGUI txt_Gold;
+    [SerializeField] private Slider slider_DelayStamina;
 
     [Header("Shortcuts")]
     [SerializeField]
@@ -50,12 +55,26 @@ public class GameplayMenu : MenuBase
 
     protected override void LoadComponent()
     {
+        if (txt_AmountRecoveryBottle == null)
+            txt_AmountRecoveryBottle = FindDeepChild("Txt_AmountRecoveryBottle")?.GetComponent<TextMeshProUGUI>();
+
+        if (recoveryBottleAnimation == null)
+            recoveryBottleAnimation = FindDeepChild("Txt_AmountRecoveryBottle")?.GetComponent<DOTweenAnimation>();
         if (slider_HP == null)
         {
             slider_HP =
                 FindDeepChild("Slider_HP")
                     ?.GetComponent<Slider>();
         }
+
+        if (slider_DelayHP == null)
+            slider_DelayHP = FindDeepChild("Slider_DelayHP")?.GetComponent<Slider>();
+
+        if (slider_DelayMP == null)
+            slider_DelayMP = FindDeepChild("Slider_DelayMP")?.GetComponent<Slider>();
+
+        if (slider_DelayStamina == null)
+            slider_DelayStamina = FindDeepChild("Slider_DelayStamina")?.GetComponent<Slider>();
 
         if (slider_MP == null)
         {
@@ -84,6 +103,9 @@ public class GameplayMenu : MenuBase
                 FindDeepChild("Txt_Gold")
                     ?.GetComponent<TextMeshProUGUI>();
         }
+
+        if (goldAnimation == null)
+            goldAnimation = FindDeepChild("Txt_Gold")?.GetComponent<DOTweenAnimation>();
 
         if (tutorialPanel == null)
         {
@@ -146,47 +168,39 @@ public class GameplayMenu : MenuBase
         base.Awake();
         HidePickUpItemPanel(null);
         HideTutorialPanel(null);
+        SubscribeGold(); // Đăng ký sự kiện ở awake để đảm bảo luôn nhận được thông báo khi vàng thay đổi cho dù ở menu nào
 
-        EventManager.Subscribe(
-            GameEvent.OnShowTutorial,
-            ShowTutorialPanel);
-
-        EventManager.Subscribe(
-            GameEvent.OnHideTutorial,
-            HideTutorialPanel);
-
-        EventManager.Subscribe(
-            GameEvent.OnShowPickUpItemPanel,
-            ShowPickUpItemPanel);
-
-        EventManager.Subscribe(
-            GameEvent.OnHidePickUpItemPanel,
-            HidePickUpItemPanel);
-
+        //NOTE - Lạy bố, code nó dài quá cái màn hình mới enter xuống cho dễ nhìn chứ cái event chưa được nửa cái màn xuống làm gì
+        EventManager.Subscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
+        EventManager.Subscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
+        EventManager.Subscribe(GameEvent.OnShowPickUpItemPanel, ShowPickUpItemPanel);
+        EventManager.Subscribe(GameEvent.OnHidePickUpItemPanel, HidePickUpItemPanel);
         EventManager.Subscribe(GameEvent.OnUpdateDisplayWeapon, UpdateDisplayWeapon);
+        EventManager.Subscribe(GameEvent.OnUpdateMaxHealth, UpdateMaxHealth);
+        EventManager.Subscribe(GameEvent.OnUpdateHealth, UpdateHealth);
+        EventManager.Subscribe(GameEvent.OnUpdateMaxStamina, UpdateMaxStamina);
+        EventManager.Subscribe(GameEvent.OnUpdateStamina, UpdateStamina);
+        EventManager.Subscribe(GameEvent.OnUpdateMaxMP, UpdateMaxMP);
+        EventManager.Subscribe(GameEvent.OnUpdateMP, UpdateMP);
+        EventManager.Subscribe(GameEvent.OnUpdateRecoveryBottle, UpdateRecoveryBottle);
     }
 
     private void OnDestroy()
     {
         UnsubscribeGold();
 
-        EventManager.Unsubscribe(
-            GameEvent.OnShowTutorial,
-            ShowTutorialPanel);
-
-        EventManager.Unsubscribe(
-            GameEvent.OnHideTutorial,
-            HideTutorialPanel);
-
-        EventManager.Unsubscribe(
-            GameEvent.OnShowPickUpItemPanel,
-            ShowPickUpItemPanel);
-
-        EventManager.Unsubscribe(
-            GameEvent.OnHidePickUpItemPanel,
-            HidePickUpItemPanel);
-
+        EventManager.Unsubscribe(GameEvent.OnShowTutorial, ShowTutorialPanel);
+        EventManager.Unsubscribe(GameEvent.OnHideTutorial, HideTutorialPanel);
+        EventManager.Unsubscribe(GameEvent.OnShowPickUpItemPanel, ShowPickUpItemPanel);
+        EventManager.Unsubscribe(GameEvent.OnHidePickUpItemPanel, HidePickUpItemPanel);
         EventManager.Unsubscribe(GameEvent.OnUpdateDisplayWeapon, UpdateDisplayWeapon);
+        EventManager.Unsubscribe(GameEvent.OnUpdateMaxHealth, UpdateMaxHealth);
+        EventManager.Unsubscribe(GameEvent.OnUpdateHealth, UpdateHealth);
+        EventManager.Unsubscribe(GameEvent.OnUpdateMaxStamina, UpdateMaxStamina);
+        EventManager.Unsubscribe(GameEvent.OnUpdateStamina, UpdateStamina);
+        EventManager.Unsubscribe(GameEvent.OnUpdateMaxMP, UpdateMaxMP);
+        EventManager.Unsubscribe(GameEvent.OnUpdateMP, UpdateMP);
+        EventManager.Unsubscribe(GameEvent.OnUpdateRecoveryBottle, UpdateRecoveryBottle);
     }
 
     public override void Open(object data = null)
@@ -194,8 +208,6 @@ public class GameplayMenu : MenuBase
         base.Open(data);
 
         LoadComponentRuntime();
-        SubscribeGold();
-        UpdatePlayerStatsUI();
 
         // Souls-like: gameplay continues while menus are open.
         // Do not modify Time.timeScale here.
@@ -203,13 +215,11 @@ public class GameplayMenu : MenuBase
 
     public override void Close()
     {
-        UnsubscribeGold();
         base.Close();
     }
 
     private void Update()
     {
-        UpdatePlayerStatsUI();
         HandleShortcutInput();
 
         if (InputManager.InputActions.Keyboard.Escape.triggered)
@@ -267,48 +277,104 @@ public class GameplayMenu : MenuBase
         OpenPauseMenu();
     }
 
-    private void UpdatePlayerStatsUI()
-    {
-        if (playerStats == null)
-        {
-            playerStats =
-                FindObjectOfType<PlayerStats>();
+    #region Stats
 
-            if (playerStats == null)
-                return;
-        }
+    //SECTION - Health
+    private void UpdateMaxHealth(object data)
+    {
+        if (data is not HealthData healthData)
+            return;
 
         if (slider_HP != null)
         {
-            slider_HP.maxValue =
-                playerStats.maxHP;
+            slider_HP.maxValue = healthData.MaxHealth;
+            slider_HP.value = healthData.fullHeal ? healthData.MaxHealth : healthData.CurrentHealth;
 
-            slider_HP.value =
-                playerStats.currentHP;
+            slider_DelayHP.maxValue = slider_HP.maxValue;
+            slider_DelayHP.value = slider_HP.value;
         }
+    }
+    private void UpdateHealth(object data)
+    {
+        if (data is not HealthData healthData)
+            return;
 
-        if (slider_MP != null)
+        if (slider_HP != null)
         {
-            slider_MP.maxValue =
-                playerStats.maxMP;
-
-            slider_MP.value =
-                playerStats.currentMP;
+            slider_HP.DOValue(healthData.CurrentHealth, 0.1f);
+            slider_DelayHP.DOValue(healthData.CurrentHealth, 2f);
         }
+    }
+
+    //!SECTION stamina
+    private void UpdateMaxStamina(object data)
+    {
+        if (data is not StaminaData staminaData)
+            return;
 
         if (slider_Stamina != null)
         {
-            slider_Stamina.maxValue =
-                playerStats.maxStamina;
+            slider_Stamina.maxValue = staminaData.MaxStamina;
+            slider_Stamina.value = staminaData.CurrentStamina;
 
-            slider_Stamina.value =
-                playerStats.currentStamina;
+            slider_DelayStamina.maxValue = slider_Stamina.maxValue;
+            slider_DelayStamina.value = slider_Stamina.value;
         }
+    }
 
-        if (txt_Level != null)
+    private void UpdateStamina(object data)
+    {
+        if (data is not StaminaData staminaData)
+            return;
+
+        if (slider_Stamina != null)
         {
-            txt_Level.text =
-                "Lv. " + playerStats.level;
+            slider_Stamina.DOValue(staminaData.CurrentStamina, 0.1f);
+            slider_DelayStamina.DOValue(staminaData.CurrentStamina, 2f);
+        }
+    }
+
+    private void UpdateMaxMP(object data)
+    {
+        if (data is not MPData mpData)
+            return;
+
+        if (slider_MP != null)
+        {
+            slider_MP.maxValue = mpData.MaxMP;
+            slider_MP.value = mpData.fullRegen ? mpData.MaxMP : mpData.CurrentMP;
+
+            slider_DelayMP.maxValue = slider_MP.maxValue;
+            slider_DelayMP.value = slider_MP.value;
+        }
+    }
+
+    private void UpdateMP(object data)
+    {
+        if (data is not MPData mpData)
+            return;
+
+        if (slider_MP != null)
+        {
+            slider_MP.DOValue(mpData.CurrentMP, 0.1f);
+            slider_DelayMP.DOValue(mpData.CurrentMP, 2f);
+        }
+    }
+    #endregion
+
+    //SECTION - Recovery Bottle
+    private void UpdateRecoveryBottle(object obj)
+    {
+        if (obj is not int recoveryBottle)
+            return;
+
+        if (txt_AmountRecoveryBottle != null)
+        {
+            txt_AmountRecoveryBottle.text = recoveryBottle.ToString();
+            if (recoveryBottleAnimation != null)
+            {
+                recoveryBottleAnimation.DORestart();
+            }
         }
     }
 
@@ -351,6 +417,16 @@ public class GameplayMenu : MenuBase
         {
             txt_Gold.text =
                 gold.ToString();
+
+            txt_Gold.DOBlendableColor(Color.yellow, 0.5f)
+                .OnComplete(() =>
+                {
+                    txt_Gold.DOBlendableColor(Color.white, 0.5f);
+                });
+            if (goldAnimation != null)
+            {
+                goldAnimation.DORestart();
+            }
         }
     }
 
