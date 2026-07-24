@@ -298,19 +298,34 @@ public class BirdController : MonoBehaviour
     private void PlayDisableParticle()
     {
         if (disableBirdParticleSystem == null)
-            return;
+        {
+            Debug.LogWarning(
+                "BirdController chưa được gán particle biến mất!",
+                this
+            );
 
-        // Tách particle khỏi chim để particle không bị
-        // hủy ngay khi GameObject chim bị hủy.
-        disableBirdParticleSystem.transform.SetParent(
-            null,
-            true
+            return;
+        }
+
+        // Tạo một instance effect trong scene.
+        ParticleSystem particleInstance = Instantiate(
+            disableBirdParticleSystem,
+            transform.position,
+            transform.rotation
         );
 
-        disableBirdParticleSystem.Play();
+        particleInstance.gameObject.SetActive(true);
+
+        // Đảm bảo particle bắt đầu lại từ đầu.
+        particleInstance.Stop(
+            true,
+            ParticleSystemStopBehavior.StopEmittingAndClear
+        );
+
+        particleInstance.Play(true);
 
         ParticleSystem.MainModule main =
-            disableBirdParticleSystem.main;
+            particleInstance.main;
 
         float destroyDelay =
             main.duration +
@@ -318,8 +333,13 @@ public class BirdController : MonoBehaviour
             0.5f;
 
         Destroy(
-            disableBirdParticleSystem.gameObject,
+            particleInstance.gameObject,
             destroyDelay
+        );
+
+        Debug.Log(
+            $"Đã phát effect chim biến mất tại {transform.position}",
+            particleInstance
         );
     }
     
