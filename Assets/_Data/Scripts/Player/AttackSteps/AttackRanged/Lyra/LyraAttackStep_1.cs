@@ -13,7 +13,7 @@ public class LyraAttackStep_1 : AttackStepBase
     public override float TimeTriggerAttack => 0.6f;
     private float timeTriggerArcaneChargeEffect = 0.1f;
 
-    public override async void Attack(CharacterBase character)
+    public override async void Attack()
     {
         character.CharacterAnimation.CrossFade(AttackStateName, 0.1f, 1);
         if (character is not Lyra lyra)

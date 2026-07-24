@@ -12,7 +12,7 @@ public class KaelPunchStep_4 : AttackStepBase
     public override string AttackStateName => "Punch_4";
     public float KaelGiantTimeTriggerAttack => 0.7f;
 
-    public override async void Attack(CharacterBase character)
+    public override async void Attack()
     {
         if (character is not Kael kael) return;
 
