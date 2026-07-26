@@ -212,8 +212,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     protected virtual void Start()
     {
         Init(characterData);
+
         stateController = new StateController();
-        stateController.ChangeState(new IdleState(this));
+
+        stateController.ChangeState(
+            new IdleState(this)
+        );
     }
 
     protected virtual void Update()
@@ -235,6 +239,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     protected virtual bool CheckAnyStateTransition()
     {
+        if (stateController.currentState is BirdRideState)
+            return false;
         //Chuyển về FallState nếu đang ở trên không và bắt đầu rơi
         if (!CharacterMovement.IsGrounded && CharacterMovement.CC.velocity.y < CharacterMovement.FallThreshold)
         {
