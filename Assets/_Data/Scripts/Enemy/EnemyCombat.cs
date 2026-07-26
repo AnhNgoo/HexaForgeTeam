@@ -89,7 +89,7 @@ public class EnemyCombat : MonoBehaviour
 
             if (_attackCooldownTimers.ContainsKey(attackData))
             {
-                float effectiveCooldown = _enemyBase.MinibossBehaviour != null ? _enemyBase.MinibossBehaviour.ModifyAttackCooldown(attackData.cooldown, attackData) : attackData.cooldown;
+                float effectiveCooldown = _enemyBase.MinibossBehaviour != null ? _enemyBase.MinibossBehaviour.ModifyAttackCooldown(attackData.cooldown) : attackData.cooldown;
                 bool isCooldownReady = Time.time >= _attackCooldownTimers[attackData] + effectiveCooldown;
                 bool isInRange = distanceToPlayer >= attackData.minAttackRange && distanceToPlayer <= attackData.maxAttackRange; //Kiểm tra nếu player nằm trong phạm vi tấn công của đòn tấn công
                 if (isCooldownReady && isInRange)

@@ -42,21 +42,16 @@ public class EnemyLocomotion : MonoBehaviour
     }
 
     //Hàm di chuyển đến vị trí mục tiêu
-    public void MoveToTarget(
-        Vector3 targetPosition,
-        float stoppingDistance = 0f,
-        bool rotateToMovement = true)
+    public void MoveToTarget(Vector3 targetPosition, float stoppingDistance = 0f)
     {
         if (_navMeshAgent == null ||
             !_navMeshAgent.enabled ||
             !_navMeshAgent.isOnNavMesh)
-        {
             return;
-        }
 
         _navMeshAgent.stoppingDistance = Mathf.Max(0f, stoppingDistance);
         _navMeshAgent.isStopped = false;
-        _navMeshAgent.updateRotation = rotateToMovement;
+        _navMeshAgent.updateRotation = true;
         _navMeshAgent.SetDestination(targetPosition);
     }
 

@@ -22,9 +22,9 @@ public class RuneRerollUI : MonoBehaviour
     [SerializeField] private Button rerollActionButton;
     [SerializeField] private Button closePanelButton;
 
-    [Header("Status Texts & Cost UI")]
+    [Header("Status Texts")]
+    [SerializeField] private TMP_Text costText;
     [SerializeField] private TMP_Text statusNoticeText;
-    [SerializeField] private CostDisplayUI costDisplayUI;
 
     [Header("Item Config")]
     [SerializeField] private string rerollItemID = "REROLL_SCROLL_01";
@@ -42,9 +42,6 @@ public class RuneRerollUI : MonoBehaviour
     private int selectedAffixIndex = -1;
     private bool isAnimating = false;
 
-    // Danh sách lưu vết các StatType thực tế khớp với thứ tự các Option trong Dropdown
-    private List<RuneStatType> availableDropdownStats = new List<RuneStatType>();
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -60,6 +57,8 @@ public class RuneRerollUI : MonoBehaviour
 
         if (useTargetRerollToggle != null) useTargetRerollToggle.onValueChanged.AddListener((x) => UpdateCostVisual());
         if (statTargetDropdown != null) statTargetDropdown.onValueChanged.AddListener((x) => UpdateCostVisual());
+
+        PopulateDropdownStats();
     }
 
     public void OpenPanel(RuneData rune)
@@ -100,7 +99,6 @@ public class RuneRerollUI : MonoBehaviour
 
         if (statusNoticeText != null) statusNoticeText.SetTextSafe("Select an Affix line from below to reroll.");
 
-        PopulateDropdownStats(); // THÊM MỚI: Gọi lọc Dropdown ngay khi mở viên ngọc
         RefreshAffixRows();
         UpdateCostVisual();
     }
@@ -139,7 +137,6 @@ public class RuneRerollUI : MonoBehaviour
             {
                 if (isAnimating) return;
                 selectedAffixIndex = index;
-                PopulateDropdownStats(); // Tải lại danh sách Dropdown lọc bỏ các dòng thuộc tính đã tồn tại
                 RefreshAffixRows();
                 UpdateCostVisual();
             });
@@ -149,30 +146,27 @@ public class RuneRerollUI : MonoBehaviour
     private void UpdateCostVisual()
     {
         bool isTargetMode = useTargetRerollToggle != null && useTargetRerollToggle.isOn;
-        List<CostData> costs = new List<CostData>();
 
-        if (selectedAffixIndex != -1)
+        if (costText != null)
         {
-            if (isTargetMode)
+            if (selectedAffixIndex == -1)
             {
-                costs.Add(new CostData(rerollItemID, 1));
-                costs.Add(new CostData("RUNE_SHARD", targetRerollShardCost));
+                costText.SetTextSafe("Cost: --");
+                if (rerollActionButton != null) rerollActionButton.interactable = false;
             }
             else
             {
-                costs.Add(new CostData("RUNE_SHARD", randomRerollShardCost));
+                if (isTargetMode)
+                {
+                    costText.SetTextSafe($"Cost: <color=#FFD700>1 {rerollItemName}</color> + <color=#CC66FF>{targetRerollShardCost} Shards</color>");
+                }
+                else
+                {
+                    costText.SetTextSafe($"Cost: <color=#CC66FF>{randomRerollShardCost} Shards</color>");
+                }
+
+                if (rerollActionButton != null) rerollActionButton.interactable = true;
             }
-
-            if (rerollActionButton != null) rerollActionButton.interactable = true;
-        }
-        else
-        {
-            if (rerollActionButton != null) rerollActionButton.interactable = false;
-        }
-
-        if (costDisplayUI != null)
-        {
-            costDisplayUI.SetupCost(costs);
         }
 
         if (statTargetDropdown != null) statTargetDropdown.gameObject.SetActive(isTargetMode);
@@ -227,10 +221,9 @@ public class RuneRerollUI : MonoBehaviour
         }
 
         RuneStatType finalTargetStat = RuneStatType.HP;
-        if (isTargetMode && statTargetDropdown != null && availableDropdownStats.Count > 0)
+        if (isTargetMode && statTargetDropdown != null)
         {
-            int selectedIndex = Mathf.Clamp(statTargetDropdown.value, 0, availableDropdownStats.Count - 1);
-            finalTargetStat = availableDropdownStats[selectedIndex];
+            finalTargetStat = (RuneStatType)statTargetDropdown.value;
         }
 
         StartCoroutine(RerollGachaRoutine(isTargetMode, finalTargetStat));
@@ -304,44 +297,12 @@ public class RuneRerollUI : MonoBehaviour
 
         isAnimating = false;
         if (closePanelButton != null) closePanelButton.interactable = true;
-        PopulateDropdownStats();
         RefreshAffixRows();
         UpdateCostVisual();
     }
 
     private RuneStatType GetRandomStatPool()
     {
-        // Lấy danh sách các dòng chưa có trên viên ngọc
-        List<RuneStatType> validPool = new List<RuneStatType>();
-        for (int i = 0; i < 14; i++)
-        {
-            RuneStatType type = (RuneStatType)i;
-            bool isAlreadyOwned = false;
-
-            if (targetRuneData != null)
-            {
-                for (int j = 0; j < targetRuneData.affixes.Count; j++)
-                {
-                    if (j == selectedAffixIndex) continue; // Bỏ qua chính dòng đang được reroll
-                    if (targetRuneData.affixes[j].statType == type)
-                    {
-                        isAlreadyOwned = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!isAlreadyOwned)
-            {
-                validPool.Add(type);
-            }
-        }
-
-        if (validPool.Count > 0)
-        {
-            return validPool[Random.Range(0, validPool.Count)];
-        }
-
         return (RuneStatType)Random.Range(0, 14);
     }
 
@@ -355,42 +316,15 @@ public class RuneRerollUI : MonoBehaviour
         return baseVal * multiplier;
     }
 
-    /// <summary>
-    /// Nạp danh sách thuộc tính vào Dropdown và TỰ ĐỘNG LỌC BỎ các thuộc tính viên ngọc ĐÃ SỞ HỮU ở các dòng khác
-    /// </summary>
     private void PopulateDropdownStats()
     {
         if (statTargetDropdown == null) return;
-
         statTargetDropdown.options.Clear();
-        availableDropdownStats.Clear();
 
         for (int i = 0; i < 14; i++)
         {
-            RuneStatType candidateStat = (RuneStatType)i;
-            bool isAlreadyOwnedOnRune = false;
-
-            if (targetRuneData != null)
-            {
-                for (int j = 0; j < targetRuneData.affixes.Count; j++)
-                {
-                    // Kiểm tra: Chỉ cần thuộc tính này ĐÃ TỒN TẠI ở bất kỳ dòng nào trên ngọc -> Loại bỏ ngay!
-                    if (targetRuneData.affixes[j].statType == candidateStat)
-                    {
-                        isAlreadyOwnedOnRune = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!isAlreadyOwnedOnRune)
-            {
-                availableDropdownStats.Add(candidateStat);
-                statTargetDropdown.options.Add(new TMP_Dropdown.OptionData(GetStatName(candidateStat)));
-            }
+            statTargetDropdown.options.Add(new TMP_Dropdown.OptionData(GetStatName((RuneStatType)i)));
         }
-
-        statTargetDropdown.value = 0;
         statTargetDropdown.RefreshShownValue();
     }
 

@@ -75,8 +75,6 @@ public class EnemyHitbox : MonoBehaviour
             };
 
             damageable.TakeDamage(damageInfo);
-            _enemyBase.MinibossBehaviour?.OnAttackHit(attackData, other);
-
             CameraShake.Instance?.Shake();
 
             Debug.Log($"{gameObject.name} gây sát thương {finalDamage} lên Player " + $"(sát thương cơ bản: {_enemyBase.Data.damage}, hệ số: {multiplier})");

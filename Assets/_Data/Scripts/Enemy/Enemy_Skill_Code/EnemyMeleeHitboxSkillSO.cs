@@ -17,7 +17,7 @@ public class EnemyMeleeHitboxSkillSO : EnemyAttackSkillSO
         base.OnAttackEnd(context);
         if (context == null || context.Enemy == null) return;
 
-        context.Enemy.HitboxRegistry.DisableAllHitboxes();
+        context.Enemy.Combat.DisableHitbox(context.AttackData.hitboxType);
         Debug.Log($"[EnemyMeleeHitboxSkill] Close hitbox: {context.AttackData.attackName} - Hitbox Type: {context.AttackData.hitboxType}");
     }
 }

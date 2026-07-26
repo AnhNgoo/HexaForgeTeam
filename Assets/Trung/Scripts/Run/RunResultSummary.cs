@@ -9,12 +9,12 @@ public class RunResultSummary : MonoBehaviour
     [SerializeField] private GameObject summaryPanel; 
 
     [Header("Summary Texts")]
-    [SerializeField] private TMP_Text txtStatsNotify; 
-    [SerializeField] private TMP_Text txtRewards;     
+    [SerializeField] private TMP_Text txtStatsNotify; // Hiển thị thông số trận đấu (Tiếng Anh)
+    [SerializeField] private TMP_Text txtRewards;     // Hiển thị phần thưởng xịn (Tiếng Anh)
 
     private int calculatedGem;
     private int calculatedExp;
-    private int calculatedShards; 
+    private int calculatedShards; // MỚI: Biến tạm tính toán số Shards nhận được
 
     private void Awake()
     {
@@ -22,52 +22,48 @@ public class RunResultSummary : MonoBehaviour
         if (summaryPanel != null) summaryPanel.SetActive(false); 
     }
 
-    public void DisplaySummary(int normalKilled, int eliteKilled, int bossKilled)
+    public void DisplaySummary(int kills, int score)
     {
         if (summaryPanel == null) return;
 
-        int totalKills = normalKilled + eliteKilled + bossKilled;
-        int calculatedScore = (normalKilled * 100) + (eliteKilled * 300) + (bossKilled * 1000);
+        // 1. Tính toán tài nguyên cơ bản (Điều chỉnh lại tỷ lệ quy đổi)
+        calculatedGem = score / 20; // Giảm bớt lượng Gem rớt ra từ Dungeon
+        calculatedExp = kills * 15;
+        calculatedShards = score * 2; // Tặng nhiều Mảnh Cổ Tự để người chơi làm nguyên liệu nâng cấp ngọc
 
-        calculatedGem = (normalKilled * 2) + (eliteKilled * 10) + (bossKilled * 50);
-        calculatedExp = (normalKilled * 10) + (eliteKilled * 30) + (bossKilled * 100);
-        calculatedShards = (normalKilled * 5) + (eliteKilled * 20) + (bossKilled * 150);
+        int upgradeShards = Mathf.Clamp(kills / 10, 1, 5);     
 
-        int weaponShards = Mathf.Clamp(totalKills / 10, 1, 5) + (bossKilled * 2);
-
+        // 2. Hiển thị thông báo dạng TIẾNG ANH chuẩn chỉnh, không lo lỗi font
         if (txtStatsNotify != null)
         {
             txtStatsNotify.SetTextSafe($"<b><color=#FFCC00>VICTORY ACHIEVED</color></b>\n\n" +
-                                      $"Normal Monsters: <color=#FFFFFF>{normalKilled}</color>\n" +
-                                      $"Elite Monsters: <color=#FFCC00>{eliteKilled}</color>\n" +
-                                      $"Boss Targets: <color=#FF3333>{bossKilled}</color>\n\n" +
-                                      $"Total Score: <color=#FFFF66>{calculatedScore}</color>");
+                                  $"Monsters Vanquished: <color=#FF3333>{kills}</color>\n" +
+                                  $"Battle Score: <color=#FFFF66>{score}</color>");
         }
 
         if (txtRewards != null)
         {
             txtRewards.SetTextSafe($"<b><color=#00FFCC>REWARDS ACQUIRED</color></b>\n\n" +
-                                  $"- Crystals: <color=#33FFFF>+{calculatedGem}</color>\n" +
-                                  $"- Rune Shards: <color=#CC66FF>+{calculatedShards}</color>\n" +
-                                  $"- Account EXP: <color=#33FF33>+{calculatedExp}</color>\n" +
-                                  $"- Weapon Shards: <color=#FFA500>+{weaponShards}</color>");
+                              $"- Crystals: <color=#33FFFF>+{calculatedGem}</color>\n" +
+                              $"- Rune Shards: <color=#CC66FF>+{calculatedShards}</color>\n" + // ĐỔI HIỂN THỊ THÀNH TIỀN MỚI
+                              $"- Account EXP: <color=#33FF33>+{calculatedExp}</color>\n" +
+                              $"- Weapon Shards: <color=#FFA500>+{upgradeShards}</color>");
         }
 
+        // Bật bảng UI kết quả
         summaryPanel.SetActive(true);
 
+        // 3. Gửi dữ liệu cốt lõi về cho RunManager xử lý (Đồng bộ hàm nhận thưởng mới truyền thêm biến Shards)
         if (RunManager.Instance != null)
         {
             RunManager.Instance.SetPendingRewards(calculatedGem, calculatedExp, calculatedShards);
         }
 
+        // Tặng thêm Ngọc Cổ Tự ngẫu nhiên (Giữ nguyên logic của bạn)
         if (RuneInventoryManager.Instance != null)
         {
             RuneColor randomColor = (RuneColor)Random.Range(0, 3);
-            RuneRarity randomRarity = RuneRarity.Common;
-            
-            if (bossKilled > 0) randomRarity = RuneRarity.Epic;
-            else if (eliteKilled > 0) randomRarity = (Random.Range(0, 2) == 0) ? RuneRarity.Rare : RuneRarity.Common;
-
+            RuneRarity randomRarity = (RuneRarity)Random.Range(0, 3);
             RuneData newRune = new RuneData(randomColor, randomRarity)
             {
                 runeName = $"Relic: {randomRarity} {randomColor}",
@@ -77,6 +73,7 @@ public class RunResultSummary : MonoBehaviour
         }
     }
 
+    // Gắn vào nút bấm quay về sảnh
     public void OnConfirmAndReturn()
     {
         if (RunManager.Instance != null)
