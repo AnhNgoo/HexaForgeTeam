@@ -1,36 +1,42 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterSkill : MonoBehaviour
 {
-    [SerializeField] private CharacterSkillData skillData1;
-    public CharacterSkillData SkillData1 => skillData1;
-    [SerializeField] private CharacterSkillData skillData2;
-    public CharacterSkillData SkillData2 => skillData2;
+    [SerializeField] private CharacterSkillData skill1Data;
+    [SerializeField] private CharacterSkillData skill2Data;
+    private ICharacterSkill skill1;
+    private ICharacterSkill skill2;
     public bool CanUseSkill1 { get; set; } = true;
     public bool CanUseSkill2 { get; set; } = true;
     public bool IsUsingSkill { get; set; } = false;
-    private ICharacterSkill skill1;
-    private ICharacterSkill skill2;
+
     private CharacterBase characterBase;
 
-    public void Init(CharacterBase character, ICharacterSkill skill1, ICharacterSkill skill2)
+    public void Init(CharacterBase character, CharacterSkillData skill1Data, CharacterSkillData skill2Data, ICharacterSkill skill1, ICharacterSkill skill2)
     {
         this.characterBase = character;
         this.skill1 = skill1;
         this.skill2 = skill2;
+        this.skill1Data = skill1Data;
+        this.skill2Data = skill2Data;
+        EventManager.Notify(GameEvent.OnSetImageSkill1, skill1Data.skillIcon);
+        EventManager.Notify(GameEvent.OnSetImageSkill2, skill2Data.skillIcon);
     }
 
     public void UseSkill1()
     {
-        if (!CanUseSkill1) return;
+        if (!CanUseSkill1)
+            return;
         skill1?.UseSkill();
     }
 
     public void UseSkill2()
     {
-        if (!CanUseSkill2) return;
+        if (!CanUseSkill2)
+            return;
         skill2?.UseSkill();
     }
 }

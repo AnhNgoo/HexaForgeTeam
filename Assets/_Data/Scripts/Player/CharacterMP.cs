@@ -25,31 +25,19 @@ public class CharacterMP : MonoBehaviour
 
     private void Update()
     {
-        if (characterBase == null)
-            return;
-
-        if (currentMP < maxMP)
-        {
-            currentMP += characterBase.CharacterStat.Stats.mpRegen * Time.deltaTime;
-            if (currentMP > maxMP)
-                currentMP = maxMP;
-
-            mpData.MaxMP = maxMP;
-            mpData.CurrentMP = currentMP;
-            mpData.fullRegen = false;
-            EventManager.Notify(GameEvent.OnUpdateMP, mpData);
-        }
+        AddMPOverTime();
     }
 
     public void SetMaxMP(float maxMP, bool fullRegen = true)
     {
-        this.maxMP = maxMP;
-        if (currentMP > maxMP)
-            currentMP = maxMP;
-        if (fullRegen)
-            currentMP = maxMP;
+        float normalizedMaxMP = Mathf.Max(1f, maxMP);
 
-        mpData.MaxMP = maxMP;
+        this.maxMP = normalizedMaxMP;
+        currentMP = Mathf.Clamp(currentMP, 0, normalizedMaxMP);
+        if (fullRegen)
+            currentMP = normalizedMaxMP;
+
+        mpData.MaxMP = normalizedMaxMP;
         mpData.CurrentMP = currentMP;
         mpData.fullRegen = fullRegen;
         EventManager.Notify(GameEvent.OnUpdateMaxMP, mpData);
@@ -58,8 +46,7 @@ public class CharacterMP : MonoBehaviour
     public void SubtractMP(float amount)
     {
         currentMP -= amount;
-        if (currentMP < 0)
-            currentMP = 0;
+        currentMP = Mathf.Clamp(currentMP, 0, maxMP);
 
         mpData.MaxMP = maxMP;
         mpData.CurrentMP = currentMP;
@@ -70,8 +57,7 @@ public class CharacterMP : MonoBehaviour
     public void AddMP(float amount)
     {
         currentMP += amount;
-        if (currentMP > maxMP)
-            currentMP = maxMP;
+        currentMP = Mathf.Clamp(currentMP, 0, maxMP);
 
         mpData.MaxMP = maxMP;
         mpData.CurrentMP = currentMP;
@@ -82,5 +68,37 @@ public class CharacterMP : MonoBehaviour
     public bool HasEnoughMP(float amount)
     {
         return currentMP >= amount;
+    }
+
+    public void AddMPOverTime()
+    {
+        if (characterBase == null)
+            return;
+
+        if (currentMP < maxMP)
+        {
+            currentMP += characterBase.CharacterStat.Stats.mpRegen * Time.deltaTime;
+            currentMP = Mathf.Clamp(currentMP, 0, maxMP);
+
+            mpData.MaxMP = maxMP;
+            mpData.CurrentMP = currentMP;
+            EventManager.Notify(GameEvent.OnUpdateMP, mpData);
+        }
+    }
+
+    public void SubtractMPOverTime(float amount)
+    {
+        if (characterBase == null)
+            return;
+
+        if (currentMP > 0)
+        {
+            currentMP -= amount * Time.deltaTime;
+            currentMP = Mathf.Clamp(currentMP, 0, maxMP);
+
+            mpData.MaxMP = maxMP;
+            mpData.CurrentMP = currentMP;
+            EventManager.Notify(GameEvent.OnUpdateMP, mpData);
+        }
     }
 }

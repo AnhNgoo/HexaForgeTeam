@@ -99,6 +99,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public DashShadowEffect DashShadowEffect { get; set; }
     public GhostEffect GhostEffect { get; set; }
     public bool IsHitStateActive { get; set; } = false;
+    public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
+
 
     protected override void LoadComponent()
     {
@@ -168,21 +170,15 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     }
     #region Init Character
 
-    //Test
-    protected override void Awake()
-    {
-        base.Awake();
-    }
-
     [Button("Init Character Data")]
-    protected virtual void Init(CharacterData data)
+    public virtual void Init(CharacterData data)
     {
         if (data != null)
-            characterData = Instantiate(data);
+            characterData = data;
 
         try
         {
-            CharacterInput.Init(this);
+            characterInput.Init(this);
             characterRecovery.Init(this);
             characterAnimation.Init(characterVisual);
             characterWeapon.Init(this, handRight.transform);
@@ -191,8 +187,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterStat.Init(this);
             characterStamina.Init(this);
             characterMP.Init(this);
+            stateController = new StateController();
+            stateController.ChangeState(new IdleState(this));
 
-            InitSkills();
+            //SECTION - Skill
+            characterSkill?.Init(this, characterData.skill1Data, characterData.skill2Data, GetSkill_1(characterData.skill1Data), GetSkill_2(characterData.skill2Data));
+
             GetDashShadowEffect(characterVisual);
             GetGhostEffect(characterVisual);
 
@@ -200,6 +200,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+            EventManager.Notify(GameEvent.OnPlayerSpawned);
         }
         catch (Exception e)
         {
@@ -209,16 +210,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     }
 
     #endregion
-    protected virtual void Start()
-    {
-        Init(characterData);
-
-        stateController = new StateController();
-
-        stateController.ChangeState(
-            new IdleState(this)
-        );
-    }
 
     protected virtual void Update()
     {
@@ -402,17 +393,13 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     #endregion
 
     #region Skill
-    protected virtual void InitSkills()
-    {
-        characterSkill?.Init(this, GetSkill_1(), GetSkill_2());
-    }
 
-    protected virtual ICharacterSkill GetSkill_1()
+    protected virtual ICharacterSkill GetSkill_1(CharacterSkillData skill1Data)
     {
         return null;
     }
 
-    protected virtual ICharacterSkill GetSkill_2()
+    protected virtual ICharacterSkill GetSkill_2(CharacterSkillData skill2Data)
     {
         return null;
     }
@@ -420,6 +407,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public virtual void Skill_1()
     {
         characterSkill?.UseSkill1();
+
     }
 
     public virtual void Skill_2()
@@ -428,16 +416,23 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     }
 
     // Năng lượng tiêu hao khi sử dụng kỹ năng, có thể là mana hoặc stamina, tùy thuộc vào thiết kế của từng nhân vật
-    public virtual void ConsumeSkillCost(CharacterTypes characterType, float cost)
+    public virtual bool ConsumeSkillCost(CharacterTypes characterType, float cost)
     {
         if (characterType == CharacterTypes.Magical)
         {
+            if (!characterMP.HasEnoughMP(cost))
+                return false;
             characterMP.SubtractMP(cost);
+            return true;
         }
         else if (characterType == CharacterTypes.Physical)
         {
+            if (!characterStamina.HasEnoughStamina(cost))
+                return false;
             characterStamina.SubtractStamina(cost);
+            return true;
         }
+        return false;
     }
     #endregion
     protected virtual void OnLockTarget()
@@ -459,6 +454,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Button("Take Damage (Test)")]
     public void TakeDamage(DamageInfo damageInfo)
     {
+        if (!CanBeAttacked) // Nếu nhân vật không thể bị tấn công, bỏ qua
+            return;
+
         if (characterHealth.CurrentHealth <= 0)
             return;
 
@@ -488,6 +486,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     private void Die()
     {
+        CanBeAttacked = false;
         stateController.ChangeState(new DeathState(this));
     }
 
