@@ -118,6 +118,11 @@ public class PlayerManager : Singleton<PlayerManager>
             Debug.LogWarning("Nhân vật hiện tại đã là nhân vật được chọn");
             return;
         }
+        if (currentCharacterBase == null)
+        {
+            Debug.LogError("Chưa spawn nhân vật hiện tại");
+            return;
+        }
 
         SpawnCharacter(selectingCharacter, currentCharacterBase.transform);
         SaveCharacterSelected();

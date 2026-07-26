@@ -43,6 +43,7 @@ public enum GameEvent
     OnSetImageSkill2 = 35,
     OnUpdateCooldownSkill1 = 36,
     OnUpdateCooldownSkill2 = 37,
+    OnPlayerSpawned = 38,
 }
 public static class EventManager
 {

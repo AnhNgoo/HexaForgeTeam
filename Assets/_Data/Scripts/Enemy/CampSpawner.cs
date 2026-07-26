@@ -106,11 +106,25 @@ public class CampSpawner : MonoBehaviour
 
     private void Start()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player"); // Tìm game object có tag "Player" để lấy reference đến player, có thể dùng để kiểm tra khoảng cách giữa player và camp
-        if (player != null) _playerTransform = player.transform; // Lưu reference đến Transform của player để sử dụng sau này
+        GetPlayerTransform(); // Lấy reference đến Transform của player
 
         //Bắt đầu kiểm tra khoảng cách giữa player và camp để quyết định khi nào spawn/despawn enemy
         CampCheckRoutine().Forget(); // Sử dụng UniTask để chạy routine kiểm tra khoảng cách một cách hiệu quả mà không cần phải tạo nhiều coroutine hoặc sử dụng Update, có thể dùng để tiết kiệm hiệu năng và đảm bảo rằng việc kiểm tra khoảng cách được thực hiện một cách mượt mà
+        EventManager.Subscribe(GameEvent.OnPlayerSpawned, GetPlayerTransform);
+    }
+
+    private void OnDestroy()
+    {
+        EventManager.Unsubscribe(GameEvent.OnPlayerSpawned, GetPlayerTransform);
+    }
+
+    private void GetPlayerTransform(object data = null)
+    {
+        if (_playerTransform == null)
+        {
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null) _playerTransform = player.transform;
+        }
     }
 
     private async UniTaskVoid CampCheckRoutine()

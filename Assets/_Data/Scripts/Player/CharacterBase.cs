@@ -200,6 +200,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+            EventManager.Notify(GameEvent.OnPlayerSpawned);
         }
         catch (Exception e)
         {
