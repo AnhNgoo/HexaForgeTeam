@@ -57,17 +57,15 @@ public class RuneFilterPanel : MonoBehaviour
 
     private void Update()
     {
-        // FIXED: CLICK CHUỘT RA NGOÀI VÙNG TRỐNG TỰ ĐỘNG ĐÓNG BẢNG LỌC
-        if (filterPanelRoot == null || !filterPanelRoot.activeSelf) return;
+        if (!IsPanelActive()) return;
 
         if (Input.GetMouseButtonDown(0))
         {
-            RectTransform panelRect = filterPanelRoot.GetComponent<RectTransform>();
+            GameObject targetObj = filterPanelRoot != null ? filterPanelRoot : gameObject;
+            RectTransform panelRect = targetObj.GetComponent<RectTransform>();
             if (panelRect != null)
             {
-                // Kiểm tra va chạm hình học RectTransform
                 bool clickInside = RectTransformUtility.RectangleContainsScreenPoint(panelRect, Input.mousePosition, null);
-                
                 if (!clickInside)
                 {
                     CloseFilterPanel();
@@ -76,9 +74,17 @@ public class RuneFilterPanel : MonoBehaviour
         }
     }
 
+    public bool IsPanelActive()
+    {
+        if (filterPanelRoot != null) return filterPanelRoot.activeInHierarchy;
+        return gameObject.activeInHierarchy;
+    }
+
     public void OpenFilterPanel()
     {
         if (filterPanelRoot != null) filterPanelRoot.SetActive(true);
+        else gameObject.SetActive(true);
+
         if (selectModeButtonObj != null) selectModeButtonObj.SetActive(true);
         
         ResetFilterToDefault();
@@ -87,7 +93,11 @@ public class RuneFilterPanel : MonoBehaviour
     public void CloseFilterPanel()
     {
         if (filterPanelRoot != null) filterPanelRoot.SetActive(false);
+        else gameObject.SetActive(false);
+
         if (selectModeButtonObj != null) selectModeButtonObj.SetActive(false); 
+        
+        NotifyInventoryRefresh();
     }
 
     public void ResetFilterToDefault()
@@ -98,7 +108,7 @@ public class RuneFilterPanel : MonoBehaviour
         isIgnoreCallback = false;
         
         UpdateAllToggleVisuals();
-        NotifyInventoryRefresh(); // Ép hòm đồ lưới đồng bộ hiển thị lại toàn bộ ngọc ngay lập tức
+        NotifyInventoryRefresh();
     }
 
     private void OnToggleAllChanged(bool isOn)
@@ -224,7 +234,7 @@ public class RuneFilterPanel : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[FilterPanel Protect] Chặn lỗi Font chữ TMPro: {e.Message}");
+            Debug.LogWarning($"[FilterPanel Protect] Error TMPro: {e.Message}");
         }
 
         Image img = toggle.GetComponent<Image>();

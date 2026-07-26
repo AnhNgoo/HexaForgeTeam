@@ -1,89 +1,142 @@
-using TMPro;
+using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using DG.Tweening;
 
 public class LevelUpPopupUI : LoadComponents
 {
     public static LevelUpPopupUI Instance;
 
-    [SerializeField]
-    private GameObject LevelUpPanel;
+    [Header("Panel Root & Animation Containers")]
+    [SerializeField] private GameObject levelUpPanel;
+    [SerializeField] private RectTransform popupContainer;
+    [SerializeField] private CanvasGroup bgOverlayCanvasGroup;
 
-    [SerializeField]
-    private TMP_Text TitleText;
+    [Header("Texts")]
+    [SerializeField] private TMP_Text titleText;
+    [SerializeField] private TMP_Text levelNoticeText;
+    [SerializeField] private TMP_Text bonusStatsText;
 
-    [SerializeField]
-    private TMP_Text RewardText;
+    [Header("Reward Display")]
+    [SerializeField] private CostDisplayUI rewardDisplayUI;
 
-    private void Awake()
+    [Header("Auto Hide Settings")]
+    [SerializeField] private float autoHideDelay = 2.5f;
+
+    protected override void Awake()
     {
+        base.Awake();
         Instance = this;
 
-        if (LevelUpPanel != null)
+        if (levelUpPanel != null)
         {
-            LevelUpPanel.SetActive(false);
+            levelUpPanel.SetActive(false);
         }
     }
 
-    public void Show(
-        string title,
-        string reward)
+    public void Show(string title, int oldLevel, int newLevel, List<CostData> rewards, string bonusText)
     {
-        if (LevelUpPanel != null)
+        if (levelUpPanel == null) return;
+
+        CancelInvoke(nameof(Hide));
+
+        if (titleText != null) titleText.SetTextSafe(title);
+        if (levelNoticeText != null) levelNoticeText.SetTextSafe($"LEVEL {oldLevel} -> <color=#00FFCC>LEVEL {newLevel}</color>");
+        if (bonusStatsText != null) bonusStatsText.SetTextSafe(bonusText);
+
+        if (rewardDisplayUI != null && rewards != null)
         {
-            LevelUpPanel.SetActive(true);
+            rewardDisplayUI.SetupCost(rewards);
         }
 
-        if (TitleText != null)
+        levelUpPanel.SetActive(true);
+
+        if (bgOverlayCanvasGroup != null)
         {
-            TitleText.SetTextSafe(
-                title);
+            bgOverlayCanvasGroup.alpha = 0f;
+            bgOverlayCanvasGroup.DOFade(1f, 0.25f).SetUpdate(true);
         }
 
-        if (RewardText != null)
+        if (popupContainer != null)
         {
-            RewardText.SetTextSafe(
-                reward);
+            popupContainer.transform.localScale = Vector3.one * 0.7f;
+            popupContainer.transform.DOScale(Vector3.one, 0.35f)
+                .SetEase(Ease.OutBack)
+                .SetUpdate(true)
+                .OnComplete(() =>
+                {
+                    Invoke(nameof(Hide), autoHideDelay);
+                });
         }
+        else
+        {
+            Invoke(nameof(Hide), autoHideDelay);
+        }
+    }
 
-        CancelInvoke();
+    public void Show(string title, string reward)
+    {
+        CancelInvoke(nameof(Hide));
 
-        Invoke(
-            nameof(Hide),
-            3f);
+        if (titleText != null) titleText.SetTextSafe(title);
+        if (bonusStatsText != null) bonusStatsText.SetTextSafe(reward);
+
+        if (levelUpPanel != null) levelUpPanel.SetActive(true);
+
+        Invoke(nameof(Hide), autoHideDelay);
     }
 
     public void Hide()
     {
-        if (LevelUpPanel != null)
+        CancelInvoke(nameof(Hide));
+
+        if (levelUpPanel == null || !levelUpPanel.activeSelf) return;
+
+        if (bgOverlayCanvasGroup != null)
         {
-            LevelUpPanel.SetActive(false);
+            bgOverlayCanvasGroup.DOFade(0f, 0.2f).SetUpdate(true);
+        }
+
+        if (popupContainer != null)
+        {
+            popupContainer.transform.DOScale(Vector3.zero, 0.2f)
+                .SetEase(Ease.InBack)
+                .SetUpdate(true)
+                .OnComplete(() =>
+                {
+                    levelUpPanel.SetActive(false);
+                });
+        }
+        else
+        {
+            levelUpPanel.SetActive(false);
         }
     }
+
     protected override void LoadComponent()
-{
-    if (LevelUpPanel == null)
     {
-        LevelUpPanel =
-            transform.Find(nameof(LevelUpPanel))
-            ?.gameObject;
+        if (levelUpPanel == null)
+        {
+            levelUpPanel = transform.Find("LevelUpPanel")?.gameObject ?? gameObject;
+        }
+
+        if (titleText == null)
+        {
+            titleText = transform.Find("TitleText")?.GetComponent<TMP_Text>();
+        }
+
+        if (bonusStatsText == null)
+        {
+            bonusStatsText = transform.Find("BonusStatsText")?.GetComponent<TMP_Text>();
+        }
+
+        if (rewardDisplayUI == null)
+        {
+            rewardDisplayUI = GetComponentInChildren<CostDisplayUI>();
+        }
     }
 
-    if (TitleText == null)
+    protected override void LoadComponentRuntime()
     {
-        TitleText =
-            transform.Find(nameof(TitleText))
-            ?.GetComponent<TMP_Text>();
     }
-
-    if (RewardText == null)
-    {
-        RewardText =
-            transform.Find(nameof(RewardText))
-            ?.GetComponent<TMP_Text>();
-    }
-}
-
-protected override void LoadComponentRuntime()
-{
-}
 }

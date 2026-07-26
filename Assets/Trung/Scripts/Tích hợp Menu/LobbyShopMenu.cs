@@ -26,7 +26,7 @@ public class LobbyShopMenu : MenuBase
             LobbyShopUI.Instance.HideShopPanel();
         }
 
-        base.Close();
+        gameObject.SetActive(false);
 
         if (LobbyHUDTopBar.Instance != null)
         {

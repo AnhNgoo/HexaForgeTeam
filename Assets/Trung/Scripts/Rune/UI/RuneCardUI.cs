@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DG.Tweening;
 
-public class RuneCardUI : MonoBehaviour, IPointerClickHandler
+public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler
 {
     [Header("UI Fields")]
     [SerializeField] private Image cardImage;
@@ -19,24 +19,13 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private TMP_Text slotText;
     [SerializeField] private Image slotFrameImage;
 
-    [Header("Tooltip Panel Config")]
-    [SerializeField] private GameObject tooltipPanel;
-    [SerializeField] private TMP_Text tooltipText;
-
-    [Header("Action Context Panel")]
-    [SerializeField] private GameObject actionPanel;
-
     [Header("NEW: Select Mode Highlights")]
     [SerializeField] private GameObject selectedHighlight; 
     [SerializeField] private Toggle selectToggle;          
     private bool isSelected = false;                        
     private bool isDeleteMode = false;                      
 
-    [Header("Action Buttons Click")]
-    [SerializeField] private Button useButton;
-    [SerializeField] private TMP_Text useButtonText;
-    [SerializeField] private Button deleteButton;
-    [SerializeField] private Button smallRerollButton;
+    [Header("Card Theme & Back Settings")]
     [SerializeField] private GameObject backUI;
     [SerializeField] private Sprite originRuneSprite;
 
@@ -69,21 +58,21 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
     [SerializeField] private Sprite blueLegendarySprite;
 
     private RuneData currentRuneData;
-    private bool isOpened;
+
+    private Canvas parentCanvas;
+    private CanvasGroup canvasGroup;
+    private GameObject dragProxy;
 
     private void Awake()
     {
         transform.rotation = Quaternion.identity;
-        ClosePanels();
 
-        if (useButton != null) useButton.onClick.AddListener(OnUseButton);
-        if (deleteButton != null) deleteButton.onClick.AddListener(OnDeleteButton);
-        if (smallRerollButton != null) smallRerollButton.onClick.AddListener(() => {
-    if (currentRuneData != null && RuneRerollUI.Instance != null) {
-        RuneRerollUI.Instance.OpenPanel(currentRuneData); // ĐỔI THÀNH OpenPanel theo đúng file RuneRerollUI.cs mới
-        ClosePanels(); 
-    }
-});
+        parentCanvas = GetComponentInParent<Canvas>();
+        canvasGroup = GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+        {
+            canvasGroup = gameObject.AddComponent<CanvasGroup>();
+        }
 
         if (selectToggle != null)
         {
@@ -94,19 +83,6 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    private void Update()
-    {
-        if (!isOpened) return;
-
-        if (Input.GetMouseButtonDown(0))
-        {
-            if (!IsPointerOverThisCard())
-            {
-                ClosePanels();
-            }
-        }
-    }
-
     public void Setup(RuneData runeData, bool playAnimation = true)
     {
         currentRuneData = runeData;
@@ -114,18 +90,16 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
         SetupCardImage(runeData.runeRarity);
         SetupRuneShape(runeData.runeColor, runeData.runeRarity);
         
-        // BẢO VỆ CHỐNG LỖI FONT TOÀN DIỆN CHO THẺ BÀI NGỌC
         try
         {
             SetupColorText(runeData.runeColor);
             SetupRuneName(runeData);
             SetupRuneLore(runeData);
             SetupAffixText(runeData);
-            SetupTooltip(runeData);
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[RuneCardUI Protect] Chặn sập ghim do lỗi ký tự Font 1683: {e.Message}");
+            Debug.LogWarning($"[RuneCardUI Protect] Error: {e.Message}");
         }
 
         UpdateEquipUI();
@@ -146,18 +120,102 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
             isRevealed = true;
         }
 
-        SetSelected(false); 
+        if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.GetSelectedRuneData() == currentRuneData)
+        {
+            SetSelected(true);
+        }
+        else
+        {
+            SetSelected(false);
+        }
     }
 
-    public void UpdateSelectModeVisual()
+    #region Drag and Drop Handlers
+
+    public void OnBeginDrag(PointerEventData eventData)
     {
+        if (currentRuneData == null || !isRevealed || isAnimating || isDeleteMode) return;
+
+        if (RuneInventoryUI.Instance != null)
+        {
+            RuneInventoryUI.Instance.OnRuneClicked(this, currentRuneData);
+        }
+
+        dragProxy = new GameObject("Rune_DragProxy");
+        if (parentCanvas != null) dragProxy.transform.SetParent(parentCanvas.transform, false);
+        dragProxy.transform.SetAsLastSibling();
+
+        Image proxyImg = dragProxy.AddComponent<Image>();
+        proxyImg.sprite = runeShapeImage != null && runeShapeImage.sprite != null ? runeShapeImage.sprite : cardImage.sprite;
+        
+        proxyImg.raycastTarget = false; 
+
+        RectTransform proxyRect = dragProxy.GetComponent<RectTransform>();
+        proxyRect.sizeDelta = new Vector2(80, 80);
+
+        canvasGroup.alpha = 0.4f;
+        canvasGroup.blocksRaycasts = false;
+    }
+
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (dragProxy != null)
+        {
+            dragProxy.transform.position = eventData.position;
+        }
+    }
+
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        canvasGroup.alpha = 1.0f;
+        canvasGroup.blocksRaycasts = true;
+
+        if (dragProxy != null)
+        {
+            Destroy(dragProxy);
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (currentRuneData == null || !isRevealed || isDeleteMode) return;
+
+        if (RuneInventoryUI.Instance != null)
+        {
+            RuneInventoryUI.Instance.OnRuneHovered(currentRuneData);
+        }
+        else if (RuneDetailInfoPanel.Instance != null)
+        {
+            RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
+        }
+    }
+
+    #endregion
+
+    #region Scroll Handler
+
+    public void OnScroll(PointerEventData eventData)
+    {
+        ScrollRect parentScroll = GetComponentInParent<ScrollRect>();
+        if (parentScroll != null)
+        {
+            parentScroll.OnScroll(eventData);
+        }
+    }
+
+    #endregion
+
+    public void UpdateSelectModeVisual(bool isDeleteModeActive = false)
+    {
+        isDeleteMode = isDeleteModeActive;
         if (selectToggle != null)
         {
             selectToggle.gameObject.SetActive(isDeleteMode); 
         }
         if (!isDeleteMode)
         {
-            SetSelected(false); 
+            bool isLocked = RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.GetSelectedRuneData() == currentRuneData;
+            SetSelected(isLocked); 
         }
     }
 
@@ -191,41 +249,29 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
             return; 
         }
 
-        if (RuneDetailInfoPanel.Instance != null)
+        if (RuneInventoryUI.Instance != null)
+        {
+            RuneInventoryUI.Instance.OnRuneClicked(this, currentRuneData);
+        }
+        else if (RuneDetailInfoPanel.Instance != null)
         {
             RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
         }
-
-        isOpened = !isOpened;
-        if (tooltipPanel != null) tooltipPanel.SetActive(isOpened); 
-        if (actionPanel != null) actionPanel.SetActive(isOpened);   
     }
 
-    public void SetSelected(bool value)
+    public void SetSelectedDirect(bool value)
     {
         isSelected = value;
         if (selectedHighlight != null) selectedHighlight.SetActive(isSelected);
         if (selectToggle != null)
         {
-            selectToggle.onValueChanged.RemoveAllListeners(); 
-            selectToggle.isOn = isSelected;
-            selectToggle.onValueChanged.AddListener((isOn) => {
-                isSelected = isOn;
-                if (selectedHighlight != null) selectedHighlight.SetActive(isSelected);
-            });
+            selectToggle.SetIsOnWithoutNotify(isSelected);
         }
     }
 
-    private void ClosePanels()
+    public void SetSelected(bool value)
     {
-        isOpened = false;
-        if (tooltipPanel != null) tooltipPanel.SetActive(false);
-        if (actionPanel != null) actionPanel.SetActive(false);
-    }
-
-    private bool IsPointerOverThisCard()
-    {
-        return RectTransformUtility.RectangleContainsScreenPoint(transform as RectTransform, Input.mousePosition, null);
+        SetSelectedDirect(value);
     }
 
     private RuneData GetInventoryRuneData()
@@ -236,168 +282,6 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
             if (RuneInventoryManager.Instance.runes[i].runeID == currentRuneData.runeID) return RuneInventoryManager.Instance.runes[i];
         }
         return null;
-    }
-
-    private void SetupTooltip(RuneData runeData)
-    {
-        if (tooltipText == null) return;
-        tooltipText.SetTextSafe(""); 
-
-        for (int i = 0; i < runeData.affixes.Count; i++)
-        {
-            RuneAffixData affix = runeData.affixes[i];
-            bool isPercent = IsPercentStat(affix.statType);
-            if (isPercent) tooltipText.text += $"• +{affix.value:F1}% ";
-            else tooltipText.text += $"• +{affix.value:F0} ";
-
-            tooltipText.SetTextSafe(tooltipText.text + $"{GetFullStatName(affix.statType)}\n");
-        }
-    }
-
-    private void OnUseButton()
-    {
-        if (RuneInventoryManager.Instance == null) return;
-
-        RuneData inventoryRune = GetInventoryRuneData();
-        if (inventoryRune == null) return;
-
-        currentRuneData = inventoryRune;
-        bool isEquippedByCurrentChar = false;
-        
-        CharacterType currentType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
-        CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
-
-        if (build != null)
-        {
-            for (int i = 0; i < build.equippedRuneIDs.Length; i++)
-            {
-                if (build.equippedRuneIDs[i] == currentRuneData.runeID) { isEquippedByCurrentChar = true; break; }
-            }
-        }
-
-        if (!isEquippedByCurrentChar)
-        {
-            int targetSlotIndex = -1;
-            if (build != null && RuneEquipUI.Instance != null)
-            {
-                if (IsUltimateRune())
-                {
-                    for (int i = 0; i < build.equippedRuneIDs.Length; i++)
-                    {
-                        if (string.IsNullOrEmpty(build.equippedRuneIDs[i])) { targetSlotIndex = i; break; }
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < build.equippedRuneIDs.Length; i++)
-                    {
-                        if (string.IsNullOrEmpty(build.equippedRuneIDs[i]))
-                        {
-                            RuneColor requiredColor = RuneEquipUI.Instance.GetSlotRequiredColor(currentType, i);
-                            if (inventoryRune.runeColor == requiredColor) { targetSlotIndex = i; break; }
-                        }
-                    }
-                }
-            }
-
-            if (targetSlotIndex == -1)
-            {
-                Debug.LogWarning($"<color=#FF3333>[TRANG BỊ] Không tìm thấy ô trống phù hợp hệ màu {inventoryRune.runeColor} trên nhân vật này.</color>");
-                if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("No matching empty slot found for this rune element!", Color.yellow);
-                return; 
-            }
-
-            bool equipped = RuneInventoryManager.Instance.EquipRune(inventoryRune, currentType);
-            if (equipped)
-            {
-                Debug.Log($"<color=#00FFCC><b>[TRANG BỊ]</b> Đã lắp thành công viên ngọc {inventoryRune.runeName} vào ô {targetSlotIndex + 1}</color>");
-                if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify($"Rune equipped successfully into slot {targetSlotIndex + 1}!", Color.green);
-            }
-            else
-            {
-                Debug.Log("<color=#FF3333>[TRANG BỊ] Lắp ngọc thất bại. Toàn bộ các slot đã bị lấp đầy.</color>");
-                if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Equip failed. All rune slots are currently full!", Color.red);
-            }
-        }
-        else
-        {
-            RuneInventoryManager.Instance.UnequipRune(inventoryRune, currentType);
-            Debug.Log($"<color=#FFFF66><b>[THÁO NGỌC NHANH]</b> Đã gỡ viên {inventoryRune.runeName} khỏi bảng trang bị.</color>");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify($"Rune unequipped from character layout.", Color.white);
-        }
-
-        currentRuneData = inventoryRune;
-        Setup(currentRuneData, false);
-        UpdateEquipUI();
-        ClosePanels();
-
-        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
-    }
-
-    private void OnDeleteButton()
-    {
-        if (currentRuneData == null) return;
-
-        // ĐOẠN BẢO HIỂM: Quét qua tất cả nhân vật để tự động tháo ngọc trên người trước khi hủy thẻ bài
-        CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
-        foreach (CharacterType charType in allChars)
-        {
-            var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
-            if (build != null && build.equippedRuneIDs != null)
-            {
-                for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
-                {
-                    if (build.equippedRuneIDs[slot] == currentRuneData.runeID)
-                    {
-                        build.equippedRuneIDs[slot] = ""; // Làm sạch ô trang bị
-                    }
-                }
-            }
-        }
-
-        // Ép lưu dữ liệu trạng thái tháo ngọc xuống file local
-        if (SaveLoadManager.Instance != null)
-        {
-            SaveLoadManager.Instance.SaveGame();
-        }
-
-        // Tính toán lượng Mảnh Cổ Tự hoàn trả đồng bộ dựa theo độ hiếm ngọc
-        int shardReward = 100; // Mặc định cho ngọc Common
-        switch (currentRuneData.runeRarity)
-        {
-            case RuneRarity.Rare: shardReward = 250; break;
-            case RuneRarity.Epic: shardReward = 600; break;
-            case RuneRarity.Legendary: shardReward = 1500; break;
-        }
-
-        // Thực hiện cộng tiền Rune Shards vào ví hệ thống thông qua Shard Manager
-        if (RuneShardManager.Instance != null)
-        {
-            RuneShardManager.Instance.AddShards(shardReward);
-        }
-
-        // Xóa ID ngọc khỏi túi đồ gốc
-        if (RuneInventoryManager.Instance != null)
-        {
-            RuneInventoryManager.Instance.RemoveRune(currentRuneData.runeID);
-        }
-
-        // SỬA ĐỒNG BỘ DEBUG & NOTIFY: Chuyển hoàn toàn từ Gems sang Rune Shards
-        Debug.Log($"<color=#CC66FF><b>[PHÂN TÁCH NGỌC]</b> Đã giải phóng slot và hủy viên ngọc {currentRuneData.runeName} thành công. Hoàn lại +{shardReward} Shards.</color>");
-        if (LobbyNotifyManager.Instance != null)
-        {
-            LobbyNotifyManager.Instance.ShowNotify($"Rune dismantled! Gained +{shardReward} Rune Shards.", Color.green);
-        }
-
-        // Làm mới lại toàn bộ UI liên quan để tránh lệch hình ảnh hiển thị
-        if (RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-        
-        CharacterSelectUI charUI = FindFirstObjectByType<CharacterSelectUI>();
-        if (charUI != null) charUI.RefreshUI();
-
-        // Hủy đối tượng Thẻ bài GameObject này khỏi UI lưới Grid
-        Destroy(gameObject);
     }
 
     private void SetupCardImage(RuneRarity runeRarity)
@@ -461,35 +345,67 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
         if (inventoryRune != null) currentRuneData = inventoryRune;
 
         bool isEquippedByCurrentChar = false;
+        bool isEquippedByOtherChar = false;
+        string ownerCharName = "";
         int slotIndex = -1;
 
-        CharacterType currentType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
-        CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
+        CharacterType viewingType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
 
-        if (build != null && currentRuneData != null)
+        if (CharacterManager.Instance != null && currentRuneData != null)
         {
-            for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+            CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+            foreach (CharacterType charType in allChars)
             {
-                if (build.equippedRuneIDs[i] == currentRuneData.runeID) { isEquippedByCurrentChar = true; slotIndex = i; break; }
+                var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+                if (build != null && build.equippedRuneIDs != null)
+                {
+                    for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+                    {
+                        if (build.equippedRuneIDs[i] == currentRuneData.runeID)
+                        {
+                            if (charType == viewingType)
+                            {
+                                isEquippedByCurrentChar = true;
+                                slotIndex = i;
+                            }
+                            else
+                            {
+                                isEquippedByOtherChar = true;
+                                ownerCharName = charType.ToString().ToUpper();
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         }
 
-        // BẢO VỆ CHỐNG LỖI FONT 1683
         try
         {
+            bool isEquippedAnywhere = isEquippedByCurrentChar || isEquippedByOtherChar;
+
             if (slotText != null)
             {
-                slotText.gameObject.SetActive(isEquippedByCurrentChar);
-                if (isEquippedByCurrentChar) slotText.text = $"{slotIndex + 1}";
-            }
-            if (useButtonText != null)
-            {
-                useButtonText.text = isEquippedByCurrentChar ? "Unequip" : "Use";
+                slotText.gameObject.SetActive(isEquippedAnywhere);
+                if (isEquippedByCurrentChar)
+                {
+                    slotText.SetTextSafe($"{slotIndex + 1}");
+                }
+                else if (isEquippedByOtherChar)
+                {
+                    slotText.SetTextSafe(ownerCharName);
+                }
             }
         }
-        catch {}
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[RuneCardUI Protect] Error font/render: {e.Message}");
+        }
 
-        if (slotFrameImage != null) slotFrameImage.gameObject.SetActive(isEquippedByCurrentChar);
+        if (slotFrameImage != null)
+        {
+            slotFrameImage.gameObject.SetActive(isEquippedByCurrentChar || isEquippedByOtherChar);
+        }
     }
 
     private void SetupColorText(RuneColor runeColor)
@@ -539,41 +455,6 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
         return "UNKNOWN";
     }
 
-    private string GetFullStatName(RuneStatType statType)
-    {
-        switch (statType)
-        {
-            case RuneStatType.HP: return "HP";
-            case RuneStatType.HPPercent: return "HP";
-            case RuneStatType.MP: return "MP";
-            case RuneStatType.MPPercent: return "MP";
-            case RuneStatType.Stamina: return "Stamina";
-            case RuneStatType.StaminaPercent: return "Stamina";
-            case RuneStatType.ATK: return "Attack";
-            case RuneStatType.ATKPercent: return "Attack";
-            case RuneStatType.DEF: return "Defense";
-            case RuneStatType.DEFPercent: return "Defense";
-            case RuneStatType.CritChance: return "Critical Chance";
-            case RuneStatType.CritDamage: return "Critical Damage";
-            case RuneStatType.ArmorPenetration: return "Armor Penetration";
-            case RuneStatType.StaminaRegen: return "Stamina Regeneration";
-            case RuneStatType.AllStats: return "All Stats";
-        }
-        return "Unknown";
-    }
-
-    private bool IsPercentStat(RuneStatType statType)
-    {
-        switch (statType)
-        {
-            case RuneStatType.HPPercent: case RuneStatType.MPPercent: case RuneStatType.StaminaPercent:
-            case RuneStatType.ATKPercent: case RuneStatType.DEFPercent: case RuneStatType.CritChance:
-            case RuneStatType.CritDamage: case RuneStatType.ArmorPenetration: case RuneStatType.StaminaRegen:
-                return true;
-        }
-        return false;
-    }
-
     public RuneData GetRuneData() => currentRuneData;
 
     public bool IsSelected() => isSelected;
@@ -581,10 +462,28 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler
     public bool IsLegendary() => currentRuneData != null && currentRuneData.runeRarity == RuneRarity.Legendary;
     public bool IsRevealed() => isRevealed;
 
+    public void InstantRevealWithoutAnimation()
+    {
+        transform.DOKill();
+        isAnimating = false;
+        isRevealed = true;
+        canRevealAnimation = false;
+
+        if (backUI != null) backUI.SetActive(false);
+        ShowFrontUI();
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.DOKill();
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = true;
+            canvasGroup.interactable = true;
+        }
+    }
+
     public void ForceReveal()
     {
-        if (isAnimating || isRevealed) return;
-        StartDOTweenRevealAnimation();
+        InstantRevealWithoutAnimation();
     }
 
     private void SetupRuneName(RuneData runeData)
