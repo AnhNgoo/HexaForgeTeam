@@ -46,6 +46,7 @@ public enum PoolType
     LyraSkill_2_DetectionAreaEffect = 46,
     LyraSkill_2_Projectile = 47,
     LyraSkill_2_HitEffect = 48,
+    LyraSkill_1_Projectile = 49,
     EnemyBat = 50,
     EnemySkeletonMelee = 51,
     EnemyMushroom = 52,
@@ -79,6 +80,10 @@ public enum PoolType
     EnemyVenomSpray = 1010,
     EnemyVenomTelegraph = 1011,
     EnemyVenomPillar = 1012,
+    NightStalkerDarkOrb = 1013,
+    NightStalkerVacuum = 1014,
+    NightStalkerRainTelegraph = 1015,
+    NightStalkerRainStrike = 1016,
 }
 
 [System.Serializable]

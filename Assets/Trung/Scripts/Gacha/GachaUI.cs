@@ -26,9 +26,11 @@ public class GachaUI : MonoBehaviour
     [SerializeField] private GameObject rerollButton;
     [SerializeField] private GameObject skipButton;
 
-    [Header("Main Roll Buttons")]
+    [Header("Main Roll Buttons & Cost Displays")]
     [SerializeField] private Button roll1Button;
     [SerializeField] private Button roll5Button;
+    [SerializeField] private CostDisplayUI cost1DisplayUI;
+    [SerializeField] private CostDisplayUI cost5DisplayUI;
 
     [Header("Summoning FX Settings")]
     [SerializeField] private GameObject portalFXRoot;
@@ -69,6 +71,56 @@ public class GachaUI : MonoBehaviour
         StartBackgroundAuraBreathing();
     }
 
+    private void OnEnable()
+    {
+        RefreshCostUI();
+    }
+
+    public void RefreshCostUI()
+    {
+        int ownedTickets = 0;
+        if (InventoryItemManager.Instance != null)
+        {
+            ownedTickets = InventoryItemManager.Instance.GetItemQuantity("GACHA_TICKET_01");
+        }
+
+        // 1. Tính toán hiển thị Nút Roll 1
+        if (cost1DisplayUI != null)
+        {
+            List<CostData> costs1 = new List<CostData>();
+            if (ownedTickets >= 1)
+            {
+                costs1.Add(new CostData("GACHA_TICKET_01", 1));
+            }
+            else
+            {
+                costs1.Add(new CostData("GEM", 500));
+            }
+            cost1DisplayUI.SetupCost(costs1);
+        }
+
+        // 2. Tính toán hiển thị Nút Roll 5 (Ưu tiên dùng vé, thiếu đâu bù Gem x 500)
+        if (cost5DisplayUI != null)
+        {
+            List<CostData> costs5 = new List<CostData>();
+            int ticketsToUse = Mathf.Min(ownedTickets, 5);
+            int missingRolls = 5 - ticketsToUse;
+            int gemNeeded = missingRolls * 500;
+
+            if (ticketsToUse > 0)
+            {
+                costs5.Add(new CostData("GACHA_TICKET_01", ticketsToUse));
+            }
+
+            if (gemNeeded > 0)
+            {
+                costs5.Add(new CostData("GEM", gemNeeded));
+            }
+
+            cost5DisplayUI.SetupCost(costs5);
+        }
+    }
+
     private void StartBackgroundAuraBreathing()
     {
         if (backgroundAuraGlow == null) return;
@@ -103,7 +155,7 @@ public class GachaUI : MonoBehaviour
 
             float randomX = Random.Range(-mainCanvasRect.rect.width / 2f, mainCanvasRect.rect.width / 2f);
             float startY = mainCanvasRect.rect.height / 2f + 200f;
-            rect.anchoredPosition = new Vector2(randomX, startY);
+            rect.anchoredPosition = Vector2.zero + new Vector2(randomX, startY);
 
             float duration = Random.Range(0.6f, 1.2f);
 
@@ -208,6 +260,8 @@ public class GachaUI : MonoBehaviour
         {
             RuneInventoryUI.Instance.RefreshInventory();
         }
+
+        RefreshCostUI();
     }
 
     private RuneCardUI SpawnCard(RuneData runeData)

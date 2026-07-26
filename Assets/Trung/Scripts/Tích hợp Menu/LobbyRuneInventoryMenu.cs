@@ -27,7 +27,7 @@ public class LobbyRuneInventoryMenu : MenuBase
             RuneInventoryUI.Instance.CloseInventory();
         }
 
-        base.Close();
+        gameObject.SetActive(false);
 
         if (LobbyHUDTopBar.Instance != null)
         {

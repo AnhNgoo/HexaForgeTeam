@@ -11,9 +11,9 @@ public class GachaManager : MonoBehaviour
     [SerializeField] [Range(0, 100)] private int epicRate = 9;
     [SerializeField] [Range(0, 100)] private int legendaryRate = 1;
 
-    [Header("Cost")]
-    [SerializeField] private int costRoll1 = 300;
-    [SerializeField] private int costRoll5 = 1400;
+    [Header("Cost Config Per Roll")]
+    [SerializeField] private int gemCostPerRoll = 500;
+    [SerializeField] private string ticketItemID = "GACHA_TICKET_01";
 
     [Header("Inventory Protection Config")]
     [SerializeField] private int maxInventorySlots = 100;
@@ -37,10 +37,10 @@ public class GachaManager : MonoBehaviour
         }
     }
 
-    public void Roll1() => Roll(costRoll1, 1);
-    public void Roll5() => Roll(costRoll5, 5);
+    public void Roll1() => Roll(1);
+    public void Roll5() => Roll(5);
 
-    private void Roll(int cost, int amount)
+    private void Roll(int amount)
     {
         if (isRollActive) return;
 
@@ -57,16 +57,44 @@ public class GachaManager : MonoBehaviour
             }
         }
 
-        if (GemManager.Instance == null || !GemManager.Instance.SpendGem(cost))
+        // TÍNH TOÁN THANH TOÁN KẾT HỢP (VÉ + GEM)
+        int ownedTickets = 0;
+        if (InventoryItemManager.Instance != null)
+        {
+            ownedTickets = InventoryItemManager.Instance.GetItemQuantity(ticketItemID);
+        }
+
+        int ticketsToUse = Mathf.Min(ownedTickets, amount);
+        int missingRolls = amount - ticketsToUse;
+        int requiredGem = missingRolls * gemCostPerRoll;
+
+        if (missingRolls > 0 && (GemManager.Instance == null || GemManager.Instance.GetCurrentGem() < requiredGem))
         {
             if (LobbyNotifyManager.Instance != null)
             {
-                LobbyNotifyManager.Instance.ShowNotify("Not enough Gems to perform gacha roll!", Color.red);
+                LobbyNotifyManager.Instance.ShowNotify("Not enough Tickets or Gems to perform gacha roll!", Color.red);
             }
             return;
         }
 
-        lastRollCost = cost;
+        // Thực hiện trừ tài nguyên
+        if (ticketsToUse > 0 && InventoryItemManager.Instance != null)
+        {
+            InventoryItemManager.Instance.SpendItem(ticketItemID, ticketsToUse);
+        }
+
+        if (requiredGem > 0 && GemManager.Instance != null)
+        {
+            GemManager.Instance.SpendGem(requiredGem);
+        }
+
+        // BỔ SUNG: Cập nhật lại thanh TopBar ngay lập tức sau khi trừ vé/gem thành công
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.RefreshCurrencyUI();
+        }
+
+        lastRollCost = requiredGem;
         lastRollAmount = amount;
 
         if (GachaUI.Instance != null)
@@ -127,6 +155,7 @@ public class GachaManager : MonoBehaviour
             GachaUI.Instance.ForceInstantRevealAll();
             GachaUI.Instance.ToggleUIPanels(false);
             GachaUI.Instance.SetSkipButtonActive(false);
+            GachaUI.Instance.RefreshCostUI();
         }
 
         revealedCardCount = totalCardCount;
@@ -151,6 +180,7 @@ public class GachaManager : MonoBehaviour
         {
             GachaUI.Instance.ToggleUIPanels(false);
             GachaUI.Instance.SetSkipButtonActive(false);
+            GachaUI.Instance.RefreshCostUI();
         }
 
         if (LobbyNotifyManager.Instance != null)
@@ -166,13 +196,14 @@ public class GachaManager : MonoBehaviour
         {
             GachaUI.Instance.SetResultPanelActive(false);
             GachaUI.Instance.ClearCards();
+            GachaUI.Instance.RefreshCostUI();
         }
     }
 
     public void ReRoll()
     {
         if (lastRollAmount <= 0) return;
-        Roll(lastRollCost, lastRollAmount);
+        Roll(lastRollAmount);
     }
 
     private RuneData GenerateRandomRune()

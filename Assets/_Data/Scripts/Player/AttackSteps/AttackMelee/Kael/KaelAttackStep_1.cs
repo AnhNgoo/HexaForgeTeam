@@ -11,7 +11,7 @@ public class KaelAttacStep_1 : AttackStepBase
 
     public override string AttackStateName => "MeleeAttack_1";
     public override float TimeTriggerAttack => 0.4f;
-    public override async void Attack(CharacterBase character)
+    public override async void Attack()
     {
         character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
 

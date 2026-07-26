@@ -38,11 +38,7 @@ public class InventoryItemCardUI : MonoBehaviour
 
             if (InventoryItemDatabase.Instance != null)
             {
-                ShopItemSO itemSO = InventoryItemDatabase.Instance.GetItemSO(data.itemID);
-                if (itemSO != null)
-                {
-                    itemIconSprite = itemSO.itemIcon;
-                }
+                itemIconSprite = InventoryItemDatabase.Instance.GetItemSprite(data.itemID);
             }
 
             if (itemIconSprite != null)

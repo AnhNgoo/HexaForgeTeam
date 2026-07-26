@@ -385,6 +385,8 @@ public class RuneInventoryUI : MonoBehaviour
 
     public void SwitchToRuneTab()
     {
+        DisableSelectMode();
+
         if (runeMainPanelGroup != null) runeMainPanelGroup.SetActive(true);
         if (itemMainPanelGroup != null) itemMainPanelGroup.SetActive(false);
 
@@ -393,6 +395,8 @@ public class RuneInventoryUI : MonoBehaviour
 
     public void SwitchToItemTab()
     {
+        DisableSelectMode();
+
         if (runeMainPanelGroup != null) runeMainPanelGroup.SetActive(false);
         if (itemMainPanelGroup != null) itemMainPanelGroup.SetActive(true);
 

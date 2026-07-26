@@ -28,6 +28,9 @@ public class CharacterMelee : CharacterBase
 
     public override void Attack()
     {
+        if (!CheckStaminaAndMPForAttack())
+            return;
+
         if (characterCombat.CurrentComboIndex == 0) // Chỉ áp sát mục tiêu nếu đây là đòn tấn công đầu tiên trong chuỗi combo
             MeleeSnapToTarget();
         characterCombat?.TryAttack();

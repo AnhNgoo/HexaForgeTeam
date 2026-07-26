@@ -11,7 +11,7 @@ public class PunchStep_1 : AttackStepBase
     }
 
     public override string AttackStateName => "Punch_1";
-    public override async void Attack(CharacterBase character)
+    public override async void Attack()
     {
         character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
