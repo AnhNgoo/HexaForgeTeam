@@ -32,6 +32,13 @@ public enum GameEvent
     OnDeselectItemInInventory = 24,
     OnDiscardItemInInventory = 25,
     OnUpdateDisplayWeapon = 26,
+    OnUpdateMaxHealth = 27,
+    OnUpdateHealth = 28,
+    OnUpdateRecoveryBottle = 29,
+    OnUpdateMaxStamina = 30,
+    OnUpdateStamina = 31,
+    OnUpdateMaxMP = 32,
+    OnUpdateMP = 33,
 }
 public static class EventManager
 {

@@ -145,10 +145,16 @@ public class CameraManager : Singleton<CameraManager>
                 continue;
 
             //Nếu là camera được chọn thì set active 
-            rig.virtualCamera.Priority = (rig == activeCamera) ? 10 : 0;
+            rig.virtualCamera.gameObject.SetActive(rig == activeCamera);
         }
     }
 
+
+    /// <summary>
+    /// Đồng bộ góc quay của camera mới với camera hiện tại, nếu camera mới có syncRotationFromPrevious = true
+    /// </summary>
+    /// <param name="fromCamera"></param>
+    /// <param name="toCamera"></param>
     private void SyncRotation(CameraRig fromCamera, CameraRig toCamera)
     {
         if (fromCamera?.virtualCamera == null || toCamera?.virtualCamera == null)
@@ -182,6 +188,10 @@ public class CameraManager : Singleton<CameraManager>
         toCamera.mobileCamera?.SetAxis(toPov.m_HorizontalAxis.Value, toPov.m_VerticalAxis.Value);
     }
 
+    /// <summary>
+    /// Lấy CinemachinePOV của camera hiện tại, nếu camera hiện tại không có POV thì trả về null
+    /// </summary>
+    /// <returns></returns>
     public CinemachinePOV GetCurrentCameraPOV()
     {
         if (currentCamera?.virtualCamera == null)

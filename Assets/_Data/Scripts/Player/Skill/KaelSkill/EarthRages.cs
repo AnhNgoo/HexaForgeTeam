@@ -18,6 +18,7 @@ public class EarthRages : CharacterSkillBase
             Debug.LogError("EarthRages skill chỉ có thể được sử dụng bởi Kael");
             return;
         }
+        character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost);
         character.CharacterSkill.CanUseSkill1 = false;
         character.CharacterSkill.CanUseSkill2 = false;
 

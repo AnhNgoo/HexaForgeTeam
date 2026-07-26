@@ -2,39 +2,39 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
-public class KaelPunchStep_2 : AttackStepBase
+
+public class KaelPunchStep_1 : AttackStepBase
 {
-    public KaelPunchStep_2(CharacterBase character) : base(character)
+    public KaelPunchStep_1(CharacterBase character) : base(character)
     {
     }
 
-    public override string AttackStateName => "Punch_2";
+    public override string AttackStateName => "Punch_1";
     public float KaelGiantTimeTriggerAttack => 0.3f;
 
-    public override async void Attack(CharacterBase character)
+    public override async void Attack()
     {
         if (character is not Kael kael) return;
 
-        if (kael.IsGiantForm)
+        if (kael.IsGiantForm) // Nếu ở dạng khổng lồ
         {
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > KaelGiantTimeTriggerAttack);
 
-
             character.CharacterMeleeHitbox.AttackHitBox(kael.hitEffect_1);
             ObjectPooling.Instance.SpawnFromPool(kael.kaelGiantPunchEffect_1,
-                                        kael.kaelGiantPunchEffectPoint_2.transform.position,
-                                        kael.kaelGiantPunchEffectPoint_2.transform.rotation);
+                                        kael.kaelGiantPunchEffectPoint_1.transform.position,
+                                        kael.kaelGiantPunchEffectPoint_1.transform.rotation);
         }
-        else
+        else // Nếu ở dạng thường
         {
             character.CharacterAnimation.CrossFade(AttackStateName, 0.1f);
             await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime(AttackStateName) > TimeTriggerAttack);
 
             character.CharacterMeleeHitbox.AttackHitBox(kael.hitEffect_1);
-            ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_2,
-                                        kael.punchEffectPoint_2.transform.position,
-                                        kael.punchEffectPoint_2.transform.rotation);
+            ObjectPooling.Instance.SpawnFromPool(kael.punchEffect_1,
+                                        kael.punchEffectPoint_1.transform.position,
+                                        kael.punchEffectPoint_1.transform.rotation);
         }
     }
 }

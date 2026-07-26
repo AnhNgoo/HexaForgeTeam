@@ -2,25 +2,28 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(Rigidbody))]
 [RequireComponent(typeof(CapsuleCollider))]
+[RequireComponent(typeof(Rigidbody))]
 public class Projectile : LoadComponents, IPoolable
 {
-    [SerializeField] private PoolType poolType;
-    [SerializeField] private float lifeTime = 5f;
-    [SerializeField] private float speed = 10f;
-    [SerializeField] private Rigidbody rb;
-    private Vector3 direction;
-    private Cooldown cooldownLifeTime = new Cooldown();
-    private PoolType hitEffect;
-    private CharacterBase characterBase;
+    [Header("Projectile Properties")]
+    [SerializeField] protected PoolType poolType;
+    [SerializeField] protected float lifeTime = 5f;
+    [SerializeField] protected float speed = 30f;
+    [SerializeField] protected CapsuleCollider _collider;
+    [SerializeField] protected Rigidbody _rigidbody;
+    protected Vector3 direction;
+    protected Cooldown cooldownLifeTime = new Cooldown();
+    protected PoolType hitEffect;
+    protected CharacterBase characterBase;
+
 
     public PoolType PoolType => poolType;
 
     protected override void LoadComponent()
     {
-        if (rb == null)
-            rb = GetComponent<Rigidbody>();
+        _collider = GetComponent<CapsuleCollider>();
+        _rigidbody = GetComponent<Rigidbody>();
     }
 
     protected override void LoadComponentRuntime()
@@ -28,28 +31,30 @@ public class Projectile : LoadComponents, IPoolable
 
     }
 
-    public void Init(Vector3 direction, CharacterBase characterBase, PoolType hitEffect = PoolType.None)
+    public virtual void Init(Vector3 direction, CharacterBase characterBase, PoolType hitEffect = PoolType.None)
     {
+        _collider.enabled = false;
         this.direction = direction.normalized;
         this.hitEffect = hitEffect;
         this.characterBase = characterBase;
         transform.rotation = Quaternion.LookRotation(direction);
         cooldownLifeTime.StartCooldown(lifeTime);
+        _collider.enabled = true;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
         if (!cooldownLifeTime.IsOnCooldown)
         {
             ObjectPooling.Instance.ReturnToPool(poolType, gameObject);
         }
     }
-    private void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
-        rb.MovePosition(rb.position + direction * speed * Time.fixedDeltaTime);
+        _rigidbody.MovePosition(_rigidbody.position + direction * speed * Time.fixedDeltaTime);
     }
 
-    void OnTriggerEnter(Collider other)
+    protected virtual void OnTriggerEnter(Collider other)
     {
         if (other.TryGetComponent(out EnemyBase enemy))
         {
@@ -68,13 +73,13 @@ public class Projectile : LoadComponents, IPoolable
         cooldownLifeTime.Stop();
     }
 
-    public void OnSpawnFromPool()
+    public virtual void OnSpawnFromPool()
     {
 
     }
 
-    public void OnReturnToPool()
+    public virtual void OnReturnToPool()
     {
-
+        _collider.enabled = false;
     }
 }

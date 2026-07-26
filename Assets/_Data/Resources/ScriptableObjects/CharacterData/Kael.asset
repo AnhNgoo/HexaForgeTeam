@@ -12,11 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18e73315d15f2b246bdb28717c137608, type: 3}
   m_Name: Kael
   m_EditorClassIdentifier: 
+  characterTypes: 1
   stats:
     maxHealth: 1200
     speed: 7
-    damageType: 0
-    damage: 24
+    damage: 250
     defense: 0
     poisonDamage: 36
-    stamina: 0
+    stamina: 536
+    staminaRegen: 5
+    mp: 0
+    mpRegen: 0
+  staminaCost:
+    sprintCost: 10
+    dodgeCost: 100
+    jumpCost: 50
+    attackCost: 50
+  mpCost:
+    attackCost: 50

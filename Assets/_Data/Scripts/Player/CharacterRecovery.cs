@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class CharacterRecovery : MonoBehaviour
 {
+    [SerializeField] private int maxRecoveryBottle = 3;
     [SerializeField] private int recoveryBottle = 0;
     public int RecoveryBottle => recoveryBottle;
     [SerializeField] private float healPercent = 36;
@@ -14,17 +15,21 @@ public class CharacterRecovery : MonoBehaviour
     public void Init(CharacterBase character)
     {
         this.character = character;
+        AddBottle(3); // Khởi tạo số lượng bình hồi máu ban đầu
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
     }
 
     [Button("Add Recovery Bottle")]
     public void AddBottle(int amount = 1)
     {
-        recoveryBottle += amount;
+        recoveryBottle = Mathf.Min(recoveryBottle + amount, maxRecoveryBottle);
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
     }
 
     public void ResetBottle()
     {
         recoveryBottle = 0;
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
     }
 
     // Chỉnh phần trăm healPercent
@@ -42,6 +47,6 @@ public class CharacterRecovery : MonoBehaviour
         recoveryBottle--;
         float healAmount = character.CharacterHealth.MaxHealth * healPercent / 100f;
         character.CharacterHealth.AddHealth(healAmount);
-        Debug.Log("Đã hồi: " + healAmount + " máu" + ", Máu còn lại là: " + character.CharacterHealth.CurrentHealth);
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
     }
 }
