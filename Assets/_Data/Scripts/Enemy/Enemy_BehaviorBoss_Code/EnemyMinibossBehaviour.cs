@@ -20,6 +20,11 @@ public abstract class EnemyMinibossBehaviour : MonoBehaviour
         return cooldown;
     }
 
+    public virtual float ModifyAttackCooldown(float cooldown, AttackDataSO attack)
+    {
+        return ModifyAttackCooldown(cooldown);
+    }
+
     public virtual float ModifyMoveSpeed(float speed)
     {
         return speed;
@@ -50,4 +55,5 @@ public abstract class EnemyMinibossBehaviour : MonoBehaviour
     public virtual float ConsumeNextAttackDamageMultiplier() => 1f;
     public virtual AttackDataSO ChooseForcedAttack(float distance) => null;
     public virtual void OnAttackStarted(AttackDataSO attack) { }
+    public virtual void OnAttackHit(AttackDataSO attack, Collider target) { }
 }

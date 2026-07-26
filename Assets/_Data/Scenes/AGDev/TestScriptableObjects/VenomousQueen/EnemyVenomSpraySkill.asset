@@ -12,6 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2b7ba9e9ceaf604a8b9eeb7d7574585, type: 3}
   m_Name: EnemyVenomSpraySkill
   m_EditorClassIdentifier: 
-  projectileCount: 3
-  totalSpreadAngle: 30
-  targetHeightOffset: 0.5
+  cloudCount: 3
+  totalSpreadAngle: 60
+  cloudDistance: 4
+  intervalBetweenClouds: 0.12
+  phase2IntervalMultiplier: 0.8
+  navMeshSampleRadius: 2
+  maxVerticalDifference: 1.5
+  groundOffset: 0.1
+  tickInterval: 0.75
+  tickDamageMultiplier: 0.2
+  exposurePerTick: 10
+  cloudScale: 1
