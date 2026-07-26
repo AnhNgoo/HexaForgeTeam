@@ -49,13 +49,9 @@ public class EnemyState_Chase : EnemyState
         }
 
         float maxRangeInArsenal = 0f;
-        foreach (AttackDataSO atk in _enemyBase.Combat.AttackArsenal)
+        foreach (var atk in _enemyBase.Combat.AttackArsenal)
         {
-            if (atk == null || atk.isFollowUpOnly)
-                continue;
-
-            if (atk.maxAttackRange > maxRangeInArsenal)
-                maxRangeInArsenal = atk.maxAttackRange;
+            if (atk.maxAttackRange > maxRangeInArsenal) maxRangeInArsenal = atk.maxAttackRange;
         }
         //Tính toán khoảng cách đến người chơi để quyết định có tiếp tục truy đuổi hay không
         float distanceToPlayer = Vector3.Distance(_enemyBase.MyTransform.position, playerTransform.position);

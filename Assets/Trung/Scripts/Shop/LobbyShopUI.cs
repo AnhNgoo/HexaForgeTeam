@@ -70,18 +70,19 @@ public class LobbyShopUI : LoadComponents
 
     public void CloseShop()
     {
-        HideShopPanel();
-
-        // Chuyển menu về trạng thái mặc định của Sảnh để MouseManager tự động ẩn chuột
-        if (UIManager.Instance != null)
+        if (UIManager.Instance != null && UIManager.Instance.CurrentMenuType == MenuType.LobbyShopMenu)
         {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+            UIManager.Instance.CloseAllMenus();
+
+            if (InteractManagerV2.Instance != null)
+            {
+                InteractManagerV2.Instance.IsBusy = false;
+                InteractManagerV2.Instance.ForceRefresh();
+            }
         }
-
-        if (InteractManagerV2.Instance != null)
+        else
         {
-            InteractManagerV2.Instance.IsBusy = false;
-            InteractManagerV2.Instance.ForceRefresh();
+            HideShopPanel();
         }
     }
 

@@ -9,14 +9,13 @@ public class PlayFabDataManager : MonoBehaviour
     public static PlayFabDataManager Instance;
     private bool needSaveCloud = false;
     private float saveTimer = 0f;
-    private bool isSwitchingScene = false;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(gameObject); // Giữ Manager này sống xuyên suốt game để dùng cho các lần chuyển map sau
         }
         else
         {
@@ -26,6 +25,8 @@ public class PlayFabDataManager : MonoBehaviour
 
     private void Start()
     {
+        // KHÓA BẢO VỆ: Chỉ kéo mây nếu chúng ta thực sự đi lên từ màn hình Đăng Nhập đầu game
+        // Nếu không, đây chỉ là màn hình chuyển cảnh Loading Additive giữa các ải sảnh/phụ bản!
         string activeSceneName = SceneManager.GetActiveScene().name;
         if (activeSceneName == "Login Scene")
         {
@@ -70,122 +71,141 @@ public class PlayFabDataManager : MonoBehaviour
     }
 
     private void OnLoadSuccess(GetUserDataResult result)
+{
+    Debug.Log("[PlayFabDataManager] Cloud Load Success!");
+
+    if (SaveLoadManager.Instance == null)
     {
-        Debug.Log("[PlayFabDataManager] Cloud Load Success!");
+        SaveLoadManager.Instance = FindFirstObjectByType<SaveLoadManager>();
+    }
 
-        if (SaveLoadManager.Instance == null)
-        {
-            SaveLoadManager.Instance = FindFirstObjectByType<SaveLoadManager>();
-        }
+    if (SaveLoadManager.Instance == null)
+    {
+        Debug.LogError("[PlayFabDataManager] KHÔNG THỂ tìm thấy SaveLoadManager.Instance trong Scene!");
+        return;
+    }
 
-        if (SaveLoadManager.Instance == null)
-        {
-            Debug.LogError("[PlayFabDataManager] KHÔNG THỂ tìm thấy SaveLoadManager.Instance trong Scene!");
-            return;
-        }
-
-        if (result.Data == null || !result.Data.ContainsKey("PlayerData"))
-        {
-            Debug.Log("[CLOUD] Tài khoản mới tinh trên Cloud. Thiết lập data mặc định...");
-            
-            SaveLoadManager.Instance.SaveData = new GameSaveData();
-            SaveLoadManager.Instance.SaveData.isTutorialCompleted = false; 
-            SaveLoadManager.Instance.SaveGame();
-
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene")); 
-            return;
-        }
-
-        string json = result.Data["PlayerData"].Value;
-        Debug.Log($"[CLOUD] Dữ liệu JSON tải về từ Cloud: {json}");
-
-        if (string.IsNullOrEmpty(json))
-        {
-            SaveLoadManager.Instance.SaveData = new GameSaveData();
-            SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
-            SaveLoadManager.Instance.SaveGame();
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
-            return;
-        }
-
-        GameSaveData cloudData = JsonUtility.FromJson<GameSaveData>(json);
-        if (cloudData == null)
-        {
-            Debug.LogError("[CLOUD] Không thể giải mã JSON từ Cloud thành GameSaveData!");
-            return;
-        }
-
-        SaveLoadManager.Instance.SaveData = cloudData;
+    // Trường hợp 1: Tài khoản hoàn toàn mới chưa có dữ liệu trên mây
+    if (result.Data == null || !result.Data.ContainsKey("PlayerData"))
+    {
+        Debug.Log("[CLOUD] Tài khoản mới tinh trên Cloud. Thiết lập data mặc định...");
+        
+        SaveLoadManager.Instance.SaveData = new GameSaveData();
+        SaveLoadManager.Instance.SaveData.isTutorialCompleted = false; 
         SaveLoadManager.Instance.SaveGame();
 
-        Debug.Log($"[CLOUD] Đồng bộ thành công! Trạng thái isTutorialCompleted hiện tại là: {SaveLoadManager.Instance.SaveData.isTutorialCompleted}");
-
-        if (!SaveLoadManager.Instance.SaveData.isTutorialCompleted)
-        {
-            Debug.Log("[CLOUD] Tài khoản chưa hoàn thành Tutorial -> Chuyển hướng tới Tutorial Scene");
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
-        }
-        else
-        {
-            Debug.Log("[CLOUD] Tài khoản đã hoàn thành Tutorial -> Chuyển hướng tới LobbyMain Scene");
-            StartCoroutine(SwitchSceneRoutine("LobbyMain Scene"));
-        }
+        StartCoroutine(SwitchSceneRoutine("Tutorial Scene")); 
+        return;
     }
+
+    // Trường hợp 2: Có dữ liệu trên mây
+    string json = result.Data["PlayerData"].Value;
+    Debug.Log($"[CLOUD] Dữ liệu JSON tải về từ Cloud: {json}");
+
+    if (string.IsNullOrEmpty(json))
+    {
+        // Phòng hờ chuỗi trống
+        SaveLoadManager.Instance.SaveData = new GameSaveData();
+        SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
+        SaveLoadManager.Instance.SaveGame();
+        StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
+        return;
+    }
+
+    GameSaveData cloudData = JsonUtility.FromJson<GameSaveData>(json);
+    if (cloudData == null)
+    {
+        Debug.LogError("[CLOUD] Không thể giải mã JSON từ Cloud thành GameSaveData!");
+        return;
+    }
+
+    // ĐỒNG BỘ DỮ LIỆU: Đảm bảo dữ liệu local nhận chính xác dữ liệu mây
+    SaveLoadManager.Instance.SaveData = cloudData;
+    SaveLoadManager.Instance.SaveGame(); // Lưu ngay xuống thiết bị cục bộ
+
+    Debug.Log($"[CLOUD] Đồng bộ thành công! Trạng thái isTutorialCompleted hiện tại là: {SaveLoadManager.Instance.SaveData.isTutorialCompleted}");
+
+    // CHUYỂN SCENE DỰA TRÊN TRẠNG THÁI ĐÃ ĐỒNG BỘ
+    if (!SaveLoadManager.Instance.SaveData.isTutorialCompleted)
+    {
+        Debug.Log("[CLOUD] Tài khoản chưa hoàn thành Tutorial -> Chuyển hướng tới Tutorial Scene");
+        StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
+    }
+    else
+    {
+        Debug.Log("[CLOUD] Tài khoản đã hoàn thành Tutorial -> Chuyển hướng tới LobbyMain Scene");
+        StartCoroutine(SwitchSceneRoutine("LobbyMain Scene"));
+    }
+}
     #endregion
 
     private System.Collections.IEnumerator SwitchSceneRoutine(string targetSceneName)
     {
-        if (isSwitchingScene) yield break;
-        isSwitchingScene = true;
-
         Debug.Log($"[PlayFabDataManager] Bắt đầu luồng chuyển cảnh mượt mà tới: {targetSceneName}");
 
-        Scene existingLoadingScene = SceneManager.GetSceneByName("Loading Scene");
-        if (!existingLoadingScene.isLoaded)
+        // Bước 1: Nạp "Loading Scene" ở chế độ ADDITIVE để che mắt người chơi trước
+        // (Lúc này Login Scene vẫn đang mở ở dưới nền)
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
+        while (!loadLoading.isDone)
         {
-            AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
-            while (!loadLoading.isDone) yield return null;
+            yield return null;
         }
 
-        yield return new WaitForSecondsRealtime(0.2f);
+        // Chờ 1 nhịp rất ngắn để UI của Loading Scene (bao gồm LoadingUIManager) kịp khởi tạo Instance
+        yield return new WaitForSeconds(0.1f);
 
+        // Bước 2: Thiết lập thông tin bản đồ đích lên UI Loading
         if (LoadingUIManager.Instance != null)
         {
             LoadingUIManager.Instance.SetDestinationName(targetSceneName);
         }
 
+        // Bước 3: Nạp Scene đích (Lobby hoặc Tutorial) ở chế độ SINGLE
+        // Chế độ SINGLE sẽ tự động dọn dẹp sạch sẽ Login Scene cũ để giải phóng RAM
         AsyncOperation loadTarget = SceneManager.LoadSceneAsync(targetSceneName, LoadSceneMode.Single);
+        
+        // Ngăn không cho Scene đích tự kích hoạt ngay lập tức để Slider kịp chạy từ 0% -> 100%
         loadTarget.allowSceneActivation = false;
 
+        // Cho LoadingUIManager theo dõi tiến độ nạp thực tế
         if (LoadingUIManager.Instance != null)
         {
             yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget));
         }
         else
         {
-            while (loadTarget.progress < 0.9f) yield return null;
+            // Nếu không tìm thấy UI Manager (đề phòng lỗi kéo thả), tự động đợi nạp xong
+            while (loadTarget.progress < 0.9f)
+            {
+                yield return null;
+            }
         }
 
+        // Bước 4: Kích hoạt Scene đích thực sự hoạt động
         loadTarget.allowSceneActivation = true;
-        while (!loadTarget.isDone) yield return null;
+        while (!loadTarget.isDone)
+        {
+            yield return null;
+        }
 
-        yield return new WaitForSecondsRealtime(0.2f);
+        Debug.Log($"[PlayFabDataManager] Đã nạp thành công Scene đích: {targetSceneName}");
 
+        // Chờ thêm 0.2 giây để các hệ thống trong Scene đích (như UIManager, Player) chạy xong hàm Start/Awake của họ
+        yield return new WaitForSeconds(0.2f);
+
+        // Bước 5: Giải phóng (Unload) màn hình Loading Scene (Additive) để hiển thị sảnh chính sòng phẳng
         Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
-            while (!unloadLoading.isDone) yield return null;
+            while (!unloadLoading.isDone)
+            {
+                yield return null;
+            }
+            Debug.Log("[PlayFabDataManager] Đã giải phóng Loading Scene thành công. Sảnh chính đã sẵn sàng!");
         }
-
-        if (targetSceneName == "LobbyMain Scene" && UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-        }
-
-        isSwitchingScene = false;
-    
     }
+
 
     private void OnPlayFabError(PlayFabError error)
     {
