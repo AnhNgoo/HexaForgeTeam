@@ -39,6 +39,10 @@ public enum GameEvent
     OnUpdateStamina = 31,
     OnUpdateMaxMP = 32,
     OnUpdateMP = 33,
+    OnSetImageSkill1 = 34,
+    OnSetImageSkill2 = 35,
+    OnUpdateCooldownSkill1 = 36,
+    OnUpdateCooldownSkill2 = 37,
 }
 public static class EventManager
 {

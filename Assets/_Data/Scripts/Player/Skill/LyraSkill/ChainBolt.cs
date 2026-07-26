@@ -11,17 +11,14 @@ public class ChainBolt : CharacterSkillBase
 
     protected override async void ExecuteSkill()
     {
-        if (skillData == null)
-        {
-            Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
-            return;
-        }
         if (character is not Lyra lyra)
         {
             Debug.LogError("MysticOrbs skill chỉ có thể được sử dụng bởi Lyra");
             return;
         }
-        character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost);
+
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill1, skillData.cooldown);
+
         character.CharacterAnimation.CrossFade("Skill_1_1", 0.1f);
 
         GameObject arcaneChargeObj = ObjectPooling.Instance.SpawnFromPool(lyra.arcaneChargeEffect,

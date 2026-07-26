@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 18e73315d15f2b246bdb28717c137608, type: 3}
   m_Name: Lyra
   m_EditorClassIdentifier: 
+  characterName: 
   characterTypes: 2
+  characterPoolType: 102
   stats:
     maxHealth: 1200
     speed: 7
@@ -20,13 +22,15 @@ MonoBehaviour:
     defense: 0
     poisonDamage: 36
     stamina: 300
-    staminaRegen: 8
+    staminaRegen: 10
     mp: 400
     mpRegen: 20
   staminaCost:
     sprintCost: 10
     dodgeCost: 35
-    jumpCost: 5
+    jumpCost: 50
     attackCost: 10
   mpCost:
     attackCost: 25
+  skill1Data: {fileID: 11400000, guid: b7ed248b32a7f63498f0657dedf52b8e, type: 2}
+  skill2Data: {fileID: 11400000, guid: 9357e486cf3297b42990bac19eeca990, type: 2}

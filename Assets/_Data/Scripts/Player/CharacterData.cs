@@ -5,10 +5,14 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "CharacterData", menuName = "ScriptableObjects/CharacterData", order = 1)]
 public class CharacterData : ScriptableObject
 {
+    public string characterName;
     public CharacterTypes characterTypes;
+    public PoolType characterPoolType;
     public CharacterStats stats;
     public StaminaCost staminaCost;
     public MPCost mpCost;
+    public CharacterSkillData skill1Data;
+    public CharacterSkillData skill2Data;
 }
 
 [System.Serializable]
