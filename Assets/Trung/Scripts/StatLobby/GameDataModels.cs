@@ -99,4 +99,32 @@ public class LobbyStatData
     public float CritDamage;
     public float ArmorPenetration;
     public float StaminaRegen;
+
+    public void Reset()
+    {
+        HP = 0; HPPercent = 0;
+        MP = 0; MPPercent = 0;
+        Stamina = 0; StaminaPercent = 0;
+        ATK = 0; ATKPercent = 0;
+        DEF = 0; DEFPercent = 0;
+        CritChance = 0; CritDamage = 0;
+        ArmorPenetration = 0; StaminaRegen = 0;
+    }
+}
+
+[Serializable]
+public class CombinedLobbyStats
+{
+    public CharacterType targetCharacter;
+    public LobbyStatData levelBonusStats = new LobbyStatData();
+    public LobbyStatData runeBonusStats = new LobbyStatData();
+}
+[System.Serializable]
+public class SaveData
+{
+    public int accountLevel = 1;
+    public int lifetimeGemEarned = 0;
+    public int totalKills = 0; // Biến đếm số quái đã trảm
+    public int totalRuns = 0;  // Biến đếm số lượt đi hầm ngục
+    public List<AchievementData> achievements = new List<AchievementData>();
 }

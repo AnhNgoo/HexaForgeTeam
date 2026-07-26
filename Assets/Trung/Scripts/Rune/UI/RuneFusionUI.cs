@@ -183,16 +183,13 @@ public class RuneFusionUI : MonoBehaviour
 
         int shardCost = currentRarity == RuneRarity.Common ? 100 : currentRarity == RuneRarity.Rare ? 300 : 800;
 
-        // Thêm Cost Mảnh Cổ Tự
         currentCosts.Add(new CostData("RUNE_SHARD", shardCost));
 
-        // Nếu bật Toggle Bùa Bảo Vệ -> Thêm Cost Bùa
         if (wantToUseCharm)
         {
             currentCosts.Add(new CostData(charmItemID, 1));
         }
 
-        // Truyền danh sách Cost sang Prefab quản lý hiển thị
         if (costDisplayUI != null)
         {
             costDisplayUI.SetupCost(currentCosts);

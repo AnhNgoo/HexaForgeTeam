@@ -25,6 +25,29 @@ public class UIPanelCloseButton : LoadComponents
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
+            LobbyRuneInventoryMenu runeMenu = GetComponentInParent<LobbyRuneInventoryMenu>();
+            if (runeMenu != null && runeMenu.gameObject.activeInHierarchy)
+            {
+                if (runeMenu.HandleEscapeKey())
+                {
+                    return;
+                }
+            }
+
+            LobbyGachaMenu gachaMenu = GetComponentInParent<LobbyGachaMenu>();
+            if (gachaMenu == null && LobbyGachaMenu.FindFirstObjectByType<LobbyGachaMenu>() != null)
+            {
+                gachaMenu = LobbyGachaMenu.FindFirstObjectByType<LobbyGachaMenu>();
+            }
+
+            if (gachaMenu != null && gachaMenu.gameObject.activeInHierarchy)
+            {
+                if (gachaMenu.HandleEscapeKey())
+                {
+                    return;
+                }
+            }
+
             ClosePanel();
         }
     }

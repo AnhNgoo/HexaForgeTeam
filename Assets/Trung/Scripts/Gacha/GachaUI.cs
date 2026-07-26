@@ -28,9 +28,9 @@ public class GachaUI : MonoBehaviour
 
     [Header("Main Roll Buttons & Cost Displays")]
     [SerializeField] private Button roll1Button;
-    [SerializeField] private Button roll5Button;
+    [SerializeField] private Button roll10Button;
     [SerializeField] private CostDisplayUI cost1DisplayUI;
-    [SerializeField] private CostDisplayUI cost5DisplayUI;
+    [SerializeField] private CostDisplayUI cost10DisplayUI;
 
     [Header("Summoning FX Settings")]
     [SerializeField] private GameObject portalFXRoot;
@@ -49,11 +49,8 @@ public class GachaUI : MonoBehaviour
     [SerializeField] private Color epicColorFX = new Color(0.7f, 0.2f, 1f, 0.8f);
     [SerializeField] private Color legendaryColorFX = new Color(1f, 0.6f, 0f, 0.9f);
 
-    [Header("Result Cards FX Settings")]
-    [SerializeField] private float cardFloatDistance = 12f;
-    [SerializeField] private float cardFloatDuration = 1.8f;
-
     private readonly List<GameObject> currentCards = new List<GameObject>();
+    private List<RuneData> cachedPendingRunes = new List<RuneData>();
     private Sequence activeLegendarySequence;
     private Tween auraGlowTween;
     private Coroutine summoningRoutine;
@@ -76,6 +73,11 @@ public class GachaUI : MonoBehaviour
         RefreshCostUI();
     }
 
+    public bool IsResultPanelActive()
+    {
+        return resultPanel != null && resultPanel.activeInHierarchy;
+    }
+
     public void RefreshCostUI()
     {
         int ownedTickets = 0;
@@ -84,7 +86,6 @@ public class GachaUI : MonoBehaviour
             ownedTickets = InventoryItemManager.Instance.GetItemQuantity("GACHA_TICKET_01");
         }
 
-        // 1. Tính toán hiển thị Nút Roll 1
         if (cost1DisplayUI != null)
         {
             List<CostData> costs1 = new List<CostData>();
@@ -94,30 +95,29 @@ public class GachaUI : MonoBehaviour
             }
             else
             {
-                costs1.Add(new CostData("GEM", 500));
+                costs1.Add(new CostData("GEM", 120));
             }
             cost1DisplayUI.SetupCost(costs1);
         }
 
-        // 2. Tính toán hiển thị Nút Roll 5 (Ưu tiên dùng vé, thiếu đâu bù Gem x 500)
-        if (cost5DisplayUI != null)
+        if (cost10DisplayUI != null)
         {
-            List<CostData> costs5 = new List<CostData>();
-            int ticketsToUse = Mathf.Min(ownedTickets, 5);
-            int missingRolls = 5 - ticketsToUse;
-            int gemNeeded = missingRolls * 500;
+            List<CostData> costs10 = new List<CostData>();
+            int ticketsToUse = Mathf.Min(ownedTickets, 10);
+            int missingRolls = 10 - ticketsToUse;
 
             if (ticketsToUse > 0)
             {
-                costs5.Add(new CostData("GACHA_TICKET_01", ticketsToUse));
+                costs10.Add(new CostData("GACHA_TICKET_01", ticketsToUse));
             }
 
-            if (gemNeeded > 0)
+            if (missingRolls > 0)
             {
-                costs5.Add(new CostData("GEM", gemNeeded));
+                int gemNeeded = (ticketsToUse == 0) ? 1080 : (missingRolls * 120);
+                costs10.Add(new CostData("GEM", gemNeeded));
             }
 
-            cost5DisplayUI.SetupCost(costs5);
+            cost10DisplayUI.SetupCost(costs10);
         }
     }
 
@@ -168,8 +168,21 @@ public class GachaUI : MonoBehaviour
 
     public void PlaySummoningFX(RuneRarity highestRarity, List<RuneData> runesToSpawn)
     {
+        cachedPendingRunes = new List<RuneData>(runesToSpawn);
         if (summoningRoutine != null) StopCoroutine(summoningRoutine);
         summoningRoutine = StartCoroutine(SummoningPortalFXRoutine(highestRarity, runesToSpawn));
+    }
+
+    public void StopAllSummoningCoroutines()
+    {
+        if (summoningRoutine != null)
+        {
+            StopCoroutine(summoningRoutine);
+            summoningRoutine = null;
+        }
+
+        if (portalFXRoot != null) portalFXRoot.SetActive(false);
+        if (flashOverlayImage != null) flashOverlayImage.gameObject.SetActive(false);
     }
 
     private IEnumerator SummoningPortalFXRoutine(RuneRarity highestRarity, List<RuneData> runesToSpawn)
@@ -208,7 +221,7 @@ public class GachaUI : MonoBehaviour
         yield return new WaitForSeconds(2.0f);
 
         float shakeStrength = highestRarity == RuneRarity.Legendary ? 30f : highestRarity == RuneRarity.Epic ? 15f : 8f;
-        Camera.main.transform.DOShakePosition(0.4f, shakeStrength, 25);
+        if (Camera.main != null) Camera.main.transform.DOShakePosition(0.4f, shakeStrength, 25);
 
         if (flashOverlayImage != null)
         {
@@ -222,9 +235,10 @@ public class GachaUI : MonoBehaviour
         if (portalFXRoot != null) portalFXRoot.SetActive(false);
 
         if (resultPanel != null) resultPanel.SetActive(true);
-        if (skipButton != null) skipButton.SetActive(true);
 
         SetMainRollButtonsInteractable(true);
+
+        float targetCardScale = runesToSpawn.Count > 5 ? 0.9f : 0.85f;
 
         for (int i = 0; i < runesToSpawn.Count; i++)
         {
@@ -232,28 +246,17 @@ public class GachaUI : MonoBehaviour
 
             if (card != null)
             {
+                card.transform.rotation = Quaternion.identity;
                 card.transform.localScale = Vector3.zero;
-                card.transform.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack);
+
+                card.transform.DOScale(Vector3.one * targetCardScale, 0.35f).SetEase(Ease.OutBack);
 
                 Sequence cardAppearSeq = DOTween.Sequence();
-                cardAppearSeq.SetDelay(0.1f * i);
-                cardAppearSeq.Append(card.transform.DOPunchScale(new Vector3(0.15f, 0.15f, 0.15f), 0.25f, 10, 1f));
-
-                cardAppearSeq.OnComplete(() => {
-                    if (card != null)
-                    {
-                        card.transform.DOLocalMoveY(card.transform.localPosition.y + cardFloatDistance, cardFloatDuration)
-                            .SetLoops(-1, LoopType.Yoyo)
-                            .SetEase(Ease.InOutSine);
-
-                        card.transform.DORotate(new Vector3(0, 0, Random.Range(-2f, 2f)), cardFloatDuration * 1.2f)
-                            .SetLoops(-1, LoopType.Yoyo)
-                            .SetEase(Ease.InOutSine);
-                    }
-                });
+                cardAppearSeq.SetDelay(0.06f * i);
+                cardAppearSeq.Append(card.transform.DOPunchScale(new Vector3(0.08f, 0.08f, 0.08f), 0.2f, 8, 0.8f));
             }
 
-            yield return new WaitForSeconds(0.08f);
+            yield return new WaitForSeconds(0.06f);
         }
 
         if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy)
@@ -351,32 +354,63 @@ public class GachaUI : MonoBehaviour
 
     public void ForceInstantRevealAll()
     {
+        StopAllSummoningCoroutines();
+
         if (activeLegendarySequence != null)
         {
-            activeLegendarySequence.Kill(true);
+            activeLegendarySequence.Kill(false);
             activeLegendarySequence = null;
         }
 
+        if (portalFXRoot != null) portalFXRoot.SetActive(false);
+        if (flashOverlayImage != null) flashOverlayImage.gameObject.SetActive(false);
+
         if (cardParent == null) return;
 
-        RuneCardUI[] allCards = cardParent.GetComponentsInChildren<RuneCardUI>();
-        foreach (RuneCardUI card in allCards)
+        ClearCards();
+
+        if (cachedPendingRunes != null && cachedPendingRunes.Count > 0)
         {
-            if (card == null) continue;
+            float targetCardScale = cachedPendingRunes.Count > 5 ? 0.9f : 0.85f;
 
-            card.transform.DOKill(true);
-
-            if (!card.IsRevealed())
+            for (int i = 0; i < cachedPendingRunes.Count; i++)
             {
-                card.ForceReveal();
+                RuneCardUI card = SpawnCard(cachedPendingRunes[i]);
+                if (card != null)
+                {
+                    card.transform.DOKill();
+                    card.transform.rotation = Quaternion.identity;
+                    card.transform.localScale = Vector3.one * targetCardScale;
+
+                    CanvasGroup group = card.GetComponent<CanvasGroup>();
+                    if (group != null)
+                    {
+                        group.DOKill();
+                        group.alpha = 1f;
+                        group.blocksRaycasts = true;
+                        group.interactable = true;
+                    }
+
+                    card.InstantRevealWithoutAnimation();
+                }
             }
         }
+
+        SetMainRollButtonsInteractable(true);
+        if (resultPanel != null) resultPanel.SetActive(true);
+
+        if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy)
+        {
+            RuneInventoryUI.Instance.RefreshInventory();
+        }
+
+        RefreshCostUI();
     }
 
     public void SetMainRollButtonsInteractable(bool interactable)
     {
         if (roll1Button != null) roll1Button.interactable = interactable;
-        if (roll5Button != null) roll5Button.interactable = interactable;
+        if (roll10Button != null) roll10Button.interactable = interactable;
     }
 
     public void ToggleUIPanels(bool isRolling)

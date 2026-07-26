@@ -11,6 +11,7 @@ public class InventoryItemDatabase : MonoBehaviour
     [Header("Currency Icons Default")]
     [SerializeField] private Sprite gemIconSprite;
     [SerializeField] private Sprite runeShardIconSprite;
+    [SerializeField] private Sprite originRuneIconSprite;
 
     private void Awake()
     {
@@ -49,6 +50,11 @@ public class InventoryItemDatabase : MonoBehaviour
         if (itemID == "RUNE_SHARD" || itemID == "CURRENCY_SHARD")
         {
             return runeShardIconSprite;
+        }
+
+        if (itemID == "ORIGIN_RUNE")
+        {
+            return originRuneIconSprite;
         }
 
         ShopItemSO itemSO = GetItemSO(itemID);

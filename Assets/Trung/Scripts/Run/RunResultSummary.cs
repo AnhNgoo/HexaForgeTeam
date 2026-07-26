@@ -55,9 +55,17 @@ public class RunResultSummary : MonoBehaviour
 
         summaryPanel.SetActive(true);
 
+        // ===== BỔ SUNG: LƯU TỔNG KILLS & TĂNG RUNS VÀO SAVE DATA MỖI KHI SUMMARY HIỆN =====
+        OnRunEnded(totalKills);
+
         if (RunManager.Instance != null)
         {
             RunManager.Instance.SetPendingRewards(calculatedGem, calculatedExp, calculatedShards);
+        }
+
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.AddKillProgress(totalKills, bossKilled);
         }
 
         if (RuneInventoryManager.Instance != null)
@@ -82,6 +90,29 @@ public class RunResultSummary : MonoBehaviour
         if (RunManager.Instance != null)
         {
             RunManager.Instance.ReturnToLobby();
+        }
+    }
+    // Gọi hàm này khi kết thúc 1 lượt chơi (Ví dụ trong SummaryUI hoặc RunManager)
+    public void OnRunEnded(int killsInThisRun)
+    {
+        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+        {
+            var data = SaveLoadManager.Instance.SaveData;
+
+            // 1. Cộng thêm 1 lượt đi hầm ngục
+            data.totalRuns += 1;
+
+            // 2. Cộng thêm số quái giết được trong lượt chơi này
+            data.totalKills += killsInThisRun;
+
+            // 3. Lưu Save Data
+            SaveLoadManager.Instance.SaveGame();
+
+            // 4. Đồng bộ ngay lập tức lên PlayFab Leaderboard
+            if (LeaderboardManager.Instance != null)
+            {
+                LeaderboardManager.Instance.UpdateAllStatistics();
+            }
         }
     }
 }

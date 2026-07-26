@@ -51,10 +51,23 @@ public class CharacterInput : MonoBehaviour
             return;
         }
         bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
-        // if (!isUIGameplay) // Bỏ qua các input khi không phải trong UI gameplay 
-        // {
-        //     return;
-        // }
+        bool isLobbyDefault = UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu;
+
+        if (!isUIGameplay && !isLobbyDefault)
+        {
+            moveInput = Vector2.zero;
+            walk = false;
+            sprint = false;
+            dodge = false;
+            jump = false;
+            wallJump = false;
+            attack = false;
+            healthRecovery = false;
+            lockTarget = false;
+            skill_1 = false;
+            skill_2 = false;
+            return;
+        }
 
         moveInput = inputActions.Keyboard.Move.ReadValue<Vector2>();
         walk = inputActions.Keyboard.Walk.IsPressed();

@@ -24,6 +24,16 @@ public class LobbyGachaMenu : MenuBase
 
     public override void Close()
     {
+        if (GachaManager.Instance != null && GachaManager.Instance.IsRollActive())
+        {
+            GachaManager.Instance.SkipAllGachaAnimations();
+        }
+
+        if (GachaManager.Instance != null)
+        {
+            GachaManager.Instance.CloseResultPanel();
+        }
+
         if (gachaPanelRoot != null)
         {
             gachaPanelRoot.SetActive(false);
@@ -35,6 +45,23 @@ public class LobbyGachaMenu : MenuBase
         {
             LobbyHUDTopBar.Instance.ShowFullHUD();
         }
+    }
+
+    public bool HandleEscapeKey()
+    {
+        if (GachaManager.Instance != null && GachaManager.Instance.IsRollActive())
+        {
+            GachaManager.Instance.SkipAllGachaAnimations();
+            return true;
+        }
+
+        if (GachaUI.Instance != null && GachaUI.Instance.IsResultPanelActive())
+        {
+            GachaManager.Instance.CloseResultPanel();
+            return true;
+        }
+
+        return false;
     }
 
     protected override void LoadComponent()

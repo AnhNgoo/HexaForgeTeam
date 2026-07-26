@@ -26,15 +26,11 @@ public class AccountLevelManager : MonoBehaviour
     private void Start()
     {
         UpdateUI();
-        string displayName = PlayerPrefs.GetString("DisplayName", "Unknown");
     }
 
     public void AddExp(int amount)
     {
-        if (accountData.level >= MAX_LEVEL)
-        {
-            return;
-        }
+        if (accountData.level >= MAX_LEVEL) return;
 
         accountData.currentExp += amount;
 
@@ -42,6 +38,11 @@ public class AccountLevelManager : MonoBehaviour
         {
             accountData.currentExp -= GetRequiredExp(accountData.level);
             LevelUp();
+        }
+
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.SetLevelProgress(accountData.level);
         }
 
         SaveData();
@@ -56,22 +57,44 @@ public class AccountLevelManager : MonoBehaviour
         List<CostData> rewards = new List<CostData>();
         string unlockText = "";
 
-        // 1. Thưởng Gem & Vé Gacha
-        int gemReward = 100 + accountData.level * 50;
+        // ===== 1. CÂN BẰNG PHẦN THƯỞNG GEM & ITEM THEO CỘT MỐC =====
+        int gemReward = 50 + (accountData.level * 20); // Phân bổ Gems tăng dần nhẹ nhàng
         rewards.Add(new CostData("GEM", gemReward));
-        rewards.Add(new CostData("GACHA_TICKET_01", 1));
 
         if (GemManager.Instance != null)
         {
             GemManager.Instance.AddGem(gemReward);
         }
 
-        if (InventoryItemManager.Instance != null)
+        // Tặng Vé Gacha mỗi 5 Level
+        if (accountData.level % 5 == 0)
         {
-            InventoryItemManager.Instance.AddItem("GACHA_TICKET_01", "Gacha Ticket", 1);
+            rewards.Add(new CostData("GACHA_TICKET_01", 1));
+            if (InventoryItemManager.Instance != null)
+            {
+                InventoryItemManager.Instance.AddItem("GACHA_TICKET_01", "Gacha Ticket", 1);
+            }
         }
 
-        // 2. Mở khóa nhân vật & Thêm Icon Avatar nhân vật vào cụm phần thưởng
+        // Tặng Bùa Fusion / Cuộn Reroll ở các mốc Level đặc biệt
+        if (accountData.level == 10 || accountData.level == 20)
+        {
+            rewards.Add(new CostData("FUSION_CHARM_01", 1));
+            if (InventoryItemManager.Instance != null)
+            {
+                InventoryItemManager.Instance.AddItem("FUSION_CHARM_01", "Protection Charm", 1);
+            }
+        }
+        else if (accountData.level == 30)
+        {
+            rewards.Add(new CostData("REROLL_SCROLL_01", 2));
+            if (InventoryItemManager.Instance != null)
+            {
+                InventoryItemManager.Instance.AddItem("REROLL_SCROLL_01", "Reroll Scroll", 2);
+            }
+        }
+
+        // ===== 2. MỞ KHÓA TƯỚNG =====
         if (accountData.level == 5)
         {
             rewards.Add(new CostData("CHAR_LYRA", 1));
@@ -119,13 +142,9 @@ public class AccountLevelManager : MonoBehaviour
 
     private void ShowLevelUpPopup(int oldLevel, int newLevel, List<CostData> rewards, string unlockText)
     {
-        if (LevelUpPopupUI.Instance == null)
-        {
-            return;
-        }
+        if (LevelUpPopupUI.Instance == null) return;
 
         string bonusText = $"<color=#FFD700>Stat Bonus:</color> Max HP +10 | ATK +1" + unlockText;
-
         LevelUpPopupUI.Instance.Show("LEVEL UP!", oldLevel, newLevel, rewards, bonusText);
     }
 
@@ -135,25 +154,31 @@ public class AccountLevelManager : MonoBehaviour
 
     private void SaveData()
     {
-        SaveLoadManager.Instance.SaveData.accountLevel = accountData.level;
-        SaveLoadManager.Instance.SaveData.accountExp = accountData.currentExp;
-        SaveLoadManager.Instance.SaveGame();
-
-        if (PlayFabDataManager.Instance != null)
+        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
-            PlayFabDataManager.Instance.MarkDirty();
+            SaveLoadManager.Instance.SaveData.accountLevel = accountData.level;
+            SaveLoadManager.Instance.SaveData.accountExp = accountData.currentExp;
+            SaveLoadManager.Instance.SaveGame();
 
-            if (LeaderboardManager.Instance != null)
+            if (PlayFabDataManager.Instance != null)
             {
-                LeaderboardManager.Instance.UpdatePowerScore();
+                PlayFabDataManager.Instance.MarkDirty();
+
+                if (LeaderboardManager.Instance != null)
+                {
+                    LeaderboardManager.Instance.UpdatePowerScore();
+                }
             }
         }
     }
 
     private void LoadData()
     {
-        accountData.level = SaveLoadManager.Instance.SaveData.accountLevel;
-        accountData.currentExp = SaveLoadManager.Instance.SaveData.accountExp;
+        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+        {
+            accountData.level = SaveLoadManager.Instance.SaveData.accountLevel;
+            accountData.currentExp = SaveLoadManager.Instance.SaveData.accountExp;
+        }
     }
 
     public void ResetLevelData()

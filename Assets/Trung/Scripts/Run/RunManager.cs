@@ -217,6 +217,10 @@ public class RunManager : MonoBehaviour
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
         pendingGem = 0; pendingExp = 0; pendingShards = 0; 
+        if (LeaderboardManager.Instance != null)
+        {
+            LeaderboardManager.Instance.UpdateAllStatistics();
+        }
 
         if (UIManager.Instance != null)
         {

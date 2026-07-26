@@ -5,14 +5,14 @@ public class GachaManager : MonoBehaviour
 {
     public static GachaManager Instance;
 
-    [Header("Rarity Rate")]
-    [SerializeField] [Range(0, 100)] private int commonRate = 60;
-    [SerializeField] [Range(0, 100)] private int rareRate = 30;
-    [SerializeField] [Range(0, 100)] private int epicRate = 9;
-    [SerializeField] [Range(0, 100)] private int legendaryRate = 1;
+    [Header("Rarity Rate Config (GDD Standard)")]
+    [SerializeField] [Range(0, 100)] private int commonRate = 65;
+    [SerializeField] [Range(0, 100)] private int rareRate = 25;
+    [SerializeField] [Range(0, 100)] private int epicRate = 8;
+    [SerializeField] [Range(0, 100)] private int legendaryRate = 2;
 
     [Header("Cost Config Per Roll")]
-    [SerializeField] private int gemCostPerRoll = 500;
+    [SerializeField] private int gemCostPerRoll = 120;
     [SerializeField] private string ticketItemID = "GACHA_TICKET_01";
 
     [Header("Inventory Protection Config")]
@@ -29,16 +29,10 @@ public class GachaManager : MonoBehaviour
         if (Instance == null) Instance = this;
     }
 
-    private void Update()
-    {
-        if (isRollActive && Input.GetKeyDown(KeyCode.Escape))
-        {
-            SkipAllGachaAnimations();
-        }
-    }
+    public bool IsRollActive() => isRollActive;
 
     public void Roll1() => Roll(1);
-    public void Roll5() => Roll(5);
+    public void Roll10() => Roll(10);
 
     private void Roll(int amount)
     {
@@ -57,7 +51,6 @@ public class GachaManager : MonoBehaviour
             }
         }
 
-        // TÍNH TOÁN THANH TOÁN KẾT HỢP (VÉ + GEM)
         int ownedTickets = 0;
         if (InventoryItemManager.Instance != null)
         {
@@ -66,7 +59,19 @@ public class GachaManager : MonoBehaviour
 
         int ticketsToUse = Mathf.Min(ownedTickets, amount);
         int missingRolls = amount - ticketsToUse;
-        int requiredGem = missingRolls * gemCostPerRoll;
+        
+        int requiredGem = 0;
+        if (missingRolls > 0)
+        {
+            if (amount == 10 && ticketsToUse == 0)
+            {
+                requiredGem = 1080;
+            }
+            else
+            {
+                requiredGem = missingRolls * gemCostPerRoll;
+            }
+        }
 
         if (missingRolls > 0 && (GemManager.Instance == null || GemManager.Instance.GetCurrentGem() < requiredGem))
         {
@@ -77,7 +82,6 @@ public class GachaManager : MonoBehaviour
             return;
         }
 
-        // Thực hiện trừ tài nguyên
         if (ticketsToUse > 0 && InventoryItemManager.Instance != null)
         {
             InventoryItemManager.Instance.SpendItem(ticketItemID, ticketsToUse);
@@ -88,7 +92,6 @@ public class GachaManager : MonoBehaviour
             GemManager.Instance.SpendGem(requiredGem);
         }
 
-        // BỔ SUNG: Cập nhật lại thanh TopBar ngay lập tức sau khi trừ vé/gem thành công
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.RefreshCurrencyUI();
@@ -102,6 +105,7 @@ public class GachaManager : MonoBehaviour
             GachaUI.Instance.ClearCards();
             GachaUI.Instance.SetMainRollButtonsInteractable(false);
             GachaUI.Instance.ToggleUIPanels(true);
+            GachaUI.Instance.SetSkipButtonActive(true);
         }
 
         revealedCardCount = 0;
@@ -130,6 +134,11 @@ public class GachaManager : MonoBehaviour
             }
         }
 
+        if (SaveLoadManager.Instance != null)
+        {
+            SaveLoadManager.Instance.SaveGame();
+        }
+
         if (GachaUI.Instance != null)
         {
             GachaUI.Instance.PlaySummoningFX(highestRarityInThisRoll, rolledRunesData);
@@ -152,6 +161,7 @@ public class GachaManager : MonoBehaviour
 
         if (GachaUI.Instance != null)
         {
+            GachaUI.Instance.StopAllSummoningCoroutines();
             GachaUI.Instance.ForceInstantRevealAll();
             GachaUI.Instance.ToggleUIPanels(false);
             GachaUI.Instance.SetSkipButtonActive(false);
@@ -219,8 +229,8 @@ public class GachaManager : MonoBehaviour
     private RuneColor RandomRuneColor()
     {
         int random = Random.Range(0, 100);
-        if (random < 30) return RuneColor.Red;
-        if (random < 65) return RuneColor.Green;
+        if (random < 33) return RuneColor.Red;
+        if (random < 66) return RuneColor.Green;
         return RuneColor.Blue;
     }
 

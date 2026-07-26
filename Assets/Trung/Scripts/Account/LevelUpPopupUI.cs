@@ -9,21 +9,19 @@ public class LevelUpPopupUI : LoadComponents
 
     [Header("Panel Root & Animation Containers")]
     [SerializeField] private GameObject levelUpPanel;
-    [SerializeField] private RectTransform popupContainer; // Khung chữ nhật chính chứa UI
-    [SerializeField] private CanvasGroup bgOverlayCanvasGroup; // Tấm nền mờ phía sau
+    [SerializeField] private RectTransform popupContainer;
+    [SerializeField] private CanvasGroup bgOverlayCanvasGroup;
 
     [Header("Texts")]
     [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text levelNoticeText; // Hiển thị Level (VD: LEVEL 4 -> LEVEL 5)
-    [SerializeField] private TMP_Text bonusStatsText;  // Hiển thị chỉ số cộng thêm (+10 HP...)
+    [SerializeField] private TMP_Text levelNoticeText;
+    [SerializeField] private TMP_Text bonusStatsText;
 
     [Header("Reward Display")]
-    [SerializeField] private CostDisplayUI rewardDisplayUI; // Kéo Prefab CostDisplayUI vào đây
+    [SerializeField] private CostDisplayUI rewardDisplayUI;
 
     [Header("Auto Hide Settings")]
-    [SerializeField] private float autoHideDelay = 2.5f; // Số giây tự động đóng Popup
-
-    private bool isAnimating = false;
+    [SerializeField] private float autoHideDelay = 2.5f;
 
     protected override void Awake()
     {
@@ -36,21 +34,14 @@ public class LevelUpPopupUI : LoadComponents
         }
     }
 
-    /// <summary>
-    /// Hàm Show chính: Hiển thị Level, Chỉ số cộng thêm và Cụm Icon Phần thưởng, tự động tắt sau vài giây.
-    /// </summary>
     public void Show(string title, int oldLevel, int newLevel, List<CostData> rewards, string bonusText)
     {
         if (levelUpPanel == null) return;
 
-        // Hủy lịch tự động ẩn cũ nếu có
         CancelInvoke(nameof(Hide));
 
         if (titleText != null) titleText.SetTextSafe(title);
-        
-        // Dùng dấu -> chuẩn text không bị lỗi font
         if (levelNoticeText != null) levelNoticeText.SetTextSafe($"LEVEL {oldLevel} -> <color=#00FFCC>LEVEL {newLevel}</color>");
-        
         if (bonusStatsText != null) bonusStatsText.SetTextSafe(bonusText);
 
         if (rewardDisplayUI != null && rewards != null)
@@ -59,9 +50,6 @@ public class LevelUpPopupUI : LoadComponents
         }
 
         levelUpPanel.SetActive(true);
-
-        // HIỆU ỨNG MỞ POPUP (DOTWEEN)
-        isAnimating = true;
 
         if (bgOverlayCanvasGroup != null)
         {
@@ -77,19 +65,15 @@ public class LevelUpPopupUI : LoadComponents
                 .SetUpdate(true)
                 .OnComplete(() =>
                 {
-                    isAnimating = false;
-                    // Lên lịch tự động ẩn popup sau autoHideDelay giây
                     Invoke(nameof(Hide), autoHideDelay);
                 });
         }
         else
         {
-            isAnimating = false;
             Invoke(nameof(Hide), autoHideDelay);
         }
     }
 
-    // Overload cũ
     public void Show(string title, string reward)
     {
         CancelInvoke(nameof(Hide));
@@ -108,9 +92,6 @@ public class LevelUpPopupUI : LoadComponents
 
         if (levelUpPanel == null || !levelUpPanel.activeSelf) return;
 
-        isAnimating = true;
-
-        // HIỆU ỨNG TẮT POPUP (DOTWEEN)
         if (bgOverlayCanvasGroup != null)
         {
             bgOverlayCanvasGroup.DOFade(0f, 0.2f).SetUpdate(true);
@@ -124,13 +105,11 @@ public class LevelUpPopupUI : LoadComponents
                 .OnComplete(() =>
                 {
                     levelUpPanel.SetActive(false);
-                    isAnimating = false;
                 });
         }
         else
         {
             levelUpPanel.SetActive(false);
-            isAnimating = false;
         }
     }
 
