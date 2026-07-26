@@ -1,9 +1,11 @@
 using System;
+using System.Threading;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using DG.Tweening;
+using Cysharp.Threading.Tasks;
 
 [System.Serializable]
 public class TutorialPanel
@@ -50,8 +52,18 @@ public class GameplayMenu : MenuBase
     [Header("Display Item")]
     [SerializeField] private DisplayItem displayWeapon;
 
+    [Header("Skill")]
+    [SerializeField] private GameObject panel_Skill;
+    [SerializeField] private Image img_Skill1;
+    [SerializeField] private Image cooldown_Skill1;
+    [SerializeField] private Image img_Skill2;
+    [SerializeField] private Image cooldown_Skill2;
+
+
 
     private bool isGoldSubscribed;
+    private CancellationTokenSource cooldownSkill1Cts;
+    private CancellationTokenSource cooldownSkill2Cts;
 
     protected override void LoadComponent()
     {
@@ -141,6 +153,18 @@ public class GameplayMenu : MenuBase
                 FindDeepChild("DisplayWeapon")
                     ?.GetComponent<DisplayItem>();
         }
+
+        if (panel_Skill == null)
+            panel_Skill = FindDeepChild("Panel_Skill")?.gameObject;
+
+        if (img_Skill1 == null)
+            img_Skill1 = panel_Skill?.transform.Find("Panel_Skill1/Mask/Img_Skill1")?.GetComponent<Image>();
+        if (img_Skill2 == null)
+            img_Skill2 = panel_Skill?.transform.Find("Panel_Skill2/Mask/Img_Skill2")?.GetComponent<Image>();
+        if (cooldown_Skill1 == null)
+            cooldown_Skill1 = panel_Skill?.transform.Find("Panel_Skill1/Mask/Cooldown")?.GetComponent<Image>();
+        if (cooldown_Skill2 == null)
+            cooldown_Skill2 = panel_Skill?.transform.Find("Panel_Skill2/Mask/Cooldown")?.GetComponent<Image>();
     }
 
     protected override void LoadComponentRuntime()
@@ -183,6 +207,10 @@ public class GameplayMenu : MenuBase
         EventManager.Subscribe(GameEvent.OnUpdateMaxMP, UpdateMaxMP);
         EventManager.Subscribe(GameEvent.OnUpdateMP, UpdateMP);
         EventManager.Subscribe(GameEvent.OnUpdateRecoveryBottle, UpdateRecoveryBottle);
+        EventManager.Subscribe(GameEvent.OnSetImageSkill1, SetImageSkill1);
+        EventManager.Subscribe(GameEvent.OnSetImageSkill2, SetImageSkill2);
+        EventManager.Subscribe(GameEvent.OnUpdateCooldownSkill1, UpdateCooldownSkill1);
+        EventManager.Subscribe(GameEvent.OnUpdateCooldownSkill2, UpdateCooldownSkill2);
     }
 
     private void OnDestroy()
@@ -201,6 +229,10 @@ public class GameplayMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnUpdateMaxMP, UpdateMaxMP);
         EventManager.Unsubscribe(GameEvent.OnUpdateMP, UpdateMP);
         EventManager.Unsubscribe(GameEvent.OnUpdateRecoveryBottle, UpdateRecoveryBottle);
+        EventManager.Unsubscribe(GameEvent.OnSetImageSkill1, SetImageSkill1);
+        EventManager.Unsubscribe(GameEvent.OnSetImageSkill2, SetImageSkill2);
+        EventManager.Unsubscribe(GameEvent.OnUpdateCooldownSkill1, UpdateCooldownSkill1);
+        EventManager.Unsubscribe(GameEvent.OnUpdateCooldownSkill2, UpdateCooldownSkill2);
     }
 
     public override void Open(object data = null)
@@ -255,7 +287,7 @@ public class GameplayMenu : MenuBase
             return;
 
         UIManager.Instance.ChangeMenu(
-            inventoryMenuType);
+            MenuType.InventoryMenu);
     }
 
     public void OpenPauseMenu()
@@ -267,15 +299,91 @@ public class GameplayMenu : MenuBase
             MenuType.PauseMenu);
     }
 
-    public void OnInventoryButtonClicked()
+    #region Skill
+
+    private void SetImageSkill2(object obj)
     {
-        OpenInventoryMenu();
+        if (obj is not Sprite skillSprite)
+            return;
+
+        if (img_Skill2 != null)
+        {
+            img_Skill2.sprite = skillSprite;
+            cooldown_Skill2.fillAmount = 0f;
+        }
     }
 
-    public void OnSettingsButtonClicked()
+    private void SetImageSkill1(object obj)
     {
-        OpenPauseMenu();
+        if (obj is not Sprite skillSprite)
+            return;
+
+        if (img_Skill1 != null)
+        {
+            img_Skill1.sprite = skillSprite;
+            cooldown_Skill1.fillAmount = 0f;
+        }
     }
+
+    private void UpdateCooldownSkill1(object obj)
+    {
+        if (obj is not float cooldown)
+            return;
+
+        if (cooldown_Skill1 != null)
+        {
+            cooldownSkill1Cts = ResetCooldownSource(cooldownSkill1Cts);
+            StartCooldownFill(cooldown_Skill1, cooldown, cooldownSkill1Cts).Forget();
+        }
+    }
+
+    private void UpdateCooldownSkill2(object obj)
+    {
+        if (obj is not float cooldown)
+            return;
+
+        if (cooldown_Skill2 != null)
+        {
+            cooldownSkill2Cts = ResetCooldownSource(cooldownSkill2Cts);
+            StartCooldownFill(cooldown_Skill2, cooldown, cooldownSkill2Cts).Forget();
+        }
+    }
+
+    private CancellationTokenSource ResetCooldownSource(CancellationTokenSource currentSource)
+    {
+        currentSource?.Cancel();
+        currentSource?.Dispose();
+        return new CancellationTokenSource();
+    }
+
+    private async UniTaskVoid StartCooldownFill(Image cooldownImage, float cooldown, CancellationTokenSource cooldownCts)
+    {
+        if (cooldown <= 0f)
+        {
+            cooldownImage.fillAmount = 0f;
+            return;
+        }
+
+        float elapsed = 0f;
+        cooldownImage.fillAmount = 1f;
+
+        while (elapsed < cooldown)
+        {
+            if (cooldownCts.IsCancellationRequested || cooldownImage == null)
+                return;
+
+            elapsed += Time.unscaledDeltaTime;
+            cooldownImage.fillAmount = Mathf.Clamp01(1f - (elapsed / cooldown));
+            await UniTask.Yield();
+        }
+
+        if (cooldownImage != null)
+        {
+            cooldownImage.fillAmount = 0f;
+        }
+    }
+
+    #endregion
 
     #region Stats
 
@@ -288,7 +396,7 @@ public class GameplayMenu : MenuBase
         if (slider_HP != null)
         {
             slider_HP.maxValue = healthData.MaxHealth;
-            slider_HP.value = healthData.fullHeal ? healthData.MaxHealth : healthData.CurrentHealth;
+            slider_HP.value = healthData.CurrentHealth;
 
             slider_DelayHP.maxValue = slider_HP.maxValue;
             slider_DelayHP.value = slider_HP.value;
@@ -310,7 +418,11 @@ public class GameplayMenu : MenuBase
     private void UpdateMaxStamina(object data)
     {
         if (data is not StaminaData staminaData)
+        {
+            Debug.LogWarning("UpdateMaxStamina requires StaminaData.");
             return;
+        }
+
 
         if (slider_Stamina != null)
         {
@@ -342,7 +454,7 @@ public class GameplayMenu : MenuBase
         if (slider_MP != null)
         {
             slider_MP.maxValue = mpData.MaxMP;
-            slider_MP.value = mpData.fullRegen ? mpData.MaxMP : mpData.CurrentMP;
+            slider_MP.value = mpData.CurrentMP;
 
             slider_DelayMP.maxValue = slider_MP.maxValue;
             slider_DelayMP.value = slider_MP.value;

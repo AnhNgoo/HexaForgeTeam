@@ -25,32 +25,19 @@ public class CharacterStamina : MonoBehaviour
 
     private void Update()
     {
-        if (characterBase == null)
-            return;
-
-        if (currentStamina < maxStamina)
-        {
-            currentStamina += characterBase.CharacterStat.Stats.staminaRegen * Time.deltaTime;
-            if (currentStamina > maxStamina)
-                currentStamina = maxStamina;
-
-            staminaData.CurrentStamina = currentStamina;
-            staminaData.MaxStamina = maxStamina;
-            staminaData.fullRegen = false;
-
-            EventManager.Notify(GameEvent.OnUpdateStamina, staminaData);
-        }
+        AddStaminaOverTime();
     }
 
     public void SetMaxStamina(float maxStamina, bool fullRegen = true)
     {
-        this.maxStamina = maxStamina;
-        if (currentStamina > maxStamina)
-            currentStamina = maxStamina;
-        if (fullRegen)
-            currentStamina = maxStamina;
+        float normalizedMaxStamina = Mathf.Max(1f, maxStamina);
 
-        staminaData.MaxStamina = maxStamina;
+        this.maxStamina = normalizedMaxStamina;
+        currentStamina = Mathf.Clamp(currentStamina, 0, normalizedMaxStamina);
+        if (fullRegen)
+            currentStamina = normalizedMaxStamina;
+
+        staminaData.MaxStamina = normalizedMaxStamina;
         staminaData.CurrentStamina = currentStamina;
         staminaData.fullRegen = fullRegen;
         EventManager.Notify(GameEvent.OnUpdateMaxStamina, staminaData);
@@ -59,8 +46,7 @@ public class CharacterStamina : MonoBehaviour
     public void AddStamina(float amount)
     {
         currentStamina += amount;
-        if (currentStamina > maxStamina)
-            currentStamina = maxStamina;
+        currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
         staminaData.CurrentStamina = currentStamina;
         staminaData.MaxStamina = maxStamina;
@@ -71,8 +57,7 @@ public class CharacterStamina : MonoBehaviour
     public void SubtractStamina(float amount)
     {
         currentStamina -= amount;
-        if (currentStamina < 0)
-            currentStamina = 0;
+        currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
         staminaData.CurrentStamina = currentStamina;
         staminaData.MaxStamina = maxStamina;
@@ -93,8 +78,7 @@ public class CharacterStamina : MonoBehaviour
         if (currentStamina < maxStamina)
         {
             currentStamina += characterBase.CharacterStat.Stats.staminaRegen * Time.deltaTime;
-            if (currentStamina > maxStamina)
-                currentStamina = maxStamina;
+            currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
             staminaData.MaxStamina = maxStamina;
             staminaData.CurrentStamina = currentStamina;
@@ -106,8 +90,7 @@ public class CharacterStamina : MonoBehaviour
     public void SubtractStaminaOverTime(float amount)
     {
         currentStamina -= amount * Time.deltaTime;
-        if (currentStamina < 0)
-            currentStamina = 0;
+        currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
         staminaData.MaxStamina = maxStamina;
         staminaData.CurrentStamina = currentStamina;
