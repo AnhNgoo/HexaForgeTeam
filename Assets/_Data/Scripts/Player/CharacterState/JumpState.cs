@@ -49,8 +49,11 @@ public class JumpState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.WallJump && character.CharacterMovement.WallEdge) //Chuyển về WallJumpState nếu nhấn wall jump và đang ở gần tường
+        if (character.CharacterInput.WallJump &&
+        character.CharacterMovement.WallEdge &&
+        character.CharacterStamina.HasEnoughStamina(character.CharacterData.staminaCost.jumpCost)) //Chuyển về WallJumpState nếu nhấn wall jump và đang ở gần tường
         {
+            character.CharacterStamina.SubtractStamina(character.CharacterData.staminaCost.jumpCost);
             character.StateController.ChangeState(new WallJumpState(character));
             return;
         }

@@ -89,4 +89,9 @@ public class CharacterInput : MonoBehaviour
         skill_1 = inputActions.Keyboard.Skill_1.triggered;
         skill_2 = inputActions.Keyboard.Skill_2.triggered;
     }
+
+    public void DisableSprint()
+    {
+        sprint = false;
+    }
 }

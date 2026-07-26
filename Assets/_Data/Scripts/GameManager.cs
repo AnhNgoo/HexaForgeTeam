@@ -6,7 +6,14 @@ using UnityEngine.SceneManagement;
 public class GameManager : Singleton<GameManager>
 {
     [SerializeField] private MenuType startingMenu = MenuType.GameplayMenu;
-    private void Start()
+    // protected override void Awake()
+    // {
+    //     base.Awake();
+    //     UIManager.Instance.InitUI();
+    //     UIManager.Instance.ChangeMenu(startingMenu);
+    // }
+
+    void Start()
     {
         UIManager.Instance.InitUI();
         UIManager.Instance.ChangeMenu(startingMenu);

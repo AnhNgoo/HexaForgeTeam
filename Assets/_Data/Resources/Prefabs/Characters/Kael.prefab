@@ -367,6 +367,10 @@ PrefabInstance:
       propertyPath: nextAttackTime
       value: 0.9
       objectReference: {fileID: 0}
+    - target: {fileID: 1334382458029455690, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+      propertyPath: maxRecoveryBottle
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 2866307409479486588, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: earthBreakerEffectPoint
       value: 
@@ -405,15 +409,15 @@ PrefabInstance:
       objectReference: {fileID: 7685807319425756070}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 115.031784
+      value: 130.1
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8
+      value: 5.218
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 25.749258
+      value: 71.7
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalRotation.w
@@ -488,11 +492,33 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 9020089793968796188}
   m_SourcePrefab: {fileID: 100100000, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+--- !u!114 &652743146485158499 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4546276965906449579, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 3898037821049706184}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5614537235687248146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 953e4b469ba16e6459ef25c137d09032, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &678556483464960247 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4571764091525467711, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 3898037821049706184}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1129340105665567795 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4158129128601078523, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 3898037821049706184}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5614537235687248146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c59d72830b571541af714f853da63a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!198 &1213392487231628956 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 2796254568787554388, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
@@ -617,7 +643,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46c5717625816fd4782c9fa80320056f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  characterData: {fileID: 11400000, guid: df5f41cc1c3a84246847b9195d806820, type: 2}
+  characterData: {fileID: 0}
   dustEffect: {fileID: 1213392487231628956}
   enemyLayer:
     serializedVersion: 2
@@ -641,6 +667,9 @@ MonoBehaviour:
   characterRecovery: {fileID: 2638037874438516610}
   characterMeleeHitbox: {fileID: 1264465636776731448}
   characterCinematic: {fileID: 5866679722787718725}
+  characterStat: {fileID: 7644872723237118379}
+  characterStamina: {fileID: 1129340105665567795}
+  characterMP: {fileID: 652743146485158499}
   effectPoints: {fileID: 3067278483885023289}
   middleEffectPoint: {fileID: 3303615179395203270}
   bottomEffectPoint: {fileID: 2179980713057502717}
@@ -734,6 +763,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5884825505034644676, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 3898037821049706184}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7644872723237118379 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6629465236378990435, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 3898037821049706184}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5614537235687248146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba2aa026dc4515b47b5bdec148d7971a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7903114145141739832 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6608219706106922992, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
