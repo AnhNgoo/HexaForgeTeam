@@ -23,8 +23,7 @@ public class MouseManager : Singleton<MouseManager>
     {
         if (UIManager.Instance?.CurrentMenuType != lastMenuState)
         {
-            if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu|| 
-                UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu)
+            if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu)
             {
                 HideMouse();
             }
@@ -36,8 +35,7 @@ public class MouseManager : Singleton<MouseManager>
         }
 
 
-        if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu|| 
-                UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu)
+        if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu)
             RotateCamera();
     }
 

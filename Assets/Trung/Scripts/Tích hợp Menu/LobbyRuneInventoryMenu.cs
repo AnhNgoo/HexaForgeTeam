@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class LobbyRuneInventoryMenu : MenuBase
 {
-    public override MenuType menuType => MenuType.LobbyRuneInventoryMenu;
+    public override MenuType menuType =>
+        MenuType.LobbyRuneInventoryMenu;
 
     public override void Open(object data = null)
     {
@@ -26,7 +27,7 @@ public class LobbyRuneInventoryMenu : MenuBase
             RuneInventoryUI.Instance.CloseInventory();
         }
 
-        gameObject.SetActive(false);
+        base.Close();
 
         if (LobbyHUDTopBar.Instance != null)
         {
@@ -34,50 +35,11 @@ public class LobbyRuneInventoryMenu : MenuBase
         }
     }
 
-    public bool HandleEscapeKey()
+    protected override void LoadComponent()
     {
-        if (RuneRerollUI.Instance != null && RuneRerollUI.Instance.IsPanelActive())
-        {
-            RuneRerollUI.Instance.ClosePanel();
-            return true;
-        }
-
-        if (RuneFilterPanel.Instance != null && RuneFilterPanel.Instance.IsPanelActive())
-        {
-            RuneFilterPanel.Instance.CloseFilterPanel();
-            return true;
-        }
-
-        if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.IsPanelActive())
-        {
-            RuneDetailInfoPanel.Instance.ClosePanel();
-            return true;
-        }
-
-        if (RuneInventoryUI.Instance != null)
-        {
-            if (RuneInventoryUI.Instance.IsFusionActive())
-            {
-                RuneInventoryUI.Instance.ResetFusionState();
-                return true;
-            }
-
-            if (RuneInventoryUI.Instance.IsSelectModeActive())
-            {
-                RuneInventoryUI.Instance.DisableSelectMode();
-                return true;
-            }
-
-            if (RuneInventoryUI.Instance.IsItemTabActive())
-            {
-                RuneInventoryUI.Instance.SwitchToRuneTab();
-                return true;
-            }
-        }
-
-        return false;
     }
 
-    protected override void LoadComponent() { }
-    protected override void LoadComponentRuntime() { }
+    protected override void LoadComponentRuntime()
+    {
+    }
 }

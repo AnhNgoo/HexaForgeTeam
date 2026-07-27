@@ -22,9 +22,9 @@ public class RuneRerollUI : MonoBehaviour
     [SerializeField] private Button rerollActionButton;
     [SerializeField] private Button closePanelButton;
 
-    [Header("Status Texts & Cost UI")]
+    [Header("Status Texts")]
+    [SerializeField] private TMP_Text costText;
     [SerializeField] private TMP_Text statusNoticeText;
-    [SerializeField] private CostDisplayUI costDisplayUI;
 
     [Header("Item Config")]
     [SerializeField] private string rerollItemID = "REROLL_SCROLL_01";
@@ -42,11 +42,10 @@ public class RuneRerollUI : MonoBehaviour
     private int selectedAffixIndex = -1;
     private bool isAnimating = false;
 
-    private List<RuneStatType> availableDropdownStats = new List<RuneStatType>();
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
     private void Start()
@@ -58,17 +57,14 @@ public class RuneRerollUI : MonoBehaviour
 
         if (useTargetRerollToggle != null) useTargetRerollToggle.onValueChanged.AddListener((x) => UpdateCostVisual());
         if (statTargetDropdown != null) statTargetDropdown.onValueChanged.AddListener((x) => UpdateCostVisual());
-    }
 
-    public bool IsPanelActive()
-    {
-        if (rerollPanelRoot != null) return rerollPanelRoot.activeInHierarchy;
-        return gameObject.activeInHierarchy;
+        PopulateDropdownStats();
     }
 
     public void OpenPanel(RuneData rune)
     {
-        if (rune == null || isAnimating) return;
+        if (rune == null) return;
+        if (isAnimating) return;
 
         targetRuneData = rune;
         selectedAffixIndex = -1;
@@ -79,7 +75,6 @@ public class RuneRerollUI : MonoBehaviour
         }
 
         if (rerollPanelRoot != null) rerollPanelRoot.SetActive(true);
-        else gameObject.SetActive(true);
 
         ClearContainer(cardPreviewParent);
         if (cardPrefabSample != null)
@@ -104,7 +99,6 @@ public class RuneRerollUI : MonoBehaviour
 
         if (statusNoticeText != null) statusNoticeText.SetTextSafe("Select an Affix line from below to reroll.");
 
-        PopulateDropdownStats();
         RefreshAffixRows();
         UpdateCostVisual();
     }
@@ -114,15 +108,10 @@ public class RuneRerollUI : MonoBehaviour
         if (isAnimating) return;
 
         if (rerollPanelRoot != null) rerollPanelRoot.SetActive(false);
-        else gameObject.SetActive(false);
-
         targetRuneData = null;
         selectedAffixIndex = -1;
 
-        if (RuneInventoryUI.Instance != null)
-        {
-            RuneInventoryUI.Instance.RefreshInventory();
-        }
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
     }
 
     private void RefreshAffixRows()
@@ -139,7 +128,7 @@ public class RuneRerollUI : MonoBehaviour
             TMP_Text btnText = rowBtn.GetComponentInChildren<TMP_Text>();
 
             string isPercent = IsPercentStat(affix.statType) ? "%" : "";
-            if (btnText != null) btnText.SetTextSafe($"{GetStatName(affix.statType)}: +{affix.value:F1}{isPercent}");
+            if (btnText != null) btnText.SetTextSafe($"{GetStatName(affix.statType)}: +{affix.value}{isPercent}");
 
             Image rowImg = rowBtn.GetComponent<Image>();
             if (rowImg != null) rowImg.color = (selectedAffixIndex == index) ? Color.yellow : Color.white;
@@ -148,7 +137,6 @@ public class RuneRerollUI : MonoBehaviour
             {
                 if (isAnimating) return;
                 selectedAffixIndex = index;
-                PopulateDropdownStats();
                 RefreshAffixRows();
                 UpdateCostVisual();
             });
@@ -158,30 +146,27 @@ public class RuneRerollUI : MonoBehaviour
     private void UpdateCostVisual()
     {
         bool isTargetMode = useTargetRerollToggle != null && useTargetRerollToggle.isOn;
-        List<CostData> costs = new List<CostData>();
 
-        if (selectedAffixIndex != -1)
+        if (costText != null)
         {
-            if (isTargetMode)
+            if (selectedAffixIndex == -1)
             {
-                costs.Add(new CostData(rerollItemID, 1));
-                costs.Add(new CostData("RUNE_SHARD", targetRerollShardCost));
+                costText.SetTextSafe("Cost: --");
+                if (rerollActionButton != null) rerollActionButton.interactable = false;
             }
             else
             {
-                costs.Add(new CostData("RUNE_SHARD", randomRerollShardCost));
+                if (isTargetMode)
+                {
+                    costText.SetTextSafe($"Cost: <color=#FFD700>1 {rerollItemName}</color> + <color=#CC66FF>{targetRerollShardCost} Shards</color>");
+                }
+                else
+                {
+                    costText.SetTextSafe($"Cost: <color=#CC66FF>{randomRerollShardCost} Shards</color>");
+                }
+
+                if (rerollActionButton != null) rerollActionButton.interactable = true;
             }
-
-            if (rerollActionButton != null) rerollActionButton.interactable = true;
-        }
-        else
-        {
-            if (rerollActionButton != null) rerollActionButton.interactable = false;
-        }
-
-        if (costDisplayUI != null)
-        {
-            costDisplayUI.SetupCost(costs);
         }
 
         if (statTargetDropdown != null) statTargetDropdown.gameObject.SetActive(isTargetMode);
@@ -213,8 +198,15 @@ public class RuneRerollUI : MonoBehaviour
                 return;
             }
 
-            if (!InventoryItemManager.Instance.SpendItem(rerollItemID, 1)) return;
-            if (!RuneShardManager.Instance.SpendShards(targetRerollShardCost)) return;
+            if (!InventoryItemManager.Instance.SpendItem(rerollItemID, 1))
+            {
+                return;
+            }
+
+            if (!RuneShardManager.Instance.SpendShards(targetRerollShardCost))
+            {
+                return;
+            }
         }
         else
         {
@@ -229,10 +221,9 @@ public class RuneRerollUI : MonoBehaviour
         }
 
         RuneStatType finalTargetStat = RuneStatType.HP;
-        if (isTargetMode && statTargetDropdown != null && availableDropdownStats.Count > 0)
+        if (isTargetMode && statTargetDropdown != null)
         {
-            int selectedIndex = Mathf.Clamp(statTargetDropdown.value, 0, availableDropdownStats.Count - 1);
-            finalTargetStat = availableDropdownStats[selectedIndex];
+            finalTargetStat = (RuneStatType)statTargetDropdown.value;
         }
 
         StartCoroutine(RerollGachaRoutine(isTargetMode, finalTargetStat));
@@ -247,9 +238,9 @@ public class RuneRerollUI : MonoBehaviour
         Transform selectedRow = affixRowsContainer.GetChild(selectedAffixIndex);
         TMP_Text btnText = selectedRow.GetComponentInChildren<TMP_Text>();
 
-        float duration = 1.5f;
+        float duration = 1.8f;
         float elapsed = 0f;
-        float delayTick = 0.05f;
+        float delayTick = 0.06f;
 
         while (elapsed < duration)
         {
@@ -281,11 +272,6 @@ public class RuneRerollUI : MonoBehaviour
             RuneInventoryManager.Instance.SaveRunes();
         }
 
-        if (AchievementManager.Instance != null)
-        {
-            AchievementManager.Instance.AddRerollProgress(1);
-        }
-
         ClearContainer(cardPreviewParent);
         if (cardPrefabSample != null)
         {
@@ -311,112 +297,34 @@ public class RuneRerollUI : MonoBehaviour
 
         isAnimating = false;
         if (closePanelButton != null) closePanelButton.interactable = true;
-        PopulateDropdownStats();
         RefreshAffixRows();
         UpdateCostVisual();
     }
 
     private RuneStatType GetRandomStatPool()
     {
-        List<RuneStatType> validPool = new List<RuneStatType>();
-        for (int i = 0; i < 14; i++)
-        {
-            RuneStatType type = (RuneStatType)i;
-            bool isAlreadyOwned = false;
-
-            if (targetRuneData != null)
-            {
-                for (int j = 0; j < targetRuneData.affixes.Count; j++)
-                {
-                    if (j == selectedAffixIndex) continue;
-                    if (targetRuneData.affixes[j].statType == type)
-                    {
-                        isAlreadyOwned = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!isAlreadyOwned)
-            {
-                validPool.Add(type);
-            }
-        }
-
-        if (validPool.Count > 0)
-        {
-            return validPool[Random.Range(0, validPool.Count)];
-        }
-
         return (RuneStatType)Random.Range(0, 14);
     }
 
     private float GenerateNewValueByRarity(RuneRarity rarity, RuneStatType stat)
     {
-        switch (stat)
-        {
-            case RuneStatType.HP: return GetVal(rarity, 80f, 180f, 180f, 350f, 350f, 650f, 650f, 1200f);
-            case RuneStatType.MP: return GetVal(rarity, 25f, 60f, 60f, 120f, 120f, 220f, 220f, 400f);
-            case RuneStatType.Stamina: return GetVal(rarity, 15f, 40f, 40f, 80f, 80f, 140f, 140f, 250f);
-            case RuneStatType.ATK: return GetVal(rarity, 3f, 8f, 8f, 18f, 18f, 35f, 35f, 60f);
-            case RuneStatType.DEF: return GetVal(rarity, 2f, 6f, 6f, 14f, 14f, 28f, 28f, 50f);
-            case RuneStatType.HPPercent: return GetVal(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 20f);
-            case RuneStatType.MPPercent: return GetVal(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
-            case RuneStatType.StaminaPercent: return GetVal(rarity, 3f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
-            case RuneStatType.ATKPercent: return GetVal(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
-            case RuneStatType.DEFPercent: return GetVal(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
-            case RuneStatType.CritChance: return GetVal(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 18f);
-            case RuneStatType.CritDamage: return GetVal(rarity, 4f, 8f, 8f, 15f, 15f, 25f, 25f, 40f);
-            case RuneStatType.ArmorPenetration: return GetVal(rarity, 2f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
-            case RuneStatType.StaminaRegen: return GetVal(rarity, 3f, 6f, 6f, 10f, 10f, 18f, 18f, 30f);
-        }
-        return 1f;
-    }
+        float multiplier = IsPercentStat(stat) ? 0.1f : 1.0f;
+        float baseVal = rarity == RuneRarity.Common ? Random.Range(10, 25) :
+                        rarity == RuneRarity.Rare ? Random.Range(25, 55) :
+                        rarity == RuneRarity.Epic ? Random.Range(55, 100) : Random.Range(100, 220);
 
-    private float GetVal(RuneRarity rarity, float cMin, float cMax, float rMin, float rMax, float eMin, float eMax, float lMin, float lMax)
-    {
-        switch (rarity)
-        {
-            case RuneRarity.Common: return Random.Range(cMin, cMax);
-            case RuneRarity.Rare: return Random.Range(rMin, rMax);
-            case RuneRarity.Epic: return Random.Range(eMin, eMax);
-            case RuneRarity.Legendary: return Random.Range(lMin, lMax);
-        }
-        return 1f;
+        return baseVal * multiplier;
     }
 
     private void PopulateDropdownStats()
     {
         if (statTargetDropdown == null) return;
-
         statTargetDropdown.options.Clear();
-        availableDropdownStats.Clear();
 
         for (int i = 0; i < 14; i++)
         {
-            RuneStatType candidateStat = (RuneStatType)i;
-            bool isAlreadyOwnedOnRune = false;
-
-            if (targetRuneData != null)
-            {
-                for (int j = 0; j < targetRuneData.affixes.Count; j++)
-                {
-                    if (targetRuneData.affixes[j].statType == candidateStat)
-                    {
-                        isAlreadyOwnedOnRune = true;
-                        break;
-                    }
-                }
-            }
-
-            if (!isAlreadyOwnedOnRune)
-            {
-                availableDropdownStats.Add(candidateStat);
-                statTargetDropdown.options.Add(new TMP_Dropdown.OptionData(GetStatName(candidateStat)));
-            }
+            statTargetDropdown.options.Add(new TMP_Dropdown.OptionData(GetStatName((RuneStatType)i)));
         }
-
-        statTargetDropdown.value = 0;
         statTargetDropdown.RefreshShownValue();
     }
 

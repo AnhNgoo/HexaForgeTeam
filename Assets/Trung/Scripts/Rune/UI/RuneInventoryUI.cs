@@ -17,33 +17,25 @@ public class RuneInventoryUI : MonoBehaviour
     [Header("Card Prefab Template")]
     [SerializeField] private RuneCardUI cardPrefab;
 
-    [Header("Select Mode Layout configuration")]
-    [SerializeField] private GameObject selectAllButtonObj;         
-    [SerializeField] private GameObject bulkDeleteButtonObj;       
-    [SerializeField] private TMP_Text selectModeToggleButtonText;    
+    [Header("Select Mode Layout configuration (Sử dụng Button Mới)")]
+    [SerializeField] private GameObject selectAllButtonObj;         // Kéo thả độc lập nút Select All vào đây
+    [SerializeField] private GameObject bulkDeleteButtonObj;       // THÊM Ô NÀY: Kéo thả độc lập nút Delete loạt vào đây
+    [SerializeField] private TMP_Text selectModeToggleButtonText;    // Text của nút Select Mode gốc
     private bool isSelectModeActive = false;                         
 
-    [Header("Fusion Layout Button Config")]
+    [Header("Fusion Layout Toggle")]
     [SerializeField] private GameObject runeEquipPanelObj;  
     [SerializeField] private GameObject runeFusionPanelObj; 
-    [SerializeField] private Button fusionModeButton;          
-    [SerializeField] private TMP_Text fusionModeButtonText;      
-    private bool isFusionActive = false;                         
-
+    [SerializeField] private TMP_Text fusionToggleBtnText;
+    [SerializeField] private Toggle fusionToggle;      
     [Header("Inventory Capacity Settings")]
-    [SerializeField] private TMP_Text capacityText; 
+    [SerializeField] private TMP_Text capacityText; // Kéo thả văn bản hiển thị "Slots: 0/100" vào đây
     [SerializeField] private int maxInventorySlots = 100; 
-
     [Header("Tab Switch Panel System")]
-    [SerializeField] private GameObject runeMainPanelGroup; 
-    [SerializeField] private GameObject itemMainPanelGroup; 
-    [SerializeField] private Button tabRuneButton;          
+    [SerializeField] private GameObject runeMainPanelGroup; // Nhóm chứa Lưới Ngọc, Nâng Cấp/Dung hợp
+    [SerializeField] private GameObject itemMainPanelGroup; // Nhóm chứa Lưới Vật phẩm tiêu hao
+    [SerializeField] private Button tabRuneButton;          // Nút chuyển sang Tab Ngọc
     [SerializeField] private Button tabItemButton;
-
-    private RuneCardUI lockedSelectedCardUI = null;
-    private RuneData lockedSelectedRuneData = null;
-
-    private HashSet<string> selectedRuneIDs = new HashSet<string>();
 
     private List<RuneCardUI> pooledCards = new List<RuneCardUI>();    
 
@@ -52,127 +44,25 @@ public class RuneInventoryUI : MonoBehaviour
         if (Instance == null) Instance = this;
     }
 
-    private void Start()
-    {
-        if (tabRuneButton != null)
-        {
-            tabRuneButton.onClick.RemoveAllListeners();
-            tabRuneButton.onClick.AddListener(SwitchToRuneTab);
-        }
-
-        if (tabItemButton != null)
-        {
-            tabItemButton.onClick.RemoveAllListeners();
-            tabItemButton.onClick.AddListener(SwitchToItemTab);
-        }
-
-        if (fusionModeButton != null)
-        {
-            fusionModeButton.onClick.RemoveAllListeners();
-            fusionModeButton.onClick.AddListener(ToggleFusionMode);
-        }
-
-        SwitchToRuneTab();
-    }
-
     private void OnEnable()
     {
-        DeselectLockedRune();
-        ResetFusionState();
+        if (runeEquipPanelObj != null) runeEquipPanelObj.SetActive(true);
+        if (runeFusionPanelObj != null) runeFusionPanelObj.SetActive(false);
+        
+        try
+        {
+            if (fusionToggleBtnText != null) fusionToggleBtnText.SetTextSafe("Fusion Mode");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[InventoryUI Protect] Chặn lỗi Font chữ: {e.Message}");
+        }
+
+        if (fusionToggle != null) fusionToggle.isOn = false;
         if (RuneFilterPanel.Instance != null) RuneFilterPanel.Instance.ResetFilterToDefault();
 
         DisableSelectMode();
         RefreshInventory();
-    }
-
-    public RuneData GetSelectedRuneData() => lockedSelectedRuneData;
-    public bool IsFusionActive() => isFusionActive;
-    public bool IsSelectModeActive() => isSelectModeActive;
-    public bool IsItemTabActive() => itemMainPanelGroup != null && itemMainPanelGroup.activeInHierarchy;
-    public bool IsRuneSelectedForDelete(string runeID) => selectedRuneIDs.Contains(runeID);
-
-    public void ToggleRuneSelectionForDelete(string runeID)
-    {
-        if (selectedRuneIDs.Contains(runeID))
-        {
-            selectedRuneIDs.Remove(runeID);
-        }
-        else
-        {
-            selectedRuneIDs.Add(runeID);
-        }
-        RefreshInventoryCardVisuals();
-    }
-
-    public void OnRuneHovered(RuneData hoverRune)
-    {
-        if (lockedSelectedRuneData != null) return;
-
-        if (RuneDetailInfoPanel.Instance != null && hoverRune != null)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(hoverRune);
-        }
-    }
-
-    public void OnRuneClicked(RuneCardUI clickedCardUI, RuneData clickedRune)
-    {
-        if (clickedCardUI == null || clickedRune == null) return;
-
-        if (isSelectModeActive)
-        {
-            ToggleRuneSelectionForDelete(clickedRune.runeID);
-            return;
-        }
-
-        if (lockedSelectedCardUI == clickedCardUI)
-        {
-            DeselectLockedRune();
-            return;
-        }
-
-        if (lockedSelectedCardUI != null)
-        {
-            lockedSelectedCardUI.SetSelected(false);
-        }
-
-        lockedSelectedCardUI = clickedCardUI;
-        lockedSelectedRuneData = clickedRune;
-
-        lockedSelectedCardUI.SetSelected(true);
-
-        if (RuneDetailInfoPanel.Instance != null)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(lockedSelectedRuneData);
-        }
-    }
-
-    public void DeselectLockedRune()
-    {
-        if (lockedSelectedCardUI != null)
-        {
-            lockedSelectedCardUI.SetSelected(false);
-        }
-
-        lockedSelectedCardUI = null;
-        lockedSelectedRuneData = null;
-    }
-
-    public void ResetFusionState()
-    {
-        isFusionActive = false;
-        if (runeEquipPanelObj != null) runeEquipPanelObj.SetActive(true);
-        if (runeFusionPanelObj != null) runeFusionPanelObj.SetActive(false);
-        
-        if (fusionModeButtonText != null)
-        {
-            fusionModeButtonText.SetTextSafe("Fusion Mode");
-            fusionModeButtonText.color = Color.white;
-        }
-
-        if (RuneFusionUI.Instance != null)
-        {
-            RuneFusionUI.Instance.ClearFusionSlots();
-        }
     }
 
     public void OpenInventory()
@@ -183,8 +73,9 @@ public class RuneInventoryUI : MonoBehaviour
 
     public void CloseInventory()
     {
-        DeselectLockedRune();
-        ResetFusionState();
+        if (fusionToggle != null) fusionToggle.isOn = false;
+        if (runeFusionPanelObj != null) runeFusionPanelObj.SetActive(false);
+        if (runeEquipPanelObj != null) runeEquipPanelObj.SetActive(true);
         
         if (RuneFusionUI.Instance != null) RuneFusionUI.Instance.ClearFusionSlots();
         
@@ -199,38 +90,14 @@ public class RuneInventoryUI : MonoBehaviour
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
     }
 
-    public void ToggleFusionMode()
-    {
-        if (runeEquipPanelObj == null || runeFusionPanelObj == null) return;
-
-        isFusionActive = !isFusionActive;
-
-        runeEquipPanelObj.SetActive(!isFusionActive);
-        runeFusionPanelObj.SetActive(isFusionActive);
-
-        if (fusionModeButtonText != null)
-        {
-            if (isFusionActive)
-            {
-                fusionModeButtonText.SetTextSafe("Cancel Fusion Mode");
-                fusionModeButtonText.color = new Color(1f, 0.4f, 0.4f);
-            }
-            else
-            {
-                fusionModeButtonText.SetTextSafe("Fusion Mode");
-                fusionModeButtonText.color = Color.white;
-            }
-        }
-
-        if (RuneFusionUI.Instance != null) RuneFusionUI.Instance.ClearFusionSlots();
-        if (!isFusionActive && RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
-    }
-
+    /// <summary>
+    /// Gắn hàm này vào sự kiện OnClick() của nút Button Select Mode gốc
+    /// </summary>
     public void ToggleSelectMode()
     {
         isSelectModeActive = !isSelectModeActive;
-        selectedRuneIDs.Clear();
 
+        // Bật hoặc Tắt độc lập cho từng nút ngoài giao diện theo trạng thái Active
         if (selectAllButtonObj != null) 
             selectAllButtonObj.SetActive(isSelectModeActive);
             
@@ -244,17 +111,17 @@ public class RuneInventoryUI : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning($"[InventoryUI Protect] Error Font: {e.Message}");
+            Debug.LogWarning($"[InventoryUI Protect] Chặn lỗi Font chữ nút Select: {e.Message}");
         }
 
         RefreshInventory();
     }
 
-    public void DisableSelectMode()
+    private void DisableSelectMode()
     {
         isSelectModeActive = false;
-        selectedRuneIDs.Clear();
         
+        // Ẩn sạch cả 2 nút độc lập khi thoát chế độ chọn đồ
         if (selectAllButtonObj != null) selectAllButtonObj.SetActive(false);
         if (bulkDeleteButtonObj != null) bulkDeleteButtonObj.SetActive(false);
         
@@ -267,159 +134,117 @@ public class RuneInventoryUI : MonoBehaviour
 
     public void SmartSelectAllVisibleRunes()
     {
-        if (!isSelectModeActive)
+        if (!isSelectModeActive) return;
+
+        RuneCardUI[] spawnedCards = contentParent.GetComponentsInChildren<RuneCardUI>();
+        foreach (RuneCardUI card in spawnedCards)
         {
-            ToggleSelectMode();
+            if (card != null) card.SetSelected(true); 
         }
-
-        if (RuneInventoryManager.Instance == null) return;
-
-        selectedRuneIDs.Clear();
-        List<RuneData> runes = RuneInventoryManager.Instance.runes;
-
-        for (int i = 0; i < runes.Count; i++)
-        {
-            if (runes[i] == null) continue;
-
-            if (RuneFilterPanel.Instance != null && !RuneFilterPanel.Instance.EvaluateRuneFilter(runes[i]))
-            {
-                continue;
-            }
-
-            selectedRuneIDs.Add(runes[i].runeID);
-        }
-
-        RefreshInventoryCardVisuals();
 
         if (LobbyNotifyManager.Instance != null)
         {
-            LobbyNotifyManager.Instance.ShowNotify($"Selected all {selectedRuneIDs.Count} visible runes!", Color.yellow);
+            LobbyNotifyManager.Instance.ShowNotify("All visible filtered runes highlighted!", Color.yellow);
         }
     }
 
+    /// <summary>
+    /// TÍNH NĂNG PHÂN RÃ LOẠT: Chỉ rã những viên ngọc đang xuất hiện và được người chơi tích chọn V viền vàng
+    /// </summary>
     public void DismantleSelectedRunesLoat()
+{
+    if (contentParent == null) return;
+
+    RuneCardUI[] cards = contentParent.GetComponentsInChildren<RuneCardUI>();
+    bool anyDismantled = false;
+    int totalGemsRefund = 0;
+    int totalShardsRefund = 0;
+
+    for (int i = cards.Length - 1; i >= 0; i--)
     {
-        List<RuneData> runesToRemove = new List<RuneData>();
+        if (!cards[i].IsSelected()) continue;
 
-        if (RuneInventoryManager.Instance != null)
+        RuneData runeData = cards[i].GetRuneData();
+        if (runeData == null) return;
+
+        CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+        foreach (CharacterType charType in allChars)
         {
-            List<RuneData> allRunes = RuneInventoryManager.Instance.runes;
-            for (int i = 0; i < allRunes.Count; i++)
+            var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+            if (build != null)
             {
-                if (allRunes[i] != null && selectedRuneIDs.Contains(allRunes[i].runeID))
+                for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
                 {
-                    runesToRemove.Add(allRunes[i]);
-                }
-            }
-        }
-
-        if (runesToRemove.Count == 0 && lockedSelectedRuneData != null)
-        {
-            runesToRemove.Add(lockedSelectedRuneData);
-        }
-
-        if (runesToRemove.Count == 0)
-        {
-            if (!isSelectModeActive)
-            {
-                ToggleSelectMode();
-                if (LobbyNotifyManager.Instance != null)
-                {
-                    LobbyNotifyManager.Instance.ShowNotify("Select Mode Activated! Click runes to select.", Color.cyan);
-                }
-            }
-            else
-            {
-                if (LobbyNotifyManager.Instance != null)
-                {
-                    LobbyNotifyManager.Instance.ShowNotify("No runes selected to dismantle!", Color.yellow);
-                }
-            }
-            return;
-        }
-
-        int totalGemsRefund = 0;
-        int totalShardsRefund = 0;
-
-        for (int i = 0; i < runesToRemove.Count; i++)
-        {
-            RuneData runeData = runesToRemove[i];
-
-            if (CharacterManager.Instance != null)
-            {
-                CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
-                foreach (CharacterType charType in allChars)
-                {
-                    var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
-                    if (build != null && build.equippedRuneIDs != null)
+                    if (build.equippedRuneIDs[slot] == runeData.runeID)
                     {
-                        for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
-                        {
-                            if (build.equippedRuneIDs[slot] == runeData.runeID)
-                            {
-                                build.equippedRuneIDs[slot] = "";
-                            }
-                        }
+                        build.equippedRuneIDs[slot] = "";
                     }
                 }
             }
-
-            int gemBack = 10;
-            int shardBack = 50;
-            switch (runeData.runeRarity)
-            {
-                case RuneRarity.Rare: gemBack = 25; shardBack = 150; break;
-                case RuneRarity.Epic: gemBack = 60; shardBack = 400; break;
-                case RuneRarity.Legendary: gemBack = 150; shardBack = 1000; break;
-            }
-
-            totalGemsRefund += gemBack;
-            totalShardsRefund += shardBack;
-
-            if (RuneInventoryManager.Instance != null)
-            {
-                RuneInventoryManager.Instance.runes.Remove(runeData);
-            }
         }
 
-        if (GemManager.Instance != null && totalGemsRefund > 0)
-        {
-            GemManager.Instance.AddGem(totalGemsRefund);
-        }
 
-        if (RuneShardManager.Instance != null && totalShardsRefund > 0)
-        {
-            RuneShardManager.Instance.AddShards(totalShardsRefund);
-        }
+        int gemBack = 10;
+        if (runeData.runeRarity == RuneRarity.Rare) gemBack = 30;
+        if (runeData.runeRarity == RuneRarity.Epic) gemBack = 100;
+        if (runeData.runeRarity == RuneRarity.Legendary) gemBack = 300;
+
+        totalGemsRefund += gemBack;
+        totalShardsRefund += 100; 
 
         if (RuneInventoryManager.Instance != null)
         {
-            RuneInventoryManager.Instance.SaveRunes();
+            RuneInventoryManager.Instance.runes.Remove(runeData);
         }
 
-        DeselectLockedRune();
-        DisableSelectMode();
-
-        RefreshInventory();
-
-        if (RuneEquipUI.Instance != null)
-        {
-            RuneEquipUI.Instance.RefreshEquipUI();
-        }
-
-        if (LobbyStatManager.Instance != null)
-        {
-            LobbyStatManager.Instance.RecalculateStats();
-        }
-
-        if (LobbyNotifyManager.Instance != null)
-        {
-            LobbyNotifyManager.Instance.ShowNotify($"Dismantled {runesToRemove.Count} runes! +{totalGemsRefund} Gems, +{totalShardsRefund} Shards.", Color.green);
-        }
+        anyDismantled = true;
     }
+
+    if (!anyDismantled) return;
+
+    if (GemManager.Instance != null && totalGemsRefund > 0)
+    {
+        GemManager.Instance.AddGem(totalGemsRefund);
+    }
+
+    if (RuneShardManager.Instance != null && totalShardsRefund > 0)
+    {
+        RuneShardManager.Instance.AddShards(totalShardsRefund);
+    }
+
+    SaveLoadManager.Instance.SaveGame();
+
+    if (PlayFabDataManager.Instance != null)
+    {
+        PlayFabDataManager.Instance.MarkDirty();
+    }
+
+    isSelectModeActive = false;
+    if (selectModeToggleButtonText != null) selectModeToggleButtonText.SetTextSafe("Bulk Recycle");
+    if (selectAllButtonObj != null) selectAllButtonObj.SetActive(false);
+    if (bulkDeleteButtonObj != null) bulkDeleteButtonObj.SetActive(false);
+
+    RefreshInventory();
+
+    if (RuneEquipUI.Instance != null)
+    {
+        RuneEquipUI.Instance.RefreshEquipUI();
+    }
+
+    if (LobbyStatManager.Instance != null)
+    {
+        LobbyStatManager.Instance.RecalculateStats();
+    }
+
+    if (LobbyNotifyManager.Instance != null)
+    {
+        LobbyNotifyManager.Instance.ShowNotify($"Recycled selected runes! Refunded {totalGemsRefund} Gems & {totalShardsRefund} Shards.", Color.green);
+    }
+}
 
     public void RefreshInventory()
     {
+        // 1. Cập nhật hiển thị sức chứa hòm đồ thực tế (Ví dụ: Slots: 45 / 100)
         if (capacityText != null && RuneInventoryManager.Instance != null)
         {
             int currentCount = RuneInventoryManager.Instance.runes.Count;
@@ -427,11 +252,13 @@ public class RuneInventoryUI : MonoBehaviour
             try
             {
                 capacityText.SetTextSafe($"Slots: {currentCount} / {maxInventorySlots}");
+                // Nếu hòm đồ sắp đầy (trên 90%), đổi sang màu đỏ để cảnh báo người chơi
                 capacityText.color = (currentCount >= maxInventorySlots * 0.9f) ? Color.red : Color.white;
             }
             catch {}
         }
 
+        // 2. Ẩn toàn bộ card cũ trong pool đi trước khi quét bộ lọc mới
         for (int i = 0; i < pooledCards.Count; i++)
         {
             if (pooledCards[i] != null) pooledCards[i].gameObject.SetActive(false);
@@ -442,7 +269,7 @@ public class RuneInventoryUI : MonoBehaviour
         List<RuneData> sortedRunes = new List<RuneData>(RuneInventoryManager.Instance.runes);
         sortedRunes.Sort((a, b) => b.runeRarity.CompareTo(a.runeRarity));
 
-        int visibleCardCount = 0;
+        int visibleCardCount = 0; // Biến đếm số lượng card thỏa mãn bộ lọc hiện tại
 
         try
         {
@@ -453,6 +280,7 @@ public class RuneInventoryUI : MonoBehaviour
                     if (!RuneFilterPanel.Instance.EvaluateRuneFilter(sortedRunes[i])) continue;
                 }
 
+                // Thực hiện Pooling: Cấp phát hoặc tái sử dụng Card
                 GetOrCreatePooledCard(sortedRunes[i], visibleCardCount);
                 visibleCardCount++;
             }
@@ -460,37 +288,24 @@ public class RuneInventoryUI : MonoBehaviour
         }
         catch (System.Exception e)
         {
-            Debug.LogWarning("[InventoryUI pooling] Render error ignored: " + e.Message);
+            Debug.LogWarning("[InventoryUI pooling] Bỏ qua lỗi render: " + e.Message);
         }
 
         if (scrollRect != null) scrollRect.verticalNormalizedPosition = 1f;
     }
 
-    private void RefreshInventoryCardVisuals()
-    {
-        for (int i = 0; i < pooledCards.Count; i++)
-        {
-            if (pooledCards[i] != null && pooledCards[i].gameObject.activeInHierarchy)
-            {
-                RuneData data = pooledCards[i].GetRuneData();
-                if (data != null)
-                {
-                    bool isSel = isSelectModeActive ? selectedRuneIDs.Contains(data.runeID) : (lockedSelectedRuneData != null && lockedSelectedRuneData.runeID == data.runeID);
-                    pooledCards[i].SetSelectedDirect(isSel);
-                    pooledCards[i].UpdateSelectModeVisual(isSelectModeActive);
-                }
-            }
-        }
-    }
-
+    /// <summary>
+    /// Thuật toán Object Pooling: Tái sử dụng GameObject cũ giúp hòm đồ mượt mà 100%
+    /// </summary>
     private void GetOrCreatePooledCard(RuneData runeData, int index)
     {
         RuneCardUI card;
 
+        // Nếu trong danh sách pool đã có sẵn card cũ đang rảnh (bị ẩn), lấy ra dùng lại
         if (index < pooledCards.Count)
         {
             card = pooledCards[index];
-            if (card == null) 
+            if (card == null) // Phòng trường hợp object bị mất tham chiếu ngoài ý muốn
             {
                 card = Instantiate(cardPrefab, contentParent);
                 pooledCards[index] = card;
@@ -498,6 +313,7 @@ public class RuneInventoryUI : MonoBehaviour
         }
         else
         {
+            // Nếu hòm đồ hiển thị nhiều hơn số lượng card đang lưu trong pool, sinh thêm card mới gối đầu
             card = Instantiate(cardPrefab, contentParent);
             pooledCards.Add(card);
         }
@@ -505,9 +321,22 @@ public class RuneInventoryUI : MonoBehaviour
         card.gameObject.SetActive(true);
         card.Setup(runeData, false);
 
-        bool isSel = isSelectModeActive ? selectedRuneIDs.Contains(runeData.runeID) : (lockedSelectedRuneData != null && lockedSelectedRuneData.runeID == runeData.runeID);
-        card.SetSelectedDirect(isSel);
-        card.UpdateSelectModeVisual(isSelectModeActive);
+        // Đồng bộ trạng thái Select Mode
+        var selectField = card.GetType().GetField("isDeleteMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (selectField != null) selectField.SetValue(card, isSelectModeActive);
+
+        card.UpdateSelectModeVisual();
+    }
+
+    private void SpawnCard(RuneData runeData)
+    {
+        RuneCardUI card = Instantiate(cardPrefab, contentParent);
+        card.Setup(runeData, false);
+        
+        var selectField = card.GetType().GetField("isDeleteMode", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        if (selectField != null) selectField.SetValue(card, isSelectModeActive);
+        
+        card.UpdateSelectModeVisual();
     }
 
     public void OpenFilterPanel()
@@ -520,10 +349,42 @@ public class RuneInventoryUI : MonoBehaviour
         if (RuneFilterPanel.Instance != null) RuneFilterPanel.Instance.CloseFilterPanel();
     }
 
+    public void ToggleFusionMode()
+    {
+        if (runeEquipPanelObj == null || runeFusionPanelObj == null || fusionToggle == null) return;
+
+        bool isFusionOpening = fusionToggle.isOn;
+        runeEquipPanelObj.SetActive(!isFusionOpening);
+        runeFusionPanelObj.SetActive(isFusionOpening);
+
+        try
+        {
+            if (fusionToggleBtnText != null) fusionToggleBtnText.SetTextSafe(isFusionOpening ? "Fusion Mode" : "Equip Mode");
+        }
+        catch {}
+
+        if (RuneFusionUI.Instance != null) RuneFusionUI.Instance.ClearFusionSlots();
+        if (!isFusionOpening && RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
+    }
+    private void Start()
+    {
+        if (tabRuneButton != null)
+        {
+            tabRuneButton.onClick.RemoveAllListeners();
+            tabRuneButton.onClick.AddListener(SwitchToRuneTab);
+        }
+
+        if (tabItemButton != null)
+        {
+            tabItemButton.onClick.RemoveAllListeners();
+            tabItemButton.onClick.AddListener(SwitchToItemTab);
+        }
+
+        SwitchToRuneTab();
+    }
+
     public void SwitchToRuneTab()
     {
-        DisableSelectMode();
-
         if (runeMainPanelGroup != null) runeMainPanelGroup.SetActive(true);
         if (itemMainPanelGroup != null) itemMainPanelGroup.SetActive(false);
 
@@ -532,8 +393,6 @@ public class RuneInventoryUI : MonoBehaviour
 
     public void SwitchToItemTab()
     {
-        DisableSelectMode();
-
         if (runeMainPanelGroup != null) runeMainPanelGroup.SetActive(false);
         if (itemMainPanelGroup != null) itemMainPanelGroup.SetActive(true);
 

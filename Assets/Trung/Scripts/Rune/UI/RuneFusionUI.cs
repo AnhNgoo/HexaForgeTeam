@@ -13,6 +13,7 @@ public class RuneFusionUI : MonoBehaviour
 
     [Header("Fusion Slots (3 Ô chứa GameObject Thẻ Ngọc)")]
     [SerializeField] private Transform[] ingredientSlots = new Transform[3];
+    [SerializeField] private Image[] slotBgImages = new Image[3];
 
     [Header("Center Point (Tâm gộp hiệu ứng)")]
     [SerializeField] private Transform fusionCenterPoint;
@@ -24,9 +25,7 @@ public class RuneFusionUI : MonoBehaviour
     [Header("Status Text")]
     [SerializeField] private TMP_Text chanceText;
     [SerializeField] private TMP_Text resultText;
-
-    [Header("Cost Display Prefab Manager")]
-    [SerializeField] private CostDisplayUI costDisplayUI;
+    [SerializeField] private TMP_Text costText;
 
     [Header("Prefab Sample Display")]
     [SerializeField] private RuneCardUI cardPrefabSample;
@@ -51,7 +50,7 @@ public class RuneFusionUI : MonoBehaviour
         if (fuseButton != null) fuseButton.onClick.AddListener(OnFuseButtonClicked);
         if (clearAllButton != null) clearAllButton.onClick.AddListener(ClearFusionSlots);
         if (useCharmToggle != null) useCharmToggle.onValueChanged.AddListener((x) => UpdateFusionPanelVisual());
-
+        
         ResetToggleState();
     }
 
@@ -105,17 +104,17 @@ public class RuneFusionUI : MonoBehaviour
         {
             RuneCardUI visualCard = Instantiate(cardPrefabSample, ingredientSlots[currentSlotIndex]);
             visualCard.Setup(runeData, false);
-
+            
             if (visualCard.GetComponent<Collider2D>() != null) visualCard.GetComponent<Collider2D>().enabled = false;
 
             RectTransform rect = visualCard.GetComponent<RectTransform>();
             if (rect != null)
             {
-                rect.anchoredPosition = Vector2.zero;
+                rect.anchoredPosition = Vector2.zero; 
                 rect.localPosition = Vector3.zero;
             }
-
-            float targetScale = 0.5f;
+            
+            float targetScale = 0.5f; 
             visualCard.transform.localScale = Vector3.zero;
             visualCard.transform.DOScale(new Vector3(targetScale, targetScale, targetScale), 0.25f).SetEase(Ease.OutBack);
 
@@ -135,9 +134,9 @@ public class RuneFusionUI : MonoBehaviour
             if (spawnedVisualCards[i] != null) Destroy(spawnedVisualCards[i].gameObject);
         }
         spawnedVisualCards.Clear();
-
+        
         ClearRewardCard();
-
+        
         if (resultText != null) resultText.text = "Select 3 runes of the same rarity to begin fusion...";
         UpdateFusionPanelVisual();
     }
@@ -153,12 +152,10 @@ public class RuneFusionUI : MonoBehaviour
 
     private void UpdateFusionPanelVisual()
     {
-        List<CostData> currentCosts = new List<CostData>();
-
         if (selectedRunes.Count == 0)
         {
             if (chanceText != null) chanceText.text = "Success Rate: --%";
-            if (costDisplayUI != null) costDisplayUI.SetupCost(currentCosts);
+            if (costText != null) costText.text = "Cost: 0 Shards"; 
             if (fuseButton != null) fuseButton.interactable = false;
             return;
         }
@@ -181,18 +178,17 @@ public class RuneFusionUI : MonoBehaviour
             }
         }
 
-        int shardCost = currentRarity == RuneRarity.Common ? 100 : currentRarity == RuneRarity.Rare ? 300 : 800;
-
-        currentCosts.Add(new CostData("RUNE_SHARD", shardCost));
-
-        if (wantToUseCharm)
+        if (costText != null)
         {
-            currentCosts.Add(new CostData(charmItemID, 1));
-        }
-
-        if (costDisplayUI != null)
-        {
-            costDisplayUI.SetupCost(currentCosts);
+            int cost = currentRarity == RuneRarity.Common ? 100 : currentRarity == RuneRarity.Rare ? 300 : 800;
+            if (wantToUseCharm)
+            {
+                costText.text = $"Cost: <color=yellow>{cost} Shards</color> + <color=#FFA500>1 Charm</color>";
+            }
+            else
+            {
+                costText.text = $"Cost: <color=yellow>{cost} Shards</color>";
+            }
         }
 
         if (fuseButton != null)
@@ -246,7 +242,7 @@ public class RuneFusionUI : MonoBehaviour
         if (!foundValidGroup)
         {
             if (resultText != null) resultText.text = "<color=#FF4C4C>AutoFill failed: Need at least 3 matching runes!</color>";
-            if (LobbyNotifyManager.Instance != null)
+            if (LobbyNotifyManager.Instance != null) 
                 LobbyNotifyManager.Instance.ShowNotify("Not enough matching material runes (minimum 3)!", Color.red);
             return;
         }
@@ -291,8 +287,8 @@ public class RuneFusionUI : MonoBehaviour
     private void StartFusionAnimationSequence(List<string> ingredientIDs, bool useProtection)
     {
         isAnimating = true;
-        ClearRewardCard();
-
+        ClearRewardCard(); 
+        
         if (resultText != null) resultText.text = "<color=#33FFFF>Channelling elemental particles...</color>";
 
         Sequence fusionSequence = DOTween.Sequence();
@@ -300,7 +296,7 @@ public class RuneFusionUI : MonoBehaviour
         for (int i = 0; i < spawnedVisualCards.Count; i++)
         {
             if (spawnedVisualCards[i] == null) continue;
-
+            
             fusionSequence.Join(spawnedVisualCards[i].transform.DOMove(fusionCenterPoint.position, 0.6f).SetEase(Ease.InQuad));
             fusionSequence.Join(spawnedVisualCards[i].transform.DOScale(new Vector3(0.3f, 0.3f, 0.3f), 0.6f));
             fusionSequence.Join(spawnedVisualCards[i].transform.DORotate(new Vector3(0, 0, 360f), 0.6f, RotateMode.FastBeyond360));
@@ -310,7 +306,7 @@ public class RuneFusionUI : MonoBehaviour
         {
             bool isSuccess;
             RuneData resultRune;
-
+            
             bool execute = RuneFusionManager.Instance.TryFuseRunes(ingredientIDs, useProtection, out isSuccess, out resultRune);
 
             foreach (RuneCardUI visual in spawnedVisualCards) if (visual != null) Destroy(visual.gameObject);
@@ -338,12 +334,12 @@ public class RuneFusionUI : MonoBehaviour
                             rewardRect.localPosition = Vector3.zero;
                         }
 
-                        float rewardScale = 0.7f;
+                        float rewardScale = 0.7f; 
                         rewardCardInstance.transform.localScale = Vector3.zero;
-
+                        
                         rewardCardInstance.transform.DOScale(new Vector3(rewardScale * 1.3f, rewardScale * 1.3f, rewardScale * 1.3f), 0.4f).SetEase(Ease.OutElastic).OnComplete(() =>
                         {
-                            if (rewardCardInstance != null)
+                            if (rewardCardInstance != null) 
                                 rewardCardInstance.transform.DOScale(new Vector3(rewardScale, rewardScale, rewardScale), 0.15f);
                         });
                     }
