@@ -9,6 +9,7 @@ public class Lyra : CharacterRanged
     public PoolType hitEffect = PoolType.HitEffect_3;
     public PoolType arcaneChargeEffect = PoolType.ArcaneChargeEffect;
     public PoolType lyraProjectile = PoolType.LyraProjectile;
+    public PoolType lyraSkill_1_Projectile = PoolType.LyraSkill_1_Projectile;
     public PoolType lyraAuraSkill_2_1 = PoolType.LyraAuraSkill_2_1;
     public PoolType lyraAuraSkill_2_2 = PoolType.LyraAuraSkill_2_2;
     public PoolType lyraAuraSkill_2_3 = PoolType.LyraAuraSkill_2_3;
@@ -24,20 +25,20 @@ public class Lyra : CharacterRanged
     }
 
     #region Override kỹ năng
-    protected override ICharacterSkill GetSkill_1()
+    protected override ICharacterSkill GetSkill_1(CharacterSkillData skill1Data)
     {
-        if (characterSkill.SkillData1 == null)
+        if (skill1Data == null)
             Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
 
-        return new MysticOrbs(this, characterSkill.SkillData1);
+        return new ChainBolt(this, skill1Data);
     }
 
-    protected override ICharacterSkill GetSkill_2()
+    protected override ICharacterSkill GetSkill_2(CharacterSkillData skill2Data)
     {
-        if (characterSkill.SkillData2 == null)
+        if (skill2Data == null)
             Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
 
-        return new MysticOrbs(this, characterSkill.SkillData2);
+        return new MysticOrbs(this, skill2Data);
     }
 
     #endregion

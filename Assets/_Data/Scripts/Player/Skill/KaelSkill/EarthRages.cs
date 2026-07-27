@@ -18,8 +18,12 @@ public class EarthRages : CharacterSkillBase
             Debug.LogError("EarthRages skill chỉ có thể được sử dụng bởi Kael");
             return;
         }
+        character.CanBeAttacked = false;
         character.CharacterSkill.CanUseSkill1 = false;
         character.CharacterSkill.CanUseSkill2 = false;
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.cooldown);
+
+        character.CharacterCinematic.PlayCinematic();
 
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
         ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_3,
@@ -53,6 +57,8 @@ public class EarthRages : CharacterSkillBase
         character.StateController.ChangeState(new IdleState(character));
 
         CountdownToNormalForm();
+        character.CanBeAttacked = true;
+        character.CharacterCinematic.StopCinematic();
     }
 
     //Hàm đếm ngược thời gian trở lại hình dạng bình thường sau khi dùng skill
@@ -66,6 +72,7 @@ public class EarthRages : CharacterSkillBase
         }
         if (character is not Kael kael) return;
 
+        character.CanBeAttacked = false;
         character.StateController.ChangeState(new CombatState(character));
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
         ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_3,
@@ -96,5 +103,6 @@ public class EarthRages : CharacterSkillBase
         character.CharacterSkill.CanUseSkill1 = true;
         character.CharacterSkill.CanUseSkill2 = true;
         character.StateController.ChangeState(new IdleState(character));
+        character.CanBeAttacked = true;
     }
 }

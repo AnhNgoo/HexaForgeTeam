@@ -18,6 +18,7 @@ public class CharacterLockTarget : LoadComponents
 
     public bool IsLockingTarget { get; private set; } = false;
     private GameObject lockTargetMarker;
+    private EnemyBase currentTargetEnemy;
 
     protected override void LoadComponent()
     {
@@ -39,7 +40,7 @@ public class CharacterLockTarget : LoadComponents
     {
         if (!IsLockingTarget) return;
 
-        if (!IsValidTarget(lookAtTarget)) // Nếu mục tiêu bị hủy hoặc mất, tự động mở khóa
+        if (!IsValidTarget()) // Nếu mục tiêu bị hủy hoặc mất, tự động mở khóa
         {
             ToggleLockTarget();
             return;
@@ -54,18 +55,40 @@ public class CharacterLockTarget : LoadComponents
     }
 
     /// <summary>
-    /// Kiểm tra xem mục tiêu có hợp lệ để khóa hay không.
+    /// Kiểm tra xem mục tiêu đang lock còn sống không
     /// </summary>
+    private bool IsValidTarget()
+    {
+        if (lookAtTarget == null || currentTargetEnemy == null || currentTargetEnemy.Health.CurrentHealth <= 0f)
+            return false;
+
+        return true;
+    }
+
+
+    /// <summary>
+    /// Kiểm tra xem mục tiêu có hợp lệ để lock không, dựa trên các tiêu chí: mục tiêu không null, là EnemyBase và còn sống
+    /// </summary>
+    /// <param name="target"></param>
+    /// <returns></returns>
     private bool IsValidTarget(Transform target)
     {
         if (target == null)
             return false;
 
-        EnemyBase enemy = target.GetComponentInParent<EnemyBase>();
-        if (enemy != null && enemy.Health.CurrentHealth <= 0f)
+        EnemyBase enemy = GetEnemyBase(target);
+        if (enemy == null || enemy.Health.CurrentHealth <= 0f)
             return false;
 
         return true;
+    }
+
+    private EnemyBase GetEnemyBase(Transform target)
+    {
+        if (target == null)
+            return null;
+
+        return target.GetComponentInParent<EnemyBase>();
     }
     /// <summary>
     /// Bật/tắt khoá mục tiêu
@@ -80,6 +103,7 @@ public class CharacterLockTarget : LoadComponents
             lookAtTarget = FindBestTarget();
             if (lookAtTarget == null) // Kiểm tra nếu lookAtTarget không có
                 return;
+            currentTargetEnemy = GetEnemyBase(lookAtTarget);
 
             CameraManager.Instance?.SetCamera(CameraType.LockTarget, followTarget, lookAtTarget);
 

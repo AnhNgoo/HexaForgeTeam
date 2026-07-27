@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -8,7 +7,7 @@ public class ShopItemCardUI : LoadComponents
     [Header("UI Fields")]
     [SerializeField] private TMP_Text txtItemName;
     [SerializeField] private TMP_Text txtDescription;
-    [SerializeField] private CostDisplayUI costDisplayUI;
+    [SerializeField] private TMP_Text txtCost;
     [SerializeField] private TMP_Text txtOwned;
     [SerializeField] private Image imgIcon;
     [SerializeField] private Button buyButton;
@@ -34,36 +33,13 @@ public class ShopItemCardUI : LoadComponents
 
         if (txtItemName != null) txtItemName.SetTextSafe(itemData.itemName);
         if (txtDescription != null) txtDescription.SetTextSafe(itemData.itemDescription);
+        if (txtCost != null) txtCost.SetTextSafe($"{itemData.gemCost} Gems");
         if (imgIcon != null && itemData.itemIcon != null) imgIcon.sprite = itemData.itemIcon;
 
-        if (costDisplayUI != null)
+        if (txtOwned != null && InventoryItemManager.Instance != null)
         {
-            if (itemData.isCustomRunePack)
-            {
-                // Nếu là gói Ngọc tùy chọn -> Hiển thị text giá linh hoạt
-                costDisplayUI.gameObject.SetActive(false);
-            }
-            else
-            {
-                costDisplayUI.gameObject.SetActive(true);
-                string currencyID = itemData.currencyType == ShopCurrencyType.Gem ? "GEM" : "RUNE_SHARD";
-                List<CostData> costs = new List<CostData> { new CostData(currencyID, itemData.costAmount) };
-                costDisplayUI.SetupCost(costs);
-            }
-        }
-
-        if (txtOwned != null)
-        {
-            if (itemData.isCurrencyExchange)
-            {
-                txtOwned.gameObject.SetActive(false);
-            }
-            else if (InventoryItemManager.Instance != null)
-            {
-                txtOwned.gameObject.SetActive(true);
-                int ownedQty = InventoryItemManager.Instance.GetItemQuantity(itemData.itemID);
-                txtOwned.SetTextSafe($"Owned: {ownedQty}");
-            }
+            int ownedQty = InventoryItemManager.Instance.GetItemQuantity(itemData.itemID);
+            txtOwned.SetTextSafe($"Owned: {ownedQty}");
         }
 
         if (buyButton != null)
@@ -71,34 +47,44 @@ public class ShopItemCardUI : LoadComponents
             buyButton.onClick.RemoveAllListeners();
             buyButton.onClick.AddListener(OnBuyClicked);
 
-            bool canAfford = false;
-            if (itemData.currencyType == ShopCurrencyType.Gem && GemManager.Instance != null)
+            if (GemManager.Instance != null)
             {
-                canAfford = GemManager.Instance.GetCurrentGem() >= itemData.costAmount;
+                buyButton.interactable = GemManager.Instance.GetCurrentGem() >= itemData.gemCost;
             }
-            else if (itemData.currencyType == ShopCurrencyType.RuneShard && RuneShardManager.Instance != null)
-            {
-                canAfford = RuneShardManager.Instance.GetCurrentShards() >= itemData.costAmount;
-            }
-
-            buyButton.interactable = canAfford;
         }
     }
 
     private void OnBuyClicked()
     {
-        if (itemData == null) return;
+        if (itemData == null || GemManager.Instance == null) return;
 
-        if (itemData.isCustomRunePack)
+        if (GemManager.Instance.GetCurrentGem() < itemData.gemCost)
         {
-            if (ShopRuneSelectionPopupUI.Instance != null)
+            if (LobbyNotifyManager.Instance != null)
             {
-                ShopRuneSelectionPopupUI.Instance.OpenPopup();
+                LobbyNotifyManager.Instance.ShowNotify("Not enough Crystals!", Color.red);
             }
+            return;
         }
-        else if (ShopQuantityPopupUI.Instance != null)
+
+        if (GemManager.Instance.SpendGem(itemData.gemCost))
         {
-            ShopQuantityPopupUI.Instance.OpenPopup(itemData);
+            if (InventoryItemManager.Instance != null)
+            {
+                InventoryItemManager.Instance.AddItem(itemData.itemID, itemData.itemName, itemData.purchaseQuantity);
+            }
+
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"Purchased {itemData.itemName} x{itemData.purchaseQuantity}!", Color.green);
+            }
+
+            RefreshCardUI();
+
+            if (LobbyShopUI.Instance != null)
+            {
+                LobbyShopUI.Instance.RefreshShopUI();
+            }
         }
     }
 
@@ -106,7 +92,7 @@ public class ShopItemCardUI : LoadComponents
     {
         if (txtItemName == null) txtItemName = transform.Find("TxtItemName")?.GetComponent<TMP_Text>();
         if (txtDescription == null) txtDescription = transform.Find("TxtDescription")?.GetComponent<TMP_Text>();
-        if (costDisplayUI == null) costDisplayUI = transform.Find("CostDisplayUI")?.GetComponent<CostDisplayUI>();
+        if (txtCost == null) txtCost = transform.Find("TxtCost")?.GetComponent<TMP_Text>();
         if (txtOwned == null) txtOwned = transform.Find("TxtOwned")?.GetComponent<TMP_Text>();
         if (imgIcon == null) imgIcon = transform.Find("ImgIcon")?.GetComponent<Image>();
         if (buyButton == null) buyButton = transform.Find("BuyButton")?.GetComponent<Button>();
