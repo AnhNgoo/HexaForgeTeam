@@ -6,12 +6,12 @@ public class RuneFusionManager : MonoBehaviour
 {
     public static RuneFusionManager Instance;
 
-    [Header("Fusion Success Rates (GDD Standard %)")]
+    [Header("Fusion Success Rates (Tỷ lệ đập thành công %)")]
     [Range(0f, 100f)] [SerializeField] private float commonToRareRate = 85f;
     [Range(0f, 100f)] [SerializeField] private float rareToEpicRate = 60f;
     [Range(0f, 100f)] [SerializeField] private float epicToLegendaryRate = 35f;
 
-    [Header("Rune Shard Cost (GDD Standard)")]
+    [Header("Rune Shard Cost (Chi phí đập ngọc mới)")]
     [SerializeField] private int costCommon = 100;
     [SerializeField] private int costRare = 300;
     [SerializeField] private int costEpic = 800;
@@ -85,34 +85,9 @@ public class RuneFusionManager : MonoBehaviour
             RuneShardManager.Instance.SpendShards(shardCost);
         }
 
-        // Tự động tháo ngọc khỏi ô Equip nếu nguyên liệu đang được đeo
-        if (CharacterManager.Instance != null)
-        {
-            CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
-            foreach (CharacterType charType in allChars)
-            {
-                var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
-                if (build != null && build.equippedRuneIDs != null)
-                {
-                    for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
-                    {
-                        if (ingredientRuneIDs.Contains(build.equippedRuneIDs[slot]))
-                        {
-                            build.equippedRuneIDs[slot] = "";
-                        }
-                    }
-                }
-            }
-        }
-
         if (RuneInventoryManager.Instance != null)
         {
             RuneInventoryManager.Instance.RemoveRunesRange(ingredientRuneIDs);
-        }
-
-        if (RuneEquipUI.Instance != null)
-        {
-            RuneEquipUI.Instance.RefreshEquipUI();
         }
 
         float roll = Random.Range(0f, 100f);
@@ -128,12 +103,6 @@ public class RuneFusionManager : MonoBehaviour
             {
                 RuneInventoryManager.Instance.AddRune(resultRune);
             }
-
-            if (AchievementManager.Instance != null)
-            {
-                AchievementManager.Instance.AddFusionProgress(1);
-            }
-
             Debug.Log($"[ÉP NGỌC] Đập đồ thành công! Nhận được: {resultRune.runeName} ({resultRune.runeRarity})");
         }
         else
@@ -144,14 +113,13 @@ public class RuneFusionManager : MonoBehaviour
             {
                 RuneShardManager.Instance.AddShards(refundShards);
             }
-            Debug.Log($"[ÉP NGỌC] Đập đồ thất bại. Hoàn trả 20% chi phí (+{refundShards} Shards).");
+            Debug.Log($"[ÉP NGỌC] Đập đồ thất bại, nguyên liệu bốc cháy. Hoàn trả 20% chi phí (+{refundShards} Shards).");
         }
 
         if (RuneInventoryUI.Instance != null)
         {
             RuneInventoryUI.Instance.RefreshInventory();
         }
-
         return true;
     }
 

@@ -9,6 +9,7 @@ public class LobbyLeaderboardMenu : MenuBase
     {
         base.Open(data);
 
+        // Ẩn cụm Cấp độ tài khoản, chỉ giữ lại cụm Tiền tệ khi mở Bảng Xếp Hạng
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowCurrencyOnly();
@@ -33,8 +34,9 @@ public class LobbyLeaderboardMenu : MenuBase
             ui.ClosePanel();
         }
 
-        gameObject.SetActive(false);
+        base.Close();
 
+        // Hiện lại đầy đủ cả Cấp độ lẫn Tiền tệ khi quay về sảnh trống
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowFullHUD();

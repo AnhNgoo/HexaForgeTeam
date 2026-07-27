@@ -159,7 +159,7 @@ public class GachaMenu : MenuBase
             return;
 
         if (!HasPersistentMethod(btnRollFive, "Roll5"))
-            gachaManager.Roll10();
+            gachaManager.Roll5();
 
         StartCoroutine(RefreshAfterRoll());
     }

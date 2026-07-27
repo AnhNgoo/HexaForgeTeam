@@ -24,8 +24,6 @@ public class RuneInventoryManager : MonoBehaviour
     [SerializeField] private float maxArmorPenetration = 28f;
     [SerializeField] private float maxStaminaRegen = 45f;
 
-    private float lastSaveTime = -99f;
-
     private void Awake()
     {
         if (Instance == null)
@@ -61,81 +59,6 @@ public class RuneInventoryManager : MonoBehaviour
         SaveRunes();
     }
 
-    #region Dismantle System (Chuẩn GDD)
-
-    public void DismantleRunes(List<string> runeIDsToDismantle)
-    {
-        if (runeIDsToDismantle == null || runeIDsToDismantle.Count == 0) return;
-
-        int totalGemsGained = 0;
-        int totalShardsGained = 0;
-        int countDismantled = 0;
-
-        for (int i = runes.Count - 1; i >= 0; i--)
-        {
-            if (runeIDsToDismantle.Contains(runes[i].runeID))
-            {
-                RuneRarity rarity = runes[i].runeRarity;
-
-                // Tỷ lệ hoàn trả Gem & Shard theo GDD
-                switch (rarity)
-                {
-                    case RuneRarity.Common:
-                        totalGemsGained += 10;
-                        totalShardsGained += 50;
-                        break;
-                    case RuneRarity.Rare:
-                        totalGemsGained += 25;
-                        totalShardsGained += 150;
-                        break;
-                    case RuneRarity.Epic:
-                        totalGemsGained += 60;
-                        totalShardsGained += 400;
-                        break;
-                    case RuneRarity.Legendary:
-                        totalGemsGained += 150;
-                        totalShardsGained += 1000;
-                        break;
-                }
-
-                runes.RemoveAt(i);
-                countDismantled++;
-            }
-        }
-
-        if (countDismantled > 0)
-        {
-            if (GemManager.Instance != null && totalGemsGained > 0)
-            {
-                GemManager.Instance.AddGem(totalGemsGained);
-            }
-
-            if (RuneShardManager.Instance != null && totalShardsGained > 0)
-            {
-                RuneShardManager.Instance.AddShards(totalShardsGained);
-            }
-
-            if (AchievementManager.Instance != null)
-            {
-                AchievementManager.Instance.AddDismantleProgress(countDismantled);
-            }
-
-            SaveRunes();
-
-            if (LobbyNotifyManager.Instance != null)
-            {
-                LobbyNotifyManager.Instance.ShowNotify($"Dismantled {countDismantled} Runes! +{totalGemsGained} Gems, +{totalShardsGained} Shards", Color.green);
-            }
-
-            if (RuneInventoryUI.Instance != null)
-            {
-                RuneInventoryUI.Instance.RefreshInventory();
-            }
-        }
-    }
-
-    #endregion
-
     #region Equip
 
     public bool EquipRune(RuneData runeData, CharacterType targetCharType)
@@ -145,32 +68,14 @@ public class RuneInventoryManager : MonoBehaviour
             return false;
         }
 
-        if (CharacterManager.Instance != null)
-        {
-            CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
-            foreach (CharacterType charType in allChars)
-            {
-                var checkBuild = CharacterManager.Instance.GetCharacterRuneBuild(charType);
-                if (checkBuild != null && checkBuild.equippedRuneIDs != null)
-                {
-                    for (int i = 0; i < checkBuild.equippedRuneIDs.Length; i++)
-                    {
-                        if (checkBuild.equippedRuneIDs[i] == runeData.runeID)
-                        {
-                            Debug.LogWarning($"[RuneInventoryManager] Chặn đeo: Ngọc {runeData.runeName} đang được {charType} sử dụng!");
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(targetCharType);
         if (build == null)
         {
             return false;
         }
 
+        // BƯỚC BẢO VỆ 1: Quét dọn data ma (Ghost Data) trước khi xử lý
+        // Nếu slot nào chứa ID ngọc không còn tồn tại trong túi, lập tức dọn sạch ô đó thành trống ""
         for (int i = 0; i < build.equippedRuneIDs.Length; i++)
         {
             string id = build.equippedRuneIDs[i];
@@ -179,8 +84,17 @@ public class RuneInventoryManager : MonoBehaviour
                 bool exists = runes.Any(r => r.runeID == id);
                 if (!exists)
                 {
-                    build.equippedRuneIDs[i] = "";
+                    build.equippedRuneIDs[i] = ""; // Trả lại ô trống chuẩn
                 }
+            }
+        }
+
+        // Kiểm tra xem viên ngọc này đã được chính nhân vật này đeo ở ô khác chưa
+        for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+        {
+            if (build.equippedRuneIDs[i] == runeData.runeID)
+            {
+                return false;
             }
         }
 
@@ -221,16 +135,6 @@ public class RuneInventoryManager : MonoBehaviour
         build.equippedRuneIDs[emptySlot] = runeData.runeID;
         SaveRunes();
 
-        if (AchievementManager.Instance != null)
-        {
-            int equippedCount = 0;
-            for (int i = 0; i < build.equippedRuneIDs.Length; i++)
-            {
-                if (!string.IsNullOrEmpty(build.equippedRuneIDs[i])) equippedCount++;
-            }
-            AchievementManager.Instance.CheckEquipFullProgress(equippedCount);
-        }
-
         if (LobbyStatManager.Instance != null)
         {
             LobbyStatManager.Instance.RecalculateStats();
@@ -246,11 +150,20 @@ public class RuneInventoryManager : MonoBehaviour
 
     public void UnequipRune(RuneData runeData, CharacterType targetCharType)
     {
-        if (runeData == null) return;
+        if (runeData == null)
+        {
+            return;
+        }
 
+        // Đã sửa: Tìm đúng bảng ngọc của nhân vật được yêu cầu
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(targetCharType);
-        if (build == null) return;
 
+        if (build == null)
+        {
+            return;
+        }
+
+        // Tìm và xóa ID viên ngọc ra khỏi danh sách trang bị của nhân vật này
         for (int i = 0; i < build.equippedRuneIDs.Length; i++)
         {
             if (build.equippedRuneIDs[i] == runeData.runeID)
@@ -268,18 +181,20 @@ public class RuneInventoryManager : MonoBehaviour
         }    
 
         if (RuneEquipUI.Instance != null)
-        {
-            RuneEquipUI.Instance.RefreshEquipUI();
-        }
+{
+    RuneEquipUI.Instance.RefreshEquipUI();
+}
 
-        if (LobbyNotifyManager.Instance != null) 
-            LobbyNotifyManager.Instance.ShowNotify($"Rune unequipped from {targetCharType}.", Color.white);
+Debug.Log($"<color=#FFFF66><b>[THÁO NGỌC]</b> Thực hiện gỡ viên ngọc {runeData.runeName} khỏi nhân vật {targetCharType.ToString().ToUpper()} thành công.</color>");
+if (LobbyNotifyManager.Instance != null) 
+    LobbyNotifyManager.Instance.ShowNotify($"Rune unequipped from {targetCharType.ToString()}.", Color.white);
     }
 
     #endregion
 
     #region Total Stats
 
+    // Đã sửa: Tính toán chỉ số theo nhân vật được truyền vào
     public Dictionary<RuneStatType, float> GetStats(CharacterType targetCharType)
     {
         Dictionary<RuneStatType, float> normalStats = new Dictionary<RuneStatType, float>();
@@ -289,13 +204,30 @@ public class RuneInventoryManager : MonoBehaviour
 
         if (build != null)
         {
+            // Quét qua 3 Slot ID ngọc của nhân vật
             for (int i = 0; i < build.equippedRuneIDs.Length; i++)
             {
                 string targetID = build.equippedRuneIDs[i];
-                if (string.IsNullOrEmpty(targetID)) continue;
+                if (string.IsNullOrEmpty(targetID))
+                {
+                    continue;
+                }
 
-                RuneData rune = runes.FirstOrDefault(k => k.runeID == targetID);
-                if (rune == null) continue;
+                // Tìm viên ngọc thực tế trong túi đồ thông qua ID
+                RuneData rune = null;
+                for (int k = 0; k < runes.Count; k++)
+                {
+                    if (runes[k].runeID == targetID)
+                    {
+                        rune = runes[k];
+                        break;
+                    }
+                }
+
+                if (rune == null)
+                {
+                    continue;
+                }
 
                 Dictionary<RuneStatType, float> targetDict = rune.ignoreHardCap ? bypassStats : normalStats;
 
@@ -328,6 +260,17 @@ public class RuneInventoryManager : MonoBehaviour
         return normalStats;
     }
 
+    [ContextMenu("Debug Total Stats")]
+    private void DebugTotalStats()
+    {
+        Dictionary<RuneStatType, float> stats = GetStats(CharacterManager.Instance.GetSelectedCharacter());
+
+        foreach (var stat in stats)
+        {
+            Debug.Log($"{stat.Key} : {stat.Value}");
+        }
+    }
+
     #endregion
 
     private void ApplyRuneHardCaps(Dictionary<RuneStatType, float> stats)
@@ -350,7 +293,11 @@ public class RuneInventoryManager : MonoBehaviour
 
     private void ClampStat(Dictionary<RuneStatType, float> stats, RuneStatType statType, float maxValue)
     {
-        if (!stats.ContainsKey(statType)) return;
+        if (!stats.ContainsKey(statType))
+        {
+            return;
+        }
+
         stats[statType] = Mathf.Min(stats[statType], maxValue);
     }
 
@@ -378,10 +325,7 @@ public class RuneInventoryManager : MonoBehaviour
 
     private void LoadRunes()
     {
-        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
-        {
-            runes = SaveLoadManager.Instance.SaveData.runes;
-        }
+        runes = SaveLoadManager.Instance.SaveData.runes;
 
         if (runes == null)
         {
@@ -391,41 +335,35 @@ public class RuneInventoryManager : MonoBehaviour
 
     public void SaveRunes()
     {
-        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+        SaveLoadManager.Instance.SaveData.runes = runes;
+        SaveLoadManager.Instance.SaveGame();
+
+        if (PlayFabDataManager.Instance != null)
         {
-            SaveLoadManager.Instance.SaveData.runes = runes;
-
-            // Giới hạn tần suất lưu để chống spam API PlayFab
-            if (Time.time - lastSaveTime > 2.0f)
-            {
-                lastSaveTime = Time.time;
-                SaveLoadManager.Instance.SaveGame();
-
-                if (PlayFabDataManager.Instance != null)
-                {
-                    PlayFabDataManager.Instance.MarkDirty();
-                }
-            }
+            PlayFabDataManager.Instance.SaveCloud();
+        }
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance.MarkDirty();
         }
     }
-
     public void RemoveRunesRange(List<string> runeIDs)
-    {
-        if (runeIDs == null || runeIDs.Count == 0) return;
+{
+    if (runeIDs == null || runeIDs.Count == 0) return;
 
-        bool anyRemoved = false;
-        foreach (string id in runeIDs)
+    bool anyRemoved = false;
+    foreach (string id in runeIDs)
+    {
+        RuneData r = runes.FirstOrDefault(x => x.runeID == id);
+        if (r != null)
         {
-            RuneData r = runes.FirstOrDefault(x => x.runeID == id);
-            if (r != null)
-            {
-                runes.Remove(r);
-                anyRemoved = true;
-            }
-        }
-        if (anyRemoved)
-        {
-            SaveRunes();
+            runes.Remove(r);
+            anyRemoved = true;
         }
     }
+    if (anyRemoved)
+    {
+        SaveRunes();
+    }
+}
 }
