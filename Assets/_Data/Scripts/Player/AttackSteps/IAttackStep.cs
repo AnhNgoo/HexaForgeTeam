@@ -7,5 +7,5 @@ public interface IAttackStep
     string AttackStateName { get; }
     float TimeTriggerAttack { get; }
     float TimeEndAttack { get; }
-    void Attack(CharacterBase character);
+    void Attack();
 }

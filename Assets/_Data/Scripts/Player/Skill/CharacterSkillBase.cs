@@ -17,7 +17,7 @@ public abstract class CharacterSkillBase : ICharacterSkill
     }
     public bool CanUseSkill()
     {
-        if (cooldown.IsOnCooldown)
+        if (cooldown.IsOnCooldown || !character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost))
             return false;
         return true;
     }
