@@ -51,7 +51,6 @@ public class CharacterInput : MonoBehaviour
             return;
         }
         bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
-<<<<<<< HEAD
         bool isLobbyDefault = UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu;
 
         if (!isUIGameplay && !isLobbyDefault)
@@ -67,10 +66,6 @@ public class CharacterInput : MonoBehaviour
             lockTarget = false;
             skill_1 = false;
             skill_2 = false;
-=======
-        if (!isUIGameplay) // Bỏ qua các input khi không phải trong UI gameplay 
-        {
->>>>>>> origin/main
             return;
         }
 

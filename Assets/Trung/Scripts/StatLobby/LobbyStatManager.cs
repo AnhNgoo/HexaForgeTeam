@@ -30,12 +30,7 @@ public class LobbyStatManager : MonoBehaviour
     {
         CharacterType targetChar = CharacterType.Kael;
 
-<<<<<<< HEAD
         if (RuneEquipUI.Instance != null && RuneEquipUI.Instance.gameObject.activeInHierarchy)
-=======
-        PlayerStatTest stat = FindFirstObjectByType<PlayerStatTest>();
-        if (stat != null)
->>>>>>> origin/main
         {
             targetChar = RuneEquipUI.Instance.GetViewingCharacter();
         }
