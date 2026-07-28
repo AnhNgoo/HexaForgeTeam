@@ -64,8 +64,11 @@ public class MoveState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.Jump && character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.Jump &&
+         character.CharacterMovement.IsGrounded &&
+         character.CharacterStamina.HasEnoughStamina(character.CharacterData.staminaCost.jumpCost))
         {
+            character.CharacterStamina.SubtractStamina(character.CharacterData.staminaCost.jumpCost);
             character.StateController.ChangeState(new JumpState(character));
             return;
         }

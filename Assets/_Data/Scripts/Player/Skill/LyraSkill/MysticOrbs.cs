@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using System.Threading;
 using UnityEngine;
 
 public class MysticOrbs : CharacterSkillBase
@@ -9,6 +10,7 @@ public class MysticOrbs : CharacterSkillBase
     private float radiusDetectionArea = 15f; // Bán kính của khu vực phát hiện kẻ địch
     private LyraSkill_2_DetectionAreaEffect detectionAreaEffect;
     private bool isAttacking = false;
+    private CancellationTokenSource delayCts;
     public MysticOrbs(CharacterBase character, CharacterSkillData skillData) : base(character, skillData)
     {
     }
@@ -21,8 +23,10 @@ public class MysticOrbs : CharacterSkillBase
             return;
         }
 
-        character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
+        character.CanBeAttacked = false;
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.cooldown);
 
+        character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_2_1") > 0.3f);
 
         ObjectPooling.Instance?.SpawnFromPool(lyra.lyraAuraSkill_2_1,
@@ -57,21 +61,43 @@ public class MysticOrbs : CharacterSkillBase
         isAttacking = true;
         RotateAround();
         SpawnProjectiles();
+        character.CanBeAttacked = true;
         GameObject lyraAuraSkill_2_3 = ObjectPooling.Instance?.SpawnFromPool(lyra.lyraAuraSkill_2_3,
                                               lyra.middleEffectPoint.transform.position,
                                               lyra.middleEffectPoint.transform.rotation,
                                               lyra.middleEffectPoint.transform);
 
-        await UniTask.Delay(7000);
+        delayCts?.Cancel();
+        delayCts?.Dispose();
+        delayCts = new CancellationTokenSource();
 
-        character.CharacterMovement.UseGravity = true;
+        await UniTask.Delay(7000, cancellationToken: delayCts.Token).SuppressCancellationThrow();
+
+        delayCts?.Dispose();
+        delayCts = null;
+
+        ObjectPooling.Instance?.SpawnFromPool(lyra.lyraAuraSkill_2_1,
+                                                 lyra.middleEffectPoint.transform.position,
+                                                 lyra.middleEffectPoint.transform.rotation);
+
         isAttacking = false;
-        character.StateController.ChangeState(new IdleState(character));
         character.GhostEffect?.SetGhostEffect(false);
+        character.CharacterAnimation.CrossFade("Skill_2_3", 0.1f);
+
         if (lyraAuraSkill_2_3 != null)
             ObjectPooling.Instance.ReturnToPool(lyra.lyraAuraSkill_2_3, lyraAuraSkill_2_3);
         if (lyraSkill_2_DetectionAreaEffect != null)
             ObjectPooling.Instance.ReturnToPool(lyra.lyraSkill_2_DetectionAreaEffect, lyraSkill_2_DetectionAreaEffect);
+
+        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_2_3") > 0.4f);
+
+        character.CharacterMovement.UseGravity = true;
+        character.StateController.ChangeState(new IdleState(character));
+    }
+
+    public void CancelSkillDelay()
+    {
+        delayCts?.Cancel();
     }
 
     private async UniTask Hovering()
@@ -105,16 +131,25 @@ public class MysticOrbs : CharacterSkillBase
     private async void SpawnProjectiles()
     {
         float spawnInterval = 0.5f; // Thời gian giữa các lần spawn
+        int waitCount = 0; // Số lần chờ
 
         while (isAttacking)
         {
+
             if (detectionAreaEffect.Enemies.Count == 0) // Nếu không không có enemy nào trong khu vực phát hiện, thì chờ và tiếp tục kiểm tra
             {
+                waitCount++;
                 await UniTask.Delay((int)(spawnInterval * 1000));
+                if (waitCount >= 3) // Nếu chờ 3 lần mà vẫn không có enemy nào trong khu vực phát hiện, thì thoát khỏi vòng lặp
+                {
+                    CancelSkillDelay();
+                    break;
+                }
                 continue;
             }
 
-            if (indexEnemyToAttack < detectionAreaEffect.Enemies.Count)
+            // Nếu có enemy trong khu vực phát hiện, thì spawn projectile vào enemy đó
+            if (indexEnemyToAttack < detectionAreaEffect.Enemies.Count) // Index trong phạm vi, bắn rồi tăng thêm
             {
                 Transform targetEnemy = detectionAreaEffect.Enemies[indexEnemyToAttack];
                 if (targetEnemy != null)
@@ -123,7 +158,7 @@ public class MysticOrbs : CharacterSkillBase
                 }
                 indexEnemyToAttack++;
             }
-            else if (indexEnemyToAttack >= detectionAreaEffect.Enemies.Count)
+            else if (indexEnemyToAttack >= detectionAreaEffect.Enemies.Count) // Index vượt quá phạm vi, reset index về 0 để quay lại từ đầu
             {
                 indexEnemyToAttack = 0; // Reset index để quay lại từ đầu
 
@@ -151,6 +186,7 @@ public class MysticOrbs : CharacterSkillBase
         if (projectile != null)
         {
             projectile.Initialize(character, targetEnemy, PoolType.LyraSkill_2_HitEffect);
+            projectile.OnEnemyDied += detectionAreaEffect.ClearEnemy; // Đăng ký sự kiện để loại bỏ kẻ địch khỏi danh sách khi nó chết
         }
     }
 }

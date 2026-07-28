@@ -27,7 +27,6 @@ public class IdleState : ICharacterState
 
     public void Update()
     {
-        Debug.Log("IdleState");
         character.LookAtTarget();
         if (character.CharacterInput.MoveInput != Vector2.zero)
         {
@@ -48,7 +47,6 @@ public class IdleState : ICharacterState
         }
         if (character.CharacterInput.Attack)
         {
-
             character.Attack();
             return;
         }
@@ -64,8 +62,11 @@ public class IdleState : ICharacterState
             character.Dodge();
             return;
         }
-        if (character.CharacterInput.Jump && character.CharacterMovement.IsGrounded)
+        if (character.CharacterInput.Jump &&
+        character.CharacterMovement.IsGrounded &&
+        character.CharacterStamina.HasEnoughStamina(character.CharacterData.staminaCost.jumpCost))
         {
+            character.CharacterStamina.SubtractStamina(character.CharacterData.staminaCost.jumpCost);
             character.StateController.ChangeState(new JumpState(character));
             return;
         }
