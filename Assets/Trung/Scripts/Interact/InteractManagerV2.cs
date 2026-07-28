@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class InteractManagerV2 : MonoBehaviour
 {
@@ -12,44 +13,37 @@ public class InteractManagerV2 : MonoBehaviour
     [SerializeField]
     private bool enableMouseWheel = true;
 
-
     [Header("Debug")]
     [SerializeField]
     private bool debugMode;
+
     [SerializeField]
-private float scrollCooldown = 0.15f;
+    private float scrollCooldown = 0.15f;
 
-private float nextScrollTime;
+    private float nextScrollTime;
 
-    private readonly List<InteractV2> interactObjects =
-        new List<InteractV2>();
+    private readonly List<InteractV2> interactObjects = new List<InteractV2>();
 
     private int currentIndex;
     public bool IsBusy { get; set; }
 
     public IReadOnlyList<InteractV2> InteractObjects
     {
-        get
-        {
-            return interactObjects;
-        }
+        get { return interactObjects; }
     }
 
     public InteractV2 CurrentInteract
     {
-        get
-        {
+        get {
+            // Dọn dẹp các đối tượng null trong danh sách phòng trường hợp Scene đổi làm mất GameObject
+            interactObjects.RemoveAll(item => item == null || item.gameObject == null);
+
             if (interactObjects.Count == 0)
             {
                 return null;
             }
 
-            currentIndex =
-                Mathf.Clamp(
-                    currentIndex,
-                    0,
-                    interactObjects.Count - 1);
-
+            currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
             return interactObjects[currentIndex];
         }
     }
@@ -59,23 +53,54 @@ private float nextScrollTime;
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
             return;
         }
+    }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    // TỰ ĐỘNG GIẢI PHÓNG VÀ RESET TRẠNG THÁI KHI CHUYỂN SCENE THÀNH CÔNG
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        IsBusy = false;
+        currentIndex = 0;
+        interactObjects.Clear();
+
+        if (InteractUIV2.Instance != null)
+        {
+            InteractUIV2.Instance.Hide();
+        }
     }
 
     private void Update()
     {
         if (IsBusy)
-{
-    return;
-}
+        {
+            return;
+        }
+
+        // Tự động làm sạch rác nếu có GameObject bị xoá khi chuyển Scene
+        interactObjects.RemoveAll(item => item == null || item.gameObject == null);
+
         if (interactObjects.Count == 0)
         {
+            if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
+            {
+                InteractUIV2.Instance.Hide();
+            }
             return;
         }
 
@@ -92,79 +117,49 @@ private float nextScrollTime;
 
     #region Register
 
-    public void Register(
-        InteractV2 interact)
+    public void Register(InteractV2 interact)
     {
-        if (interact == null)
-        {
-            return;
-        }
+        if (interact == null) return;
 
-        if (interactObjects.Contains(interact))
-        {
-            return;
-        }
+        if (interactObjects.Contains(interact)) return;
 
         interactObjects.Add(interact);
 
-if (interactObjects.Count == 1)
-{
-    currentIndex = 0;
-}
-
-RefreshUI();
-
-DebugCurrent();
-    }
-
-    public void Unregister(
-    InteractV2 interact)
-{
-    if (interact == null)
-    {
-        return;
-    }
-
-    if (!interactObjects.Remove(interact))
-    {
-        return;
-    }
-
-    if (interactObjects.Count == 0)
-    {
-        currentIndex = 0;
+        if (interactObjects.Count == 1)
+        {
+            currentIndex = 0;
+        }
 
         RefreshUI();
-
-        return;
+        DebugCurrent();
     }
 
-    if (currentIndex >= interactObjects.Count)
+    public void Unregister(InteractV2 interact)
     {
-        currentIndex =
-            interactObjects.Count - 1;
+        if (interact == null) return;
+
+        interactObjects.Remove(interact);
+
+        if (interactObjects.Count == 0)
+        {
+            currentIndex = 0;
+            RefreshUI();
+            return;
+        }
+
+        currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
+
+        RefreshUI();
+        DebugCurrent();
     }
 
-    if (currentIndex < 0)
-    {
-        currentIndex = 0;
-    }
-
-    RefreshUI();
-
-    DebugCurrent();
-}
     #endregion
 
     #region Execute
 
     public void ExecuteCurrent()
     {
-        if (CurrentInteract == null)
-        {
-            return;
-        }
-
+        if (CurrentInteract == null) return;
         CurrentInteract.Execute();
     }
 
@@ -173,155 +168,109 @@ DebugCurrent();
     #region Mouse Wheel
 
     private void HandleMouseWheel()
-{
-    if (Time.unscaledTime < nextScrollTime)
     {
-        return;
-    }
+        if (Time.unscaledTime < nextScrollTime) return;
 
-    float scroll = Input.mouseScrollDelta.y;
+        float scroll = Input.mouseScrollDelta.y;
 
-    if (scroll > 0f)
-    {
-        Previous();
-        nextScrollTime = Time.unscaledTime + scrollCooldown;
+        if (scroll > 0f)
+        {
+            Previous();
+            nextScrollTime = Time.unscaledTime + scrollCooldown;
+        }
+        else if (scroll < 0f)
+        {
+            Next();
+            nextScrollTime = Time.unscaledTime + scrollCooldown;
+        }
     }
-    else if (scroll < 0f)
-    {
-        Next();
-        nextScrollTime = Time.unscaledTime + scrollCooldown;
-    }
-}
 
     public void Next()
     {
-        if (interactObjects.Count <= 1)
-{
-    return;
-}
-        if (interactObjects.Count == 0)
-        {
-            return;
-        }
+        if (interactObjects.Count <= 1) return;
 
         currentIndex++;
-
-        if (currentIndex >=
-            interactObjects.Count)
+        if (currentIndex >= interactObjects.Count)
         {
             currentIndex = 0;
         }
 
         RefreshUI();
-
         DebugCurrent();
     }
 
     public void Previous()
     {
-        if (interactObjects.Count <= 1)
-{
-    return;
-}
-        if (interactObjects.Count == 0)
-        {
-            return;
-        }
+        if (interactObjects.Count <= 1) return;
 
         currentIndex--;
-
         if (currentIndex < 0)
         {
-            currentIndex =
-                interactObjects.Count - 1;
+            currentIndex = interactObjects.Count - 1;
         }
 
         RefreshUI();
-
         DebugCurrent();
     }
-        #endregion
 
-    
+    #endregion
 
     #region UI
 
     public void ForceRefresh()
-{
-    if (interactObjects.Count == 0)
     {
-        return;
+        interactObjects.RemoveAll(item => item == null || item.gameObject == null);
+
+        if (interactObjects.Count == 0)
+        {
+            if (InteractUIV2.Instance != null) InteractUIV2.Instance.Hide();
+            return;
+        }
+
+        currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
+        RefreshUI();
     }
-
-    currentIndex = Mathf.Clamp(
-        currentIndex,
-        0,
-        interactObjects.Count - 1);
-
-    RefreshUI();
-}
 
     private void RefreshUI()
-{
-    for (int i = 0;
-        i < interactObjects.Count;
-        i++)
     {
-        interactObjects[i]
-            .SetSelected(
-                i == currentIndex);
-    }
+        for (int i = 0; i < interactObjects.Count; i++)
+        {
+            if (interactObjects[i] != null)
+            {
+                interactObjects[i].SetSelected(i == currentIndex);
+            }
+        }
 
-    if (InteractUIV2.Instance == null)
-    {
-        return;
-    }
+        if (InteractUIV2.Instance == null) return;
 
-    InteractUIV2.Instance.Refresh(
-        interactObjects,
-        currentIndex);
-}
+        InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
+    }
 
     #endregion
 
     #region Debug
 
     private void DebugCurrent()
-{
-    if (!debugMode) return;
-
-    if (CurrentInteract == null)
     {
-        Debug.Log("<color=#888888>[InteractV2] Interaction list is empty.</color>");
-        return;
-    }
+        if (!debugMode) return;
 
-    Debug.Log($"<color=#AAAAAA>[InteractV2] Current target focus: {CurrentInteract.InteractText}</color>");
-}
+        if (CurrentInteract == null)
+        {
+            Debug.Log("<color=#888888>[InteractV2] Interaction list is empty.</color>");
+            return;
+        }
+
+        Debug.Log($"<color=#AAAAAA>[InteractV2] Current target focus: {CurrentInteract.InteractText}</color>");
+    }
 
     #endregion
 
     #region Public API
 
-    public bool HasInteract()
-    {
-        return interactObjects.Count > 0;
-    }
-
-    public int Count()
-    {
-        return interactObjects.Count;
-    }
-
-    public int CurrentIndex()
-    {
-        return currentIndex;
-    }
-
-    public List<InteractV2> GetObjects()
-    {
-        return interactObjects;
-    }
+    public bool HasInteract() => interactObjects.Count > 0;
+    public int Count() => interactObjects.Count;
+    public int CurrentIndex() => currentIndex;
+    public List<InteractV2> GetObjects() => interactObjects;
 
     #endregion
 }

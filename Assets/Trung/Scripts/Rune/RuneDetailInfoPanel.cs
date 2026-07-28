@@ -18,70 +18,67 @@ public class RuneDetailInfoPanel : MonoBehaviour
     [SerializeField] private TMP_Text loreText;
 
     [Header("Buttons")]
-    [SerializeField] private Button actionButton; // Nút Đeo / Tháo ngọc (Use/Unequip)
+    [SerializeField] private Button actionButton;
     [SerializeField] private TMP_Text actionButtonText;
-    [SerializeField] private Button deleteButton; // Nút Xóa ngọc nhanh ngoài panel
+    [SerializeField] private Button deleteButton;
     [SerializeField] private Button rerollPanelButton;
 
     [Header("Rune Visuals (12 Images Ngọc)")]
     [SerializeField] private List<GameObject> runeImages = new List<GameObject>();
     
-    [Header("Special Asset (Ngọc Cổ Tự Ultimate - Nếu có)")]
+    [Header("Special Asset (Ngọc Cổ Tự Ultimate)")]
     [SerializeField] private GameObject ultimateRuneImage;
 
     private RuneData currentData;
 
     private void Awake()
-{
-    if (Instance == null)
     {
-        Instance = this;
-    }
-
-    if (panelRoot != null)
-    {
-        panelRoot.SetActive(false);
-    }
-
-    if (actionButton != null)
-    {
-        actionButton.onClick.RemoveAllListeners();
-        actionButton.onClick.AddListener(OnActionButtonClick);
-    }
-
-    if (deleteButton != null)
-    {
-        deleteButton.onClick.RemoveAllListeners();
-        deleteButton.onClick.AddListener(OnDeleteButtonClick);
-    }
-
-    if (rerollPanelButton != null)
-    {
-        rerollPanelButton.onClick.RemoveAllListeners();
-        rerollPanelButton.onClick.AddListener(() =>
+        if (Instance == null)
         {
-            if (currentData != null && RuneRerollUI.Instance != null)
+            Instance = this;
+        }
+
+        if (panelRoot != null)
+        {
+            panelRoot.SetActive(false);
+        }
+
+        if (actionButton != null)
+        {
+            actionButton.onClick.RemoveAllListeners();
+            actionButton.onClick.AddListener(OnActionButtonClick);
+        }
+
+        if (deleteButton != null)
+        {
+            deleteButton.onClick.RemoveAllListeners();
+            deleteButton.onClick.AddListener(OnDeleteButtonClick);
+        }
+
+        if (rerollPanelButton != null)
+        {
+            rerollPanelButton.onClick.RemoveAllListeners();
+            rerollPanelButton.onClick.AddListener(() =>
             {
-                RuneRerollUI.Instance.OpenPanel(currentData);
-            }
-        });
+                if (currentData != null && RuneRerollUI.Instance != null)
+                {
+                    RuneRerollUI.Instance.OpenPanel(currentData);
+                }
+            });
+        }
     }
-}
 
     private void Update()
     {
-        // Cơ chế click chuột ra ngoài vùng Panel để tự động tắt bảng
-        if (panelRoot == null || !panelRoot.activeSelf) return;
+        if (!IsPanelActive()) return;
 
         if (Input.GetMouseButtonDown(0))
         {
-            RectTransform rectTransform = panelRoot.transform as RectTransform;
+            GameObject targetObj = panelRoot != null ? panelRoot : gameObject;
+            RectTransform rectTransform = targetObj.GetComponent<RectTransform>();
             if (rectTransform != null)
             {
-                // Kiểm tra xem con trỏ chuột có đang nằm bên trong phân tích hình học của Panel lớn hay không
                 bool clickInsidePanel = RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition, null);
-                
-                // FIXED: Nếu click chuột nằm HOÀN TOÀN BÊN NGOÀI bảng thông tin lớn -> Tắt bảng Info ngay lập tức
                 if (!clickInsidePanel)
                 {
                     ClosePanel();
@@ -90,16 +87,23 @@ public class RuneDetailInfoPanel : MonoBehaviour
         }
     }
 
+    public bool IsPanelActive()
+    {
+        if (panelRoot != null) return panelRoot.activeInHierarchy;
+        return gameObject.activeInHierarchy;
+    }
+
     public void DisplayRuneInfo(RuneData runeData)
     {
-        if (runeData == null || panelRoot == null)
+        if (runeData == null)
         {
             ClosePanel();
             return;
         }
 
         currentData = runeData;
-        panelRoot.SetActive(true);
+        if (panelRoot != null) panelRoot.SetActive(true);
+        else gameObject.SetActive(true);
 
         Color rarityColor = GetRarityColor(runeData.runeRarity);
         
@@ -147,7 +151,6 @@ public class RuneDetailInfoPanel : MonoBehaviour
             loreText.text = string.IsNullOrEmpty(runeData.runeLore) ? "" : $"<i>\"{runeData.runeLore}\"</i>";
         }
 
-        // Làm mới chữ hiển thị trên nút "Use" hoặc "Unequip" dựa vào việc viên ngọc này đã đeo chưa
         UpdateActionText();
         UpdateRuneImageVisual(runeData);
     }
@@ -156,6 +159,12 @@ public class RuneDetailInfoPanel : MonoBehaviour
     {
         currentData = null;
         if (panelRoot != null) panelRoot.SetActive(false);
+        else gameObject.SetActive(false);
+
+        if (RuneInventoryUI.Instance != null)
+        {
+            RuneInventoryUI.Instance.DeselectLockedRune();
+        }
     }
 
     private void UpdateActionText()
@@ -163,48 +172,107 @@ public class RuneDetailInfoPanel : MonoBehaviour
         if (actionButtonText == null || currentData == null) return;
 
         bool isEquippedByCurrentChar = false;
-        CharacterType currentType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
-        CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
+        bool isEquippedByOtherChar = false;
+        string ownerCharName = "";
 
-        if (build != null)
+        CharacterType currentType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
+
+        if (CharacterManager.Instance != null)
         {
-            for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+            CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+            foreach (CharacterType charType in allChars)
             {
-                if (build.equippedRuneIDs[i] == currentData.runeID)
+                var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+                if (build != null && build.equippedRuneIDs != null)
                 {
-                    isEquippedByCurrentChar = true;
-                    break;
+                    for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+                    {
+                        if (build.equippedRuneIDs[i] == currentData.runeID)
+                        {
+                            if (charType == currentType)
+                            {
+                                isEquippedByCurrentChar = true;
+                            }
+                            else
+                            {
+                                isEquippedByOtherChar = true;
+                                ownerCharName = charType.ToString().ToUpper();
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
 
-        actionButtonText.text = isEquippedByCurrentChar ? "UNEQUIP" : "USE";
+        if (isEquippedByCurrentChar)
+        {
+            actionButtonText.text = "UNEQUIP";
+            if (actionButton != null) actionButton.interactable = true;
+        }
+        else if (isEquippedByOtherChar)
+        {
+            actionButtonText.text = $"{ownerCharName}";
+            if (actionButton != null) actionButton.interactable = false;
+        }
+        else
+        {
+            actionButtonText.text = "USE";
+            if (actionButton != null) actionButton.interactable = true;
+        }
     }
 
-    // XỬ LÝ SỰ KIỆN: Khi click nút Lắp/Tháo đồ trên bảng Info lớn ngoài sảnh
     private void OnActionButtonClick()
     {
         if (currentData == null || RuneInventoryManager.Instance == null) return;
 
         bool isEquippedByCurrentChar = false;
-        CharacterType currentType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
-        CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
+        bool isEquippedByOtherChar = false;
+        string ownerCharName = "";
 
-        if (build != null)
+        CharacterType currentType = (RuneEquipUI.Instance != null) ? RuneEquipUI.Instance.GetViewingCharacter() : CharacterManager.Instance.GetSelectedCharacter();
+        
+        if (CharacterManager.Instance != null)
         {
-            for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+            CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+            foreach (CharacterType charType in allChars)
             {
-                if (build.equippedRuneIDs[i] == currentData.runeID)
+                var b = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+                if (b != null && b.equippedRuneIDs != null)
                 {
-                    isEquippedByCurrentChar = true;
-                    break;
+                    for (int i = 0; i < b.equippedRuneIDs.Length; i++)
+                    {
+                        if (b.equippedRuneIDs[i] == currentData.runeID)
+                        {
+                            if (charType == currentType)
+                            {
+                                isEquippedByCurrentChar = true;
+                            }
+                            else
+                            {
+                                isEquippedByOtherChar = true;
+                                ownerCharName = charType.ToString().ToUpper();
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         }
 
+        if (isEquippedByOtherChar)
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"Rune is currently equipped by {ownerCharName}!", Color.red);
+            }
+            return;
+        }
+
+        CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
+
         if (!isEquippedByCurrentChar)
         {
-            // Thực hiện trang bị ngọc thông minh theo slot màu sắc
             int targetSlotIndex = -1;
             if (build != null && RuneEquipUI.Instance != null)
             {
@@ -219,7 +287,7 @@ public class RuneDetailInfoPanel : MonoBehaviour
                 {
                     for (int i = 0; i < build.equippedRuneIDs.Length; i++)
                     {
-                        if (string.IsNullOrEmpty(build.equippedRuneIDs[i])) // Điều kiện tiên quyết: Ô phải trống!
+                        if (string.IsNullOrEmpty(build.equippedRuneIDs[i]))
                         {
                             RuneColor requiredColor = RuneEquipUI.Instance.GetSlotRequiredColor(currentType, i);
                             if (currentData.runeColor == requiredColor) 
@@ -234,7 +302,6 @@ public class RuneDetailInfoPanel : MonoBehaviour
 
             if (targetSlotIndex == -1)
             {
-                Debug.LogWarning($"<color=#FF3333><b>[PANEL LẮP NGỌC]</b> Thao tác thất bại. Nhân vật không có ô trống Tiêu Chuẩn hệ {currentData.runeColor}.</color>");
                 if (LobbyNotifyManager.Instance != null) 
                     LobbyNotifyManager.Instance.ShowNotify("Rune element mismatch or no vacant slots left!", Color.yellow);
                 return;
@@ -247,82 +314,76 @@ public class RuneDetailInfoPanel : MonoBehaviour
             RuneInventoryManager.Instance.UnequipRune(currentData, currentType);
         }
 
-        // Làm mới lại giao diện hòm đồ lưới và cập nhật lại trạng thái nút chữ trên bảng to
         if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
         UpdateActionText();
     }
 
     private void OnDeleteButtonClick()
-{
-    if (currentData == null) return;
-
-    int refundGem = GetRefundGemByRarity(currentData.runeRarity);
-    int shardReward = 100; // Mỗi viên mặc định tháo được 100 mảnh
-
-    CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
-    foreach (CharacterType charType in allChars)
     {
-        var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
-        if (build != null)
+        if (currentData == null) return;
+
+        int refundGem = 30;
+        int shardReward = 50;
+
+        switch (currentData.runeRarity)
         {
-            for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
+            case RuneRarity.Rare: refundGem = 80; shardReward = 150; break;
+            case RuneRarity.Epic: refundGem = 200; shardReward = 400; break;
+            case RuneRarity.Legendary: refundGem = 600; shardReward = 1000; break;
+        }
+
+        CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+        foreach (CharacterType charType in allChars)
+        {
+            var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+            if (build != null)
             {
-                if (build.equippedRuneIDs[slot] == currentData.runeID)
+                for (int slot = 0; slot < build.equippedRuneIDs.Length; slot++)
                 {
-                    build.equippedRuneIDs[slot] = "";
+                    if (build.equippedRuneIDs[slot] == currentData.runeID)
+                    {
+                        build.equippedRuneIDs[slot] = "";
+                    }
                 }
             }
         }
-    }
 
-    if (GemManager.Instance != null && refundGem > 0)
-    {
-        GemManager.Instance.AddGem(refundGem);
-    }
-
-    if (RuneShardManager.Instance != null && shardReward > 0)
-    {
-        RuneShardManager.Instance.AddShards(shardReward);
-    }
-
-    if (RuneInventoryManager.Instance != null)
-    {
-        RuneInventoryManager.Instance.RemoveRune(currentData.runeID);
-    }
-
-    ClosePanel();
-
-    if (RuneInventoryUI.Instance != null)
-    {
-        RuneInventoryUI.Instance.RefreshInventory();
-    }
-
-    if (RuneEquipUI.Instance != null)
-    {
-        RuneEquipUI.Instance.RefreshEquipUI();
-    }
-
-    if (LobbyStatManager.Instance != null)
-    {
-        LobbyStatManager.Instance.RecalculateStats();
-    }
-
-    if (LobbyNotifyManager.Instance != null)
-    {
-        LobbyNotifyManager.Instance.ShowNotify($"Dismantled Rune! Recovered {refundGem} Gems & {shardReward} Shards.", Color.green);
-    }
-}
-
-    private int GetRefundGemByRarity(RuneRarity rarity)
-    {
-        switch (rarity)
+        if (GemManager.Instance != null && refundGem > 0)
         {
-            case RuneRarity.Common: return 50;
-            case RuneRarity.Rare: return 120;
-            case RuneRarity.Epic: return 300;
-            case RuneRarity.Legendary: return 800;
+            GemManager.Instance.AddGem(refundGem);
         }
-        return 0;
+
+        if (RuneShardManager.Instance != null && shardReward > 0)
+        {
+            RuneShardManager.Instance.AddShards(shardReward);
+        }
+
+        if (RuneInventoryManager.Instance != null)
+        {
+            RuneInventoryManager.Instance.RemoveRune(currentData.runeID);
+        }
+
+        ClosePanel();
+
+        if (RuneInventoryUI.Instance != null)
+        {
+            RuneInventoryUI.Instance.RefreshInventory();
+        }
+
+        if (RuneEquipUI.Instance != null)
+        {
+            RuneEquipUI.Instance.RefreshEquipUI();
+        }
+
+        if (LobbyStatManager.Instance != null)
+        {
+            LobbyStatManager.Instance.RecalculateStats();
+        }
+
+        if (LobbyNotifyManager.Instance != null)
+        {
+            LobbyNotifyManager.Instance.ShowNotify($"Dismantled Rune! Recovered {refundGem} Gems & {shardReward} Shards.", Color.green);
+        }
     }
 
     private void UpdateRuneImageVisual(RuneData runeData)
@@ -405,8 +466,5 @@ public class RuneDetailInfoPanel : MonoBehaviour
     }
     #endregion
 
-    public RuneData GetRuneDataHelper()
-    {
-        return currentData;
-    }
+    public RuneData GetRuneDataHelper() => currentData;
 }

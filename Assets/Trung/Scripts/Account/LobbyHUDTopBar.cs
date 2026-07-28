@@ -1,19 +1,21 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using DG.Tweening; // Yêu cầu dự án đã có DOTween
+using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 public class LobbyHUDTopBar : MonoBehaviour
 {
     public static LobbyHUDTopBar Instance;
 
     [Header("Visual Groups (Dùng để bật/ẩn nhanh theo cụm nếu cần)")]
-    [SerializeField] private GameObject levelGroup;      // Cụm chứa Level, Avatar, Thanh Exp
-    [SerializeField] private GameObject currencyGroup;   // Cụm chứa Gem, Rune Shard
+    [SerializeField] private GameObject levelGroup;      
+    [SerializeField] private GameObject currencyGroup;   
 
-    [Header("Gem & Rune Shard UI")]
+    [Header("Gem, Rune Shard & Ticket UI")]
     [SerializeField] private TMP_Text gemText;
-    [SerializeField] private TMP_Text runeShardText;    // Text hiển thị Mảnh Cổ Tự
+    [SerializeField] private TMP_Text runeShardText;
+    [SerializeField] private TMP_Text gachaTicketText;
 
     [Header("Account Level UI")]
     [SerializeField] private TMP_Text levelText;
@@ -21,7 +23,9 @@ public class LobbyHUDTopBar : MonoBehaviour
     [SerializeField] private TMP_Text expText;
     [SerializeField] private Slider expBar;
 
-    // Các biến phục vụ cho hiệu ứng chạy số và tăng Slider mượt của DOTween
+    [SerializeField] private GameObject goldGroup;      
+    [SerializeField] private TMP_Text goldText;         
+
     private float animatedCurrentExp;
     private int cachedRequiredExp;
     private Tween activeExpTween;
@@ -32,12 +36,30 @@ public class LobbyHUDTopBar : MonoBehaviour
         else Destroy(gameObject);
     }
 
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.sceneUnloaded += OnSceneUnloaded;
+        if (GoldManager.Instance != null)
+        {
+            GoldManager.Instance.OnGoldChanged += UpdateGoldText;
+        }
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneUnloaded -= OnSceneUnloaded;
+        if (GoldManager.Instance != null)
+        {
+            GoldManager.Instance.OnGoldChanged -= UpdateGoldText;
+        }
+    }
+
     private void Start()
     {
-        // Khi vừa vào Game, nạp ngay dữ liệu tiền tệ lộ thiên lên màn hình
-        RefreshCurrencyUI();
+        RefreshLayoutByScene();
         
-        // Tự động đồng bộ cấp độ ban đầu khi HUD khởi tạo
         if (AccountLevelManager.Instance != null)
         {
             int currentLv = AccountLevelManager.Instance.GetLevel();
@@ -45,33 +67,72 @@ public class LobbyHUDTopBar : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Hàm làm mới hiển thị số liệu Tiền tệ (Gem và Rune Shard)
-    /// </summary>
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        RefreshLayoutByScene();
+    }
+
+    private void OnSceneUnloaded(Scene scene)
+    {
+        RefreshLayoutByScene();
+    }
+
+    public void RefreshLayoutByScene()
+    {
+        Scene runScene = SceneManager.GetSceneByName("Run Scene");
+
+        if (runScene.isLoaded)
+        {
+            if (levelGroup != null) levelGroup.SetActive(false);
+            if (currencyGroup != null) currencyGroup.SetActive(false);
+            if (goldGroup != null) goldGroup.SetActive(true);
+            
+            if (GoldManager.Instance != null)
+            {
+                UpdateGoldText(GoldManager.Instance.CurrentGold);
+            }
+        }
+        else
+        {
+            if (levelGroup != null) levelGroup.SetActive(true);
+            if (currencyGroup != null) currencyGroup.SetActive(true);
+            if (goldGroup != null) goldGroup.SetActive(false);
+            RefreshCurrencyUI();
+        }
+    }
+
+    private void UpdateGoldText(int currentGold)
+    {
+        if (goldText != null)
+        {
+            goldText.SetTextSafe($"Gold: {currentGold}");
+        }
+    }
+
     public void RefreshCurrencyUI()
     {
-        // 1. Cập nhật số lượng Gem từ GemManager
         if (gemText != null && GemManager.Instance != null)
         {
             gemText.SetTextSafe(GemManager.Instance.GetCurrentGem().ToString("N0"));
         }
 
-        // 2. Cập nhật số lượng Rune Shard từ dữ liệu Save ngầm
         if (runeShardText != null && SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
             runeShardText.SetTextSafe(SaveLoadManager.Instance.SaveData.runeShards.ToString("N0"));
         }
 
-        // 3. Cập nhật Tên người chơi
+        if (gachaTicketText != null && InventoryItemManager.Instance != null)
+        {
+            int tickets = InventoryItemManager.Instance.GetItemQuantity("GACHA_TICKET_01");
+            gachaTicketText.SetTextSafe(tickets.ToString("N0"));
+        }
+
         if (userNameText != null)
         {
             userNameText.SetTextSafe(PlayerPrefs.GetString("DisplayName", "Unknown"));
         }
     }
 
-    /// <summary>
-    /// Hàm chạy hiệu ứng tăng thanh kinh nghiệm mượt mà bằng DOTween (Kế thừa từ AccountLevelUI cũ)
-    /// </summary>
     public void RefreshLevelUI(int level, int currentExp, int requiredExp)
     {
         if (levelText != null) levelText.SetTextSafe(level.ToString());
@@ -100,21 +161,20 @@ public class LobbyHUDTopBar : MonoBehaviour
         activeExpTween = expSequence;
     }
 
-    // =========================================================================
-    // CÁC CHẾ ĐỘ ĐIỀU KHIỂN BẬT/ẨN THEO NHU CẦU CỦA CÁC PANEL UI KHÁC
-    // =========================================================================
-
     public void ShowFullHUD()
     {
-        if (levelGroup != null) levelGroup.SetActive(true);
-        if (currencyGroup != null) currencyGroup.SetActive(true);
-        RefreshCurrencyUI();
+        RefreshLayoutByScene();
     }
 
     public void ShowCurrencyOnly()
     {
-        if (levelGroup != null) levelGroup.SetActive(false); // Ẩn cụm cấp độ đi khi mở Hòm đồ/Gacha cho thoáng
-        if (currencyGroup != null) currencyGroup.SetActive(true);  // Giữ lại tiền để xem biến động
-        RefreshCurrencyUI();
+        Scene runScene = SceneManager.GetSceneByName("Run Scene");
+        if (!runScene.isLoaded)
+        {
+            if (levelGroup != null) levelGroup.SetActive(false); 
+            if (currencyGroup != null) currencyGroup.SetActive(true);  
+            if (goldGroup != null) goldGroup.SetActive(false);
+            RefreshCurrencyUI();
+        }
     }
 }
