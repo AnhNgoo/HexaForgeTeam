@@ -96,7 +96,7 @@ public class CharacterCombat : LoadComponents
         isComboWindowOpen = false;
 
         //Thực hiện đòn tấn công
-        attackStep.Attack(character);
+        attackStep.Attack();
 
         Animator animator = character.CharacterAnimation.Animator;
         if (animator == null || !animator.isActiveAndEnabled || animator.runtimeAnimatorController == null)
@@ -142,6 +142,12 @@ public class CharacterCombat : LoadComponents
         CanAttack = true;
         IsAttacking = false;
         currentComboIndex = 0;
+    }
+
+    public void ResetAttackState()
+    {
+        CanAttack = true;
+        IsAttacking = false;
     }
     // Lấy combo đang sử dụng, ưu tiên combo vũ khí nếu có, nếu không thì dùng combo tay không
     private IAttackStep[] GetActiveCombos()

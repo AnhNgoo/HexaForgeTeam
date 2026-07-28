@@ -21,18 +21,16 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: PT_Fruit_Tree_Foliage_Mat
-  m_Shader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 77d44c6352c3bd4418dcafe4e1cbd567, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _ALPHATEST_ON
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 1
   m_DoubleSidedGI: 1
-  m_CustomRenderQueue: 2450
-  stringTagMap:
-    RenderType: TransparentCutout
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
@@ -105,6 +103,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AlphaClip: 1
+    - _AlphaCutoff: 0.5
     - _AlphaToMask: 1
     - _Blend: 0
     - _BlendModePreserveSpecular: 1
@@ -131,6 +130,7 @@ Material:
     - _Mode: 3
     - _OcclusionStrength: 1
     - _Parallax: 0.02
+    - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _SNOWONOFF: 0
@@ -155,14 +155,17 @@ Material:
     - _WindDensity: 3.3
     - _WindMovement: 0.5
     - _WindStrength: 0.3
+    - _Wind_Speed: 2
+    - _Wind_Strength: 1
     - _WorkflowMode: 1
     - _ZWrite: 1
     - __dirty: 0
     m_Colors:
     - _BaseColor: {r: 0.645283, g: 0.645283, b: 0.645283, a: 1}
-    - _Color: {r: 0.6452829, g: 0.6452829, b: 0.6452829, a: 1}
+    - _Color: {r: 0.02971077, g: 1, b: 0, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _GroundColor: {r: 1, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}
     - _TopColor: {r: 0.5754717, g: 0.5186884, b: 0.04071733, a: 1}
+    - _Wind_Direction: {r: 1, g: 0, b: 0, a: 0}
   m_BuildTextureStacks: []

@@ -1,6 +1,9 @@
 using UnityEngine;
+using System;
 
-public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(Collider))]
+public class LyraSkill_2_Projectile : LoadComponents, IPoolable
 {
     [SerializeField] private PoolType poolType;
 
@@ -39,18 +42,34 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
     private Transform targetTransform;
     private PoolType hitEffect;
     private CharacterBase characterBase;
+    private EnemyBase targetEnemy;
+    private Rigidbody rb;
     private bool isLaunched;
 
     public PoolType PoolType => poolType;
+    public event Action<Transform> OnEnemyDied;
+
+    protected override void LoadComponent()
+    {
+        rb = GetComponent<Rigidbody>();
+    }
+
+    protected override void LoadComponentRuntime()
+    {
+
+    }
 
     // ─────────────────────────────────────────────────────
-    private void Update()
+    private void FixedUpdate()
     {
         if (!isLaunched) return;
 
-        if (targetTransform == null)
+        if (targetTransform == null || (targetEnemy != null && targetEnemy.Health.CurrentHealth <= 0f))
         {
+            ObjectPooling.Instance.SpawnFromPool(hitEffect, transform.position, Quaternion.identity);
+            OnEnemyDied?.Invoke(targetTransform);
             ObjectPooling.Instance.ReturnToPool(poolType, gameObject);
+
             return;
         }
 
@@ -78,14 +97,14 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
         float baseY = Mathf.Lerp(arcStartPos.y, arcTargetPos.y, t);
         float heightY = arcHeight * arcCurve.Evaluate(t);
 
-        Vector3 prevPos = transform.position;
+        Vector3 prevPos = rb.position;
         Vector3 nextPos = new Vector3(flatPos.x, baseY + heightY, flatPos.z);
-        transform.position = nextPos;
+        rb.MovePosition(nextPos);
 
         // Quay mặt theo hướng di chuyển thực
         Vector3 delta = nextPos - prevPos;
         if (delta.sqrMagnitude > 0.0001f)
-            transform.forward = delta.normalized;
+            rb.MoveRotation(Quaternion.LookRotation(delta.normalized, Vector3.up));
 
         // Chuyển sang Chase khi arc xong
         if (t >= 1f)
@@ -97,21 +116,21 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
     // ── Chase: bay thẳng đến vị trí enemy real-time với tốc độ cố định ──
     private void UpdateChase()
     {
-        Vector3 currentPos = transform.position;
+        Vector3 currentPos = rb.position;
         Vector3 targetPos = targetTransform.position;
-        float step = chaseSpeed * Time.deltaTime;
+        float step = chaseSpeed * Time.fixedDeltaTime;
         float dist = Vector3.Distance(currentPos, targetPos);
 
         if (dist <= step)
         {
-            transform.position = targetPos;
+            rb.MovePosition(targetPos);
             ObjectPooling.Instance.ReturnToPool(poolType, gameObject);
             return;
         }
 
         Vector3 dir = (targetPos - currentPos).normalized;
-        transform.position = currentPos + dir * step;
-        transform.forward = dir;
+        rb.MovePosition(currentPos + dir * step);
+        rb.MoveRotation(Quaternion.LookRotation(dir, Vector3.up));
     }
 
     // ─────────────────────────────────────────────────────
@@ -140,6 +159,12 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
         this.targetTransform = targetTransform;
         this.hitEffect = hitEffect;
 
+        if (targetTransform.TryGetComponent(out EnemyBase enemy))
+        {
+            targetEnemy = enemy;
+        }
+
+        ResetRigidBodyState();
         arcStartPos = transform.position;
         arcTargetPos = targetTransform != null ? targetTransform.position : transform.position + transform.forward;
 
@@ -162,6 +187,7 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
         this.targetTransform = go.transform;
 
         transform.position = startPos;
+        ResetRigidBodyState();
         arcStartPos = startPos;
         arcTargetPos = targetPos;
 
@@ -180,6 +206,17 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
             transform.forward = dir.normalized;
     }
 
+    private void ResetRigidBodyState()
+    {
+        if (rb == null)
+            rb = GetComponent<Rigidbody>();
+
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.position = transform.position;
+        rb.rotation = transform.rotation;
+    }
+
     // ── Pool callbacks ──
     public void OnSpawnFromPool()
     {
@@ -187,6 +224,7 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
         arcTimer = 0f;
         phase = Phase.Arc;
         targetTransform = null;
+        ResetRigidBodyState();
     }
 
     public void OnReturnToPool()
@@ -195,5 +233,7 @@ public class LyraSkill_2_Projectile : MonoBehaviour, IPoolable
         arcTimer = 0f;
         phase = Phase.Arc;
         targetTransform = null;
+        ResetRigidBodyState();
+        OnEnemyDied = null; // Hủy đăng ký sự kiện khi trả về pool
     }
 }
