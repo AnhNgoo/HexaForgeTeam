@@ -9,7 +9,6 @@ public class LobbyAchievementMenu : MenuBase
     {
         base.Open(data);
 
-        // Ẩn cụm Cấp độ tài khoản, chỉ giữ lại cụm Tiền tệ khi mở bảng Thành Tựu
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowCurrencyOnly();
@@ -28,9 +27,8 @@ public class LobbyAchievementMenu : MenuBase
             AchievementManager.Instance.ClosePanel();
         }
 
-        base.Close();
+        gameObject.SetActive(false);
 
-        // Hiện lại đầy đủ cả Cấp độ lẫn Tiền tệ khi quay về sảnh trống
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowFullHUD();

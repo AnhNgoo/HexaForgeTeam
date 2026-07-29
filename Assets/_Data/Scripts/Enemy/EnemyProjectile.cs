@@ -18,6 +18,15 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     [SerializeField] private EnemyProjectileEffectType effectType;
     [SerializeField] private float effectDuration = 1.5f;
 
+    [Header("Optional Homing")]
+    [SerializeField] private bool isHoming;
+    [SerializeField, Min(0f)] private float homingTurnSpeed = 240f;
+    [SerializeField, Min(0f)] private float homingDuration = 4f;
+    [SerializeField] private float homingTargetHeight = 0.5f;
+
+    private Transform _homingTarget;
+    private float _homingEndTime;
+
     private EnemyBase _sourceEnemy;
     private float _damage;
     private float _speed;
@@ -40,6 +49,10 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
         _lifeCts?.Cancel();
         _lifeCts = new CancellationTokenSource();
         ReturnAfterLifetime(lifetime, _lifeCts.Token).Forget();
+
+        _homingTarget = isHoming && sourceEnemy != null ? sourceEnemy.Detection.CurrentTarget : null;
+
+        _homingEndTime = Time.time + homingDuration;
     }
 
     private async UniTaskVoid ReturnAfterLifetime(float lifetime, CancellationToken token)
@@ -55,8 +68,22 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
 
     private void Update()
     {
-        if (!_isLaunched) return;
-        transform.position += _direction * _speed * Time.deltaTime; // Di chuyển viên đạn theo hướng đã định
+        if (!_isLaunched)
+            return;
+
+        if (isHoming && _homingTarget != null && Time.time < _homingEndTime)
+        {
+            Vector3 desiredDirection = _homingTarget.position + Vector3.up * homingTargetHeight - transform.position;
+
+            if (desiredDirection.sqrMagnitude > 0.001f)
+            {
+                _direction = Vector3.RotateTowards(_direction, desiredDirection.normalized, homingTurnSpeed * Mathf.Deg2Rad * Time.deltaTime, 0f).normalized;
+
+                transform.forward = _direction;
+            }
+        }
+
+        transform.position += _direction * _speed * Time.deltaTime;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -129,5 +156,8 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
         _damage = 0f;
         _speed = 0f;
         _direction = Vector3.zero;
+
+        _homingTarget = null;
+        _homingEndTime = 0f;
     }
 }

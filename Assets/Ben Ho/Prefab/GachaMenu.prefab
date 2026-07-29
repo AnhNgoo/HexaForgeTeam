@@ -1357,7 +1357,6 @@ MonoBehaviour:
   legendaryRate: 1
   costRoll1: 300
   costRoll5: 1400
-  gemText: {fileID: 0}
   resultPanel: {fileID: 4291382143035897802}
   lastRollCost: 0
   lastRollAmount: 0
@@ -1368,6 +1367,23 @@ MonoBehaviour:
   legendaryShakeStrength: 18
   closeButton: {fileID: 5896249822296522652}
   rerollButton: {fileID: 5305078743730271882}
+  skipButton: {fileID: 0}
+  roll1Button: {fileID: 0}
+  roll5Button: {fileID: 0}
+  maxInventorySlots: 100
+  portalFXRoot: {fileID: 0}
+  portalCircleImage: {fileID: 0}
+  flashOverlayImage: {fileID: 0}
+  backgroundAuraGlow: {fileID: 0}
+  meteorParticlesParent: {fileID: 0}
+  mainCanvasRect: {fileID: 0}
+  meteorSprite: {fileID: 0}
+  commonColorFX: {r: 1, g: 1, b: 1, a: 0.6}
+  rareColorFX: {r: 0.2, g: 0.6, b: 1, a: 0.7}
+  epicColorFX: {r: 0.7, g: 0.2, b: 1, a: 0.8}
+  legendaryColorFX: {r: 1, g: 0.6, b: 0, a: 0.9}
+  cardFloatDistance: 12
+  cardFloatDuration: 1.8
 --- !u!1 &5547001954065496783
 GameObject:
   m_ObjectHideFlags: 0
@@ -1728,7 +1744,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6954782262047159240
 RectTransform:
   m_ObjectHideFlags: 0

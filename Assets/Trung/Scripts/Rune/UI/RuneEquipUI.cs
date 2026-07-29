@@ -434,6 +434,7 @@ public class RuneEquipUI : MonoBehaviour
         viewingCharacter = CharacterType.Kael;
         RefreshEquipUI();
         if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
+        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
         
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
@@ -446,6 +447,7 @@ public class RuneEquipUI : MonoBehaviour
         viewingCharacter = CharacterType.Lyra;
         RefreshEquipUI();
         if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
+        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
 
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
@@ -458,6 +460,7 @@ public class RuneEquipUI : MonoBehaviour
         viewingCharacter = CharacterType.Ares;
         RefreshEquipUI();
         if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
+        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
 
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
@@ -470,6 +473,7 @@ public class RuneEquipUI : MonoBehaviour
         viewingCharacter = CharacterType.Elara;
         RefreshEquipUI();
         if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
+        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
 
         if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
         {
