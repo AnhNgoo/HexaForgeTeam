@@ -200,7 +200,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
-            EventManager.Notify(GameEvent.OnPlayerSpawned);
+            EventManager.Notify(GameEvent.OnPlayerSpawned, transform);
         }
         catch (Exception e)
         {
@@ -367,7 +367,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (characterData.characterTypes == CharacterTypes.Magical) // Nếu là nhân vật phép thuật thì kiểm tra mana
         {
             if (!characterMP.HasEnoughMP(characterData.mpCost.attackCost))
+            {
                 return false;
+            }
+
 
             characterMP.SubtractMP(characterData.mpCost.attackCost);
             return true;
@@ -421,7 +424,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (characterType == CharacterTypes.Magical)
         {
             if (!characterMP.HasEnoughMP(cost))
+            {
                 return false;
+            }
             characterMP.SubtractMP(cost);
             return true;
         }
