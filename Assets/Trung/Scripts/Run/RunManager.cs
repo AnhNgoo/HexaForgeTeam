@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using System.Collections.Generic;
 
 public class RunManager : MonoBehaviour
 {
@@ -11,7 +10,6 @@ public class RunManager : MonoBehaviour
     [SerializeField] private string gameplaySceneName = "Run Scene"; 
 
     [Header("Lobby Spawn Settings")]
-    [SerializeField] private Transform playerTransform; 
     [SerializeField] private Transform lobbySpawnPoint;   
     [SerializeField] private GameObject lobbyVisuals;    
 
@@ -58,6 +56,7 @@ public class RunManager : MonoBehaviour
 
     private IEnumerator LoadSceneCoroutine()
     {
+        // 1. Mở Scene Loading
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
@@ -68,6 +67,7 @@ public class RunManager : MonoBehaviour
             LoadingUIManager.Instance.SetDestinationName(gameplaySceneName);
         }
 
+        // 2. Load Scene Gameplay
         AsyncOperation load = SceneManager.LoadSceneAsync(gameplaySceneName, LoadSceneMode.Additive);
         load.allowSceneActivation = false;
 
@@ -79,10 +79,12 @@ public class RunManager : MonoBehaviour
         load.allowSceneActivation = true;
         while (!load.isDone) yield return null;
 
+        // --- FIX CỨNG: ÉP RUN SCENE THÀNH ACTIVE SCENE TRƯỚC KHI BẤT KỲ SPAWNER NÀO CHẠY ---
         Scene runScene = SceneManager.GetSceneByName(gameplaySceneName);
         if (runScene.IsValid())
         {
             SceneManager.SetActiveScene(runScene);
+            Debug.Log($"<color=cyan>[RunManager] Active Scene FORCED to: {runScene.name}</color>");
         }
 
         if (lobbyVisuals != null)
@@ -92,28 +94,44 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
 
-        GameObject spawnPoint = GameObject.FindWithTag("RunSpawnPoint");
-        if (spawnPoint == null)
+        // 3. Chuyển Player sang hẳn Run Scene & Chuẩn hóa Tag "Player"
+        CharacterBase charBase = null;
+        if (PlayerManager.Instance != null)
         {
-            spawnPoint = GameObject.Find("RunSpawnPoint");
+            charBase = PlayerManager.Instance.GetComponentInChildren<CharacterBase>();
         }
 
-        if (spawnPoint != null && playerTransform != null)
+        if (charBase != null)
         {
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
+            // Ép Player thuộc về Run Scene
+            if (runScene.IsValid() && charBase.gameObject.scene != runScene)
+            {
+                SceneManager.MoveGameObjectToScene(charBase.gameObject, runScene);
+            }
+
+            if (!charBase.gameObject.CompareTag("Player"))
+            {
+                try
+                {
+                    charBase.gameObject.tag = "Player";
+                }
+                catch (UnityException)
+                {
+                    Debug.LogWarning("[RunManager] Hãy tạo Tag 'Player' trong Unity Editor!");
+                }
+            }
+
+            CharacterController cc = charBase.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
 
-            playerTransform.position = spawnPoint.transform.position;
-            playerTransform.rotation = spawnPoint.transform.rotation;
-
-            yield return null;
-            if (cc != null) cc.enabled = true;
+            Physics.SyncTransforms();
         }
 
         isRunActive = true; 
 
         yield return new WaitForSeconds(0.4f);
 
+        // 4. Tắt Scene Loading
         Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
         if (loadingScene.isLoaded)
         {
@@ -130,7 +148,6 @@ public class RunManager : MonoBehaviour
     private IEnumerator UnloadSceneCoroutine()
     {
         isRunActive = false;
-
         Time.timeScale = 1f;
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
@@ -158,7 +175,7 @@ public class RunManager : MonoBehaviour
             }
             else
             {
-                float dummyDuration = Random.Range(5f, 6f);
+                float dummyDuration = Random.Range(2f, 3f);
                 float dummyElapsed = 0f;
                 while (dummyElapsed < dummyDuration)
                 {
@@ -183,19 +200,10 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        if (lobbySpawnPoint != null && playerTransform != null)
+        // Tự động Spawn lại Player tại Sảnh khi kết thúc Run
+        if (PlayerManager.Instance != null)
         {
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
-
-            playerTransform.position = lobbySpawnPoint.position;
-            playerTransform.rotation = lobbySpawnPoint.rotation;
-
-            Physics.SyncTransforms();
-
-            yield return null;
-
-            if (cc != null) cc.enabled = true;
+            PlayerManager.Instance.SpawnCharacterInLobby();
         }
 
         if (GoldManager.Instance != null)

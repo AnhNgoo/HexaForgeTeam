@@ -12,22 +12,29 @@ public class CharacterPreviewManager : MonoBehaviour
         RefreshPreview();
     }
 
+    /// <summary>
+    /// Hàm gốc không tham số - Giúp tương thích hoàn toàn với CharacterMenu.cs và script của bạn bạn
+    /// </summary>
     public void RefreshPreview()
     {
-        CharacterType selected =
-            CharacterManager.Instance
-            .GetSelectedCharacter();
+        if (CharacterManager.Instance != null)
+        {
+            RefreshPreview(CharacterManager.Instance.GetSelectedCharacter());
+        }
+        else
+        {
+            RefreshPreview(CharacterType.Kael);
+        }
+    }
 
-        kaelPreview.SetActive(
-            selected == CharacterType.Kael);
-
-        lyraPreview.SetActive(
-            selected == CharacterType.Lyra);
-
-        aresPreview.SetActive(
-            selected == CharacterType.Ares);
-
-        elaraPreview.SetActive(
-            selected == CharacterType.Elara);
+    /// <summary>
+    /// Hàm có tham số - Dùng cho CharacterSelectUI khi người dùng bấm xem thử nhân vật
+    /// </summary>
+    public void RefreshPreview(CharacterType typeToPreview)
+    {
+        if (kaelPreview != null) kaelPreview.SetActive(typeToPreview == CharacterType.Kael);
+        if (lyraPreview != null) lyraPreview.SetActive(typeToPreview == CharacterType.Lyra);
+        if (aresPreview != null) aresPreview.SetActive(typeToPreview == CharacterType.Ares);
+        if (elaraPreview != null) elaraPreview.SetActive(typeToPreview == CharacterType.Elara);
     }
 }
