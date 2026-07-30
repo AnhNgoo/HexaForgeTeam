@@ -17,6 +17,16 @@ public class CharacterSkill : MonoBehaviour
 
     public void Init(CharacterBase character, CharacterSkillData skill1Data, CharacterSkillData skill2Data, ICharacterSkill skill1, ICharacterSkill skill2)
     {
+        if (skill1Data == null || skill2Data == null)
+        {
+            Debug.LogError("CharacterSkillData is null, please assign CharacterSkillData in the inspector.");
+            return;
+        }
+        else if (skill1Data != null && skill2Data != null)
+        {
+            Debug.Log("CharacterSkillData is assigned successfully.");
+        }
+
         this.characterBase = character;
         this.skill1 = skill1;
         this.skill2 = skill2;

@@ -164,6 +164,7 @@ public class PlayerManager : Singleton<PlayerManager>
         currentCharacterBase = characterObject?.GetComponent<CharacterBase>();
 
         CharacterData characterData = Instantiate(character.characterData);
+
         currentCharacterBase?.Init(characterData);
 
         currentCharacter.character = character.character;

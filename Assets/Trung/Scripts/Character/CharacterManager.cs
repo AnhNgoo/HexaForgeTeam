@@ -106,70 +106,70 @@ public class CharacterManager : MonoBehaviour
         CharacterSelectUI ui =
     FindFirstObjectByType<CharacterSelectUI>();
 
-if (ui != null)
-{
-    ui.RefreshUI();
-}
+        if (ui != null)
+        {
+            ui.RefreshUI();
+        }
     }
 
     private void SaveData()
-{
-    SaveLoadManager.Instance
-        .SaveData.characterData =
-        data;
-
-    SaveLoadManager.Instance.SaveGame();
-if (PlayFabDataManager.Instance != null)
-{
-    PlayFabDataManager.Instance.MarkDirty(); 
-}
-if (PlayFabDataManager.Instance != null)
-{
-    PlayFabDataManager.Instance
-        .MarkDirty();
-}
-}
-
-    private void LoadData()
-{
-    data =
-        SaveLoadManager.Instance
-        .SaveData.characterData;
-
-    if (data == null)
     {
-        data =
-            new CharacterUnlockData();
+        SaveLoadManager.Instance
+            .SaveData.characterData =
+            data;
+
+        SaveLoadManager.Instance.SaveGame();
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance.MarkDirty();
+        }
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance
+                .MarkDirty();
+        }
     }
 
-    if (data.characterRuneBuilds == null || data.characterRuneBuilds.Count == 0)
+    private void LoadData()
     {
-        data.characterRuneBuilds = new List<CharacterRuneEquip>
+        data =
+            SaveLoadManager.Instance
+            .SaveData.characterData;
+
+        if (data == null)
+        {
+            data =
+                new CharacterUnlockData();
+        }
+
+        if (data.characterRuneBuilds == null || data.characterRuneBuilds.Count == 0)
+        {
+            data.characterRuneBuilds = new List<CharacterRuneEquip>
         {
             new CharacterRuneEquip(CharacterType.Kael),
             new CharacterRuneEquip(CharacterType.Lyra),
             new CharacterRuneEquip(CharacterType.Ares),
             new CharacterRuneEquip(CharacterType.Elara)
         };
-    }
-    
-    if (!IsUnlocked(
-    data.selectedCharacter))
-{
-    data.selectedCharacter =
-        CharacterType.Kael;
-}
-}
-public void ResetCharacterData()
-{
-    data =
-        new CharacterUnlockData();
+        }
 
-}
-public CharacterRuneEquip GetCharacterRuneBuild(CharacterType type)
+        if (!IsUnlocked(
+        data.selectedCharacter))
+        {
+            data.selectedCharacter =
+                CharacterType.Kael;
+        }
+    }
+    public void ResetCharacterData()
+    {
+        data =
+            new CharacterUnlockData();
+
+    }
+    public CharacterRuneEquip GetCharacterRuneBuild(CharacterType type)
     {
         if (data == null || data.characterRuneBuilds == null) return null;
-        
+
         for (int i = 0; i < data.characterRuneBuilds.Count; i++)
         {
             if (data.characterRuneBuilds[i].characterType == type)
