@@ -27,7 +27,6 @@ public class IdleState : ICharacterState
 
     public void Update()
     {
-        Debug.Log("IdleState");
         character.LookAtTarget();
         if (character.CharacterInput.MoveInput != Vector2.zero)
         {

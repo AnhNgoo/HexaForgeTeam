@@ -22,9 +22,11 @@ public class EarthBreaker : CharacterSkillBase
             Debug.LogError("EarthBreaker skill chỉ có thể được sử dụng bởi Kael");
             return;
         }
-
-        character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost);
+        character.CharacterSkill.CanUseSkill1 = false;
+        character.CharacterSkill.CanUseSkill2 = false;
+        character.CanBeAttacked = false;
         character.CharacterCinematic.PlayCinematic();
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill1, skillData.cooldown);
 
         character.CharacterAnimation.CrossFade("Skill_1_1", 0.1f);
 
@@ -67,5 +69,8 @@ public class EarthBreaker : CharacterSkillBase
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.9f);
         character.StateController.ChangeState(new IdleState(character));
         character.CharacterCinematic.StopCinematic();
+        character.CanBeAttacked = true;
+        character.CharacterSkill.CanUseSkill1 = true;
+        character.CharacterSkill.CanUseSkill2 = true;
     }
 }

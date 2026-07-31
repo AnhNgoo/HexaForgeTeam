@@ -39,6 +39,7 @@ public enum MenuType
     LobbyDialogueMenu = 105,
     LobbyLeaderboardMenu = 106,
     LobbyShopMenu = 107,
+    DefaultLobbyInputMenu = 108,
 }
 
 public class UIManager : Singleton<UIManager>

@@ -27,6 +27,7 @@ public class VenomousQueenBossBehaviour : EnemyBossBehaviour
     [SerializeField] private float retreatCooldown = 5f;
     [SerializeField] private float retreatArrivalDistance = 0.5f;
     [SerializeField] private float retreatTimeout = 2.5f;
+    [SerializeField] private float retreatTurnSpeed = 900f;
     [SerializeField] private float navMeshSampleRadius = 1.5f;
     [SerializeField] private float maxVerticalDifference = 1.5f;
 
@@ -126,7 +127,9 @@ public class VenomousQueenBossBehaviour : EnemyBossBehaviour
                 return false;
             }
 
-            Enemy.Locomotion.MoveToTarget(_retreatDestination);
+            Enemy.Locomotion.MoveToTarget(_retreatDestination, 0f, false);
+
+            FaceTargetDuringRetreat(target);
             return true;
         }
 
@@ -163,7 +166,9 @@ public class VenomousQueenBossBehaviour : EnemyBossBehaviour
             Enemy.AnimatorController.ChaseHash
         );
 
-        Enemy.Locomotion.MoveToTarget(_retreatDestination);
+        Enemy.Locomotion.MoveToTarget(_retreatDestination, 0f, false);
+
+        FaceTargetDuringRetreat(target);
         return true;
     }
 
@@ -271,7 +276,28 @@ public class VenomousQueenBossBehaviour : EnemyBossBehaviour
         _nextRetreatTime = Time.time + retreatCooldown;
 
         Enemy.Locomotion.StopMoving();
+        Enemy.Locomotion.SetUpdateRotation(true);
         Enemy.Locomotion.SetSpeed(Enemy.Data.moveSpeed);
+    }
+
+    private void FaceTargetDuringRetreat(Transform target)
+    {
+        Vector3 direction =
+            target.position - Enemy.MyTransform.position;
+
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude <= 0.01f)
+            return;
+
+        Quaternion targetRotation =
+            Quaternion.LookRotation(direction.normalized);
+
+        Enemy.MyTransform.rotation = Quaternion.RotateTowards(
+            Enemy.MyTransform.rotation,
+            targetRotation,
+            retreatTurnSpeed * Time.deltaTime
+        );
     }
 
     public override void ResetBehaviour()
@@ -290,6 +316,7 @@ public class VenomousQueenBossBehaviour : EnemyBossBehaviour
         {
             Enemy.Locomotion.StopMoving();
             Enemy.Locomotion.SetSpeed(Enemy.Data.moveSpeed);
+            Enemy.Locomotion.SetUpdateRotation(true);
         }
     }
 

@@ -1,18 +1,11 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.Audio;
 using TMPro;
+using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.UI;
 
-public class SettingMenu : MenuBase
+public class AudioMenu : MenuBase
 {
     public override MenuType menuType => MenuType.SettingMenu;
-
-    [Header("Embedded System Settings")]
-    [SerializeField]
-    private SystemSettingsPanel systemSettingsPanel;
-
-    [Header("Setting Tabs")]
-    [SerializeField] private SettingsTabUI tabs;
 
     [Header("Audio Mixer")]
     [SerializeField] private AudioMixer audioMixer;
@@ -38,7 +31,50 @@ public class SettingMenu : MenuBase
     [SerializeField] private string dialogueVolumeParam = "DialogueVolume";
     [SerializeField] private string collisionVolumeParam = "CollisionVolume";
 
+    [Header("Embedded System Settings")]
+    [SerializeField] private SystemSettingsPanel systemSettingsPanel;
+
+    private bool eventsAdded;
+
     protected override void LoadComponent()
+    {
+        AutoFindComponents();
+    }
+
+    protected override void LoadComponentRuntime() { }
+
+    public override void Open(object data = null)
+    {
+        base.Open(data);
+        Initialize();
+    }
+
+    public override void Close()
+    {
+        RemoveEvents();
+        base.Close();
+    }
+
+    private void OnEnable()
+    {
+        Initialize();
+    }
+
+    private void OnDisable()
+    {
+        RemoveEvents();
+    }
+
+    private void Initialize()
+    {
+        AutoFindComponents();
+        RemoveEvents();
+        LoadSettings();
+        AddEvents();
+        PreviewSettings();
+    }
+
+    private void AutoFindComponents()
     {
         if (slider_MasterVolume == null)
             slider_MasterVolume = FindDeepChild("Slider_MasterVolume")?.GetComponent<Slider>();
@@ -65,165 +101,72 @@ public class SettingMenu : MenuBase
             btn_Back = FindDeepChild("Btn_Back")?.GetComponent<Button>();
     }
 
-    protected override void LoadComponentRuntime()
-    {
-
-    }
-
-    public override void Open(object data = null)
-    {
-        base.Open(data);
-
-        // Phong truong hop Open duoc goi nhieu lan.
-        RemoveTabEvents();
-        RemoveEvents();
-
-        LoadSettings();
-
-        AddTabEvents();
-        AddEvents();
-
-        PreviewSettings();
-        tabs?.SetSelected(MenuType.SettingMenu);
-    }
-
-    public override void Close()
-    {
-        RemoveTabEvents();
-        RemoveEvents();
-
-        base.Close();
-        
-    }
-
-    private void AddTabEvents()
-    {
-        if (tabs.btnAudio != null)
-            tabs.btnAudio.onClick.AddListener(OpenAudioTab);
-
-        if (tabs.btnGraphics != null)
-            tabs.btnGraphics.onClick.AddListener(OpenGraphicsTab);
-
-        if (tabs.btnController != null)
-            tabs.btnController.onClick.AddListener(OpenControllerTab);
-    }
-
-    private void RemoveTabEvents()
-    {
-        if (tabs.btnAudio != null)
-            tabs.btnAudio.onClick.RemoveListener(OpenAudioTab);
-
-        if (tabs.btnGraphics != null)
-            tabs.btnGraphics.onClick.RemoveListener(OpenGraphicsTab);
-
-        if (tabs.btnController != null)
-            tabs.btnController.onClick.RemoveListener(OpenControllerTab);
-    }
-
-    private void OpenAudioTab()
-    {
-        if (systemSettingsPanel != null)
-        {
-            systemSettingsPanel.ShowAudio();
-            return;
-        }
-
-        tabs?.SetSelected(MenuType.SettingMenu);
-    }
-
-    private void OpenGraphicsTab()
-    {
-        if (systemSettingsPanel != null)
-        {
-            systemSettingsPanel.ShowGraphics();
-            return;
-        }
-
-        ChangeSettingTab(MenuType.GraphicsMenu);
-    }
-
-    private void OpenControllerTab()
-    {
-        if (systemSettingsPanel != null)
-        {
-            systemSettingsPanel.ShowController();
-            return;
-        }
-
-        ChangeSettingTab(MenuType.ControllerMenu);
-    }
-
-    private void ChangeSettingTab(MenuType targetMenu)
-    {
-        if (UIManager.Instance == null)
-        {
-            Debug.LogError(
-                "Khong tim thay UIManager.Instance.");
-            return;
-        }
-
-        UIManager.Instance.ChangeMenu(targetMenu);
-
-        if (UIManager.Instance.CurrentMenuType != targetMenu)
-        {
-            Debug.LogError(
-                $"UIManager khong tim thay menu: {targetMenu}. " +
-                "Hay Load Components lai tren UIManager.");
-        }
-    }
-
     private void AddEvents()
     {
-        if (slider_MasterVolume != null)
-            slider_MasterVolume.onValueChanged.AddListener(OnVolumeChanged);
+        if (eventsAdded)
+            return;
 
-        if (slider_MusicVolume != null)
-            slider_MusicVolume.onValueChanged.AddListener(OnVolumeChanged);
+        AddSlider(slider_MasterVolume);
+        AddSlider(slider_MusicVolume);
+        AddSlider(slider_SFXVolume);
+        AddSlider(slider_DialogueVolume);
 
-        if (slider_SFXVolume != null)
-            slider_SFXVolume.onValueChanged.AddListener(OnVolumeChanged);
-
-        if (slider_DialogueVolume != null)
-            slider_DialogueVolume.onValueChanged.AddListener(OnVolumeChanged);
-
-        if (toggle_BackgroundSound != null)
-            toggle_BackgroundSound.onValueChanged.AddListener(OnToggleChanged);
-
-        if (toggle_CollisionSound != null)
-            toggle_CollisionSound.onValueChanged.AddListener(OnToggleChanged);
+        AddToggle(toggle_BackgroundSound);
+        AddToggle(toggle_CollisionSound);
 
         if (btn_Confirm != null)
-            btn_Confirm.onClick.AddListener(OnConfirmButtonClicked);
+            btn_Confirm.onClick.AddListener(Confirm);
 
         if (btn_Back != null)
-            btn_Back.onClick.AddListener(OnBackButtonClicked);
+            btn_Back.onClick.AddListener(Back);
+
+        eventsAdded = true;
     }
 
     private void RemoveEvents()
     {
-        if (slider_MasterVolume != null)
-            slider_MasterVolume.onValueChanged.RemoveListener(OnVolumeChanged);
+        if (!eventsAdded)
+            return;
 
-        if (slider_MusicVolume != null)
-            slider_MusicVolume.onValueChanged.RemoveListener(OnVolumeChanged);
+        RemoveSlider(slider_MasterVolume);
+        RemoveSlider(slider_MusicVolume);
+        RemoveSlider(slider_SFXVolume);
+        RemoveSlider(slider_DialogueVolume);
 
-        if (slider_SFXVolume != null)
-            slider_SFXVolume.onValueChanged.RemoveListener(OnVolumeChanged);
-
-        if (slider_DialogueVolume != null)
-            slider_DialogueVolume.onValueChanged.RemoveListener(OnVolumeChanged);
-
-        if (toggle_BackgroundSound != null)
-            toggle_BackgroundSound.onValueChanged.RemoveListener(OnToggleChanged);
-
-        if (toggle_CollisionSound != null)
-            toggle_CollisionSound.onValueChanged.RemoveListener(OnToggleChanged);
+        RemoveToggle(toggle_BackgroundSound);
+        RemoveToggle(toggle_CollisionSound);
 
         if (btn_Confirm != null)
-            btn_Confirm.onClick.RemoveListener(OnConfirmButtonClicked);
+            btn_Confirm.onClick.RemoveListener(Confirm);
 
         if (btn_Back != null)
-            btn_Back.onClick.RemoveListener(OnBackButtonClicked);
+            btn_Back.onClick.RemoveListener(Back);
+
+        eventsAdded = false;
+    }
+
+    private void AddSlider(Slider slider)
+    {
+        if (slider != null)
+            slider.onValueChanged.AddListener(OnVolumeChanged);
+    }
+
+    private void RemoveSlider(Slider slider)
+    {
+        if (slider != null)
+            slider.onValueChanged.RemoveListener(OnVolumeChanged);
+    }
+
+    private void AddToggle(Toggle toggle)
+    {
+        if (toggle != null)
+            toggle.onValueChanged.AddListener(OnToggleChanged);
+    }
+
+    private void RemoveToggle(Toggle toggle)
+    {
+        if (toggle != null)
+            toggle.onValueChanged.RemoveListener(OnToggleChanged);
     }
 
     private void OnVolumeChanged(float value)
@@ -238,28 +181,32 @@ public class SettingMenu : MenuBase
 
     private void LoadSettings()
     {
-        if (slider_MasterVolume != null)
-            slider_MasterVolume.value = PlayerPrefs.GetFloat("MasterVolume", 1f);
+        SetSlider(slider_MasterVolume, PlayerPrefs.GetFloat("Audio.MasterVolume", 1f));
+        SetSlider(slider_MusicVolume, PlayerPrefs.GetFloat("Audio.MusicVolume", 1f));
+        SetSlider(slider_SFXVolume, PlayerPrefs.GetFloat("Audio.SFXVolume", 1f));
+        SetSlider(slider_DialogueVolume, PlayerPrefs.GetFloat("Audio.DialogueVolume", 1f));
 
-        if (slider_MusicVolume != null)
-            slider_MusicVolume.value = PlayerPrefs.GetFloat("MusicVolume", 1f);
+        SetToggle(toggle_BackgroundSound, PlayerPrefs.GetInt("Audio.BackgroundSound", 1) == 1);
+        SetToggle(toggle_CollisionSound, PlayerPrefs.GetInt("Audio.CollisionSound", 1) == 1);
+    }
 
-        if (slider_SFXVolume != null)
-            slider_SFXVolume.value = PlayerPrefs.GetFloat("SoundEffectsVolume", 1f);
+    private void SaveSettings()
+    {
+        SaveSlider("Audio.MasterVolume", slider_MasterVolume);
+        SaveSlider("Audio.MusicVolume", slider_MusicVolume);
+        SaveSlider("Audio.SFXVolume", slider_SFXVolume);
+        SaveSlider("Audio.DialogueVolume", slider_DialogueVolume);
 
-        if (slider_DialogueVolume != null)
-            slider_DialogueVolume.value = PlayerPrefs.GetFloat("DialogueVolume", 1f);
+        SaveToggle("Audio.BackgroundSound", toggle_BackgroundSound);
+        SaveToggle("Audio.CollisionSound", toggle_CollisionSound);
 
-        if (toggle_BackgroundSound != null)
-            toggle_BackgroundSound.isOn = PlayerPrefs.GetInt("BackgroundSoundOn", 1) == 1;
-
-        if (toggle_CollisionSound != null)
-            toggle_CollisionSound.isOn = PlayerPrefs.GetInt("CollisionSoundOn", 1) == 1;
+        PlayerPrefs.Save();
     }
 
     private void PreviewSettings()
     {
-        if (audioMixer == null) return;
+        if (audioMixer == null)
+            return;
 
         SetMixerVolume(masterVolumeParam, GetSliderValue(slider_MasterVolume));
         SetMixerVolume(sfxVolumeParam, GetSliderValue(slider_SFXVolume));
@@ -276,71 +223,59 @@ public class SettingMenu : MenuBase
             SetMixerVolume(collisionVolumeParam, 1f);
     }
 
-    private float GetSliderValue(Slider slider)
-    {
-        if (slider == null) return 1f;
-        return slider.value;
-    }
-
     private void SetMixerVolume(string parameterName, float value)
     {
-        if (audioMixer == null) return;
+        if (audioMixer == null)
+            return;
 
-        if (value <= 0.0001f)
-        {
-            audioMixer.SetFloat(parameterName, -80f);
-        }
-        else
-        {
-            float dbValue = Mathf.Log10(value) * 20f;
-            audioMixer.SetFloat(parameterName, dbValue);
-        }
+        float dbValue = value <= 0.0001f ? -80f : Mathf.Log10(value) * 20f;
+        audioMixer.SetFloat(parameterName, dbValue);
     }
 
-    private void OnConfirmButtonClicked()
+    private float GetSliderValue(Slider slider)
+    {
+        return slider != null ? slider.value : 1f;
+    }
+
+    private void Confirm()
     {
         SaveSettings();
         PreviewSettings();
-
-        Debug.Log("Setting confirmed");
     }
 
-    private void SaveSettings()
+    private void Back()
     {
-        if (slider_MasterVolume != null)
-            PlayerPrefs.SetFloat("MasterVolume", slider_MasterVolume.value);
-
-        if (slider_MusicVolume != null)
-            PlayerPrefs.SetFloat("MusicVolume", slider_MusicVolume.value);
-
-        if (slider_SFXVolume != null)
-            PlayerPrefs.SetFloat("SoundEffectsVolume", slider_SFXVolume.value);
-
-        if (slider_DialogueVolume != null)
-            PlayerPrefs.SetFloat("DialogueVolume", slider_DialogueVolume.value);
-
-        if (toggle_BackgroundSound != null)
-            PlayerPrefs.SetInt("BackgroundSoundOn", toggle_BackgroundSound.isOn ? 1 : 0);
-
-        if (toggle_CollisionSound != null)
-            PlayerPrefs.SetInt("CollisionSoundOn", toggle_CollisionSound.isOn ? 1 : 0);
-
-        PlayerPrefs.Save();
-    }
-
-    private void OnBackButtonClicked()
-    {
-        if (systemSettingsPanel != null)
-        {
-            systemSettingsPanel.CloseGameSystemMenu();
-            return;
-        }
-        Debug.Log("Setting back button clicked");
-
         LoadSettings();
         PreviewSettings();
 
-        UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
+        if (systemSettingsPanel != null)
+            systemSettingsPanel.CloseGameSystemMenu();
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
+    }
+
+    private void SetSlider(Slider slider, float value)
+    {
+        if (slider != null)
+            slider.SetValueWithoutNotify(value);
+    }
+
+    private void SetToggle(Toggle toggle, bool value)
+    {
+        if (toggle != null)
+            toggle.SetIsOnWithoutNotify(value);
+    }
+
+    private void SaveSlider(string key, Slider slider)
+    {
+        if (slider != null)
+            PlayerPrefs.SetFloat(key, slider.value);
+    }
+
+    private void SaveToggle(string key, Toggle toggle)
+    {
+        if (toggle != null)
+            PlayerPrefs.SetInt(key, toggle.isOn ? 1 : 0);
     }
 
     private Transform FindDeepChild(string childName)

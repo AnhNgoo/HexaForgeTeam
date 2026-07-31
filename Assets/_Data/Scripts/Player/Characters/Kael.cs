@@ -53,10 +53,6 @@ public class Kael : CharacterMelee
         if (kaelGiantPunchEffectPoint_4 == null)
             kaelGiantPunchEffectPoint_4 = effectPoints.transform.Find("KaelGiantPunchEffectPoint_4").gameObject;
     }
-    protected override void Init(CharacterData data)
-    {
-        base.Init(data);
-    }
 
     #region Override đòn tấn công
     protected override IAttackStep[] InitPunchCombos()
@@ -85,20 +81,20 @@ public class Kael : CharacterMelee
     #endregion
 
     #region Override kỹ năng
-    protected override ICharacterSkill GetSkill_1()
+    protected override ICharacterSkill GetSkill_1(CharacterSkillData skill1Data)
     {
-        if (characterSkill.SkillData1 == null)
+        if (skill1Data == null)
             Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
 
-        return new EarthBreaker(this, characterSkill.SkillData1);
+        return new EarthBreaker(this, skill1Data);
     }
 
-    protected override ICharacterSkill GetSkill_2()
+    protected override ICharacterSkill GetSkill_2(CharacterSkillData skill2Data)
     {
-        if (characterSkill.SkillData2 == null)
+        if (skill2Data == null)
             Debug.LogError("Đang thiếu data, hãy thêm vào trong CharacterSkill");
 
-        return new EarthRages(this, characterSkill.SkillData2);
+        return new EarthRages(this, skill2Data);
     }
 
     #endregion

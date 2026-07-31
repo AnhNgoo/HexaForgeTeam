@@ -68,6 +68,10 @@ public enum PoolType
     EnemyMinibossMage = 68,
     EnemyMinibossBrurrow = 69,
     MissHitEffect_1 = 100,
+    Kael = 101,
+    Lyra = 102,
+    SpawnCharacterEffect = 103,
+    PickedUpItemEffect = 104,
     EnemyBruteBoss = 1001,
     EnemyVenomousQueenBoss = 1002,
     EnemyNightStalkerBoss = 1003,
@@ -80,6 +84,10 @@ public enum PoolType
     EnemyVenomSpray = 1010,
     EnemyVenomTelegraph = 1011,
     EnemyVenomPillar = 1012,
+    NightStalkerDarkOrb = 1013,
+    NightStalkerVacuum = 1014,
+    NightStalkerRainTelegraph = 1015,
+    NightStalkerRainStrike = 1016,
 }
 
 [System.Serializable]
