@@ -105,6 +105,15 @@ public class EnemyBase : LoadComponents, IPoolable
         ActivateAIAfterFrame().Forget();
     }
 
+    /// <summary>
+    /// Gán lại reference đến player cho Enemy, có thể dùng để cập nhật reference khi player bị thay đổi hoặc spawn lại
+    /// </summary>
+    /// <param name="playerTransform"></param>
+    public void SetPlayerReference(Transform playerTransform)
+    {
+        _detection.SetPlayerReference(playerTransform);
+    }
+
     public void InitSummoned(Vector3 spawnPosition, Transform target, bool activateAI = true)
     {
         _spawnOrigin = spawnPosition;

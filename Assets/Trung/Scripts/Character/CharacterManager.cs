@@ -82,7 +82,7 @@ public class CharacterManager : MonoBehaviour
         if (level >= 25) data.elaraUnlocked = true;
 
         SaveData();
-        
+
         CharacterSelectUI ui = FindFirstObjectByType<CharacterSelectUI>();
         if (ui != null)
         {
@@ -94,7 +94,7 @@ public class CharacterManager : MonoBehaviour
     {
         SaveLoadManager.Instance.SaveData.characterData = data;
         SaveLoadManager.Instance.SaveGame();
-        
+
         if (PlayFabDataManager.Instance != null)
         {
             PlayFabDataManager.Instance.MarkDirty();
@@ -120,7 +120,7 @@ public class CharacterManager : MonoBehaviour
                 new CharacterRuneEquip(CharacterType.Elara)
             };
         }
-        
+
         if (!IsUnlocked(data.selectedCharacter))
         {
             data.selectedCharacter = CharacterType.Kael;
@@ -135,7 +135,7 @@ public class CharacterManager : MonoBehaviour
     public CharacterRuneEquip GetCharacterRuneBuild(CharacterType type)
     {
         if (data == null || data.characterRuneBuilds == null) return null;
-        
+
         for (int i = 0; i < data.characterRuneBuilds.Count; i++)
         {
             if (data.characterRuneBuilds[i].characterType == type)

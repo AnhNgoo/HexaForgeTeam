@@ -57,6 +57,7 @@ public class JumpState : ICharacterState
             character.StateController.ChangeState(new WallJumpState(character));
             return;
         }
+
         if (!character.CharacterMovement.IsGrounded && character.CharacterMovement.CC.velocity.y < character.CharacterMovement.FallThreshold) //Chuyển về FallState khi đang ở trên không và bắt đầu rơi
         {
             character.StateController.ChangeState(new FallState(character));

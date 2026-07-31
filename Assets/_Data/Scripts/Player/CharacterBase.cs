@@ -173,8 +173,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Button("Init Character Data")]
     public virtual void Init(CharacterData data)
     {
-        if (data != null)
-            characterData = data;
+        characterData = data;
 
         try
         {
@@ -184,13 +183,16 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterWeapon.Init(this, handRight.transform);
             characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
             characterMeleeHitbox.Init(this);
-            characterStat.Init(this);
+            characterStat.Init(this, characterData.stats);
+            Debug.Log("Stamina & MP");
             characterStamina.Init(this);
             characterMP.Init(this);
+            Debug.Log("State");
             stateController = new StateController();
             stateController.ChangeState(new IdleState(this));
 
             //SECTION - Skill
+            Debug.Log("Skill");
             characterSkill?.Init(this, characterData.skill1Data, characterData.skill2Data, GetSkill_1(characterData.skill1Data), GetSkill_2(characterData.skill2Data));
 
             GetDashShadowEffect(characterVisual);
@@ -200,7 +202,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
-            EventManager.Notify(GameEvent.OnPlayerSpawned);
+            EventManager.Notify(GameEvent.OnPlayerSpawned, transform);
         }
         catch (Exception e)
         {
@@ -230,12 +232,14 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     protected virtual bool CheckAnyStateTransition()
     {
+        if (stateController == null || stateController.currentState == null)
+            return false;
         if (stateController.currentState is BirdRideState)
             return false;
         //Chuyển về FallState nếu đang ở trên không và bắt đầu rơi
         if (!CharacterMovement.IsGrounded && CharacterMovement.CC.velocity.y < CharacterMovement.FallThreshold)
         {
-            StateController.ChangeState(new FallState(this));
+            stateController.ChangeState(new FallState(this));
             return true;
         }
 
@@ -367,7 +371,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (characterData.characterTypes == CharacterTypes.Magical) // Nếu là nhân vật phép thuật thì kiểm tra mana
         {
             if (!characterMP.HasEnoughMP(characterData.mpCost.attackCost))
+            {
                 return false;
+            }
+
 
             characterMP.SubtractMP(characterData.mpCost.attackCost);
             return true;
@@ -421,7 +428,9 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (characterType == CharacterTypes.Magical)
         {
             if (!characterMP.HasEnoughMP(cost))
+            {
                 return false;
+            }
             characterMP.SubtractMP(cost);
             return true;
         }

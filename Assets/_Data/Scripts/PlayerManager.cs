@@ -113,7 +113,7 @@ public class PlayerManager : Singleton<PlayerManager>
             Debug.LogError("Chưa chọn nhân vật để spawn");
             return;
         }
-        if (currentCharacter == selectingCharacter)
+        if (currentCharacter.character == selectingCharacter.character)
         {
             Debug.LogWarning("Nhân vật hiện tại đã là nhân vật được chọn");
             return;
@@ -164,6 +164,7 @@ public class PlayerManager : Singleton<PlayerManager>
         currentCharacterBase = characterObject?.GetComponent<CharacterBase>();
 
         CharacterData characterData = Instantiate(character.characterData);
+
         currentCharacterBase?.Init(characterData);
 
         currentCharacter.character = character.character;
