@@ -1,11 +1,10 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnterHandler
+public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private int slotIndex; // 0 cho Slot 1, 1 cho Slot 2, 2 cho Slot 3
 
-    // Khi con trỏ chuột rê qua Ô Slot trang bị -> Cập nhật thông tin viên ngọc đang gắn trên ô này (nếu có)
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (RuneEquipUI.Instance == null || RuneInventoryManager.Instance == null) return;
@@ -19,11 +18,53 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
             if (!string.IsNullOrEmpty(equippedID))
             {
                 RuneData equippedRune = RuneInventoryManager.Instance.runes.Find(r => r.runeID == equippedID);
-                if (equippedRune != null && RuneDetailInfoPanel.Instance != null)
+                if (equippedRune != null)
                 {
-                    RuneDetailInfoPanel.Instance.DisplayRuneInfo(equippedRune);
+                    // 1. Mở Panel Chi tiết
+                    if (RuneDetailInfoPanel.Instance != null)
+                    {
+                        RuneDetailInfoPanel.Instance.DisplayRuneInfo(equippedRune);
+                    }
+
+                    // 2. Đẩy thông tin ngọc lên Tooltip Panel bám chuột
+                    if (UITooltipPanel.Instance != null)
+                    {
+                        string title = $"<color={GetRarityHexColor(equippedRune.runeRarity)}>{equippedRune.runeName.ToUpper()}</color>";
+                        string details = $"<b>Rarity:</b> {equippedRune.runeRarity} | <b>Element:</b> {equippedRune.runeColor}\n\n";
+
+                        for (int i = 0; i < equippedRune.affixes.Count; i++)
+                        {
+                            var affix = equippedRune.affixes[i];
+                            string sign = affix.value >= 0 ? "+" : "";
+                            details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                        }
+
+                        if (!string.IsNullOrEmpty(equippedRune.runeLore))
+                        {
+                            details += $"\n<i>\"{equippedRune.runeLore}\"</i>";
+                        }
+
+                        UITooltipPanel.Instance.ShowTooltip(title, details);
+                    }
                 }
             }
+            else
+            {
+                // Nếu ô trống -> Hiện hướng dẫn màu ngọc cần lắp
+                if (UITooltipPanel.Instance != null)
+                {
+                    RuneColor reqColor = RuneEquipUI.Instance.GetSlotRequiredColor(currentType, slotIndex);
+                    UITooltipPanel.Instance.ShowTooltip($"Empty Slot {slotIndex + 1}", $"Equip a <color={(reqColor == RuneColor.Red ? "red" : reqColor == RuneColor.Green ? "green" : "cyan")}>{reqColor}</color> Rune here.");
+                }
+            }
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (UITooltipPanel.Instance != null)
+        {
+            UITooltipPanel.Instance.HideTooltip();
         }
     }
 
@@ -40,7 +81,6 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
 
         CharacterType currentType = RuneEquipUI.Instance.GetViewingCharacter();
 
-        // 1. Kiểm tra xem ngọc có đang bị nhân vật KHÁC trang bị hay không
         bool isEquippedByOtherChar = false;
         string ownerName = "";
         if (CharacterManager.Instance != null)
@@ -48,7 +88,7 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
             CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
             foreach (CharacterType charType in allChars)
             {
-                if (charType == currentType) continue; // Bỏ qua nhân vật hiện tại
+                if (charType == currentType) continue;
 
                 var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
                 if (build != null && build.equippedRuneIDs != null)
@@ -75,7 +115,6 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
             return;
         }
 
-        // 2. Kiểm tra màu ngọc trùng khớp yêu cầu ô Slot
         RuneColor requiredColor = RuneEquipUI.Instance.GetSlotRequiredColor(currentType, slotIndex);
 
         bool isOrigin = false;
@@ -100,7 +139,6 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
             return;
         }
 
-        // 3. Tiến hành gắn ngọc vào đúng Slot
         bool equipped = RuneInventoryManager.Instance.EquipRune(runeData, currentType);
         if (equipped)
         {
@@ -113,5 +151,17 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
                 LobbyNotifyManager.Instance.ShowNotify($"Equipped {runeData.runeName} into Slot {slotIndex + 1}!", Color.green);
             }
         }
+    }
+
+    private string GetRarityHexColor(RuneRarity rarity)
+    {
+        switch (rarity)
+        {
+            case RuneRarity.Common: return "#FFFFFF";
+            case RuneRarity.Rare: return "#3399FF";
+            case RuneRarity.Epic: return "#B266FF";
+            case RuneRarity.Legendary: return "#FF9900";
+        }
+        return "#FFFFFF";
     }
 }
