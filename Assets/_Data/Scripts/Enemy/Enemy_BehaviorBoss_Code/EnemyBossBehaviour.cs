@@ -6,6 +6,7 @@ public abstract class EnemyBossBehaviour : EnemyMinibossBehaviour
     [SerializeField] private float phase2AttackSpeedMultiplier = 1.2f;
 
     protected float Phase2AttackSpeedMultiplier => phase2AttackSpeedMultiplier;
+    public bool HasEnteredPhase2 => IsPhase2;
 
     protected bool IsPhase2 =>
         Enemy != null &&

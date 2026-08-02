@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using System;
 
 [System.Serializable]
 public class TwilightEscortSpawnData
@@ -29,6 +30,7 @@ public class TwilightTerrorEncounterDirector : LoadComponents
 
     private TwilightTerrorSpawnPointGroup currentSpawnGroup;
     private TwilightBossSpawnData currentBossData;
+    public event Action OnAllTwilightTerrorsDefeated;
 
     private Transform player;
     private bool started;
@@ -84,7 +86,9 @@ public class TwilightTerrorEncounterDirector : LoadComponents
 
         if (!HasUnusedBoss())
         {
+            started = false;
             Debug.Log("[Twilight] Đã hoàn thành toàn bộ boss phase.");
+            OnAllTwilightTerrorsDefeated?.Invoke();
             return;
         }
 
@@ -146,7 +150,7 @@ public class TwilightTerrorEncounterDirector : LoadComponents
             return;
         }
 
-        int pointIndex = Random.Range(0, points.Count);
+        int pointIndex = UnityEngine.Random.Range(0, points.Count);
 
         foreach (TwilightEscortSpawnData group in currentBossData.escortGroups)
         {
@@ -253,6 +257,6 @@ public class TwilightTerrorEncounterDirector : LoadComponents
         if (available.Count == 0)
             return null;
 
-        return available[Random.Range(0, available.Count)];
+        return available[UnityEngine.Random.Range(0, available.Count)];
     }
 }

@@ -56,4 +56,6 @@ public abstract class EnemyMinibossBehaviour : MonoBehaviour
     public virtual AttackDataSO ChooseForcedAttack(float distance) => null;
     public virtual void OnAttackStarted(AttackDataSO attack) { }
     public virtual void OnAttackHit(AttackDataSO attack, Collider target) { }
+    public virtual float ModifyChargeDuration(float duration) => duration;
+    public virtual void SetChargeTrail(bool active) { }
 }
