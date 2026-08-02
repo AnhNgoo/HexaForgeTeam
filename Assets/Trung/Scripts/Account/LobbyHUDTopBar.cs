@@ -23,9 +23,6 @@ public class LobbyHUDTopBar : MonoBehaviour
     [SerializeField] private TMP_Text expText;
     [SerializeField] private Slider expBar;
 
-    [SerializeField] private GameObject goldGroup;      
-    [SerializeField] private TMP_Text goldText;         
-
     private float animatedCurrentExp;
     private int cachedRequiredExp;
     private Tween activeExpTween;
@@ -40,20 +37,12 @@ public class LobbyHUDTopBar : MonoBehaviour
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.sceneUnloaded += OnSceneUnloaded;
-        if (GoldManager.Instance != null)
-        {
-            GoldManager.Instance.OnGoldChanged += UpdateGoldText;
-        }
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
         SceneManager.sceneUnloaded -= OnSceneUnloaded;
-        if (GoldManager.Instance != null)
-        {
-            GoldManager.Instance.OnGoldChanged -= UpdateGoldText;
-        }
     }
 
     private void Start()
@@ -85,27 +74,12 @@ public class LobbyHUDTopBar : MonoBehaviour
         {
             if (levelGroup != null) levelGroup.SetActive(false);
             if (currencyGroup != null) currencyGroup.SetActive(false);
-            if (goldGroup != null) goldGroup.SetActive(true);
-            
-            if (GoldManager.Instance != null)
-            {
-                UpdateGoldText(GoldManager.Instance.CurrentGold);
-            }
         }
         else
         {
             if (levelGroup != null) levelGroup.SetActive(true);
             if (currencyGroup != null) currencyGroup.SetActive(true);
-            if (goldGroup != null) goldGroup.SetActive(false);
             RefreshCurrencyUI();
-        }
-    }
-
-    private void UpdateGoldText(int currentGold)
-    {
-        if (goldText != null)
-        {
-            goldText.SetTextSafe($"Gold: {currentGold}");
         }
     }
 
@@ -173,7 +147,6 @@ public class LobbyHUDTopBar : MonoBehaviour
         {
             if (levelGroup != null) levelGroup.SetActive(false); 
             if (currencyGroup != null) currencyGroup.SetActive(true);  
-            if (goldGroup != null) goldGroup.SetActive(false);
             RefreshCurrencyUI();
         }
     }
