@@ -7,13 +7,14 @@ public class RunGameplayController : MonoBehaviour
 
     public int MonstersKilled { get; private set; }
     public float TimeElapsed { get; private set; }
-    public int Score { get; private set; }
 
     public int NormalKilled { get; private set; }
     public int EliteKilled { get; private set; }
     public int BossKilled { get; private set; }
+    public int FinalBossKilled { get; private set; }
 
-    // Danh sách lưu vết các Enemy đã được bắt sự kiện OnDead
+    public bool IsFinalBossDefeated => FinalBossKilled > 0;
+
     private HashSet<EnemyBase> trackedEnemies = new HashSet<EnemyBase>();
 
     private void Awake()
@@ -28,19 +29,20 @@ public class RunGameplayController : MonoBehaviour
 
     private void Update()
     {
-        // 1. Tự động quét và đăng ký sự kiện chết trực tiếp từ EnemyBase mà không cần sửa code Enemy
         ScanAndRegisterEnemies();
 
-        // 2. Nhấn phím = để kích hoạt kết thúc hầm ngục nhanh
+        // Phím = test nhanh Win (Thắt cờ thắng)
         if (Input.GetKeyDown(KeyCode.Equals))
         {
-            OnSkipRunPressed();
+            OnSkipRunPressed(true);
+        }
+        // Phím - test nhanh Loss (Thua)
+        if (Input.GetKeyDown(KeyCode.Minus))
+        {
+            OnSkipRunPressed(false);
         }
     }
 
-    /// <summary>
-    /// Tự động lắng nghe Enemy trong Run Scene khi chúng được spawn ra từ Pool/Camp
-    /// </summary>
     private void ScanAndRegisterEnemies()
     {
         EnemyBase[] activeEnemies = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None);
@@ -50,36 +52,41 @@ public class RunGameplayController : MonoBehaviour
             if (enemy != null && !trackedEnemies.Contains(enemy) && enemy.EventManager != null)
             {
                 trackedEnemies.Add(enemy);
-
-                // Lắng nghe trực tiếp sự kiện OnDead từ EnemyEventManager
                 enemy.EventManager.OnDead += () => OnEnemyDiedRealtime(enemy);
             }
         }
     }
 
-    /// <summary>
-    /// Xử lý phân loại chính xác khi 1 quái chết
-    /// </summary>
     private void OnEnemyDiedRealtime(EnemyBase enemy)
     {
         if (enemy == null || enemy.Data == null) return;
 
-        // Báo loại quái chính xác 100% dựa vào dữ liệu ScriptableObject của Enemy
-        if (enemy.Data.isBoss)
+        string enemyName = enemy.gameObject.name.ToLower();
+
+        // 1. Phân loại Final Boss
+        if (enemy.Data.isBoss && (enemyName.Contains("final") || enemyName.Contains("nightmare") || enemyName.Contains("lord")))
+        {
+            FinalBossKilled++;
+            Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED!</color>");
+            TriggerEndRun(true); // Hạ xong Final Boss -> Tự động kích hoạt Bảng Thắng Elden Style!
+        }
+        // 2. Phân loại Boss Thường
+        else if (enemy.Data.isBoss)
         {
             BossKilled++;
         }
-        else if (enemy.MinibossBehaviour != null) // Nếu có component Miniboss
+        // 3. Phân loại Elite (Miniboss)
+        else if (enemy.MinibossBehaviour != null || enemyName.Contains("elite"))
         {
             EliteKilled++;
         }
+        // 4. Quái Thường
         else
         {
             NormalKilled++;
         }
 
-        MonstersKilled = NormalKilled + EliteKilled + BossKilled;
-        Debug.Log($"<color=green>[RunGameplay] Enemy Killed: {enemy.gameObject.name} | Normal: {NormalKilled}, Elite: {EliteKilled}, Boss: {BossKilled}</color>");
+        MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
     }
 
     public void ResetStats()
@@ -87,15 +94,15 @@ public class RunGameplayController : MonoBehaviour
         NormalKilled = 0;
         EliteKilled = 0;
         BossKilled = 0;
+        FinalBossKilled = 0;
         MonstersKilled = 0;
         trackedEnemies.Clear();
     }
 
-    public void OnSkipRunPressed()
+    public void TriggerEndRun(bool isVictory)
     {
         StopAllCoroutines();
 
-        // Tắt toàn bộ các bộ Spawner quái trong hầm ngục để ngừng đẻ quái khi bấm kết thúc
         var spawners = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
         foreach (var script in spawners)
         {
@@ -106,14 +113,16 @@ public class RunGameplayController : MonoBehaviour
             }
         }
 
-        // Cập nhật tổng quái thu được từ lượt chơi
-        MonstersKilled = NormalKilled + EliteKilled + BossKilled;
-        TimeElapsed = Random.Range(80f, 200f);
+        MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 
-        // Đổ dữ liệu chuẩn xác sang RunResultSummary
         if (RunResultSummary.Instance != null)
         {
-            RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled);
+            RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);
         }
+    }
+
+    public void OnSkipRunPressed(bool forceVictory = false)
+    {
+        TriggerEndRun(forceVictory);
     }
 }

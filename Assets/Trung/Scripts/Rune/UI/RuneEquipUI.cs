@@ -14,11 +14,18 @@ public class RuneEquipUI : MonoBehaviour
     [SerializeField] private TMP_Text slot2ConditionText;
     [SerializeField] private TMP_Text slot3ConditionText;
 
-    [Header("Character Buttons (Luôn hiển thị)")]
+    [Header("Character Buttons")]
     [SerializeField] private GameObject kaelButtonObj;
     [SerializeField] private GameObject lyraButtonObj;
     [SerializeField] private GameObject aresButtonObj;
     [SerializeField] private GameObject elaraButtonObj;
+
+    [Header("Coming Soon Config")]
+    [SerializeField] private List<CharacterType> comingSoonCharacters = new List<CharacterType>()
+    {
+        CharacterType.Ares,
+        CharacterType.Elara
+    };
 
     private CharacterType viewingCharacter;
 
@@ -62,6 +69,13 @@ public class RuneEquipUI : MonoBehaviour
         {
             viewingCharacter = CharacterManager.Instance.GetSelectedCharacter();
         }
+
+        // Bẫy an toàn: Nếu character đang xem rơi vào Coming Soon, tự động trả về Kael
+        if (comingSoonCharacters.Contains(viewingCharacter))
+        {
+            viewingCharacter = CharacterType.Kael;
+        }
+
         RefreshEquipUI();
     }
 
@@ -77,7 +91,7 @@ public class RuneEquipUI : MonoBehaviour
         CharacterType currentType = viewingCharacter;
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
         
-        // Cập nhật trạng thái Alpha và tương tác của toàn bộ nút bấm nhân vật mới
+        // Cập nhật trạng thái Alpha, Lock Coming Soon và tương tác của toàn bộ nút chọn
         UpdateCharacterButtonsState();
 
         TMP_Text[] conditionTexts = new TMP_Text[3] { slot1ConditionText, slot2ConditionText, slot3ConditionText };
@@ -89,66 +103,174 @@ public class RuneEquipUI : MonoBehaviour
             conditionTexts[i].color = (requiredColor == RuneColor.Red) ? Color.red : (requiredColor == RuneColor.Green) ? Color.green : Color.cyan;
         }
 
-        if (build == null)
+        if (build == null || build.equippedRuneIDs == null)
         {
+            RefreshTotalStatText();
             return;
         }
 
-        for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+        for (int i = 0; i < 3; i++)
         {
-            string targetID = build.equippedRuneIDs[i];
+            Image targetSlot = GetSlotImage(i);
+            if (targetSlot == null) continue;
+
+            var trigger = targetSlot.GetComponent<UITooltipAutoTrigger>() ?? targetSlot.gameObject.AddComponent<UITooltipAutoTrigger>();
+            RuneColor requiredColor = GetSlotRequiredColor(currentType, i);
+
+            string targetID = (i < build.equippedRuneIDs.Length) ? build.equippedRuneIDs[i] : "";
+
+            // 1. Ô TRỐNG
             if (string.IsNullOrEmpty(targetID))
             {
+                targetSlot.sprite = emptySprite;
+                targetSlot.color = new Color(1f, 1f, 1f, 0.3f);
+                targetSlot.gameObject.SetActive(true);
+
+                trigger.SetData($"Empty Slot {i + 1}", $"Requires a <color={(requiredColor == RuneColor.Red ? "red" : requiredColor == RuneColor.Green ? "green" : "cyan")}>{requiredColor}</color> Rune element.");
                 continue;
             }
 
-            RuneData rune = null;
-            for (int k = 0; k < RuneInventoryManager.Instance.runes.Count; k++)
+            // 2. TÌM NGỌC TRONG INVENTORY
+            RuneData rune = RuneInventoryManager.Instance.runes.Find(r => r.runeID == targetID);
+
+            // 3. ĐÃ ĐEO NGỌC THẬT
+            if (rune != null)
             {
-                if (RuneInventoryManager.Instance.runes[k].runeID == targetID)
+                Sprite realRuneSprite = GetRuneSprite(rune);
+                targetSlot.sprite = realRuneSprite;
+                targetSlot.color = IsUltimateRune(rune) ? new Color(1f, 0.9f, 0.5f, 1f) : Color.white;
+                targetSlot.gameObject.SetActive(true);
+
+                string title = $"<color={GetRarityHexColor(rune.runeRarity)}>{rune.runeName.ToUpper()}</color>";
+                string details = $"<b>Rarity:</b> {rune.runeRarity} | <b>Element:</b> {rune.runeColor}\n\n";
+
+                if (rune.affixes != null)
                 {
-                    rune = RuneInventoryManager.Instance.runes[k];
-                    break;
+                    for (int a = 0; a < rune.affixes.Count; a++)
+                    {
+                        var affix = rune.affixes[a];
+                        string sign = affix.value >= 0 ? "+" : "";
+                        details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                    }
                 }
-            }
 
-            if (rune == null)
-            {
-                continue;
-            }
+                if (!string.IsNullOrEmpty(rune.runeLore))
+                {
+                    details += $"\n<i>\"{rune.runeLore}\"</i>";
+                }
 
-            Image targetSlot = GetSlotImage(i);
-            if (targetSlot == null)
-            {
-                continue;
-            }
-
-            targetSlot.sprite = GetRuneSprite(rune);
-
-            if (IsUltimateRune(rune))
-            {
-                targetSlot.color = new Color(1f, 0.9f, 0.5f);
+                trigger.SetData(title, details, realRuneSprite);
             }
             else
             {
-                targetSlot.color = Color.white;
+                targetSlot.sprite = emptySprite;
+                targetSlot.color = new Color(1f, 1f, 1f, 0.3f);
+                trigger.SetData($"Empty Slot {i + 1}", $"Requires a <color={(requiredColor == RuneColor.Red ? "red" : requiredColor == RuneColor.Green ? "green" : "cyan")}>{requiredColor}</color> Rune element.");
             }
         }
 
         RefreshTotalStatText();
     }
 
-    #region Total Stats
+    #region Button Alpha, Lock & Coming Soon States
 
-    private void RefreshTotalStatText()
+    /// <summary>
+    /// Đồng bộ trạng thái mờ/đậm và khóa hoàn toàn các tướng Coming Soon
+    /// </summary>
+    private void UpdateCharacterButtonsState()
     {
-        if (totalStatText == null || RuneInventoryManager.Instance == null)
+        UpdateSingleButtonState(CharacterType.Kael, kaelButtonObj);
+        UpdateSingleButtonState(CharacterType.Lyra, lyraButtonObj);
+        UpdateSingleButtonState(CharacterType.Ares, aresButtonObj);
+        UpdateSingleButtonState(CharacterType.Elara, elaraButtonObj);
+    }
+
+    private void UpdateSingleButtonState(CharacterType type, GameObject buttonObj)
+    {
+        if (buttonObj == null) return;
+
+        buttonObj.SetActive(true);
+
+        Button btn = buttonObj.GetComponent<Button>();
+        Image img = buttonObj.GetComponent<Image>();
+
+        bool isComingSoon = comingSoonCharacters.Contains(type);
+        bool isUnlocked = (CharacterManager.Instance != null && CharacterManager.Instance.IsUnlocked(type)) && !isComingSoon;
+        bool isSelected = (viewingCharacter == type);
+
+        // Khóa hẳn tương tác nếu là tướng Coming Soon hoặc Chưa Mở Khóa
+        if (btn != null)
         {
+            btn.interactable = !isComingSoon && isUnlocked;
+        }
+
+        // Tự động thêm Tooltip giải thích khi rê chuột vào Nút bị khóa
+        var trigger = buttonObj.GetComponent<UITooltipAutoTrigger>() ?? buttonObj.gameObject.AddComponent<UITooltipAutoTrigger>();
+        if (isComingSoon)
+        {
+            trigger.SetData($"{type} (Coming Soon)", "<color=#FF9900>Hero is under development and cannot equip runes yet!</color>");
+        }
+
+        if (img != null)
+        {
+            Color c = img.color;
+            if (isComingSoon || !isUnlocked)
+            {
+                c.a = 0.25f; // Khóa / Coming Soon: Mờ hẳn 25% Alpha
+            }
+            else if (isSelected)
+            {
+                c.a = 0.6f;  // Đang chọn: Đậm vừa
+            }
+            else
+            {
+                c.a = 1.0f;  // Đã mở khóa: Sáng hoàn toàn
+            }
+            img.color = c;
+        }
+    }
+
+    #endregion
+
+    #region Switch Characters Action
+
+    public void SwitchBuildToKael() => SwitchBuildToCharacter(CharacterType.Kael);
+    public void SwitchBuildToLyra() => SwitchBuildToCharacter(CharacterType.Lyra);
+    public void SwitchBuildToAres() => SwitchBuildToCharacter(CharacterType.Ares);
+    public void SwitchBuildToElara() => SwitchBuildToCharacter(CharacterType.Elara);
+
+    private void SwitchBuildToCharacter(CharacterType type)
+    {
+        if (comingSoonCharacters.Contains(type))
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"{type} is coming soon!", Color.yellow);
+            }
             return;
         }
 
-        Dictionary<RuneStatType, float> totalStats = RuneInventoryManager.Instance.GetStats(viewingCharacter);
+        viewingCharacter = type;
+        RefreshEquipUI();
 
+        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
+        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
+
+        if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
+        {
+            RuneDetailInfoPanel.Instance.DisplayRuneInfo(RuneDetailInfoPanel.Instance.GetRuneDataHelper());
+        }
+    }
+
+    #endregion
+
+    #region Total Stats & Helpers
+
+    private void RefreshTotalStatText()
+    {
+        if (totalStatText == null || RuneInventoryManager.Instance == null) return;
+
+        Dictionary<RuneStatType, float> totalStats = RuneInventoryManager.Instance.GetStats(viewingCharacter);
         StringBuilder builder = new StringBuilder();
 
         foreach (var stat in totalStats)
@@ -178,78 +300,20 @@ public class RuneEquipUI : MonoBehaviour
         totalStatText.text = builder.ToString();
     }
 
-    #endregion
-
-    #region Button Alpha & Interactable States
-
-    /// <summary>
-    /// Đồng bộ trạng thái mờ/đậm và tương tác của toàn bộ nút chọn nhân vật trong hòm đồ
-    /// </summary>
-    private void UpdateCharacterButtonsState()
-    {
-        UpdateSingleButtonState(CharacterType.Kael, kaelButtonObj);
-        UpdateSingleButtonState(CharacterType.Lyra, lyraButtonObj);
-        UpdateSingleButtonState(CharacterType.Ares, aresButtonObj);
-        UpdateSingleButtonState(CharacterType.Elara, elaraButtonObj);
-    }
-
-    private void UpdateSingleButtonState(CharacterType type, GameObject buttonObj)
-    {
-        if (buttonObj == null || CharacterManager.Instance == null) return;
-
-        // Ép nút luôn hiển thị trên màn hình chứ không SetActive(false) như trước
-        buttonObj.SetActive(true);
-
-        Button btn = buttonObj.GetComponent<Button>();
-        Image img = buttonObj.GetComponent<Image>();
-
-        bool isUnlocked = CharacterManager.Instance.IsUnlocked(type);
-        bool isSelected = (viewingCharacter == type);
-
-        // Nếu chưa mở khóa nhân vật, khóa tương tác bấm nút để chống Bug xem giao diện trống
-        if (btn != null)
-        {
-            btn.interactable = isUnlocked;
-        }
-
-        // Thay đổi tỷ lệ Alpha của ảnh nền Button dựa trên trạng thái thực tế
-        if (img != null)
-        {
-            Color c = img.color;
-            if (!isUnlocked)
-            {
-                c.a = 0.25f; // Nhân vật CHƯA CÓ: Mờ hẳn đi (Alpha 0.25)
-            }
-            else if (isSelected)
-            {
-                c.a = 0.5f;  // Nhân vật ĐANG ĐƯỢC CHỌN: Giảm nhẹ độ đậm (Alpha 0.5)
-            }
-            else
-            {
-                c.a = 1.0f;  // Nhân vật ĐÃ CÓ nhưng không chọn: Sáng rõ hoàn toàn (Alpha 1.0)
-            }
-            img.color = c;
-        }
-    }
-
-    #endregion
-
-    #region Slot
-
     private void ResetSlots()
     {
-        ResetSlot(slot1Image);
-        ResetSlot(slot2Image);
-        ResetSlot(slot3Image);
+        ResetSlot(slot1Image, 0);
+        ResetSlot(slot2Image, 1);
+        ResetSlot(slot3Image, 2);
     }
 
-    private void ResetSlot(Image slotImage)
+    private void ResetSlot(Image slotImage, int slotIndex)
     {
         if (slotImage == null) return;
 
         slotImage.sprite = emptySprite;
         Color color = slotImage.color;
-        color.a = 1f;
+        color.a = 0.3f;
         slotImage.color = color;
     }
 
@@ -264,40 +328,19 @@ public class RuneEquipUI : MonoBehaviour
         return null;
     }
 
-    #endregion
-
-    #region Unequip
-
     public void UnequipBySlot(int slotIndex)
     {
-        if (RuneInventoryManager.Instance == null)
-        {
-            return;
-        }
+        if (RuneInventoryManager.Instance == null) return;
 
         CharacterType currentType = viewingCharacter; 
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
 
-        if (build == null || slotIndex < 0 || slotIndex >= build.equippedRuneIDs.Length)
-        {
-            return;
-        }
+        if (build == null || slotIndex < 0 || slotIndex >= build.equippedRuneIDs.Length) return;
 
         string targetID = build.equippedRuneIDs[slotIndex];
-        if (string.IsNullOrEmpty(targetID))
-        {
-            return;
-        }
+        if (string.IsNullOrEmpty(targetID)) return;
 
-        RuneData rune = null;
-        for (int i = 0; i < RuneInventoryManager.Instance.runes.Count; i++)
-        {
-            if (RuneInventoryManager.Instance.runes[i].runeID == targetID)
-            {
-                rune = RuneInventoryManager.Instance.runes[i];
-                break;
-            }
-        }
+        RuneData rune = RuneInventoryManager.Instance.runes.Find(r => r.runeID == targetID);
 
         if (rune != null)
         {
@@ -310,10 +353,6 @@ public class RuneEquipUI : MonoBehaviour
             }
         }
     }
-
-    #endregion
-
-    #region Rune Sprite
 
     private Sprite GetRuneSprite(RuneData rune)
     {
@@ -364,23 +403,13 @@ public class RuneEquipUI : MonoBehaviour
         return null;
     }
 
-    #endregion
-
-    #region Stat Helper
-
     private bool IsPercentStat(RuneStatType statType)
     {
         switch (statType)
         {
-            case RuneStatType.HPPercent:
-            case RuneStatType.MPPercent:
-            case RuneStatType.StaminaPercent:
-            case RuneStatType.ATKPercent:
-            case RuneStatType.DEFPercent:
-            case RuneStatType.CritChance:
-            case RuneStatType.CritDamage:
-            case RuneStatType.ArmorPenetration:
-            case RuneStatType.StaminaRegen:
+            case RuneStatType.HPPercent: case RuneStatType.MPPercent: case RuneStatType.StaminaPercent:
+            case RuneStatType.ATKPercent: case RuneStatType.DEFPercent: case RuneStatType.CritChance:
+            case RuneStatType.CritDamage: case RuneStatType.ArmorPenetration: case RuneStatType.StaminaRegen:
                 return true;
         }
         return false;
@@ -409,7 +438,17 @@ public class RuneEquipUI : MonoBehaviour
         return "Unknown";
     }
 
-    #endregion
+    private string GetRarityHexColor(RuneRarity rarity)
+    {
+        switch (rarity)
+        {
+            case RuneRarity.Common: return "#FFFFFF";
+            case RuneRarity.Rare: return "#3399FF";
+            case RuneRarity.Epic: return "#B266FF";
+            case RuneRarity.Legendary: return "#FF9900";
+        }
+        return "#FFFFFF";
+    }
 
     private bool IsUltimateRune(RuneData rune)
     {
@@ -429,60 +468,7 @@ public class RuneEquipUI : MonoBehaviour
         return (slotIndex == 0) ? RuneColor.Red : (slotIndex == 1) ? RuneColor.Green : RuneColor.Blue;
     }
 
-    public void SwitchBuildToKael()
-    {
-        viewingCharacter = CharacterType.Kael;
-        RefreshEquipUI();
-        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-        
-        if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(RuneDetailInfoPanel.Instance.GetRuneDataHelper());
-        }
-    }
+    public CharacterType GetViewingCharacter() => viewingCharacter;
 
-    public void SwitchBuildToLyra()
-    {
-        viewingCharacter = CharacterType.Lyra;
-        RefreshEquipUI();
-        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-
-        if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(RuneDetailInfoPanel.Instance.GetRuneDataHelper());
-        }
-    }
-
-    public void SwitchBuildToAres()
-    {
-        viewingCharacter = CharacterType.Ares;
-        RefreshEquipUI();
-        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-
-        if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(RuneDetailInfoPanel.Instance.GetRuneDataHelper());
-        }
-    }
-
-    public void SwitchBuildToElara()
-    {
-        viewingCharacter = CharacterType.Elara;
-        RefreshEquipUI();
-        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-
-        if (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.gameObject.activeInHierarchy)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(RuneDetailInfoPanel.Instance.GetRuneDataHelper());
-        }
-    }
-
-    public CharacterType GetViewingCharacter()
-    {
-        return viewingCharacter;
-    }
+    #endregion
 }

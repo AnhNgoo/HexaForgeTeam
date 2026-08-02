@@ -34,6 +34,19 @@ public class LobbyShopMenu : MenuBase
         }
     }
 
+    /// <summary>
+    /// Xử lý phím ESC phân tầng ưu tiên cho Shop: Popup Ngọc -> Popup Số Lượng -> Đóng Shop
+    /// </summary>
+    public bool HandleEscapeKey()
+    {
+        if (LobbyShopUI.Instance != null)
+        {
+            return LobbyShopUI.Instance.HandleEscapeKey();
+        }
+
+        return false;
+    }
+
     protected override void LoadComponent()
     {
     }

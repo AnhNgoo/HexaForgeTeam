@@ -19,7 +19,6 @@ public class TutorialSystem : Singleton<TutorialSystem>
     // Start is called before the first frame update
     void Start()
     {
-        SafeZoneManager.Instance.CreateSafeZone();
         HideTutorial();
     }
 

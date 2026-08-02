@@ -314,4 +314,8 @@ public class ShopQuantityPopupUI : MonoBehaviour
             }
         }
     }
+    public bool IsPopupActive()
+    {
+        return popupRoot != null && popupRoot.activeInHierarchy;
+    }
 }

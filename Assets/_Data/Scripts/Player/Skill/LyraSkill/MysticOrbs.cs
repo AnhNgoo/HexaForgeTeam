@@ -27,6 +27,7 @@ public class MysticOrbs : CharacterSkillBase
         EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.cooldown);
 
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
+        character.CharacterWeapon.StoreWeapon();
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_2_1") > 0.3f);
 
         ObjectPooling.Instance?.SpawnFromPool(lyra.lyraAuraSkill_2_1,
@@ -93,6 +94,7 @@ public class MysticOrbs : CharacterSkillBase
 
         character.CharacterMovement.UseGravity = true;
         character.StateController.ChangeState(new IdleState(character));
+        character.CharacterWeapon.RetrieveWeapon();
     }
 
     public void CancelSkillDelay()

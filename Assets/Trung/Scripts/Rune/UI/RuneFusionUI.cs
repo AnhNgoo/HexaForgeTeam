@@ -53,6 +53,11 @@ public class RuneFusionUI : MonoBehaviour
         if (useCharmToggle != null) useCharmToggle.onValueChanged.AddListener((x) => UpdateFusionPanelVisual());
 
         ResetToggleState();
+        if (useCharmToggle != null)
+{
+    var trigger = useCharmToggle.GetComponent<UITooltipAutoTrigger>() ?? useCharmToggle.gameObject.AddComponent<UITooltipAutoTrigger>();
+    trigger.SetData("Protection Charm", "Prevents material runes from destroying upon fusion failure.");
+}
     }
 
     private void OnEnable()
