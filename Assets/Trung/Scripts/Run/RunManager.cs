@@ -16,6 +16,9 @@ public class RunManager : MonoBehaviour
     [Header("HUD Controller")]
     [SerializeField] private GameObject lobbyHUDMainObject;
 
+    [Header("Run Damage Statistics")]
+    private float totalDamageDealt;
+
     private int pendingGem;
     private int pendingExp;
     private int pendingShards;
@@ -43,6 +46,22 @@ public class RunManager : MonoBehaviour
 
     public string GetGameplaySceneName() => gameplaySceneName;
 
+    /// <summary>
+    /// Hàm gọi từ Player để tích lũy Sát thương tổng đã gây ra
+    /// </summary>
+    public void RegisterDamage(float amount)
+    {
+        if (amount <= 0) return;
+        totalDamageDealt += amount;
+    }
+
+    public float GetTotalDamage() => totalDamageDealt;
+
+    public void ResetDamageData()
+    {
+        totalDamageDealt = 0f;
+    }
+
     public void SetPendingRewards(int gem, int exp, int shards)
     {
         pendingGem = gem;
@@ -53,6 +72,8 @@ public class RunManager : MonoBehaviour
     public void StartRun()
     {
         if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy) return;
+
+        ResetDamageData(); // Reset Damage khi bắt đầu Run mới
 
         if (UIManager.Instance != null)
         {
@@ -109,7 +130,6 @@ public class RunManager : MonoBehaviour
 
     private IEnumerator LoadSceneCoroutine()
     {
-        // 1. Mở Scene Loading
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
@@ -120,7 +140,6 @@ public class RunManager : MonoBehaviour
             LoadingUIManager.Instance.SetDestinationName(gameplaySceneName);
         }
 
-        // 2. Load Scene Gameplay
         AsyncOperation load = SceneManager.LoadSceneAsync(gameplaySceneName, LoadSceneMode.Additive);
         load.allowSceneActivation = false;
 
@@ -132,7 +151,6 @@ public class RunManager : MonoBehaviour
         load.allowSceneActivation = true;
         while (!load.isDone) yield return null;
 
-        // --- FIX CỨNG: ÉP RUN SCENE THÀNH ACTIVE SCENE TRƯỚC KHI BẤT KỲ SPAWNER NÀO CHẠY ---
         Scene runScene = SceneManager.GetSceneByName(gameplaySceneName);
         if (runScene.IsValid())
         {
@@ -147,7 +165,6 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
 
-        // 3. Chuyển Player sang hẳn Run Scene & Chuẩn hóa Tag "Player"
         CharacterBase charBase = null;
         if (PlayerManager.Instance != null)
         {
@@ -156,7 +173,6 @@ public class RunManager : MonoBehaviour
 
         if (charBase != null)
         {
-            // Ép Player thuộc về Run Scene
             if (runScene.IsValid() && charBase.gameObject.scene != runScene)
             {
                 SceneManager.MoveGameObjectToScene(charBase.gameObject, runScene);
@@ -184,7 +200,6 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.4f);
 
-        // 4. Tắt Scene Loading
         Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
         if (loadingScene.isLoaded)
         {
@@ -253,7 +268,6 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        // Tự động Spawn lại Player tại Sảnh khi kết thúc Run
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();

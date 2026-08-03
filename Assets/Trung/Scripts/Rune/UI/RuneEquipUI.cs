@@ -471,4 +471,81 @@ public class RuneEquipUI : MonoBehaviour
     public CharacterType GetViewingCharacter() => viewingCharacter;
 
     #endregion
+    /// <summary>
+    /// Nút Trang bị Nhanh: Tự động quét kho ngọc và lắp 3 viên ngọc hợp lệ tốt nhất cho nhân vật đang chọn
+    /// </summary>
+    public void AutoEquipBestRunes()
+    {
+        if (RuneInventoryManager.Instance == null || CharacterManager.Instance == null) return;
+
+        CharacterType currentType = viewingCharacter;
+        List<RuneData> availableRunes = new List<RuneData>(RuneInventoryManager.Instance.runes);
+
+        // Lọc bỏ ngọc đang được đeo bởi các nhân vật khác
+        CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
+        foreach (CharacterType charType in allChars)
+        {
+            if (charType == currentType) continue;
+            var build = CharacterManager.Instance.GetCharacterRuneBuild(charType);
+            if (build != null && build.equippedRuneIDs != null)
+            {
+                foreach (string id in build.equippedRuneIDs)
+                {
+                    if (!string.IsNullOrEmpty(id))
+                    {
+                        availableRunes.RemoveAll(r => r.runeID == id);
+                    }
+                }
+            }
+        }
+
+        bool equippedAny = false;
+
+        for (int slotIndex = 0; slotIndex < 3; slotIndex++)
+        {
+            RuneColor reqColor = GetSlotRequiredColor(currentType, slotIndex);
+
+            // Tìm viên ngọc hợp hệ màu có điểm chỉ số cao nhất
+            RuneData bestRune = null;
+            float maxScore = -1f;
+
+            foreach (var rune in availableRunes)
+            {
+                bool isOrigin = IsUltimateRune(rune);
+                if (!isOrigin && rune.runeColor != reqColor) continue;
+
+                // Tính điểm ngọc dựa trên Rarity & giá trị các Affix
+                float score = ((int)rune.runeRarity * 100);
+                if (rune.affixes != null)
+                {
+                    foreach (var affix in rune.affixes) score += affix.value;
+                }
+
+                if (score > maxScore)
+                {
+                    maxScore = score;
+                    bestRune = rune;
+                }
+            }
+
+            if (bestRune != null)
+            {
+                RuneInventoryManager.Instance.EquipRune(bestRune, currentType);
+                availableRunes.Remove(bestRune);
+                equippedAny = true;
+            }
+        }
+
+        if (equippedAny)
+        {
+            RefreshEquipUI();
+            if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
+            if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
+            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Auto-equipped best runes build!", Color.green);
+        }
+        else
+        {
+            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("No suitable runes found for auto-equip!", Color.yellow);
+        }
+    }
 }

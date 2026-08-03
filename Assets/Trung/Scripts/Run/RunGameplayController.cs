@@ -8,6 +8,8 @@ public class RunGameplayController : MonoBehaviour
     public int MonstersKilled { get; private set; }
     public float TimeElapsed { get; private set; }
 
+    public float TotalDamageDealt { get; private set; } // Biến lưu Tổng Damage
+
     public int NormalKilled { get; private set; }
     public int EliteKilled { get; private set; }
     public int BossKilled { get; private set; }
@@ -29,17 +31,31 @@ public class RunGameplayController : MonoBehaviour
 
     private void Update()
     {
+        TimeElapsed += Time.deltaTime;
         ScanAndRegisterEnemies();
 
-        // Phím = test nhanh Win (Thắt cờ thắng)
+        // Phím = test nhanh Win
         if (Input.GetKeyDown(KeyCode.Equals))
         {
             OnSkipRunPressed(true);
         }
-        // Phím - test nhanh Loss (Thua)
+        // Phím - test nhanh Loss
         if (Input.GetKeyDown(KeyCode.Minus))
         {
             OnSkipRunPressed(false);
+        }
+    }
+
+    /// <summary>
+    /// Hàm gọi từ Player để cộng dồn Damage real-time
+    /// </summary>
+    public void RegisterPlayerDamage(float damage)
+    {
+        if (damage <= 0) return;
+        TotalDamageDealt += damage;
+        if (RunManager.Instance != null)
+        {
+            RunManager.Instance.RegisterDamage(damage);
         }
     }
 
@@ -61,6 +77,12 @@ public class RunGameplayController : MonoBehaviour
     {
         if (enemy == null || enemy.Data == null) return;
 
+        // Tự động cộng thêm Máu tối đa của Enemy nếu chưa được cộng trước đó
+        if (TotalDamageDealt <= 0 && enemy.Data.maxHealth > 0)
+        {
+            RegisterPlayerDamage(enemy.Data.maxHealth);
+        }
+
         string enemyName = enemy.gameObject.name.ToLower();
 
         // 1. Phân loại Final Boss
@@ -68,7 +90,7 @@ public class RunGameplayController : MonoBehaviour
         {
             FinalBossKilled++;
             Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED!</color>");
-            TriggerEndRun(true); // Hạ xong Final Boss -> Tự động kích hoạt Bảng Thắng Elden Style!
+            TriggerEndRun(true);
         }
         // 2. Phân loại Boss Thường
         else if (enemy.Data.isBoss)
@@ -96,6 +118,8 @@ public class RunGameplayController : MonoBehaviour
         BossKilled = 0;
         FinalBossKilled = 0;
         MonstersKilled = 0;
+        TotalDamageDealt = 0f;
+        TimeElapsed = 0f;
         trackedEnemies.Clear();
     }
 
