@@ -2,36 +2,82 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 [Serializable]
 public class KeyBindingUI
 {
     public string actionName;
-    public KeyCode defaultKey;
+    public Key defaultKey;
     public Button button;
     public TMP_Text keyText;
+}
+
+public static class GameKeyBindings
+{
+    public static Key GetKey(string actionName, Key defaultKey)
+    {
+        string savedKey = PlayerPrefs.GetString(
+            "Controller.Key." + actionName,
+            defaultKey.ToString());
+
+        if (Enum.TryParse(savedKey, out Key key))
+            return key;
+
+        return defaultKey;
+    }
+
+    public static bool WasPressedThisFrame(string actionName, Key defaultKey)
+    {
+        if (Keyboard.current == null)
+            return false;
+
+        Key key = GetKey(actionName, defaultKey);
+        KeyControlWrapper keyControl = new KeyControlWrapper(key);
+
+        return keyControl.WasPressedThisFrame();
+    }
+
+    private readonly struct KeyControlWrapper
+    {
+        private readonly Key key;
+
+        public KeyControlWrapper(Key key)
+        {
+            this.key = key;
+        }
+
+        public bool WasPressedThisFrame()
+        {
+            if (Keyboard.current == null)
+                return false;
+
+            try
+            {
+                return Keyboard.current[key].wasPressedThisFrame;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+    }
 }
 
 public class ControllerMenu : MenuBase
 {
     public override MenuType menuType => MenuType.ControllerMenu;
 
-    [Header("Setting Tabs")]
-    [SerializeField] private SettingsTabUI tabs;
-
-    [Header("Embedded System Settings")]
-    [SerializeField]
-    private SystemSettingsPanel systemSettingsPanel;
-
-    [Header("Arrow Selectors")]
-    [SerializeField] private ArrowSelectorUI controlTypeSelector;
-
     [Header("Controller Controls")]
     [SerializeField] private Slider sliderHorizontalSensitivity;
     [SerializeField] private Slider sliderVerticalSensitivity;
     [SerializeField] private Toggle toggleVibration;
     [SerializeField] private Toggle toggleAimAssist;
+
+    [Header("Control Type")]
+    [SerializeField] private ArrowSelectorUI controlTypeSelector;
+    [SerializeField] private string[] controlTypes = { "Keyboard & Mouse", "Controller" };
 
     [Header("Key Bindings")]
     [SerializeField] private KeyBindingUI[] keyBindings;
@@ -40,31 +86,23 @@ public class ControllerMenu : MenuBase
     [SerializeField] private Button btnConfirm;
     [SerializeField] private Button btnBack;
 
-    [Header("Selector Values")]
-    [SerializeField] private string[] controlTypes =
-    {
-        "Keyboard & Mouse",
-        "Controller"
-    };
+    [Header("Embedded System Settings")]
+    [SerializeField] private SystemSettingsPanel systemSettingsPanel;
 
+    private bool eventsAdded;
     private int controlTypeIndex;
     private int rebindingIndex = -1;
 
-    private KeyCode[] currentKeys;
+    private Key[] currentKeys;
     private UnityAction[] keyButtonActions;
 
     protected override void LoadComponent() { }
-
     protected override void LoadComponentRuntime() { }
 
     public override void Open(object data = null)
     {
         base.Open(data);
-
-        LoadSettings();
-        AddEvents();
-
-        tabs?.SetSelected(MenuType.ControllerMenu);
+        Initialize();
     }
 
     public override void Close()
@@ -74,84 +112,106 @@ public class ControllerMenu : MenuBase
         base.Close();
     }
 
+    private void OnEnable()
+    {
+        Initialize();
+    }
+
+    private void OnDisable()
+    {
+        rebindingIndex = -1;
+        RemoveEvents();
+    }
+
     private void Update()
     {
-        if (rebindingIndex < 0 || !Input.anyKeyDown)
+        if (rebindingIndex < 0)
             return;
 
-        foreach (KeyCode key in Enum.GetValues(typeof(KeyCode)))
+        if (Keyboard.current == null)
+            return;
+
+        Key? pressedKey = GetPressedKey();
+
+        if (!pressedKey.HasValue)
+            return;
+
+        if (pressedKey.Value == Key.Escape)
         {
-            if (!Input.GetKeyDown(key))
-                continue;
-
-            if (key == KeyCode.Escape)
-            {
-                rebindingIndex = -1;
-                RefreshKeyTexts();
-                return;
-            }
-
-            currentKeys[rebindingIndex] = key;
             rebindingIndex = -1;
             RefreshKeyTexts();
             return;
         }
+
+        currentKeys[rebindingIndex] = pressedKey.Value;
+        rebindingIndex = -1;
+        RefreshKeyTexts();
+    }
+
+    private void Initialize()
+    {
+        RemoveEvents();
+        LoadSettings();
+        AddEvents();
     }
 
     private void AddEvents()
     {
+        if (eventsAdded)
+            return;
+
         AddButton(controlTypeSelector.leftButton, PreviousControlType);
         AddButton(controlTypeSelector.rightButton, NextControlType);
-
-        AddButton(tabs.btnAudio, OpenAudio);
-        AddButton(tabs.btnGraphics, OpenGraphics);
-        AddButton(tabs.btnController, SelectController);
 
         AddButton(btnConfirm, Confirm);
         AddButton(btnBack, Back);
 
-        if (keyBindings == null)
-            return;
-
-        keyButtonActions = new UnityAction[keyBindings.Length];
-
-        for (int i = 0; i < keyBindings.Length; i++)
+        if (keyBindings != null)
         {
-            if (keyBindings[i].button == null)
-                continue;
+            keyButtonActions = new UnityAction[keyBindings.Length];
 
-            int index = i;
-            keyButtonActions[i] = () => BeginRebind(index);
+            for (int i = 0; i < keyBindings.Length; i++)
+            {
+                if (keyBindings[i] == null || keyBindings[i].button == null)
+                    continue;
 
-            keyBindings[i].button.onClick.AddListener(
-                keyButtonActions[i]);
+                int index = i;
+                keyButtonActions[i] = () => BeginRebind(index);
+                keyBindings[i].button.onClick.AddListener(keyButtonActions[i]);
+            }
         }
+
+        eventsAdded = true;
     }
 
     private void RemoveEvents()
     {
+        if (!eventsAdded)
+            return;
+
         RemoveButton(controlTypeSelector.leftButton, PreviousControlType);
         RemoveButton(controlTypeSelector.rightButton, NextControlType);
-
-        RemoveButton(tabs.btnAudio, OpenAudio);
-        RemoveButton(tabs.btnGraphics, OpenGraphics);
-        RemoveButton(tabs.btnController, SelectController);
 
         RemoveButton(btnConfirm, Confirm);
         RemoveButton(btnBack, Back);
 
-        if (keyButtonActions == null || keyBindings == null)
-            return;
-
-        for (int i = 0; i < keyBindings.Length; i++)
+        if (keyBindings != null && keyButtonActions != null)
         {
-            if (keyBindings[i].button != null &&
-                keyButtonActions[i] != null)
+            int count = Mathf.Min(keyBindings.Length, keyButtonActions.Length);
+
+            for (int i = 0; i < count; i++)
             {
-                keyBindings[i].button.onClick.RemoveListener(
-                    keyButtonActions[i]);
+                if (keyBindings[i] != null &&
+                    keyBindings[i].button != null &&
+                    keyButtonActions[i] != null)
+                {
+                    keyBindings[i].button.onClick.RemoveListener(keyButtonActions[i]);
+                }
             }
         }
+
+        keyButtonActions = null;
+        eventsAdded = false;
     }
 
     private void LoadSettings()
@@ -159,34 +219,23 @@ public class ControllerMenu : MenuBase
         controlTypeIndex = Mathf.Clamp(
             PlayerPrefs.GetInt("Controller.ControlType", 0),
             0,
-            controlTypes.Length - 1);
+            Mathf.Max(0, controlTypes.Length - 1));
 
-        if (sliderHorizontalSensitivity != null)
-        {
-            sliderHorizontalSensitivity.SetValueWithoutNotify(
-                PlayerPrefs.GetFloat(
-                    "Controller.HorizontalSensitivity", 1f));
-        }
+        SetSlider(
+            sliderHorizontalSensitivity,
+            PlayerPrefs.GetFloat("Controller.HorizontalSensitivity", 1f));
 
-        if (sliderVerticalSensitivity != null)
-        {
-            sliderVerticalSensitivity.SetValueWithoutNotify(
-                PlayerPrefs.GetFloat(
-                    "Controller.VerticalSensitivity", 1f));
-        }
+        SetSlider(
+            sliderVerticalSensitivity,
+            PlayerPrefs.GetFloat("Controller.VerticalSensitivity", 1f));
 
-        if (toggleAimAssist != null)
-        {
-            toggleAimAssist.SetIsOnWithoutNotify(
-                PlayerPrefs.GetInt("Controller.AimAssist", 1) == 1);
-        }
+        SetToggle(
+            toggleVibration,
+            PlayerPrefs.GetInt("Controller.Vibration", 1) == 1);
 
-        if (toggleVibration != null)
-        {
-            toggleVibration.SetIsOnWithoutNotify(
-                PlayerPrefs.GetInt(
-                    "Controller.Vibration", 1) == 1);
-        }
+        SetToggle(
+            toggleAimAssist,
+            PlayerPrefs.GetInt("Controller.AimAssist", 1) == 1);
 
         LoadKeyBindings();
         RefreshSelectors();
@@ -197,117 +246,44 @@ public class ControllerMenu : MenuBase
         if (keyBindings == null)
             return;
 
-        currentKeys = new KeyCode[keyBindings.Length];
+        currentKeys = new Key[keyBindings.Length];
 
         for (int i = 0; i < keyBindings.Length; i++)
         {
             KeyBindingUI binding = keyBindings[i];
 
-            string savedKey = PlayerPrefs.GetString(
-                "Controller.Key." + binding.actionName,
-                binding.defaultKey.ToString());
+            if (binding == null)
+                continue;
 
-            if (!Enum.TryParse(savedKey, out currentKeys[i]))
-                currentKeys[i] = binding.defaultKey;
+            currentKeys[i] = GameKeyBindings.GetKey(
+                binding.actionName,
+                binding.defaultKey);
         }
 
         RefreshKeyTexts();
     }
 
-    private void PreviousControlType()
-    {
-        controlTypeIndex = WrapIndex(
-            controlTypeIndex - 1,
-            controlTypes.Length);
-
-        RefreshSelectors();
-    }
-
-    private void NextControlType()
-    {
-        controlTypeIndex = WrapIndex(
-            controlTypeIndex + 1,
-            controlTypes.Length);
-
-        RefreshSelectors();
-    }
-
-    private void RefreshSelectors()
-    {
-        controlTypeSelector.SetText(
-            controlTypes[controlTypeIndex]);
-    }
-
-    public void BeginRebind(int index)
-    {
-        if (currentKeys == null ||
-            index < 0 ||
-            index >= currentKeys.Length)
-            return;
-
-        rebindingIndex = index;
-
-        if (keyBindings[index].keyText != null)
-            keyBindings[index].keyText.text = "...";
-    }
-
-    private void RefreshKeyTexts()
-    {
-        if (currentKeys == null)
-            return;
-
-        for (int i = 0; i < currentKeys.Length; i++)
-        {
-            if (keyBindings[i].keyText != null)
-            {
-                keyBindings[i].keyText.text =
-                    currentKeys[i].ToString();
-            }
-        }
-    }
-
     private void Confirm()
     {
-        PlayerPrefs.SetInt(
-            "Controller.ControlType",
-            controlTypeIndex);
+        PlayerPrefs.SetInt("Controller.ControlType", controlTypeIndex);
 
+        SaveSlider("Controller.HorizontalSensitivity", sliderHorizontalSensitivity);
+        SaveSlider("Controller.VerticalSensitivity", sliderVerticalSensitivity);
 
-        if (sliderHorizontalSensitivity != null)
-        {
-            PlayerPrefs.SetFloat(
-                "Controller.HorizontalSensitivity",
-                sliderHorizontalSensitivity.value);
-        }
+        SaveToggle("Controller.Vibration", toggleVibration);
+        SaveToggle("Controller.AimAssist", toggleAimAssist);
 
-        if (sliderVerticalSensitivity != null)
+        if (keyBindings != null && currentKeys != null)
         {
-            PlayerPrefs.SetFloat(
-                "Controller.VerticalSensitivity",
-                sliderVerticalSensitivity.value);
-        }
-        
-        if (toggleAimAssist != null)
-        {
-            PlayerPrefs.SetInt(
-                "Controller.AimAssist",
-                toggleAimAssist.isOn ? 1 : 0);
-        }
+            int count = Mathf.Min(keyBindings.Length, currentKeys.Length);
 
-        if (toggleVibration != null)
-        {
-            PlayerPrefs.SetInt(
-                "Controller.Vibration",
-                toggleVibration.isOn ? 1 : 0);
-        }
-
-        if (currentKeys != null)
-        {
-            for (int i = 0; i < currentKeys.Length; i++)
+            for (int i = 0; i < count; i++)
             {
+                if (keyBindings[i] == null || string.IsNullOrWhiteSpace(keyBindings[i].actionName))
+                    continue;
+
                 PlayerPrefs.SetString(
-                    "Controller.Key." +
-                    keyBindings[i].actionName,
+                    "Controller.Key." + keyBindings[i].actionName,
                     currentKeys[i].ToString());
             }
         }
@@ -320,52 +296,102 @@ public class ControllerMenu : MenuBase
         LoadSettings();
 
         if (systemSettingsPanel != null)
-        {
             systemSettingsPanel.CloseGameSystemMenu();
-            return;
-        }
-
-        UIManager.Instance.ChangeMenu(
-            SettingMenuData.BackMenu);
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
     }
 
-    private void OpenAudio()
+    public void BeginRebind(int index)
     {
-        if (systemSettingsPanel != null)
+        if (currentKeys == null || index < 0 || index >= currentKeys.Length)
+            return;
+
+        rebindingIndex = index;
+
+        if (keyBindings[index] != null && keyBindings[index].keyText != null)
+            keyBindings[index].keyText.text = "...";
+    }
+
+    private Key? GetPressedKey()
+    {
+        foreach (Key key in Enum.GetValues(typeof(Key)))
         {
-            systemSettingsPanel.ShowAudio();
-            return;
+            if (key == Key.None)
+                continue;
+
+            try
+            {
+                if (Keyboard.current[key].wasPressedThisFrame)
+                    return key;
+            }
+            catch
+            {
+                // Some enum values are not valid keyboard keys.
+            }
         }
 
-        UIManager.Instance.ChangeMenu(
-            MenuType.SettingMenu);
+        return null;
     }
 
-    private void OpenGraphics()
+    private void PreviousControlType()
     {
-        if (systemSettingsPanel != null)
+        controlTypeIndex = Wrap(controlTypeIndex - 1, controlTypes.Length);
+        RefreshSelectors();
+    }
+
+    private void NextControlType()
+    {
+        controlTypeIndex = Wrap(controlTypeIndex + 1, controlTypes.Length);
+        RefreshSelectors();
+    }
+
+    private void RefreshSelectors()
+    {
+        if (controlTypes == null || controlTypes.Length == 0)
         {
-            systemSettingsPanel.ShowGraphics();
+            controlTypeSelector.SetText("");
             return;
         }
 
-        UIManager.Instance.ChangeMenu(
-            MenuType.GraphicsMenu);
+        controlTypeSelector.SetText(controlTypes[Mathf.Clamp(controlTypeIndex, 0, controlTypes.Length - 1)]);
     }
 
-    private void SelectController()
+    private void RefreshKeyTexts()
     {
-        if (systemSettingsPanel != null)
+        if (keyBindings == null || currentKeys == null)
+            return;
+
+        int count = Mathf.Min(keyBindings.Length, currentKeys.Length);
+
+        for (int i = 0; i < count; i++)
         {
-            systemSettingsPanel.ShowController();
-            return;
+            if (keyBindings[i] != null && keyBindings[i].keyText != null)
+                keyBindings[i].keyText.text = FormatKey(currentKeys[i]);
         }
-
-        tabs?.SetSelected(MenuType.ControllerMenu);
     }
 
-    private int WrapIndex(int index, int length)
+    private string FormatKey(Key key)
     {
+        switch (key)
+        {
+            case Key.Space:
+                return "Space";
+            case Key.LeftShift:
+            case Key.RightShift:
+                return "Shift";
+            case Key.LeftCtrl:
+            case Key.RightCtrl:
+                return "Ctrl";
+            default:
+                return key.ToString();
+        }
+    }
+
+    private int Wrap(int index, int length)
+    {
+        if (length <= 0)
+            return 0;
+
         if (index < 0)
             return length - 1;
 
@@ -385,5 +411,29 @@ public class ControllerMenu : MenuBase
     {
         if (button != null)
             button.onClick.RemoveListener(action);
+    }
+
+    private void SetSlider(Slider slider, float value)
+    {
+        if (slider != null)
+            slider.SetValueWithoutNotify(value);
+    }
+
+    private void SaveSlider(string key, Slider slider)
+    {
+        if (slider != null)
+            PlayerPrefs.SetFloat(key, slider.value);
+    }
+
+    private void SetToggle(Toggle toggle, bool value)
+    {
+        if (toggle != null)
+            toggle.SetIsOnWithoutNotify(value);
+    }
+
+    private void SaveToggle(string key, Toggle toggle)
+    {
+        if (toggle != null)
+            PlayerPrefs.SetInt(key, toggle.isOn ? 1 : 0);
     }
 }

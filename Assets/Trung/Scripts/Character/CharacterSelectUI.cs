@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class CharacterSelectUI : LoadComponents
 {
@@ -30,6 +31,18 @@ public class CharacterSelectUI : LoadComponents
     [SerializeField] private TMP_Text RoleText;
     [SerializeField] private TMP_Text StatText;
 
+    [Header("Character Stat Sliders")]
+    [SerializeField] private Slider hpSlider;
+    [SerializeField] private Slider atkSlider;
+    [SerializeField] private Slider defSlider;
+    [SerializeField] private Slider spdSlider;
+
+    [Header("Stat Max Cap Config")]
+    [SerializeField] private float maxHealthCap = 2000f;
+    [SerializeField] private float maxDamageCap = 1500f;
+    [SerializeField] private float maxDefenseCap = 500f;
+    [SerializeField] private float maxSpeedCap = 20f;
+
     [Header("Skill Icons")]
     [SerializeField] private Image Skill1IconImage;
     [SerializeField] private Image Skill2IconImage;
@@ -44,7 +57,6 @@ public class CharacterSelectUI : LoadComponents
     [SerializeField] private Button BuildRuneButton;
 
     [Header("Rune Visuals List (12 Sprites Ngọc)")]
-    [Tooltip("Thứ tự Index chuẩn:\n0: Common Red, 1: Common Green, 2: Common Blue\n3: Rare Red, 4: Rare Green, 5: Rare Blue\n6: Epic Red, 7: Epic Green, 8: Epic Blue\n9: Legendary Red, 10: Legendary Green, 11: Legendary Blue")]
     [SerializeField] private List<Sprite> runeSprites = new List<Sprite>();
 
     [Header("Special Origin Rune Sprite")]
@@ -125,6 +137,7 @@ public class CharacterSelectUI : LoadComponents
 
     public void ResetToCurrentDeployed()
     {
+        // Đồng bộ chuẩn xác nhân vật đang deployed thực tế từ Manager
         if (CharacterManager.Instance != null)
         {
             previewingCharacter = CharacterManager.Instance.GetSelectedCharacter();
@@ -156,6 +169,7 @@ public class CharacterSelectUI : LoadComponents
 
         CharacterType deployedChar = CharacterManager.Instance != null ? CharacterManager.Instance.GetSelectedCharacter() : CharacterType.Kael;
 
+        // Cập nhật đúng thông tin theo tướng preview
         RefreshCharacterInfo(previewingCharacter);
 
         if (kaelHighlight != null) kaelHighlight.SetActive(previewingCharacter == CharacterType.Kael);
@@ -163,6 +177,7 @@ public class CharacterSelectUI : LoadComponents
         if (aresHighlight != null) aresHighlight.SetActive(previewingCharacter == CharacterType.Ares);
         if (elaraHighlight != null) elaraHighlight.SetActive(previewingCharacter == CharacterType.Elara);
 
+        // Gọi Refresh Model 3D & Reset Góc xoay
         CharacterPreviewManager preview = FindFirstObjectByType<CharacterPreviewManager>();
         if (preview != null)
         {
@@ -174,7 +189,28 @@ public class CharacterSelectUI : LoadComponents
 
         if (ConfirmButton != null)
         {
-            ConfirmButton.gameObject.SetActive(!isCurrentDeployed && !isPreviewingCS);
+            ConfirmButton.gameObject.SetActive(true);
+            TMP_Text btnText = ConfirmButton.GetComponentInChildren<TMP_Text>();
+
+            if (isPreviewingCS)
+            {
+                ConfirmButton.interactable = false;
+                if (btnText != null) btnText.SetTextSafe("LOCKED");
+            }
+            else if (isCurrentDeployed)
+            {
+                ConfirmButton.interactable = false;
+                if (btnText != null) btnText.SetTextSafe("DEPLOYED");
+            }
+            else
+            {
+                ConfirmButton.interactable = true;
+                if (btnText != null) btnText.SetTextSafe("DEPLOY HERO");
+
+                ConfirmButton.transform.DOKill();
+                ConfirmButton.transform.localScale = Vector3.one;
+                ConfirmButton.transform.DOPunchScale(new Vector3(0.05f, 0.05f, 0f), 0.4f, 5);
+            }
         }
 
         if (StatusText != null)
@@ -235,7 +271,10 @@ public class CharacterSelectUI : LoadComponents
 
     private void RefreshCharacterInfo(CharacterType type)
     {
-        Character enumChar = (type == CharacterType.Kael) ? Character.Kael : Character.Lyra;
+        // Chuyển đổi chuẩn xác từ CharacterType sang enum Character trong PlayerManager
+        Character enumChar = Character.Kael;
+        if (type == CharacterType.Lyra) enumChar = Character.Lyra;
+
         CharacterData realData = null;
 
         if (PlayerManager.Instance != null)
@@ -262,7 +301,8 @@ public class CharacterSelectUI : LoadComponents
                 );
             }
 
-            // Gán Icon Skill 1 + Tự bổ sung Tooltip Trigger
+            UpdateStatSliders(realData);
+
             if (Skill1IconImage != null)
             {
                 if (realData.skill1Data != null && realData.skill1Data.skillIcon != null)
@@ -279,7 +319,6 @@ public class CharacterSelectUI : LoadComponents
                 }
             }
 
-            // Gán Icon Skill 2 + Tự bổ sung Tooltip Trigger
             if (Skill2IconImage != null)
             {
                 if (realData.skill2Data != null && realData.skill2Data.skillIcon != null)
@@ -327,7 +366,6 @@ public class CharacterSelectUI : LoadComponents
 
                 var trigger = targetIcons[i].GetComponent<UITooltipAutoTrigger>() ?? targetIcons[i].gameObject.AddComponent<UITooltipAutoTrigger>();
 
-                // Ô ĐÃ ĐEO NGỌC -> Hiện ảnh thật + Tooltip thông tin ngọc chi tiết
                 if (equippedRune != null)
                 {
                     targetIcons[i].sprite = GetRealRuneSprite(equippedRune);
@@ -339,13 +377,12 @@ public class CharacterSelectUI : LoadComponents
                     {
                         var affix = equippedRune.affixes[k];
                         string sign = affix.value >= 0 ? "+" : "";
-                        details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                        details += $"- {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
                     }
                     if (!string.IsNullOrEmpty(equippedRune.runeLore)) details += $"\n<i>\"{equippedRune.runeLore}\"</i>";
 
                     trigger.SetData(title, details, targetIcons[i].sprite);
                 }
-                // Ô TRỐNG -> Hiện icon mờ + Tooltip hướng dẫn loại ngọc tương ứng
                 else
                 {
                     RuneColor reqColor = (RuneEquipUI.Instance != null) 
@@ -364,6 +401,23 @@ public class CharacterSelectUI : LoadComponents
                 }
             }
         }
+    }
+
+    private void UpdateStatSliders(CharacterData realData)
+    {
+        if (realData == null || realData.stats == null) return;
+
+        if (hpSlider != null) { hpSlider.maxValue = maxHealthCap; AnimateSlider(hpSlider, realData.stats.maxHealth); }
+        if (atkSlider != null) { atkSlider.maxValue = maxDamageCap; AnimateSlider(atkSlider, realData.stats.damage); }
+        if (defSlider != null) { defSlider.maxValue = maxDefenseCap; AnimateSlider(defSlider, realData.stats.defense); }
+        if (spdSlider != null) { spdSlider.maxValue = maxSpeedCap; AnimateSlider(spdSlider, realData.stats.speed); }
+    }
+
+    private void AnimateSlider(Slider slider, float targetValue)
+    {
+        if (slider == null) return;
+        slider.DOKill();
+        slider.DOValue(targetValue, 0.4f).SetEase(Ease.OutQuad);
     }
 
     private Sprite GetRealRuneSprite(RuneData rune)
@@ -403,6 +457,7 @@ public class CharacterSelectUI : LoadComponents
             RuneInventoryUI.Instance.RefreshInventory();
         }
     }
+
     private string GetRarityHexColor(RuneRarity rarity)
     {
         switch (rarity)

@@ -30,6 +30,7 @@ public class CharacterStamina : MonoBehaviour
 
     public void SetMaxStamina(float maxStamina, bool fullRegen = true)
     {
+        Debug.Log($"SetMaxStamina called with maxStamina = {maxStamina}, fullRegen = {fullRegen}");
         float normalizedMaxStamina = Mathf.Max(1f, maxStamina);
 
         this.maxStamina = normalizedMaxStamina;

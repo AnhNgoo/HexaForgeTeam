@@ -34,7 +34,6 @@ public class CharacterHealth : MonoBehaviour
         healthData.MaxHealth = normalizedMaxHealth;
         healthData.CurrentHealth = currentHealth;
         healthData.fullHeal = fullHeal;
-
         EventManager.Notify(GameEvent.OnUpdateMaxHealth, healthData);
     }
     public void AddHealth(float amount)

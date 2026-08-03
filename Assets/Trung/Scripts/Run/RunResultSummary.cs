@@ -16,6 +16,7 @@ public class RunResultSummary : MonoBehaviour
 
     [Header("Stats Texts")]
     [SerializeField] private TMP_Text txtTimeElapsed;
+    [SerializeField] private TMP_Text txtTotalDamage; // Text hiển thị Total Damage
     [SerializeField] private TMP_Text txtNormalCount;
     [SerializeField] private TMP_Text txtEliteCount;
     [SerializeField] private TMP_Text txtBossCount;
@@ -47,14 +48,20 @@ public class RunResultSummary : MonoBehaviour
         if (mainCanvasGroup != null) mainCanvasGroup.alpha = 0f;
         if (buttonCanvasGroup != null) buttonCanvasGroup.alpha = 0f;
 
-        // Tính toán chỉ số & thời gian
+        // Lấy thời gian & Total Damage
         float timeElapsed = RunGameplayController.Instance != null ? RunGameplayController.Instance.TimeElapsed : Random.Range(90f, 240f);
+        float totalDamage = RunGameplayController.Instance != null ? RunGameplayController.Instance.TotalDamageDealt : (RunManager.Instance != null ? RunManager.Instance.GetTotalDamage() : 0);
+
         int minutes = Mathf.FloorToInt(timeElapsed / 60f);
         int seconds = Mathf.FloorToInt(timeElapsed % 60f);
         string timeFormatted = $"{minutes:00}:{seconds:00}";
 
         int totalKills = normal + elite + boss + finalBoss;
-        int totalScore = (normal * 100) + (elite * 300) + (boss * 1000) + (finalBoss * 5000);
+
+        // Tính Total Score bao gồm cả TOTAL DAMAGE (1 Damage = 1 Point)
+        int damageScore = Mathf.RoundToInt(totalDamage);
+        int killScore = (normal * 100) + (elite * 300) + (boss * 1000) + (finalBoss * 5000);
+        int totalScore = damageScore + killScore;
 
         calculatedGem = (normal * 2) + (elite * 10) + (boss * 50) + (finalBoss * 300);
         calculatedExp = (normal * 10) + (elite * 30) + (boss * 100) + (finalBoss * 500);
@@ -62,6 +69,7 @@ public class RunResultSummary : MonoBehaviour
 
         // Reset hiển thị ban đầu
         SetupTextInitial(txtTimeElapsed, "TIME SURVIVED", 0);
+        SetupTextInitial(txtTotalDamage, "TOTAL DAMAGE", 0);
         SetupTextInitial(txtNormalCount, "NORMAL ENEMIES", 0);
         SetupTextInitial(txtEliteCount, "ELITE FOES", 0);
         SetupTextInitial(txtBossCount, "BOSS TARGETS", 0);
@@ -99,7 +107,6 @@ public class RunResultSummary : MonoBehaviour
 
         if (mainCanvasGroup != null) seq.Join(mainCanvasGroup.DOFade(1f, 0.5f));
 
-        // Slam tiêu đề điện ảnh
         if (txtTitleBanner != null)
         {
             seq.Append(txtTitleBanner.transform.DOScale(1f, 0.45f).SetEase(Ease.OutBack));
@@ -108,8 +115,9 @@ public class RunResultSummary : MonoBehaviour
 
         seq.AppendInterval(0.15f);
 
-        // Dập chỉ số diệt quái LẦN LƯỢT
+        // Dập các dòng chỉ số diệt quái LẦN LƯỢT
         AppendSlamTextCustom(seq, txtTimeElapsed, $"TIME SURVIVED   <color=#FFFFFF>{timeFormatted}</color>", 0.2f);
+        AppendSlamText(seq, txtTotalDamage, "TOTAL DAMAGE", Mathf.RoundToInt(totalDamage), 0.2f);
         AppendSlamText(seq, txtNormalCount, "NORMAL ENEMIES", normal, 0.18f);
         AppendSlamText(seq, txtEliteCount, "ELITE FOES", elite, 0.18f);
         AppendSlamText(seq, txtBossCount, "BOSS TARGETS", boss, 0.18f);
@@ -125,7 +133,6 @@ public class RunResultSummary : MonoBehaviour
 
         seq.AppendInterval(0.2f);
 
-        // Nút bấm xuất hiện mượt mà
         if (buttonCanvasGroup != null)
         {
             seq.Append(buttonCanvasGroup.DOFade(1f, 0.4f));
