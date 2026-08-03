@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using System;
 
 [System.Serializable]
 public class TwilightEscortSpawnData
@@ -20,7 +21,7 @@ public class TwilightBossSpawnData
 
 public class TwilightTerrorEncounterDirector : LoadComponents
 {
-    [SerializeField] private int triggerPhase = 1;
+    [SerializeField, Min(1)] private int encounterPhaseCount = 2;
     [SerializeField] private List<TwilightBossSpawnData> bossPool = new();
 
     [ReadOnly, SerializeField] private List<EnemyBase> aliveEscorts = new();
@@ -29,6 +30,7 @@ public class TwilightTerrorEncounterDirector : LoadComponents
 
     private TwilightTerrorSpawnPointGroup currentSpawnGroup;
     private TwilightBossSpawnData currentBossData;
+    public event Action OnAllTwilightTerrorsDefeated;
 
     private Transform player;
     private bool started;
@@ -79,16 +81,29 @@ public class TwilightTerrorEncounterDirector : LoadComponents
             boss.EventManager.OnDead -= OnBossDead;
 
         boss = null;
-        currentSpawnGroup = null;
-        currentBossData = null;
 
-        if (!HasUnusedBoss())
+        bool reachedPhaseLimit = usedBosses.Count >= encounterPhaseCount;
+
+        if (reachedPhaseLimit || !HasUnusedBoss())
         {
-            Debug.Log("[Twilight] Đã hoàn thành toàn bộ boss phase.");
+            currentSpawnGroup?.ShowFinalBossPortal();
+
+            currentSpawnGroup = null;
+            currentBossData = null;
+            started = false;
+
+            Debug.Log(
+                "[Twilight] Hoàn thành toàn bộ Twilight Terror phase."
+            );
+
+            OnAllTwilightTerrorsDefeated?.Invoke();
             return;
         }
 
+        currentSpawnGroup = null;
+        currentBossData = null;
         started = false;
+
         SafeZoneManager.Instance?.ResetSafeZoneAfterBossDead();
     }
 
@@ -106,14 +121,20 @@ public class TwilightTerrorEncounterDirector : LoadComponents
         return false;
     }
 
-    private void OnPhaseCompleted(int phase, Transform targetPoint)
+    private void OnPhaseCompleted(int _, Transform targetPoint)
     {
-        if (started || phase != triggerPhase) return;
+        if (started || targetPoint == null)
+            return;
 
-        currentSpawnGroup = targetPoint.GetComponent<TwilightTerrorSpawnPointGroup>();
+        currentSpawnGroup =
+            targetPoint.GetComponent<TwilightTerrorSpawnPointGroup>();
+
         if (currentSpawnGroup == null)
         {
-            Debug.LogWarning($"[Twilight] {targetPoint.name} thiếu TwilightTerrorSpawnPointGroup.");
+            Debug.LogWarning(
+                $"[Twilight] {targetPoint.name} thiếu " +
+                $"{nameof(TwilightTerrorSpawnPointGroup)}."
+            );
             return;
         }
 
@@ -146,7 +167,7 @@ public class TwilightTerrorEncounterDirector : LoadComponents
             return;
         }
 
-        int pointIndex = Random.Range(0, points.Count);
+        int pointIndex = UnityEngine.Random.Range(0, points.Count);
 
         foreach (TwilightEscortSpawnData group in currentBossData.escortGroups)
         {
@@ -163,6 +184,7 @@ public class TwilightTerrorEncounterDirector : LoadComponents
                     spawnPoint,
                     true
                 );
+                Debug.Log($"[Twilight] Spawn escort: Type={group.enemyType}, " + $"Index={i}, Point={spawnPoint.name}");
 
                 if (enemy == null)
                     continue;
@@ -174,6 +196,7 @@ public class TwilightTerrorEncounterDirector : LoadComponents
 
         if (aliveEscorts.Count == 0)
             SpawnBoss();
+        Debug.Log($"[Twilight] SpawnEscorts được gọi. " + $"Boss={currentBossData?.bossPoolType}, Frame={Time.frameCount}");
     }
     private void OnEscortDead()
     {
@@ -253,6 +276,6 @@ public class TwilightTerrorEncounterDirector : LoadComponents
         if (available.Count == 0)
             return null;
 
-        return available[Random.Range(0, available.Count)];
+        return available[UnityEngine.Random.Range(0, available.Count)];
     }
 }
