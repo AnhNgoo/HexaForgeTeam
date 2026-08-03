@@ -2,17 +2,54 @@
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using DG.Tweening;
 
 public abstract class MenuBase : LoadComponents
 {
     [ShowInInspector] public abstract MenuType menuType { get; }
+
     public virtual void Open(object data = null)
     {
         gameObject.SetActive(true);
+        AnimateOpen();
     }
 
     public virtual void Close()
     {
-        gameObject.SetActive(false);
+        AnimateClose(() =>
+        {
+            gameObject.SetActive(false);
+        });
+    }
+
+    protected virtual void AnimateOpen()
+    {
+        DG.Tweening.DOTween.Kill(transform);
+        CanvasGroup group = GetComponent<CanvasGroup>();
+        if (group == null) group = gameObject.AddComponent<CanvasGroup>();
+
+        group.alpha = 0f;
+        transform.localScale = Vector3.one * 0.92f;
+
+        group.DOFade(1f, 0.2f).SetUpdate(true);
+        transform.DOScale(Vector3.one, 0.25f).SetEase(DG.Tweening.Ease.OutBack).SetUpdate(true);
+    }
+
+    protected virtual void AnimateClose(System.Action onComplete)
+    {
+        DG.Tweening.DOTween.Kill(transform);
+        CanvasGroup group = GetComponent<CanvasGroup>();
+        if (group != null)
+        {
+            group.DOFade(0f, 0.15f).SetUpdate(true);
+            transform.DOScale(Vector3.one * 0.95f, 0.15f).SetEase(DG.Tweening.Ease.InQuad).SetUpdate(true).OnComplete(() =>
+            {
+                onComplete?.Invoke();
+            });
+        }
+        else
+        {
+            onComplete?.Invoke();
+        }
     }
 }

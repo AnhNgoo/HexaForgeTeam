@@ -22,7 +22,13 @@ public class EnemyDetection : MonoBehaviour
 
     public void SetPlayerReference(Transform playerTransform)
     {
+        if (Player == playerTransform)
+            return;
+
         Player = playerTransform;
+
+        // Không cho enemy tiếp tục giữ mục tiêu thuộc Player cũ.
+        currentTarget = null;
     }
 
     public bool IsPlayerInLeashRange()

@@ -1,6 +1,12 @@
 using Sirenix.OdinInspector;
 using UnityEngine;
 
+public enum EnemyBossCategory
+{
+    Miniboss,
+    TwilightTerror,
+    FinalBoss
+}
 [CreateAssetMenu(fileName = "New Enemy Data", menuName = "Enemy/Enemy Data")]
 public class EnemyData : ScriptableObject
 {
@@ -27,6 +33,8 @@ public class EnemyData : ScriptableObject
     public int minGoldReward = 10; //Số lượng vàng thưởng khi tiêu diệt Enemy
     public int maxGoldReward = 20; //Số lượng vàng thưởng tối đa khi tiêu diệt Enemy
     public bool isBoss; //Công tắc để xác định nếu Enemy là boss, có thể dùng để điều chỉnh phần thưởng và hành vi của Enemy khi bị tiêu diệt
+    [ShowIf(nameof(isBoss))]
+    public EnemyBossCategory bossCategory = EnemyBossCategory.Miniboss;
     [ShowIf(nameof(isBoss))]
     [BoxGroup("UI")]
     public string bossDisplayName;

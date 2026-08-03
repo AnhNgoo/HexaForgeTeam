@@ -1,28 +1,42 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
-using System.Collections.Generic;
 
 public class RunManager : MonoBehaviour
 {
     public static RunManager Instance;
 
     [Header("Scene Config")]
-    [SerializeField] private string gameplaySceneName = "Run Scene"; 
+    [SerializeField] private string gameplaySceneName = "Run Scene";
 
     [Header("Lobby Spawn Settings")]
-    [SerializeField] private Transform playerTransform; 
-    [SerializeField] private Transform lobbySpawnPoint;   
-    [SerializeField] private GameObject lobbyVisuals;    
+    [SerializeField] private Transform lobbySpawnPoint;
+    [SerializeField] private GameObject lobbyVisuals;
 
     [Header("HUD Controller")]
     [SerializeField] private GameObject lobbyHUDMainObject;
 
+    [Header("Run Damage Statistics")]
+    private float totalDamageDealt;
+
     private int pendingGem;
     private int pendingExp;
-    private int pendingShards; 
+    private int pendingShards;
 
     private bool isRunActive = false;
+
+    [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
+
+    public PoolType SelectedFinalBossPool => selectedFinalBossPool;
+
+    public void ConfigureRun(string sceneName, PoolType finalBossPool)
+    {
+        if (!string.IsNullOrWhiteSpace(sceneName))
+            gameplaySceneName = sceneName;
+
+        if (finalBossPool != PoolType.None)
+            selectedFinalBossPool = finalBossPool;
+    }
 
     private void Awake()
     {
@@ -31,6 +45,22 @@ public class RunManager : MonoBehaviour
     }
 
     public string GetGameplaySceneName() => gameplaySceneName;
+
+    /// <summary>
+    /// Hàm gọi từ Player để tích lũy Sát thương tổng đã gây ra
+    /// </summary>
+    public void RegisterDamage(float amount)
+    {
+        if (amount <= 0) return;
+        totalDamageDealt += amount;
+    }
+
+    public float GetTotalDamage() => totalDamageDealt;
+
+    public void ResetDamageData()
+    {
+        totalDamageDealt = 0f;
+    }
 
     public void SetPendingRewards(int gem, int exp, int shards)
     {
@@ -43,6 +73,8 @@ public class RunManager : MonoBehaviour
     {
         if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy) return;
 
+        ResetDamageData(); // Reset Damage khi bắt đầu Run mới
+
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
@@ -54,6 +86,46 @@ public class RunManager : MonoBehaviour
         }
 
         StartCoroutine(LoadSceneCoroutine());
+    }
+
+    public void EnterFinalBoss(string sceneName)
+    {
+        if (!isRunActive || string.IsNullOrWhiteSpace(sceneName))
+            return;
+
+        StartCoroutine(EnterFinalBossCoroutine(sceneName));
+    }
+
+    private IEnumerator EnterFinalBossCoroutine(string sceneName)
+    {
+        if (InteractManagerV2.Instance != null)
+            InteractManagerV2.Instance.IsBusy = true;
+
+        SafeZoneManager.Instance?.StopForFinalBoss();
+
+        Scene previousRunScene = SceneManager.GetSceneByName(gameplaySceneName);
+
+        AsyncOperation load = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+        while (!load.isDone)
+            yield return null;
+
+        Scene finalBossScene = SceneManager.GetSceneByName(sceneName);
+
+        if (finalBossScene.IsValid()) SceneManager.SetActiveScene(finalBossScene);
+
+        gameplaySceneName = sceneName;
+
+        if (previousRunScene.isLoaded)
+        {
+            AsyncOperation unload = SceneManager.UnloadSceneAsync(previousRunScene);
+
+            while (unload != null && !unload.isDone)
+                yield return null;
+        }
+
+        if (InteractManagerV2.Instance != null)
+            InteractManagerV2.Instance.IsBusy = false;
     }
 
     private IEnumerator LoadSceneCoroutine()
@@ -83,6 +155,7 @@ public class RunManager : MonoBehaviour
         if (runScene.IsValid())
         {
             SceneManager.SetActiveScene(runScene);
+            Debug.Log($"<color=cyan>[RunManager] Active Scene FORCED to: {runScene.name}</color>");
         }
 
         if (lobbyVisuals != null)
@@ -92,25 +165,38 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
 
-        GameObject spawnPoint = GameObject.FindWithTag("RunSpawnPoint");
-        if (spawnPoint == null)
+        CharacterBase charBase = null;
+        if (PlayerManager.Instance != null)
         {
-            spawnPoint = GameObject.Find("RunSpawnPoint");
+            charBase = PlayerManager.Instance.GetComponentInChildren<CharacterBase>();
         }
 
-        if (spawnPoint != null && playerTransform != null)
+        if (charBase != null)
         {
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
+            if (runScene.IsValid() && charBase.gameObject.scene != runScene)
+            {
+                SceneManager.MoveGameObjectToScene(charBase.gameObject, runScene);
+            }
+
+            if (!charBase.gameObject.CompareTag("Player"))
+            {
+                try
+                {
+                    charBase.gameObject.tag = "Player";
+                }
+                catch (UnityException)
+                {
+                    Debug.LogWarning("[RunManager] Hãy tạo Tag 'Player' trong Unity Editor!");
+                }
+            }
+
+            CharacterController cc = charBase.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
 
-            playerTransform.position = spawnPoint.transform.position;
-            playerTransform.rotation = spawnPoint.transform.rotation;
-
-            yield return null;
-            if (cc != null) cc.enabled = true;
+            Physics.SyncTransforms();
         }
 
-        isRunActive = true; 
+        isRunActive = true;
 
         yield return new WaitForSeconds(0.4f);
 
@@ -130,7 +216,6 @@ public class RunManager : MonoBehaviour
     private IEnumerator UnloadSceneCoroutine()
     {
         isRunActive = false;
-
         Time.timeScale = 1f;
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
@@ -158,7 +243,7 @@ public class RunManager : MonoBehaviour
             }
             else
             {
-                float dummyDuration = Random.Range(5f, 6f);
+                float dummyDuration = Random.Range(2f, 3f);
                 float dummyElapsed = 0f;
                 while (dummyElapsed < dummyDuration)
                 {
@@ -183,19 +268,9 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        if (lobbySpawnPoint != null && playerTransform != null)
+        if (PlayerManager.Instance != null)
         {
-            CharacterController cc = playerTransform.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
-
-            playerTransform.position = lobbySpawnPoint.position;
-            playerTransform.rotation = lobbySpawnPoint.rotation;
-
-            Physics.SyncTransforms();
-
-            yield return null;
-
-            if (cc != null) cc.enabled = true;
+            PlayerManager.Instance.SpawnCharacterInLobby();
         }
 
         if (GoldManager.Instance != null)
@@ -203,7 +278,7 @@ public class RunManager : MonoBehaviour
             GoldManager.Instance.ResetGold();
         }
 
-        if (lobbyHUDMainObject != null) 
+        if (lobbyHUDMainObject != null)
         {
             lobbyHUDMainObject.SetActive(true);
             if (LobbyHUDTopBar.Instance != null)
@@ -216,7 +291,7 @@ public class RunManager : MonoBehaviour
         if (AccountLevelManager.Instance != null && pendingExp > 0) AccountLevelManager.Instance.AddExp(pendingExp);
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
-        pendingGem = 0; pendingExp = 0; pendingShards = 0; 
+        pendingGem = 0; pendingExp = 0; pendingShards = 0;
         if (LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.UpdateAllStatistics();

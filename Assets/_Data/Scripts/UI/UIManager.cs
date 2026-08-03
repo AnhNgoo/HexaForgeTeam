@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
@@ -6,6 +5,7 @@ using System;
 using Sirenix.OdinInspector;
 using UnityEngine.SceneManagement;
 using System.Linq;
+using DG.Tweening;
 
 public enum MenuType
 {
@@ -26,8 +26,8 @@ public enum MenuType
     HUDMenuTest = 13,
     TrophyMenu = 14,
     LanguageMenu = 15,
-    GraphicsMenu = 16,     // Đảm bảo có dòng này
-    ControllerMenu = 17,   // Đảm bảo có dòng này
+    GraphicsMenu = 16,   
+    ControllerMenu = 17,  
     GameSystemMenu = 18,
     AchievementMenu = 19,
 
@@ -40,6 +40,9 @@ public enum MenuType
     LobbyLeaderboardMenu = 106,
     LobbyShopMenu = 107,
     DefaultLobbyInputMenu = 108,
+    LobbyRunResultSummaryMenu = 109,
+    LobbyBossSelectMenu = 110,
+    LobbyNamePromptMenu = 111,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -51,6 +54,8 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] List<MenuData> menus = new List<MenuData>();
 
     [ShowInInspector] public MenuBase CurrentMenu { get; private set; }
+
+    private Dictionary<MenuType, MenuBase> menuFastLookup = new Dictionary<MenuType, MenuBase>();
 
     [Serializable]
     public class MenuData
@@ -64,6 +69,7 @@ public class UIManager : Singleton<UIManager>
         base.LoadComponent();
         LoadMenus();
     }
+
     private void LoadMenus()
     {
         if (canvas == null)
@@ -78,10 +84,11 @@ public class UIManager : Singleton<UIManager>
             return;
 
         menus.Clear();
+        menuFastLookup.Clear();
+
         foreach (MenuBase menu in menuList)
         {
-            Transform parent =
-                menu.transform.parent;
+            Transform parent = menu.transform.parent;
 
             bool nestedInsideAnotherMenu =
                 parent != null &&
@@ -95,21 +102,32 @@ public class UIManager : Singleton<UIManager>
                 menuType = menu.menuType,
                 menuBase = menu
             });
+
+            if (!menuFastLookup.ContainsKey(menu.menuType))
+            {
+                menuFastLookup.Add(menu.menuType, menu);
+            }
         }
     }
-
 
     //Chuyển đổi menu
     public void ChangeMenu(MenuType menuType, object data = null)
     {
         menus.RemoveAll(m => m == null || m.menuBase == null);
 
-        var menuData = menus.FirstOrDefault(m => m.menuType == menuType);
-        if (menuData == null || menuData.menuBase == null)
+        MenuBase targetMenu = null;
+
+        // Thử lấy từ Fast Lookup trước
+        if (!menuFastLookup.TryGetValue(menuType, out targetMenu) || targetMenu == null)
         {
-            LoadMenus();
-            menuData = menus.FirstOrDefault(m => m.menuType == menuType);
-            if (menuData == null || menuData.menuBase == null) return;
+            var menuData = menus.FirstOrDefault(m => m.menuType == menuType);
+            if (menuData == null || menuData.menuBase == null)
+            {
+                LoadMenus();
+                menuData = menus.FirstOrDefault(m => m.menuType == menuType);
+                if (menuData == null || menuData.menuBase == null) return;
+            }
+            targetMenu = menuData.menuBase;
         }
 
         PreviousMenuType = CurrentMenu?.menuType ?? MenuType.None;
@@ -117,7 +135,7 @@ public class UIManager : Singleton<UIManager>
         if (CurrentMenu != null)
             CurrentMenu.Close();
 
-        CurrentMenu = menuData.menuBase;
+        CurrentMenu = targetMenu;
         if (CurrentMenu != null)
             CurrentMenu.Open(data);
 
@@ -149,5 +167,4 @@ public class UIManager : Singleton<UIManager>
             }
         }
     }
-
 }

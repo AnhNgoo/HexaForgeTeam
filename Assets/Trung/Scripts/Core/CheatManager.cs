@@ -4,6 +4,10 @@ public class CheatManager : MonoBehaviour
 {
     public static CheatManager Instance;
 
+    [Header("UI Toggle Settings")]
+    [SerializeField] private KeyCode toggleKey = KeyCode.F1;
+    [SerializeField] private GameObject cheatPanelRoot;
+
     private void Awake()
     {
         if (Instance == null)
@@ -14,8 +18,48 @@ public class CheatManager : MonoBehaviour
         else
         {
             Destroy(gameObject);
+            return;
+        }
+
+        if (cheatPanelRoot == null)
+        {
+            cheatPanelRoot = gameObject;
         }
     }
+
+    private void Start()
+    {
+        // Luôn ẩn bảng Cheat Panel khi mới mở game
+        if (cheatPanelRoot != null)
+        {
+            cheatPanelRoot.SetActive(false);
+        }
+    }
+
+    private void Update()
+    {
+        // Nhấn F1 để bật / tắt bảng Cheat
+        if (Input.GetKeyDown(toggleKey))
+        {
+            ToggleCheatPanel();
+        }
+    }
+
+    public void ToggleCheatPanel()
+    {
+        if (cheatPanelRoot != null)
+        {
+            bool currentState = cheatPanelRoot.activeSelf;
+            cheatPanelRoot.SetActive(!currentState);
+
+            if (LobbyNotifyManager.Instance != null && !currentState)
+            {
+                LobbyNotifyManager.Instance.ShowNotify("Debug Cheat Panel Opened", Color.cyan);
+            }
+        }
+    }
+
+    #region Hack Functions
 
     public void HackGems()
     {
@@ -72,15 +116,15 @@ public class CheatManager : MonoBehaviour
             Debug.LogError("[CHEAT] AchievementManager target instance not found.");
         }
     }
-    // Thêm hàm này vào CheatManager.cs
+
     public void HackAddKillsAndRuns()
     {
         if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
             var data = SaveLoadManager.Instance.SaveData;
             
-            data.totalKills += 100; // Cộng 100 quái
-            data.totalRuns += 5;    // Cộng 5 lượt đi
+            data.totalKills += 100;
+            data.totalRuns += 5;
 
             SaveLoadManager.Instance.SaveGame();
 
@@ -89,7 +133,9 @@ public class CheatManager : MonoBehaviour
                 LeaderboardManager.Instance.UpdateAllStatistics();
             }
 
-            Debug.Log("<color=#00FFCC><b>[CHEAT]</b> Đã cộng 100 Kills & 5 Runs!</color>");
+            Debug.Log("<color=#00FFCC><b>[CHEAT]</b> Command executed: Added +100 Kills & +5 Runs!</color>");
         }
     }
+
+    #endregion
 }
