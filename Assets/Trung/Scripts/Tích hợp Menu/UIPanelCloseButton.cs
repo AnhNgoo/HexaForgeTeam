@@ -48,6 +48,21 @@ public class UIPanelCloseButton : LoadComponents
                 }
             }
 
+            // Bổ sung bắt phím ESC phân tầng riêng cho Shop Menu
+            LobbyShopMenu shopMenu = GetComponentInParent<LobbyShopMenu>();
+            if (shopMenu == null && LobbyShopMenu.FindFirstObjectByType<LobbyShopMenu>() != null)
+            {
+                shopMenu = LobbyShopMenu.FindFirstObjectByType<LobbyShopMenu>();
+            }
+
+            if (shopMenu != null && shopMenu.gameObject.activeInHierarchy)
+            {
+                if (shopMenu.HandleEscapeKey())
+                {
+                    return;
+                }
+            }
+
             ClosePanel();
         }
     }

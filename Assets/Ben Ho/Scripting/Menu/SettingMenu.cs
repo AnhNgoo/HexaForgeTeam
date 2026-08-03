@@ -18,7 +18,6 @@ public class AudioMenu : MenuBase
 
     [Header("Sound Toggles")]
     [SerializeField] private Toggle toggle_BackgroundSound;
-    [SerializeField] private Toggle toggle_CollisionSound;
 
     [Header("Buttons")]
     [SerializeField] private Button btn_Confirm;
@@ -29,7 +28,6 @@ public class AudioMenu : MenuBase
     [SerializeField] private string musicVolumeParam = "MusicVolume";
     [SerializeField] private string sfxVolumeParam = "SoundEffectsVolume";
     [SerializeField] private string dialogueVolumeParam = "DialogueVolume";
-    [SerializeField] private string collisionVolumeParam = "CollisionVolume";
 
     [Header("Embedded System Settings")]
     [SerializeField] private SystemSettingsPanel systemSettingsPanel;
@@ -91,9 +89,6 @@ public class AudioMenu : MenuBase
         if (toggle_BackgroundSound == null)
             toggle_BackgroundSound = FindDeepChild("Toggle_BackgroundSound")?.GetComponent<Toggle>();
 
-        if (toggle_CollisionSound == null)
-            toggle_CollisionSound = FindDeepChild("Toggle_CollisionSound")?.GetComponent<Toggle>();
-
         if (btn_Confirm == null)
             btn_Confirm = FindDeepChild("Btn_Confirm")?.GetComponent<Button>();
 
@@ -112,7 +107,6 @@ public class AudioMenu : MenuBase
         AddSlider(slider_DialogueVolume);
 
         AddToggle(toggle_BackgroundSound);
-        AddToggle(toggle_CollisionSound);
 
         if (btn_Confirm != null)
             btn_Confirm.onClick.AddListener(Confirm);
@@ -134,7 +128,6 @@ public class AudioMenu : MenuBase
         RemoveSlider(slider_DialogueVolume);
 
         RemoveToggle(toggle_BackgroundSound);
-        RemoveToggle(toggle_CollisionSound);
 
         if (btn_Confirm != null)
             btn_Confirm.onClick.RemoveListener(Confirm);
@@ -181,13 +174,25 @@ public class AudioMenu : MenuBase
 
     private void LoadSettings()
     {
+        if (AudioManager.Instance != null)
+        {
+            // Re-read persisted values so Back truly discards preview changes.
+            AudioManager.Instance.LoadVolumeSettings();
+            SetSlider(slider_MasterVolume, AudioManager.Instance.GetVolume(AudioChannel.Master));
+            SetSlider(slider_MusicVolume, AudioManager.Instance.GetVolume(AudioChannel.Music));
+            SetSlider(slider_SFXVolume, AudioManager.Instance.GetVolume(AudioChannel.Sfx));
+            SetSlider(slider_DialogueVolume, AudioManager.Instance.GetVolume(AudioChannel.Dialogue));
+
+            SetToggle(toggle_BackgroundSound, !AudioManager.Instance.IsMuted(AudioChannel.Music));
+            return;
+        }
+
         SetSlider(slider_MasterVolume, PlayerPrefs.GetFloat("Audio.MasterVolume", 1f));
         SetSlider(slider_MusicVolume, PlayerPrefs.GetFloat("Audio.MusicVolume", 1f));
         SetSlider(slider_SFXVolume, PlayerPrefs.GetFloat("Audio.SFXVolume", 1f));
         SetSlider(slider_DialogueVolume, PlayerPrefs.GetFloat("Audio.DialogueVolume", 1f));
 
         SetToggle(toggle_BackgroundSound, PlayerPrefs.GetInt("Audio.BackgroundSound", 1) == 1);
-        SetToggle(toggle_CollisionSound, PlayerPrefs.GetInt("Audio.CollisionSound", 1) == 1);
     }
 
     private void SaveSettings()
@@ -198,13 +203,25 @@ public class AudioMenu : MenuBase
         SaveSlider("Audio.DialogueVolume", slider_DialogueVolume);
 
         SaveToggle("Audio.BackgroundSound", toggle_BackgroundSound);
-        SaveToggle("Audio.CollisionSound", toggle_CollisionSound);
 
         PlayerPrefs.Save();
     }
 
     private void PreviewSettings()
     {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.SetVolume(AudioChannel.Master, GetSliderValue(slider_MasterVolume), false);
+            AudioManager.Instance.SetVolume(AudioChannel.Music, GetSliderValue(slider_MusicVolume), false);
+            AudioManager.Instance.SetVolume(AudioChannel.Sfx, GetSliderValue(slider_SFXVolume), false);
+            AudioManager.Instance.SetVolume(AudioChannel.Dialogue, GetSliderValue(slider_DialogueVolume), false);
+            AudioManager.Instance.SetMuted(
+                AudioChannel.Music,
+                toggle_BackgroundSound != null && !toggle_BackgroundSound.isOn,
+                false);
+            return;
+        }
+
         if (audioMixer == null)
             return;
 
@@ -216,11 +233,6 @@ public class AudioMenu : MenuBase
             audioMixer.SetFloat(musicVolumeParam, -80f);
         else
             SetMixerVolume(musicVolumeParam, GetSliderValue(slider_MusicVolume));
-
-        if (toggle_CollisionSound != null && !toggle_CollisionSound.isOn)
-            audioMixer.SetFloat(collisionVolumeParam, -80f);
-        else
-            SetMixerVolume(collisionVolumeParam, 1f);
     }
 
     private void SetMixerVolume(string parameterName, float value)

@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
+using UnityEngine.EventSystems;
 
-public class ShopItemCardUI : LoadComponents
+public class ShopItemCardUI : LoadComponents, IPointerEnterHandler, IPointerExitHandler
 {
     [Header("UI Fields")]
     [SerializeField] private TMP_Text txtItemName;
@@ -14,6 +16,13 @@ public class ShopItemCardUI : LoadComponents
     [SerializeField] private Button buyButton;
 
     private ShopItemSO itemData;
+    private Vector3 originalScale = Vector3.one;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        originalScale = transform.localScale;
+    }
 
     public void SetupCard(ShopItemSO data)
     {
@@ -40,7 +49,6 @@ public class ShopItemCardUI : LoadComponents
         {
             if (itemData.isCustomRunePack)
             {
-                // Nếu là gói Ngọc tùy chọn -> Hiển thị text giá linh hoạt
                 costDisplayUI.gameObject.SetActive(false);
             }
             else
@@ -89,6 +97,9 @@ public class ShopItemCardUI : LoadComponents
     {
         if (itemData == null) return;
 
+        transform.DOKill();
+        transform.DOPunchScale(new Vector3(0.08f, 0.08f, 0f), 0.2f, 8, 0.5f).SetUpdate(true);
+
         if (itemData.isCustomRunePack)
         {
             if (ShopRuneSelectionPopupUI.Instance != null)
@@ -99,6 +110,28 @@ public class ShopItemCardUI : LoadComponents
         else if (ShopQuantityPopupUI.Instance != null)
         {
             ShopQuantityPopupUI.Instance.OpenPopup(itemData);
+        }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        transform.DOKill();
+        transform.DOScale(originalScale * 1.05f, 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+
+        if (itemData != null && UITooltipPanel.Instance != null)
+        {
+            UITooltipPanel.Instance.ShowTooltip(itemData.itemName, itemData.itemDescription, imgIcon != null ? imgIcon.sprite : null);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        transform.DOKill();
+        transform.DOScale(originalScale, 0.2f).SetEase(Ease.InQuad).SetUpdate(true);
+
+        if (UITooltipPanel.Instance != null)
+        {
+            UITooltipPanel.Instance.HideTooltip();
         }
     }
 

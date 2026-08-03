@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7033316357532070857
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2548182105439576435}
+  - component: {fileID: 8846220140984977459}
+  m_Layer: 0
+  m_Name: TwilightTerrorEncounterDirector
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2548182105439576435
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7033316357532070857}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8846220140984977459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7033316357532070857}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b08b8161be3a5e4c921cd0eddffe0ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  encounterPhaseCount: 2
+  bossPool:
+  - bossPoolType: 1001
+    escortGroups:
+    - enemyType: 51
+      count: 1
+    - enemyType: 53
+      count: 1
+  - bossPoolType: 1002
+    escortGroups:
+    - enemyType: 55
+      count: 1
+    - enemyType: 56
+      count: 1
+  - bossPoolType: 1003
+    escortGroups:
+    - enemyType: 50
+      count: 1
+    - enemyType: 54
+      count: 1
+  aliveEscorts: []
+  usedBosses: 
+  boss: {fileID: 0}

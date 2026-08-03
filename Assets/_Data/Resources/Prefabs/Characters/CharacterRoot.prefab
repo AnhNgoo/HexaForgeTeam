@@ -280,6 +280,8 @@ GameObject:
   - component: {fileID: 6629465236378990435}
   - component: {fileID: 4546276965906449579}
   - component: {fileID: 4158129128601078523}
+  - component: {fileID: 9075692546067147301}
+  - component: {fileID: -8029927256645247352}
   m_Layer: 3
   m_Name: CharacterRoot
   m_TagString: Player
@@ -375,7 +377,7 @@ MonoBehaviour:
   knockBackDuration: 0.05
   wallEdgeLayer:
     serializedVersion: 2
-    m_Bits: 2527
+    m_Bits: 8391135
   radiusCheck: 0.5
   distanceCheck: 1
   gravity: -100
@@ -615,6 +617,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxStamina: 0
   currentStamina: 0
+--- !u!114 &9075692546067147301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8931283889870276570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f56650ff6ec27234483f13dd50a864a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossHealthUI: {fileID: 0}
+  lockTarget: {fileID: 7137655160330117810}
+  enemyLayer:
+    serializedVersion: 2
+    m_Bits: 256
+  maxScanRange: 50
+  hideExtraRange: 5
+  scanInterval: 0.2
+--- !u!114 &-8029927256645247352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8931283889870276570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2624b4255b785dc4d95eaf1bf977581b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  exposureThreshold: 100
+  exposureDecayPerSecond: 12
+  poisonDuration: 5
+  poisonTickInterval: 1
+  poisonDamagePerTick: 8
 --- !u!1001 &3834460150445873705
 PrefabInstance:
   m_ObjectHideFlags: 0

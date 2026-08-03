@@ -7,11 +7,6 @@ public class DefaultLobbyInputMenu : MenuBase
     public override void Open(object data = null)
     {
         base.Open(data);
-
-        if (MouseManager.Instance != null)
-        {
-            MouseManager.Instance.HideMouse();
-        }
     }
 
     private void Update()
