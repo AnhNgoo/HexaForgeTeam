@@ -9,17 +9,19 @@ public class CharacterStat : MonoBehaviour
 
     private CharacterBase characterBase;
 
-    public void Init(CharacterBase CharacterBase)
+    public void Init(CharacterBase CharacterBase, CharacterStats characterStats)
     {
         this.characterBase = CharacterBase;
-        SetStats(characterBase.CharacterData.stats);
+        SetStats(characterStats);
     }
 
     public void SetStats(CharacterStats characterStats)
     {
         this.stats = characterStats;
         characterBase.CharacterHealth.SetMaxHealth(characterStats.maxHealth);
+        Debug.Log($"CharacterStat: SetMaxHealth called with maxHealth = {characterStats.maxHealth}");
         characterBase.CharacterStamina.SetMaxStamina(characterStats.stamina);
+        Debug.Log($"CharacterStat: SetMaxStamina called with stamina = {characterStats.stamina}");
         characterBase.CharacterMP.SetMaxMP(characterStats.mp);
     }
 }

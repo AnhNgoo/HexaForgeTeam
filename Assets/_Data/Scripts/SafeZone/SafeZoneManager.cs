@@ -20,6 +20,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
     public int CurrentPhaseIndex { get; private set; }
     private Transform currentTargetCenterPoint;
+    private readonly System.Random pointRandom = new System.Random(Guid.NewGuid().GetHashCode());
     [ReadOnly, SerializeField] private List<Transform> usedTargetCenterPoints = new();
     public event Action<int, Transform> OnSafeZonePhaseCompleted;
 
@@ -150,15 +151,21 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
     private Transform GetTargetCenterPoint()
     {
-        // Lấy điểm trung tâm ngẫu nhiên từ danh sách để khởi tạo vòng bo
-        if (targetCenterPoints.Count == 0) return null;
+        if (targetCenterPoints.Count == 0)
+            return null;
 
-        int randomIndex = UnityEngine.Random.Range(0, targetCenterPoints.Count);
-        Transform randomCenterPoint = targetCenterPoints[randomIndex];
+        int randomIndex = pointRandom.Next(targetCenterPoints.Count);
+        Transform selectedPoint = targetCenterPoints[randomIndex];
+
         targetCenterPoints.RemoveAt(randomIndex);
-        usedTargetCenterPoints.Add(randomCenterPoint);
+        usedTargetCenterPoints.Add(selectedPoint);
 
-        return randomCenterPoint;
+        Debug.Log(
+            $"[SafeZone] Random chọn {selectedPoint.name}, " +
+            $"còn lại {targetCenterPoints.Count} điểm."
+        );
+
+        return selectedPoint;
     }
 
     private Transform GetStartCenterPoint()
@@ -170,6 +177,23 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
             return startCenterPointObject.transform;
         }
         return null;
+    }
+
+    public void StopForFinalBoss()
+    {
+        IsActiveSafeZone = false;
+
+        if (safeZone == null)
+            return;
+
+        safeZone.StopShrinkingSafeZone();
+
+        ObjectPooling.Instance?.ReturnToPool(
+            PoolType.SafeZone,
+            safeZone.gameObject
+        );
+
+        safeZone = null;
     }
 
 #if UNITY_EDITOR

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 
 public class PlayFabDataManager : MonoBehaviour
 {
+    [SerializeField] private string sceneToLoadAfterLoading = "LobbyMain Scene";
     public static PlayFabDataManager Instance;
     private bool needSaveCloud = false;
     private float saveTimer = 0f;
@@ -87,12 +88,12 @@ public class PlayFabDataManager : MonoBehaviour
         if (result.Data == null || !result.Data.ContainsKey("PlayerData"))
         {
             Debug.Log("[CLOUD] Tài khoản mới tinh trên Cloud. Thiết lập data mặc định...");
-            
+
             SaveLoadManager.Instance.SaveData = new GameSaveData();
-            SaveLoadManager.Instance.SaveData.isTutorialCompleted = false; 
+            SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
             SaveLoadManager.Instance.SaveGame();
 
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene")); 
+            StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
             return;
         }
 
@@ -128,7 +129,7 @@ public class PlayFabDataManager : MonoBehaviour
         else
         {
             Debug.Log("[CLOUD] Tài khoản đã hoàn thành Tutorial -> Chuyển hướng tới LobbyMain Scene");
-            StartCoroutine(SwitchSceneRoutine("LobbyMain Scene"));
+            StartCoroutine(SwitchSceneRoutine(sceneToLoadAfterLoading));
         }
     }
     #endregion
@@ -184,7 +185,7 @@ public class PlayFabDataManager : MonoBehaviour
         }
 
         isSwitchingScene = false;
-    
+
     }
 
     private void OnPlayFabError(PlayFabError error)

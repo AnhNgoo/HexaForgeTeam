@@ -120,11 +120,31 @@ public class CampSpawner : MonoBehaviour
 
     private void GetPlayerTransform(object data = null)
     {
-        if (_playerTransform == null)
+        if (data is Transform playerTransform)
+        {
+            _playerTransform = playerTransform;
+        }
+        else
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null) _playerTransform = player.transform;
+            if (player != null)
+            {
+                _playerTransform = player.transform;
+            }
+            else
+            {
+                Debug.LogWarning($"<color=yellow>CẢNH BÁO: Không tìm thấy GameObject có tag 'Player'! Vui lòng đảm bảo rằng Player đã được spawn và có tag 'Player' trước khi CampSpawner cố gắng lấy Transform.</color>");
+                return;
+            }
         }
+
+        enemiesInCamp.ForEach(node =>
+        {
+            if (node.enemyInstance != null)
+            {
+                node.enemyInstance.SetPlayerReference(_playerTransform);
+            }
+        });
     }
 
     private async UniTaskVoid CampCheckRoutine()

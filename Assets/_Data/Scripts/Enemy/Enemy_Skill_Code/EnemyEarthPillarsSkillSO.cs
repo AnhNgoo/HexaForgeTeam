@@ -10,9 +10,7 @@ public enum EnemyPillarPattern
     RingWithGap
 }
 
-[CreateAssetMenu(
-    fileName = "EnemyEarthPillarsSkill",
-    menuName = "Enemy/Skills/Earth Pillars")]
+[CreateAssetMenu(fileName = "EnemyEarthPillarsSkill", menuName = "Enemy/Skills/Earth Pillars")]
 public class EnemyEarthPillarsSkillSO : EnemyAttackSkillSO
 {
     [Header("Pools")]
@@ -448,20 +446,11 @@ public class EnemyEarthPillarsSkillSO : EnemyAttackSkillSO
             ReturnWarning(warnings[i]);
     }
 
-    private static bool IsPhase2(
-        EnemyAttackContext context)
+    private static bool IsPhase2(EnemyAttackContext context)
     {
-        BruteBossBehaviour brute =
-            context.Enemy.GetComponent<BruteBossBehaviour>();
+        EnemyBossBehaviour boss = context.Enemy.GetComponent<EnemyBossBehaviour>();
 
-        if (brute != null)
-            return brute.IsPhase2Active;
-
-        VenomousQueenBossBehaviour queen =
-            context.Enemy.GetComponent<
-                VenomousQueenBossBehaviour>();
-
-        return queen != null && queen.IsPhase2Active;
+        return boss != null && boss.HasEnteredPhase2;
     }
 
     private static bool IsValid(

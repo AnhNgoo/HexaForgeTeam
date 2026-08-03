@@ -66,7 +66,7 @@ public class ThunderBeastBossBehaviour : EnemyBossBehaviour
             : speed;
     }
 
-    public float ModifyChargeDuration(float duration)
+    public override float ModifyChargeDuration(float duration)
     {
         return IsPhase2
             ? duration / phase2ChargeSpeedMultiplier
@@ -157,7 +157,7 @@ public class ThunderBeastBossBehaviour : EnemyBossBehaviour
         Enemy.Locomotion.SetSpeed(Enemy.Data.moveSpeed);
     }
 
-    public void SetChargeTrail(bool value)
+    public override void SetChargeTrail(bool value)
     {
         if (chargeTrail == null)
             return;

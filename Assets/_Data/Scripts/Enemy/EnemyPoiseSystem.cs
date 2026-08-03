@@ -4,6 +4,7 @@ public class EnemyPoiseSystem : MonoBehaviour
 {
     private EnemyBase _enemyBase;
     private float currentPoise;
+    public float CurrentPoiseDamage => currentPoise;
 
     public void Initialize(EnemyBase enemyBase)
     {
@@ -33,4 +34,10 @@ public class EnemyPoiseSystem : MonoBehaviour
         currentPoise = 0f;
         Debug.Log($"{gameObject.name} - Poise đã được reset.");
     }
+    public void RecoverPoise(float amount)
+    {
+        if (amount <= 0f || currentPoise <= 0f) return;
+        currentPoise = Mathf.Max(0f, currentPoise - amount);
+    }
+
 }
