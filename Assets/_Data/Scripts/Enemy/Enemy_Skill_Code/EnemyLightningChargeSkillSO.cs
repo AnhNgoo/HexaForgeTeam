@@ -62,12 +62,9 @@ public class EnemyLightningChargeSkillSO : EnemyAttackSkillSO
             return;
         }
 
-        ThunderBeastBossBehaviour behaviour =
-            enemy.GetComponent<ThunderBeastBossBehaviour>();
+        EnemyMinibossBehaviour behaviour = enemy.MinibossBehaviour;
+        float realDuration = behaviour?.ModifyChargeDuration(chargeDuration) ?? chargeDuration;
 
-        float realDuration = behaviour != null
-            ? behaviour.ModifyChargeDuration(chargeDuration)
-            : chargeDuration;
 
         Vector3 start = enemy.MyTransform.position;
         float lockedY = start.y;
