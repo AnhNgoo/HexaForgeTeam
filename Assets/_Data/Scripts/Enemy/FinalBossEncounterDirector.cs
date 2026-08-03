@@ -6,12 +6,19 @@ public class FinalBossEncounterDirector : MonoBehaviour
 {
     [SerializeField] private TwilightTerrorEncounterDirector twilightDirector;
     [SerializeField] private FinalBossArena arena;
-    [SerializeField] private PoolType[] finalBossPool;
+    [SerializeField] private PoolType fallbackFinalBossPool = PoolType.EnemyEarthshakerBoss;
+    [SerializeField] private bool startOnSceneLoad;
 
     private EnemyBase _boss;
     private bool _started;
 
     public event Action OnFinalBossDefeated;
+
+    private void Start()
+    {
+        if (startOnSceneLoad)
+            StartEncounter();
+    }
 
     private void OnEnable()
     {
@@ -31,8 +38,7 @@ public class FinalBossEncounterDirector : MonoBehaviour
     [Button("Debug: Start Final Boss")]
     public void StartEncounter()
     {
-        if (_started || arena == null || finalBossPool == null ||
-            finalBossPool.Length == 0)
+        if (_started || arena == null)
             return;
 
         if (arena.PlayerSpawnPoint == null || arena.BossSpawnPoint == null)
@@ -45,8 +51,21 @@ public class FinalBossEncounterDirector : MonoBehaviour
         TeleportPlayer(player, arena.PlayerSpawnPoint);
         arena.SetLocked(true);
 
-        PoolType type = finalBossPool[UnityEngine.Random.Range(0, finalBossPool.Length)];
+        PoolType type = RunManager.Instance != null ? RunManager.Instance.SelectedFinalBossPool : fallbackFinalBossPool;
+
+        if (type == PoolType.None)
+        {
+            Debug.LogError("Chưa chọn Final Boss Pool.");
+            arena.SetLocked(false);
+            return;
+        }
+
         Transform point = arena.BossSpawnPoint;
+        if (ObjectPooling.Instance == null)
+        {
+            Debug.LogError("[FinalBoss] Không tìm thấy ObjectPooling.");
+            return;
+        }
         GameObject instance = ObjectPooling.Instance.SpawnFromPool(
             type, point.position, point.rotation
         );
@@ -69,6 +88,7 @@ public class FinalBossEncounterDirector : MonoBehaviour
         };
 
         _started = true;
+        _boss.GetComponent<EnemyFinalBossBehaviour>()?.ConfigureArena(arena);
         _boss.InitFromCamp(null, node, player);
         _boss.EventManager.OnDead += HandleBossDead;
     }

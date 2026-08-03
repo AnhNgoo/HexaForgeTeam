@@ -7,20 +7,33 @@ public class RunManager : MonoBehaviour
     public static RunManager Instance;
 
     [Header("Scene Config")]
-    [SerializeField] private string gameplaySceneName = "Run Scene"; 
+    [SerializeField] private string gameplaySceneName = "Run Scene";
 
     [Header("Lobby Spawn Settings")]
-    [SerializeField] private Transform lobbySpawnPoint;   
-    [SerializeField] private GameObject lobbyVisuals;    
+    [SerializeField] private Transform lobbySpawnPoint;
+    [SerializeField] private GameObject lobbyVisuals;
 
     [Header("HUD Controller")]
     [SerializeField] private GameObject lobbyHUDMainObject;
 
     private int pendingGem;
     private int pendingExp;
-    private int pendingShards; 
+    private int pendingShards;
 
     private bool isRunActive = false;
+
+    [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
+
+    public PoolType SelectedFinalBossPool => selectedFinalBossPool;
+
+    public void ConfigureRun(string sceneName, PoolType finalBossPool)
+    {
+        if (!string.IsNullOrWhiteSpace(sceneName))
+            gameplaySceneName = sceneName;
+
+        if (finalBossPool != PoolType.None)
+            selectedFinalBossPool = finalBossPool;
+    }
 
     private void Awake()
     {
@@ -52,6 +65,46 @@ public class RunManager : MonoBehaviour
         }
 
         StartCoroutine(LoadSceneCoroutine());
+    }
+
+    public void EnterFinalBoss(string sceneName)
+    {
+        if (!isRunActive || string.IsNullOrWhiteSpace(sceneName))
+            return;
+
+        StartCoroutine(EnterFinalBossCoroutine(sceneName));
+    }
+
+    private IEnumerator EnterFinalBossCoroutine(string sceneName)
+    {
+        if (InteractManagerV2.Instance != null)
+            InteractManagerV2.Instance.IsBusy = true;
+
+        SafeZoneManager.Instance?.StopForFinalBoss();
+
+        Scene previousRunScene = SceneManager.GetSceneByName(gameplaySceneName);
+
+        AsyncOperation load = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+        while (!load.isDone)
+            yield return null;
+
+        Scene finalBossScene = SceneManager.GetSceneByName(sceneName);
+
+        if (finalBossScene.IsValid()) SceneManager.SetActiveScene(finalBossScene);
+
+        gameplaySceneName = sceneName;
+
+        if (previousRunScene.isLoaded)
+        {
+            AsyncOperation unload = SceneManager.UnloadSceneAsync(previousRunScene);
+
+            while (unload != null && !unload.isDone)
+                yield return null;
+        }
+
+        if (InteractManagerV2.Instance != null)
+            InteractManagerV2.Instance.IsBusy = false;
     }
 
     private IEnumerator LoadSceneCoroutine()
@@ -127,7 +180,7 @@ public class RunManager : MonoBehaviour
             Physics.SyncTransforms();
         }
 
-        isRunActive = true; 
+        isRunActive = true;
 
         yield return new WaitForSeconds(0.4f);
 
@@ -211,7 +264,7 @@ public class RunManager : MonoBehaviour
             GoldManager.Instance.ResetGold();
         }
 
-        if (lobbyHUDMainObject != null) 
+        if (lobbyHUDMainObject != null)
         {
             lobbyHUDMainObject.SetActive(true);
             if (LobbyHUDTopBar.Instance != null)
@@ -224,7 +277,7 @@ public class RunManager : MonoBehaviour
         if (AccountLevelManager.Instance != null && pendingExp > 0) AccountLevelManager.Instance.AddExp(pendingExp);
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
-        pendingGem = 0; pendingExp = 0; pendingShards = 0; 
+        pendingGem = 0; pendingExp = 0; pendingShards = 0;
         if (LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.UpdateAllStatistics();

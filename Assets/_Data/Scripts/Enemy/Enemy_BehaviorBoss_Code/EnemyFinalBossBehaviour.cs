@@ -58,6 +58,8 @@ public abstract class EnemyFinalBossBehaviour : EnemyBossBehaviour
     public override void ResetBehaviour()
     {
         base.ResetBehaviour();
+
+        Arena = null;
         _combatStartTime = -1f;
         IsEnraged = false;
     }
