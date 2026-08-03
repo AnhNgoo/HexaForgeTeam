@@ -58,6 +58,11 @@ public class RuneRerollUI : MonoBehaviour
 
         if (useTargetRerollToggle != null) useTargetRerollToggle.onValueChanged.AddListener((x) => UpdateCostVisual());
         if (statTargetDropdown != null) statTargetDropdown.onValueChanged.AddListener((x) => UpdateCostVisual());
+        if (useTargetRerollToggle != null)
+{
+    var trigger = useTargetRerollToggle.GetComponent<UITooltipAutoTrigger>() ?? useTargetRerollToggle.gameObject.AddComponent<UITooltipAutoTrigger>();
+    trigger.SetData("Lock-On Reroll", "Requires 1 Reroll Scroll. Allows selecting a specific stat type to transform into.");
+}
     }
 
     public bool IsPanelActive()

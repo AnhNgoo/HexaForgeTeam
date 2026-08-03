@@ -56,7 +56,6 @@ public class AchievementCardUI : LoadComponents
             ProgressText.SetTextSafe($"{achievementData.currentProgress} / {achievementData.targetProgress}");
         }
 
-        // DOTween cho Slider Tiến Trình
         if (progressSlider != null)
         {
             progressSlider.maxValue = achievementData.targetProgress;
@@ -103,7 +102,6 @@ public class AchievementCardUI : LoadComponents
     {
         if (achievementData == null || !achievementData.isCompleted || achievementData.isClaimed) return;
 
-        // Hiệu ứng nảy nút Claim bằng DOTween
         if (ClaimButton != null)
         {
             ClaimButton.transform.DOPunchScale(new Vector3(0.2f, 0.2f, 0f), 0.3f, 8, 0.5f);

@@ -40,9 +40,6 @@ public class Dodge : LoadComponents
 
     private string GetDodgeBindingDisplay()
     {
-        if (InputManager.InputActions == null)
-            return "Space";
-
         InputAction dodgeAction =
             InputManager.InputActions.Keyboard.Dodge;
 
@@ -50,17 +47,17 @@ public class Dodge : LoadComponents
              index < dodgeAction.bindings.Count;
              index++)
         {
-            if (dodgeAction.bindings[index].name == "dodge")
+            if (dodgeAction.bindings[index].name == "Left Shift")
             {
                 string displayText =
                     dodgeAction.GetBindingDisplayString(index);
 
                 return string.IsNullOrWhiteSpace(displayText)
-                    ? "Space"
+                    ? "Left Shift"
                     : displayText;
             }
         }
 
-        return "Space";
+        return "Left Shift";
     }
 }

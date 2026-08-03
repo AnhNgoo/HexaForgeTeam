@@ -7,20 +7,36 @@ public class RunManager : MonoBehaviour
     public static RunManager Instance;
 
     [Header("Scene Config")]
-    [SerializeField] private string gameplaySceneName = "Run Scene"; 
+    [SerializeField] private string gameplaySceneName = "Run Scene";
 
     [Header("Lobby Spawn Settings")]
-    [SerializeField] private Transform lobbySpawnPoint;   
-    [SerializeField] private GameObject lobbyVisuals;    
+    [SerializeField] private Transform lobbySpawnPoint;
+    [SerializeField] private GameObject lobbyVisuals;
 
     [Header("HUD Controller")]
     [SerializeField] private GameObject lobbyHUDMainObject;
 
+    [Header("Run Damage Statistics")]
+    private float totalDamageDealt;
+
     private int pendingGem;
     private int pendingExp;
-    private int pendingShards; 
+    private int pendingShards;
 
     private bool isRunActive = false;
+
+    [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
+
+    public PoolType SelectedFinalBossPool => selectedFinalBossPool;
+
+    public void ConfigureRun(string sceneName, PoolType finalBossPool)
+    {
+        if (!string.IsNullOrWhiteSpace(sceneName))
+            gameplaySceneName = sceneName;
+
+        if (finalBossPool != PoolType.None)
+            selectedFinalBossPool = finalBossPool;
+    }
 
     private void Awake()
     {
@@ -29,6 +45,22 @@ public class RunManager : MonoBehaviour
     }
 
     public string GetGameplaySceneName() => gameplaySceneName;
+
+    /// <summary>
+    /// Hàm gọi từ Player để tích lũy Sát thương tổng đã gây ra
+    /// </summary>
+    public void RegisterDamage(float amount)
+    {
+        if (amount <= 0) return;
+        totalDamageDealt += amount;
+    }
+
+    public float GetTotalDamage() => totalDamageDealt;
+
+    public void ResetDamageData()
+    {
+        totalDamageDealt = 0f;
+    }
 
     public void SetPendingRewards(int gem, int exp, int shards)
     {
@@ -40,6 +72,8 @@ public class RunManager : MonoBehaviour
     public void StartRun()
     {
         if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy) return;
+
+        ResetDamageData(); // Reset Damage khi bắt đầu Run mới
 
         if (UIManager.Instance != null)
         {
@@ -54,9 +88,48 @@ public class RunManager : MonoBehaviour
         StartCoroutine(LoadSceneCoroutine());
     }
 
+    public void EnterFinalBoss(string sceneName)
+    {
+        if (!isRunActive || string.IsNullOrWhiteSpace(sceneName))
+            return;
+
+        StartCoroutine(EnterFinalBossCoroutine(sceneName));
+    }
+
+    private IEnumerator EnterFinalBossCoroutine(string sceneName)
+    {
+        if (InteractManagerV2.Instance != null)
+            InteractManagerV2.Instance.IsBusy = true;
+
+        SafeZoneManager.Instance?.StopForFinalBoss();
+
+        Scene previousRunScene = SceneManager.GetSceneByName(gameplaySceneName);
+
+        AsyncOperation load = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+
+        while (!load.isDone)
+            yield return null;
+
+        Scene finalBossScene = SceneManager.GetSceneByName(sceneName);
+
+        if (finalBossScene.IsValid()) SceneManager.SetActiveScene(finalBossScene);
+
+        gameplaySceneName = sceneName;
+
+        if (previousRunScene.isLoaded)
+        {
+            AsyncOperation unload = SceneManager.UnloadSceneAsync(previousRunScene);
+
+            while (unload != null && !unload.isDone)
+                yield return null;
+        }
+
+        if (InteractManagerV2.Instance != null)
+            InteractManagerV2.Instance.IsBusy = false;
+    }
+
     private IEnumerator LoadSceneCoroutine()
     {
-        // 1. Mở Scene Loading
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
@@ -67,7 +140,6 @@ public class RunManager : MonoBehaviour
             LoadingUIManager.Instance.SetDestinationName(gameplaySceneName);
         }
 
-        // 2. Load Scene Gameplay
         AsyncOperation load = SceneManager.LoadSceneAsync(gameplaySceneName, LoadSceneMode.Additive);
         load.allowSceneActivation = false;
 
@@ -79,7 +151,6 @@ public class RunManager : MonoBehaviour
         load.allowSceneActivation = true;
         while (!load.isDone) yield return null;
 
-        // --- FIX CỨNG: ÉP RUN SCENE THÀNH ACTIVE SCENE TRƯỚC KHI BẤT KỲ SPAWNER NÀO CHẠY ---
         Scene runScene = SceneManager.GetSceneByName(gameplaySceneName);
         if (runScene.IsValid())
         {
@@ -94,7 +165,6 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
 
-        // 3. Chuyển Player sang hẳn Run Scene & Chuẩn hóa Tag "Player"
         CharacterBase charBase = null;
         if (PlayerManager.Instance != null)
         {
@@ -103,7 +173,6 @@ public class RunManager : MonoBehaviour
 
         if (charBase != null)
         {
-            // Ép Player thuộc về Run Scene
             if (runScene.IsValid() && charBase.gameObject.scene != runScene)
             {
                 SceneManager.MoveGameObjectToScene(charBase.gameObject, runScene);
@@ -127,11 +196,10 @@ public class RunManager : MonoBehaviour
             Physics.SyncTransforms();
         }
 
-        isRunActive = true; 
+        isRunActive = true;
 
         yield return new WaitForSeconds(0.4f);
 
-        // 4. Tắt Scene Loading
         Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
         if (loadingScene.isLoaded)
         {
@@ -200,7 +268,6 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        // Tự động Spawn lại Player tại Sảnh khi kết thúc Run
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();
@@ -211,7 +278,7 @@ public class RunManager : MonoBehaviour
             GoldManager.Instance.ResetGold();
         }
 
-        if (lobbyHUDMainObject != null) 
+        if (lobbyHUDMainObject != null)
         {
             lobbyHUDMainObject.SetActive(true);
             if (LobbyHUDTopBar.Instance != null)
@@ -224,7 +291,7 @@ public class RunManager : MonoBehaviour
         if (AccountLevelManager.Instance != null && pendingExp > 0) AccountLevelManager.Instance.AddExp(pendingExp);
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
-        pendingGem = 0; pendingExp = 0; pendingShards = 0; 
+        pendingGem = 0; pendingExp = 0; pendingShards = 0;
         if (LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.UpdateAllStatistics();

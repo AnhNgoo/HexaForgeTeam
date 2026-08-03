@@ -346,6 +346,7 @@ public class ShopRuneSelectionPopupUI : MonoBehaviour
         {
             isAnimating = false;
         });
+
     }
 
     private void SetTogglesInteractable(bool interactable)
@@ -477,5 +478,9 @@ public class ShopRuneSelectionPopupUI : MonoBehaviour
                 }
                 break;
         }
+    }
+    public bool IsPopupActive()
+    {
+        return popupRoot != null && popupRoot.activeInHierarchy;
     }
 }

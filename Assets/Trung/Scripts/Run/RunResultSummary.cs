@@ -1,61 +1,144 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
+using DG.Tweening;
 
 public class RunResultSummary : MonoBehaviour
 {
     public static RunResultSummary Instance;
 
-    [Header("UI Panels")]
-    [SerializeField] private GameObject summaryPanel; 
+    [Header("UI Canvas Group & Background")]
+    [SerializeField] private CanvasGroup mainCanvasGroup;
+    [SerializeField] private Image bgOverlay;
 
-    [Header("Summary Texts")]
-    [SerializeField] private TMP_Text txtStatsNotify; 
-    [SerializeField] private TMP_Text txtRewards;     
+    [Header("Title Banner (Elden Style)")]
+    [SerializeField] private TMP_Text txtTitleBanner; 
+
+    [Header("Stats Texts")]
+    [SerializeField] private TMP_Text txtTimeElapsed;
+    [SerializeField] private TMP_Text txtTotalDamage; // Text hiển thị Total Damage
+    [SerializeField] private TMP_Text txtNormalCount;
+    [SerializeField] private TMP_Text txtEliteCount;
+    [SerializeField] private TMP_Text txtBossCount;
+    [SerializeField] private TMP_Text txtFinalBossCount;
+    [SerializeField] private TMP_Text txtTotalScore;
+
+    [Header("Rewards Texts")]
+    [SerializeField] private TMP_Text txtGemReward;
+    [SerializeField] private TMP_Text txtShardReward;
+    [SerializeField] private TMP_Text txtExpReward;
+
+    [Header("Action Buttons")]
+    [SerializeField] private Button btnReturnLobby;
+    [SerializeField] private CanvasGroup buttonCanvasGroup;
 
     private int calculatedGem;
     private int calculatedExp;
-    private int calculatedShards; 
+    private int calculatedShards;
 
-    private void Awake()
+    private void Awake() => Instance = this;
+
+    public void DisplaySummary(int normal, int elite, int boss, int finalBoss, bool isVictory)
     {
-        Instance = this;
-        if (summaryPanel != null) summaryPanel.SetActive(false); 
-    }
-
-    public void DisplaySummary(int normalKilled, int eliteKilled, int bossKilled)
-    {
-        if (summaryPanel == null) return;
-
-        int totalKills = normalKilled + eliteKilled + bossKilled;
-        int calculatedScore = (normalKilled * 100) + (eliteKilled * 300) + (bossKilled * 1000);
-
-        calculatedGem = (normalKilled * 2) + (eliteKilled * 10) + (bossKilled * 50);
-        calculatedExp = (normalKilled * 10) + (eliteKilled * 30) + (bossKilled * 100);
-        calculatedShards = (normalKilled * 5) + (eliteKilled * 20) + (bossKilled * 150);
-
-        int weaponShards = Mathf.Clamp(totalKills / 10, 1, 5) + (bossKilled * 2);
-
-        if (txtStatsNotify != null)
+        if (UIManager.Instance != null)
         {
-            txtStatsNotify.SetTextSafe($"<b><color=#FFCC00>VICTORY ACHIEVED</color></b>\n\n" +
-                                      $"Normal Monsters: <color=#FFFFFF>{normalKilled}</color>\n" +
-                                      $"Elite Monsters: <color=#FFCC00>{eliteKilled}</color>\n" +
-                                      $"Boss Targets: <color=#FF3333>{bossKilled}</color>\n\n" +
-                                      $"Total Score: <color=#FFFF66>{calculatedScore}</color>");
+            UIManager.Instance.ChangeMenu(MenuType.LobbyRunResultSummaryMenu);
         }
 
-        if (txtRewards != null)
+        if (mainCanvasGroup != null) mainCanvasGroup.alpha = 0f;
+        if (buttonCanvasGroup != null) buttonCanvasGroup.alpha = 0f;
+
+        // Lấy thời gian & Total Damage
+        float timeElapsed = RunGameplayController.Instance != null ? RunGameplayController.Instance.TimeElapsed : Random.Range(90f, 240f);
+        float totalDamage = RunGameplayController.Instance != null ? RunGameplayController.Instance.TotalDamageDealt : (RunManager.Instance != null ? RunManager.Instance.GetTotalDamage() : 0);
+
+        int minutes = Mathf.FloorToInt(timeElapsed / 60f);
+        int seconds = Mathf.FloorToInt(timeElapsed % 60f);
+        string timeFormatted = $"{minutes:00}:{seconds:00}";
+
+        int totalKills = normal + elite + boss + finalBoss;
+
+        // Tính Total Score bao gồm cả TOTAL DAMAGE (1 Damage = 1 Point)
+        int damageScore = Mathf.RoundToInt(totalDamage);
+        int killScore = (normal * 100) + (elite * 300) + (boss * 1000) + (finalBoss * 5000);
+        int totalScore = damageScore + killScore;
+
+        calculatedGem = (normal * 2) + (elite * 10) + (boss * 50) + (finalBoss * 300);
+        calculatedExp = (normal * 10) + (elite * 30) + (boss * 100) + (finalBoss * 500);
+        calculatedShards = (normal * 5) + (elite * 20) + (boss * 150) + (finalBoss * 1000);
+
+        // Reset hiển thị ban đầu
+        SetupTextInitial(txtTimeElapsed, "TIME SURVIVED", 0);
+        SetupTextInitial(txtTotalDamage, "TOTAL DAMAGE", 0);
+        SetupTextInitial(txtNormalCount, "NORMAL ENEMIES", 0);
+        SetupTextInitial(txtEliteCount, "ELITE FOES", 0);
+        SetupTextInitial(txtBossCount, "BOSS TARGETS", 0);
+        SetupTextInitial(txtFinalBossCount, "NIGHTMARE LORD", 0);
+        SetupTextInitial(txtTotalScore, "TOTAL SCORE", 0);
+
+        SetupTextInitial(txtGemReward, "CRYSTALS", 0, "+");
+        SetupTextInitial(txtShardReward, "RUNE SHARDS", 0, "+");
+        SetupTextInitial(txtExpReward, "ACCOUNT EXP", 0, "+");
+
+        // Thiết lập Tiêu đề
+        if (txtTitleBanner != null)
         {
-            txtRewards.SetTextSafe($"<b><color=#00FFCC>REWARDS ACQUIRED</color></b>\n\n" +
-                                  $"- Crystals: <color=#33FFFF>+{calculatedGem}</color>\n" +
-                                  $"- Rune Shards: <color=#CC66FF>+{calculatedShards}</color>\n" +
-                                  $"- Account EXP: <color=#33FF33>+{calculatedExp}</color>\n" +
-                                  $"- Weapon Shards: <color=#FFA500>+{weaponShards}</color>");
+            if (isVictory)
+            {
+                txtTitleBanner.text = "NIGHT FELL\n<size=45%><color=#FFD700>VICTORY ACHIEVED</color></size>";
+                txtTitleBanner.color = new Color(1f, 0.85f, 0.3f, 1f);
+            }
+            else
+            {
+                txtTitleBanner.text = "YOU DIED\n<size=45%><color=#FF3333>NIGHTMARE PREVAILS</color></size>";
+                txtTitleBanner.color = new Color(0.9f, 0.2f, 0.2f, 1f);
+            }
+            txtTitleBanner.transform.localScale = Vector3.one * 2.2f;
         }
 
-        summaryPanel.SetActive(true);
+        // ===== CHUỖI HIỆU ỨNG DOTWEEN CINEMATIC =====
+        Sequence seq = DOTween.Sequence();
 
-        // ===== BỔ SUNG: LƯU TỔNG KILLS & TĂNG RUNS VÀO SAVE DATA MỖI KHI SUMMARY HIỆN =====
+        if (bgOverlay != null)
+        {
+            bgOverlay.color = new Color(0, 0, 0, 0);
+            seq.Append(bgOverlay.DOFade(0.85f, 0.6f));
+        }
+
+        if (mainCanvasGroup != null) seq.Join(mainCanvasGroup.DOFade(1f, 0.5f));
+
+        if (txtTitleBanner != null)
+        {
+            seq.Append(txtTitleBanner.transform.DOScale(1f, 0.45f).SetEase(Ease.OutBack));
+            seq.Append(txtTitleBanner.transform.DOPunchScale(Vector3.one * 0.1f, 0.2f, 2, 0.5f));
+        }
+
+        seq.AppendInterval(0.15f);
+
+        // Dập các dòng chỉ số diệt quái LẦN LƯỢT
+        AppendSlamTextCustom(seq, txtTimeElapsed, $"TIME SURVIVED   <color=#FFFFFF>{timeFormatted}</color>", 0.2f);
+        AppendSlamText(seq, txtTotalDamage, "TOTAL DAMAGE", Mathf.RoundToInt(totalDamage), 0.2f);
+        AppendSlamText(seq, txtNormalCount, "NORMAL ENEMIES", normal, 0.18f);
+        AppendSlamText(seq, txtEliteCount, "ELITE FOES", elite, 0.18f);
+        AppendSlamText(seq, txtBossCount, "BOSS TARGETS", boss, 0.18f);
+        AppendSlamText(seq, txtFinalBossCount, "NIGHTMARE LORD", finalBoss, 0.18f);
+        AppendSlamText(seq, txtTotalScore, "<color=#FFD700>TOTAL SCORE</color>", totalScore, 0.3f);
+
+        seq.AppendInterval(0.15f);
+
+        // Dập phần thưởng LẦN LƯỢT
+        AppendSlamText(seq, txtGemReward, "CRYSTALS", calculatedGem, 0.18f, "+");
+        AppendSlamText(seq, txtShardReward, "RUNE SHARDS", calculatedShards, 0.18f, "+");
+        AppendSlamText(seq, txtExpReward, "ACCOUNT EXP", calculatedExp, 0.18f, "+");
+
+        seq.AppendInterval(0.2f);
+
+        if (buttonCanvasGroup != null)
+        {
+            seq.Append(buttonCanvasGroup.DOFade(1f, 0.4f));
+            seq.Append(btnReturnLobby.transform.DOPunchScale(Vector3.one * 0.08f, 0.3f, 1, 0.5f));
+        }
+
         OnRunEnded(totalKills);
 
         if (RunManager.Instance != null)
@@ -65,24 +148,51 @@ public class RunResultSummary : MonoBehaviour
 
         if (AchievementManager.Instance != null)
         {
-            AchievementManager.Instance.AddKillProgress(totalKills, bossKilled);
+            AchievementManager.Instance.AddKillProgress(totalKills, boss + finalBoss);
         }
+    }
 
-        if (RuneInventoryManager.Instance != null)
+    private void SetupTextInitial(TMP_Text textTarget, string label, int val, string prefix = "")
+    {
+        if (textTarget == null) return;
+        textTarget.text = $"{label}   {prefix}{val}";
+        textTarget.transform.localScale = Vector3.zero;
+    }
+
+    private void AppendSlamText(Sequence seq, TMP_Text textTarget, string label, int finalVal, float duration, string prefix = "")
+    {
+        if (textTarget == null) return;
+
+        seq.AppendCallback(() =>
         {
-            RuneColor randomColor = (RuneColor)Random.Range(0, 3);
-            RuneRarity randomRarity = RuneRarity.Common;
-            
-            if (bossKilled > 0) randomRarity = RuneRarity.Epic;
-            else if (eliteKilled > 0) randomRarity = (Random.Range(0, 2) == 0) ? RuneRarity.Rare : RuneRarity.Common;
+            textTarget.transform.localScale = Vector3.one * 1.4f;
+            int currentVal = 0;
 
-            RuneData newRune = new RuneData(randomColor, randomRarity)
-            {
-                runeName = $"Relic: {randomRarity} {randomColor}",
-                runeLore = "An ancient relic recovered from the deep nightmare."
-            };
-            RuneInventoryManager.Instance.AddRune(newRune);
-        }
+            DOTween.To(() => currentVal, x => currentVal = x, finalVal, duration)
+                .SetEase(Ease.OutQuad)
+                .OnUpdate(() =>
+                {
+                    textTarget.text = $"{label}   <color=#FFD700>{prefix}{currentVal:N0}</color>";
+                });
+
+            textTarget.transform.DOScale(1f, duration).SetEase(Ease.OutBack);
+        });
+
+        seq.AppendInterval(duration + 0.04f);
+    }
+
+    private void AppendSlamTextCustom(Sequence seq, TMP_Text textTarget, string fullContent, float duration)
+    {
+        if (textTarget == null) return;
+
+        seq.AppendCallback(() =>
+        {
+            textTarget.text = fullContent;
+            textTarget.transform.localScale = Vector3.one * 1.4f;
+            textTarget.transform.DOScale(1f, duration).SetEase(Ease.OutBack);
+        });
+
+        seq.AppendInterval(duration + 0.04f);
     }
 
     public void OnConfirmAndReturn()
@@ -92,23 +202,17 @@ public class RunResultSummary : MonoBehaviour
             RunManager.Instance.ReturnToLobby();
         }
     }
-    // Gọi hàm này khi kết thúc 1 lượt chơi (Ví dụ trong SummaryUI hoặc RunManager)
+
     public void OnRunEnded(int killsInThisRun)
     {
         if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
             var data = SaveLoadManager.Instance.SaveData;
-
-            // 1. Cộng thêm 1 lượt đi hầm ngục
             data.totalRuns += 1;
-
-            // 2. Cộng thêm số quái giết được trong lượt chơi này
             data.totalKills += killsInThisRun;
 
-            // 3. Lưu Save Data
             SaveLoadManager.Instance.SaveGame();
 
-            // 4. Đồng bộ ngay lập tức lên PlayFab Leaderboard
             if (LeaderboardManager.Instance != null)
             {
                 LeaderboardManager.Instance.UpdateAllStatistics();

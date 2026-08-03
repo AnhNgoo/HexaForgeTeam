@@ -88,6 +88,13 @@ public enum PoolType
     NightStalkerVacuum = 1014,
     NightStalkerRainTelegraph = 1015,
     NightStalkerRainStrike = 1016,
+    EnemyEarthshakerBoss = 1101,
+    EnemyDarkMageBoss = 1102,
+    EarthshakerThorn = 1103,
+    EarthshakerSandBreath = 1104,
+    EarthshakerCrackTelegraph = 1105,
+    EarthshakerCrackEruption = 1106,
+
 }
 
 [System.Serializable]

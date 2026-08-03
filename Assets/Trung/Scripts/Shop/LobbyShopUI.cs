@@ -47,17 +47,6 @@ public class LobbyShopUI : LoadComponents
         RefreshShopUI();
     }
 
-    private void Update()
-    {
-        if (shopPanelRoot != null && shopPanelRoot.activeSelf)
-        {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                CloseShop();
-            }
-        }
-    }
-
     public void OpenShop()
     {
         if (shopPanelRoot != null)
@@ -87,10 +76,48 @@ public class LobbyShopUI : LoadComponents
 
     public void HideShopPanel()
     {
+        // Đóng sạch cả 2 Popup nếu còn lỡ bật khi tắt Shop
+        if (ShopRuneSelectionPopupUI.Instance != null && ShopRuneSelectionPopupUI.Instance.IsPopupActive())
+        {
+            ShopRuneSelectionPopupUI.Instance.HidePopup();
+        }
+
+        if (ShopQuantityPopupUI.Instance != null && ShopQuantityPopupUI.Instance.IsPopupActive())
+        {
+            ShopQuantityPopupUI.Instance.HidePopup();
+        }
+
         if (shopPanelRoot != null)
         {
             shopPanelRoot.SetActive(false);
         }
+    }
+
+    /// <summary>
+    /// Xử lý phím ESC theo tầng ưu tiên: Popup Chọn Ngọc -> Popup Số Lượng -> Đóng Shop
+    /// </summary>
+    public bool HandleEscapeKey()
+    {
+        // Ưu tiên 1: Đóng Popup chọn Ngọc tùy chỉnh
+        if (ShopRuneSelectionPopupUI.Instance != null && ShopRuneSelectionPopupUI.Instance.IsPopupActive())
+        {
+            ShopRuneSelectionPopupUI.Instance.HidePopup();
+            return true;
+        }
+
+        // Ưu tiên 2: Đóng Popup chọn số lượng mua
+        if (ShopQuantityPopupUI.Instance != null && ShopQuantityPopupUI.Instance.IsPopupActive())
+        {
+            ShopQuantityPopupUI.Instance.HidePopup();
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool IsShopPanelActive()
+    {
+        return shopPanelRoot != null && shopPanelRoot.activeInHierarchy;
     }
 
     public void InitializeShopGrid()
