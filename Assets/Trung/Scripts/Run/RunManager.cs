@@ -206,6 +206,7 @@ public class RunManager : MonoBehaviour
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
             while (!unloadLoading.isDone) yield return null;
         }
+        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 
     public void ReturnToLobby()
@@ -271,6 +272,7 @@ public class RunManager : MonoBehaviour
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();
+            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
         if (GoldManager.Instance != null)

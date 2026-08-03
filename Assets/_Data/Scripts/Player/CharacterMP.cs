@@ -28,6 +28,10 @@ public class CharacterMP : MonoBehaviour
         AddMPOverTime();
     }
 
+    public void ResetMP()
+    {
+        SetMaxMP(maxMP, true);
+    }
     public void SetMaxMP(float maxMP, bool fullRegen = true)
     {
         float normalizedMaxMP = Mathf.Max(1f, maxMP);

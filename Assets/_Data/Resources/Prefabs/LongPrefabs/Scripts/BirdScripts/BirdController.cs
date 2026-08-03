@@ -342,7 +342,7 @@ public class BirdController : MonoBehaviour
             particleInstance
         );
     }
-    
+
     public void SetupRoute(Transform newDestination)
     {
         destination = newDestination;

@@ -45,7 +45,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd400d1067edf4846a036fd85f8d242c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isDontDestroyOnLoad: 1
+  isDontDestroyOnLoad: 0
   characterList:
   - character: 1
     characterData: {fileID: 11400000, guid: df5f41cc1c3a84246847b9195d806820, type: 2}
@@ -60,6 +60,14 @@ MonoBehaviour:
     characterData: {fileID: 0}
   offsetSpawnPoint: {x: 0, y: 0, z: 0}
   spawnPointInLobby: {fileID: 0}
+  reSpawnPoint: {fileID: 0}
+  currentMapType: 2
+  radiusFindRespawnPoint: 500
+  distanceRespawnPointToSafeZoneEdge: 10
+  respawnPointLayerMask:
+    serializedVersion: 2
+    m_Bits: 2097152
+  delayRespawn: 3
 --- !u!114 &4902553213472908245
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -83,4 +91,4 @@ MonoBehaviour:
   - {fileID: 2821557029414795835, guid: 26eeff048961e9140841d0d35f56190c, type: 3}
   - {fileID: 90669038546844181, guid: 537a00d395a7bf3458d7adb96490ef4c, type: 3}
   - {fileID: 3946498371077335947, guid: 4faf2a5aaa3b12c43a7a1f4ddb814c13, type: 3}
-  - {fileID: 4981485269158738922, guid: 6ec1114a96a00ca48bfde235bf57fc8c, type: 3}
+  - {fileID: 0}

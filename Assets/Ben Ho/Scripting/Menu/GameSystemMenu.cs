@@ -43,7 +43,7 @@ public class GameSystemMenu : MenuBase
     [SerializeField] private Button btnClose;
 
     [Header("Default")]
-    [SerializeField] private GameSystemTab defaultTab = GameSystemTab.Map;
+    [SerializeField] private GameSystemTab defaultTab = GameSystemTab.Inventory;
 
     [Header("Visual")]
     [SerializeField] private Color normalIconColor = Color.white;
@@ -90,6 +90,18 @@ public class GameSystemMenu : MenuBase
 
     private void Update()
     {
+        if (InputManager.InputActions.Keyboard.Escape.triggered)
+        {
+            if (GameManager.Instance.MapType == MapType.Lobby)
+            {
+                UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+                LobbyHUDTopBar.Instance?.ShowFullHUD();
+            }
+            else
+            {
+                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+            }
+        }
     }
 
     public void SelectTab(GameSystemTab tab)

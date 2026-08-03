@@ -7,16 +7,14 @@ public class DefaultLobbyInputMenu : MenuBase
     public override void Open(object data = null)
     {
         base.Open(data);
-
-        if (MouseManager.Instance != null)
-        {
-            MouseManager.Instance.HideMouse();
-        }
     }
 
-    public override void Close()
+    private void Update()
     {
-        base.Close();
+        if (InputManager.InputActions.Keyboard.Escape.triggered)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameSystemMenu);
+        }
     }
 
     protected override void LoadComponent()

@@ -26,8 +26,8 @@ public enum MenuType
     HUDMenuTest = 13,
     TrophyMenu = 14,
     LanguageMenu = 15,
-    GraphicsMenu = 16,   
-    ControllerMenu = 17,  
+    GraphicsMenu = 16,
+    ControllerMenu = 17,
     GameSystemMenu = 18,
     AchievementMenu = 19,
 
@@ -40,9 +40,9 @@ public enum MenuType
     LobbyLeaderboardMenu = 106,
     LobbyShopMenu = 107,
     DefaultLobbyInputMenu = 108,
-    LobbyRunResultSummaryMenu = 109,
-    LobbyBossSelectMenu = 110,
-    LobbyNamePromptMenu = 111,
+    YouDiedRespawnMenu = 109,
+    LobbyRunResultSummaryMenu = 110,
+    LobbyBossSelectMenu = 111,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -140,6 +140,7 @@ public class UIManager : Singleton<UIManager>
             CurrentMenu.Open(data);
 
         CurrentMenuType = CurrentMenu.menuType;
+        Debug.Log("TAO DAY NE" + CurrentMenuType);
     }
 
     //Đóng tất cả menu

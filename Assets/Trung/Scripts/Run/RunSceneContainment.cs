@@ -8,6 +8,7 @@ public class RunSceneContainment : MonoBehaviour
     [Header("Run Scene Container")]
     [Tooltip("Kéo thả Run_Scene_Container trong Scene hầm ngục vào đây.")]
     [SerializeField] private Transform runContainerParent;
+    [SerializeField] private string lobbySceneName = "LobbyMain Scene";
 
     private Scene myRunScene;
 
@@ -80,7 +81,7 @@ public class RunSceneContainment : MonoBehaviour
     {
         if (!myRunScene.isLoaded) return;
 
-        Scene lobbyScene = SceneManager.GetSceneByName("LobbyMain Scene");
+        Scene lobbyScene = SceneManager.GetSceneByName(lobbySceneName);
         if (!lobbyScene.isLoaded) return;
 
         GameObject[] rootObjects = lobbyScene.GetRootGameObjects();

@@ -138,6 +138,9 @@ public class LyraSkill_2_Projectile : LoadComponents, IPoolable
     {
         if (!isLaunched) return;
 
+        if (!other.CompareTag("Enemy"))
+            return;
+
         if (other.TryGetComponent(out EnemyBase enemy))
         {
             float damage = characterBase.CharacterData.stats.damage;
