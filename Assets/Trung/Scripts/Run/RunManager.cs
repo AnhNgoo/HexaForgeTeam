@@ -7,18 +7,18 @@ public class RunManager : MonoBehaviour
     public static RunManager Instance;
 
     [Header("Scene Config")]
-    [SerializeField] private string gameplaySceneName = "Run Scene"; 
+    [SerializeField] private string gameplaySceneName = "Run Scene";
 
     [Header("Lobby Spawn Settings")]
-    [SerializeField] private Transform lobbySpawnPoint;   
-    [SerializeField] private GameObject lobbyVisuals;    
+    [SerializeField] private Transform lobbySpawnPoint;
+    [SerializeField] private GameObject lobbyVisuals;
 
     [Header("HUD Controller")]
     [SerializeField] private GameObject lobbyHUDMainObject;
 
     private int pendingGem;
     private int pendingExp;
-    private int pendingShards; 
+    private int pendingShards;
 
     private bool isRunActive = false;
 
@@ -127,7 +127,7 @@ public class RunManager : MonoBehaviour
             Physics.SyncTransforms();
         }
 
-        isRunActive = true; 
+        isRunActive = true;
 
         yield return new WaitForSeconds(0.4f);
 
@@ -138,6 +138,7 @@ public class RunManager : MonoBehaviour
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
             while (!unloadLoading.isDone) yield return null;
         }
+        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 
     public void ReturnToLobby()
@@ -204,6 +205,7 @@ public class RunManager : MonoBehaviour
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();
+            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
         if (GoldManager.Instance != null)
@@ -211,7 +213,7 @@ public class RunManager : MonoBehaviour
             GoldManager.Instance.ResetGold();
         }
 
-        if (lobbyHUDMainObject != null) 
+        if (lobbyHUDMainObject != null)
         {
             lobbyHUDMainObject.SetActive(true);
             if (LobbyHUDTopBar.Instance != null)
@@ -224,7 +226,7 @@ public class RunManager : MonoBehaviour
         if (AccountLevelManager.Instance != null && pendingExp > 0) AccountLevelManager.Instance.AddExp(pendingExp);
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
-        pendingGem = 0; pendingExp = 0; pendingShards = 0; 
+        pendingGem = 0; pendingExp = 0; pendingShards = 0;
         if (LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.UpdateAllStatistics();

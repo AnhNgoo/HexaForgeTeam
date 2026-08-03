@@ -22,6 +22,10 @@ public class CharacterHealth : MonoBehaviour
         SetMaxHealth(maxHealth, true);
     }
 
+    public void ResetHealth()
+    {
+        SetMaxHealth(maxHealth, true);
+    }
     public void SetMaxHealth(float maxHealth, bool fullHeal = true)
     {
         float normalizedMaxHealth = Mathf.Max(1f, maxHealth);

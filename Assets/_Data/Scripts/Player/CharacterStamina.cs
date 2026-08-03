@@ -28,6 +28,10 @@ public class CharacterStamina : MonoBehaviour
         AddStaminaOverTime();
     }
 
+    public void ResetStamina()
+    {
+        SetMaxStamina(maxStamina, true);
+    }
     public void SetMaxStamina(float maxStamina, bool fullRegen = true)
     {
         Debug.Log($"SetMaxStamina called with maxStamina = {maxStamina}, fullRegen = {fullRegen}");

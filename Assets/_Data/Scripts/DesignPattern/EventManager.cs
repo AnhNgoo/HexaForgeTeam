@@ -44,6 +44,8 @@ public enum GameEvent
     OnUpdateCooldownSkill1 = 36,
     OnUpdateCooldownSkill2 = 37,
     OnPlayerSpawned = 38,
+    OnPlayerDeath = 39,
+    OnLoadingComplete = 40,
 }
 public static class EventManager
 {

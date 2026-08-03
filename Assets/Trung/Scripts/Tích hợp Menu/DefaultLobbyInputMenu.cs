@@ -14,9 +14,12 @@ public class DefaultLobbyInputMenu : MenuBase
         }
     }
 
-    public override void Close()
+    private void Update()
     {
-        base.Close();
+        if (InputManager.InputActions.Keyboard.Escape.triggered)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameSystemMenu);
+        }
     }
 
     protected override void LoadComponent()

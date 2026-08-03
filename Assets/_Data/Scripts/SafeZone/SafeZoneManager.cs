@@ -172,6 +172,34 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         return null;
     }
 
+    /// <summary>
+    /// Kiểm tra đối tượng truyền vào có trong vòng bo hay không, nếu không có vòng bo thì mặc định là true
+    /// </summary>
+    public bool CheckObjectInSafeZone(Transform obj)
+    {
+        if (safeZone == null) return true; // Nếu không có vòng bo thì mặc định là true
+
+        Vector2 objPos = new Vector2(obj.position.x, obj.position.z);
+        Vector2 safeZoneCenter = new Vector2(safeZone.CurrentCenterPoint.x, safeZone.CurrentCenterPoint.z);
+        float distanceToSafeZoneCenter = Vector2.Distance(objPos, safeZoneCenter);
+
+        return distanceToSafeZoneCenter <= safeZone.CurrentRadius;
+    }
+
+    /// <summary>
+    /// Kiểm tra đối tượng truyền vào có trong vòng bo hay không và có cách rìa bo khoảng cách truyền vào hay không, nếu không có vòng bo thì mặc định là true
+    /// </summary>
+    public bool CheckObjectInSafeZone(Transform obj, float distanceFromEdge)
+    {
+        if (safeZone == null) return true; // Nếu không có vòng bo thì mặc định là true
+
+        Vector2 objPos = new Vector2(obj.position.x, obj.position.z);
+        Vector2 safeZoneCenter = new Vector2(safeZone.CurrentCenterPoint.x, safeZone.CurrentCenterPoint.z);
+        float distanceToSafeZoneCenter = Vector2.Distance(objPos, safeZoneCenter);
+
+        return distanceToSafeZoneCenter <= (safeZone.CurrentRadius - distanceFromEdge);
+    }
+
 #if UNITY_EDITOR
     #region Gizmos
     private void OnDrawGizmosSelected()

@@ -40,6 +40,7 @@ public enum MenuType
     LobbyLeaderboardMenu = 106,
     LobbyShopMenu = 107,
     DefaultLobbyInputMenu = 108,
+    YouDiedRespawnMenu = 109,
 }
 
 public class UIManager : Singleton<UIManager>

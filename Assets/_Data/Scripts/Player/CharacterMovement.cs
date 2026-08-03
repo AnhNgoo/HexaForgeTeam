@@ -124,7 +124,7 @@ public class CharacterMovement : LoadComponents
         // Hit ceiling
         if ((flags & CollisionFlags.Above) != 0) // Nếu va chạm với trần nhà, đặt verticalVelocity về 0 để ngăn nhân vật tiếp tục tăng tốc lên trên
         {
-            verticalVelocity = 0f;
+            verticalVelocity = gravity * Time.deltaTime;
         }
 
         // Grounded
