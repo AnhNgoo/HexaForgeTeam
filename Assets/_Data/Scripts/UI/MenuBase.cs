@@ -1,4 +1,4 @@
- using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -11,6 +11,16 @@ public abstract class MenuBase : LoadComponents
     public virtual void Open(object data = null)
     {
         gameObject.SetActive(true);
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.IsBusy = true;
+            if (InteractUIV2.Instance != null)
+            {
+                InteractUIV2.Instance.Hide();
+            }
+        }
+
         AnimateOpen();
     }
 
@@ -19,6 +29,13 @@ public abstract class MenuBase : LoadComponents
         AnimateClose(() =>
         {
             gameObject.SetActive(false);
+
+            if (InteractManagerV2.Instance != null)
+            {
+                InteractManagerV2.Instance.SetCooldown(0.2f);
+                InteractManagerV2.Instance.IsBusy = false;
+                InteractManagerV2.Instance.ForceRefresh();
+            }
         });
     }
 

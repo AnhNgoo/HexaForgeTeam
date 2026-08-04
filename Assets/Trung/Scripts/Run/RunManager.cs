@@ -6,8 +6,8 @@ public class RunManager : MonoBehaviour
 {
     public static RunManager Instance;
 
-    [Header("Scene Config")]
-    [SerializeField] private string gameplaySceneName = "Run Scene";
+    [Header("Current Dynamic Target Scene Name")]
+    [SerializeField] private string gameplaySceneName = "";
 
     [Header("Lobby Spawn Settings")]
     [SerializeField] private Transform lobbySpawnPoint;
@@ -29,26 +29,28 @@ public class RunManager : MonoBehaviour
 
     public PoolType SelectedFinalBossPool => selectedFinalBossPool;
 
-    public void ConfigureRun(string sceneName, PoolType finalBossPool)
-    {
-        if (!string.IsNullOrWhiteSpace(sceneName))
-            gameplaySceneName = sceneName;
-
-        if (finalBossPool != PoolType.None)
-            selectedFinalBossPool = finalBossPool;
-    }
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
     }
 
+    public void ConfigureRun(string sceneName, PoolType finalBossPool)
+    {
+        if (!string.IsNullOrWhiteSpace(sceneName))
+        {
+            gameplaySceneName = sceneName;
+            Debug.Log($"<color=yellow>[RunManager] Cấu hình Scene mục tiêu thành: {gameplaySceneName}</color>");
+        }
+
+        if (finalBossPool != PoolType.None)
+        {
+            selectedFinalBossPool = finalBossPool;
+        }
+    }
+
     public string GetGameplaySceneName() => gameplaySceneName;
 
-    /// <summary>
-    /// Hàm gọi từ Player để tích lũy Sát thương tổng đã gây ra
-    /// </summary>
     public void RegisterDamage(float amount)
     {
         if (amount <= 0) return;
@@ -73,7 +75,12 @@ public class RunManager : MonoBehaviour
     {
         if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy) return;
 
-        ResetDamageData(); // Reset Damage khi bắt đầu Run mới
+        if (string.IsNullOrEmpty(gameplaySceneName))
+        {
+            gameplaySceneName = GameSceneData.Instance != null ? GameSceneData.Instance.runGameplayScene : "Run Scene";
+        }
+
+        ResetDamageData();
 
         if (UIManager.Instance != null)
         {
@@ -88,10 +95,19 @@ public class RunManager : MonoBehaviour
         StartCoroutine(LoadSceneCoroutine());
     }
 
-    public void EnterFinalBoss(string sceneName)
+    /// <summary>
+    /// Chuyển từ Map Run hiện tại sang Map Final Boss.
+    /// Nếu không truyền tham số `sceneName`, tự động lấy Scene Final Boss từ GameSceneData.
+    /// </summary>
+    public void EnterFinalBoss(string sceneName = "")
     {
-        if (!isRunActive || string.IsNullOrWhiteSpace(sceneName))
-            return;
+        if (!isRunActive) return;
+
+        // Bẫy an toàn: Nếu truyền rỗng, lấy Scene Final Boss từ Database ScriptableObject
+        if (string.IsNullOrWhiteSpace(sceneName))
+        {
+            sceneName = GameSceneData.Instance != null ? GameSceneData.Instance.finalBossScene : "FinalBoss Scene";
+        }
 
         StartCoroutine(EnterFinalBossCoroutine(sceneName));
     }
@@ -130,7 +146,9 @@ public class RunManager : MonoBehaviour
 
     private IEnumerator LoadSceneCoroutine()
     {
-        AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
         yield return new WaitForSeconds(0.1f);
@@ -155,7 +173,7 @@ public class RunManager : MonoBehaviour
         if (runScene.IsValid())
         {
             SceneManager.SetActiveScene(runScene);
-            Debug.Log($"<color=cyan>[RunManager] Active Scene FORCED to: {runScene.name}</color>");
+            Debug.Log($"<color=cyan>[RunManager] Active Scene đã gán chính xác: {runScene.name}</color>");
         }
 
         if (lobbyVisuals != null)
@@ -200,7 +218,7 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForSeconds(0.4f);
 
-        Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
@@ -219,14 +237,17 @@ public class RunManager : MonoBehaviour
         isRunActive = false;
         Time.timeScale = 1f;
 
-        AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        string targetLobbyScene = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
+
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
         yield return new WaitForSecondsRealtime(0.1f);
 
         if (LoadingUIManager.Instance != null)
         {
-            LoadingUIManager.Instance.SetDestinationName("LobbyMain Scene");
+            LoadingUIManager.Instance.SetDestinationName(targetLobbyScene);
         }
 
         Scene runScene = SceneManager.GetSceneByName(gameplaySceneName);
@@ -258,7 +279,7 @@ public class RunManager : MonoBehaviour
             while (!unloadRun.isDone) yield return null;
         }
 
-        Scene lobbyScene = SceneManager.GetSceneByName("LobbyMain Scene");
+        Scene lobbyScene = SceneManager.GetSceneByName(targetLobbyScene);
         if (lobbyScene.IsValid())
         {
             SceneManager.SetActiveScene(lobbyScene);
@@ -314,9 +335,11 @@ public class RunManager : MonoBehaviour
         if (RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
         if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
 
+        gameplaySceneName = "";
+
         yield return new WaitForSecondsRealtime(0.2f);
 
-        Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);

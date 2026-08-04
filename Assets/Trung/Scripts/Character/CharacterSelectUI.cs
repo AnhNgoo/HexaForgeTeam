@@ -137,7 +137,6 @@ public class CharacterSelectUI : LoadComponents
 
     public void ResetToCurrentDeployed()
     {
-        // Đồng bộ chuẩn xác nhân vật đang deployed thực tế từ Manager
         if (CharacterManager.Instance != null)
         {
             previewingCharacter = CharacterManager.Instance.GetSelectedCharacter();
@@ -152,24 +151,28 @@ public class CharacterSelectUI : LoadComponents
 
     public void RefreshUI()
     {
-        bool isKaelCS = comingSoonCharacters.Contains(CharacterType.Kael);
-        bool isLyraCS = comingSoonCharacters.Contains(CharacterType.Lyra);
-        bool isAresCS = comingSoonCharacters.Contains(CharacterType.Ares);
-        bool isElaraCS = comingSoonCharacters.Contains(CharacterType.Elara);
+        bool isKaelUnlocked = CharacterManager.Instance == null || CharacterManager.Instance.IsUnlocked(CharacterType.Kael);
+        bool isLyraUnlocked = CharacterManager.Instance != null && CharacterManager.Instance.IsUnlocked(CharacterType.Lyra);
+        bool isAresUnlocked = CharacterManager.Instance != null && CharacterManager.Instance.IsUnlocked(CharacterType.Ares);
+        bool isElaraUnlocked = CharacterManager.Instance != null && CharacterManager.Instance.IsUnlocked(CharacterType.Elara);
+
+        bool isKaelCS = comingSoonCharacters.Contains(CharacterType.Kael) || !isKaelUnlocked;
+        bool isLyraCS = comingSoonCharacters.Contains(CharacterType.Lyra) || !isLyraUnlocked;
+        bool isAresCS = comingSoonCharacters.Contains(CharacterType.Ares) || !isAresUnlocked;
+        bool isElaraCS = comingSoonCharacters.Contains(CharacterType.Elara) || !isElaraUnlocked;
 
         if (kaelComingSoonBadge != null) kaelComingSoonBadge.SetActive(isKaelCS);
         if (lyraComingSoonBadge != null) lyraComingSoonBadge.SetActive(isLyraCS);
         if (aresComingSoonBadge != null) aresComingSoonBadge.SetActive(isAresCS);
         if (elaraComingSoonBadge != null) elaraComingSoonBadge.SetActive(isElaraCS);
 
-        if (KaelButton != null) KaelButton.interactable = !isKaelCS;
-        if (LyraButton != null) LyraButton.interactable = !isLyraCS;
-        if (AresButton != null) AresButton.interactable = !isAresCS;
-        if (ElaraButton != null) ElaraButton.interactable = !isElaraCS;
+        if (KaelButton != null) KaelButton.interactable = isKaelUnlocked && !comingSoonCharacters.Contains(CharacterType.Kael);
+        if (LyraButton != null) LyraButton.interactable = isLyraUnlocked && !comingSoonCharacters.Contains(CharacterType.Lyra);
+        if (AresButton != null) AresButton.interactable = isAresUnlocked && !comingSoonCharacters.Contains(CharacterType.Ares);
+        if (ElaraButton != null) ElaraButton.interactable = isElaraUnlocked && !comingSoonCharacters.Contains(CharacterType.Elara);
 
         CharacterType deployedChar = CharacterManager.Instance != null ? CharacterManager.Instance.GetSelectedCharacter() : CharacterType.Kael;
 
-        // Cập nhật đúng thông tin theo tướng preview
         RefreshCharacterInfo(previewingCharacter);
 
         if (kaelHighlight != null) kaelHighlight.SetActive(previewingCharacter == CharacterType.Kael);
@@ -177,14 +180,14 @@ public class CharacterSelectUI : LoadComponents
         if (aresHighlight != null) aresHighlight.SetActive(previewingCharacter == CharacterType.Ares);
         if (elaraHighlight != null) elaraHighlight.SetActive(previewingCharacter == CharacterType.Elara);
 
-        // Gọi Refresh Model 3D & Reset Góc xoay
         CharacterPreviewManager preview = FindFirstObjectByType<CharacterPreviewManager>();
         if (preview != null)
         {
             preview.RefreshPreview(previewingCharacter);
         }
 
-        bool isPreviewingCS = comingSoonCharacters.Contains(previewingCharacter);
+        bool isPreviewUnlocked = CharacterManager.Instance == null || CharacterManager.Instance.IsUnlocked(previewingCharacter);
+        bool isPreviewingCS = comingSoonCharacters.Contains(previewingCharacter) || !isPreviewUnlocked;
         bool isCurrentDeployed = (previewingCharacter == deployedChar);
 
         if (ConfirmButton != null)
@@ -195,7 +198,11 @@ public class CharacterSelectUI : LoadComponents
             if (isPreviewingCS)
             {
                 ConfirmButton.interactable = false;
-                if (btnText != null) btnText.SetTextSafe("LOCKED");
+                if (btnText != null) 
+                {
+                    if (!isPreviewUnlocked) btnText.SetTextSafe("LOCKED (LV.5)");
+                    else btnText.SetTextSafe("LOCKED");
+                }
             }
             else if (isCurrentDeployed)
             {
@@ -215,7 +222,11 @@ public class CharacterSelectUI : LoadComponents
 
         if (StatusText != null)
         {
-            if (isPreviewingCS)
+            if (!isPreviewUnlocked)
+            {
+                StatusText.SetTextSafe($"<color=#FF3333>REACH ACCOUNT LEVEL 5 TO UNLOCK {previewingCharacter.ToString().ToUpper()}</color>");
+            }
+            else if (comingSoonCharacters.Contains(previewingCharacter))
             {
                 StatusText.SetTextSafe($"<color=#FF9900>COMING SOON: {previewingCharacter.ToString().ToUpper()}</color>");
             }
@@ -232,6 +243,17 @@ public class CharacterSelectUI : LoadComponents
 
     private void OnSelectCharacterClicked(CharacterType type)
     {
+        if (CharacterManager.Instance != null && !CharacterManager.Instance.IsUnlocked(type))
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"Reach Account Level 5 to unlock {type}!", Color.yellow);
+            }
+            previewingCharacter = type;
+            RefreshUI();
+            return;
+        }
+
         if (comingSoonCharacters.Contains(type))
         {
             if (LobbyNotifyManager.Instance != null)
@@ -248,6 +270,7 @@ public class CharacterSelectUI : LoadComponents
     private void OnConfirmClicked()
     {
         if (comingSoonCharacters.Contains(previewingCharacter)) return;
+        if (CharacterManager.Instance != null && !CharacterManager.Instance.IsUnlocked(previewingCharacter)) return;
 
         if (CharacterManager.Instance != null)
         {
@@ -271,7 +294,6 @@ public class CharacterSelectUI : LoadComponents
 
     private void RefreshCharacterInfo(CharacterType type)
     {
-        // Chuyển đổi chuẩn xác từ CharacterType sang enum Character trong PlayerManager
         Character enumChar = Character.Kael;
         if (type == CharacterType.Lyra) enumChar = Character.Lyra;
 
