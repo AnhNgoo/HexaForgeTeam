@@ -17,6 +17,11 @@ public class LobbyNotifyManager : MonoBehaviour
     [SerializeField] private float fadeOutDuration = 0.5f;
     [SerializeField] private float moveDistance = 60f;
 
+    [Header("Anti-Spam Settings")]
+    [SerializeField] private float notifyCooldown = 0.8f;
+    private string lastMessage = "";
+    private float lastNotifyTime = 0f;
+
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private Vector2 originalAnchoredPosition;
@@ -56,6 +61,15 @@ public class LobbyNotifyManager : MonoBehaviour
     public void ShowNotify(string message, Color textColor)
     {
         if (notifyPanelRoot == null || notifyText == null) return;
+
+        // Chặn hiển thị dồn dập cùng 1 thông báo khi bị giật lag khung hình
+        if (message == lastMessage && Time.unscaledTime - lastNotifyTime < notifyCooldown)
+        {
+            return;
+        }
+
+        lastMessage = message;
+        lastNotifyTime = Time.unscaledTime;
 
         if (activeNotifySequence != null)
         {

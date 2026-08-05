@@ -193,6 +193,11 @@ public class CharacterSelectUI : LoadComponents
         if (ConfirmButton != null)
         {
             ConfirmButton.gameObject.SetActive(true);
+
+            // Xóa triệt để Tween cũ và ép về Kích thước chuẩn Vector3.one
+            ConfirmButton.transform.DOKill(true);
+            ConfirmButton.transform.localScale = Vector3.one;
+
             TMP_Text btnText = ConfirmButton.GetComponentInChildren<TMP_Text>();
 
             if (isPreviewingCS)
@@ -213,10 +218,6 @@ public class CharacterSelectUI : LoadComponents
             {
                 ConfirmButton.interactable = true;
                 if (btnText != null) btnText.SetTextSafe("DEPLOY HERO");
-
-                ConfirmButton.transform.DOKill();
-                ConfirmButton.transform.localScale = Vector3.one;
-                ConfirmButton.transform.DOPunchScale(new Vector3(0.05f, 0.05f, 0f), 0.4f, 5);
             }
         }
 
