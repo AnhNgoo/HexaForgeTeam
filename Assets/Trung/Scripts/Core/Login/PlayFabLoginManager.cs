@@ -32,6 +32,8 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void Start()
     {
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
         if (rememberToggle != null)
         {
             rememberToggle.isOn = false;
