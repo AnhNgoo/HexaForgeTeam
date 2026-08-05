@@ -41,7 +41,7 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentMapType == MapType.Lobby)
         {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+            UIManager.Instance.ChangeMenu(MenuType.LobbyTutorialMenu);
         }
         else if (currentMapType == MapType.Run)
         {

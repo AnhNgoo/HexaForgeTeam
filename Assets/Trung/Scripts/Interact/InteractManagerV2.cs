@@ -64,7 +64,12 @@ public class InteractManagerV2 : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        ForceUnlockState();
+    }
+    public void ForceUnlockState()
+    {
         IsBusy = false;
+        cooldownUntilTime = 0f;
         currentIndex = 0;
         interactObjects.Clear();
 
@@ -72,6 +77,8 @@ public class InteractManagerV2 : MonoBehaviour
         {
             InteractUIV2.Instance.Hide();
         }
+
+        Invoke(nameof(ForceRefresh), 0.15f);
     }
 
     public void SetCooldown(float duration)
@@ -80,38 +87,44 @@ public class InteractManagerV2 : MonoBehaviour
     }
 
     private void Update()
-{
-    if (IsBusy || Time.unscaledTime < cooldownUntilTime)
     {
-        if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
+        // Loại bỏ triệt để các Object đã bị Destroy hoặc NULL khỏi danh sách đăng ký
+        interactObjects.RemoveAll(item => item == null || item.gameObject == null);
+
+        // Nếu danh sách trống, giải phóng IsBusy và ẩn UI lập tức
+        if (interactObjects.Count == 0)
         {
-            InteractUIV2.Instance.Hide();
+            if (IsBusy && (DialogueUI.Instance == null || !DialogueUI.Instance.gameObject.activeInHierarchy))
+            {
+                IsBusy = false;
+            }
+
+            if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
+            {
+                InteractUIV2.Instance.Hide();
+            }
+            return;
         }
-        return;
-    }
 
-    interactObjects.RemoveAll(item => item == null || item.gameObject == null);
-
-    if (interactObjects.Count == 0)
-    {
-        if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
+        if (IsBusy || Time.unscaledTime < cooldownUntilTime)
         {
-            InteractUIV2.Instance.Hide();
+            if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
+            {
+                InteractUIV2.Instance.Hide();
+            }
+            return;
         }
-        return;
-    }
 
-    if (enableMouseWheel)
-    {
-        HandleMouseWheel();
-    }
+        if (enableMouseWheel)
+        {
+            HandleMouseWheel();
+        }
 
-    if (Input.GetKeyDown(interactKey))
-    {
-        ExecuteCurrent();
+        if (Input.GetKeyDown(interactKey))
+        {
+            ExecuteCurrent();
+        }
     }
-}
-
     #region Register
     public void Register(InteractV2 interact)
     {

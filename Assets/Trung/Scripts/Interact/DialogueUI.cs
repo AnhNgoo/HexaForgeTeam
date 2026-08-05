@@ -39,8 +39,12 @@ public class DialogueUI : MonoBehaviour
     {
         Instance = this;
         Hide();
-    }
 
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.IsBusy = false;
+        }
+    }
     public void Show(DialogueData data)
 {
     if (data == null) return;

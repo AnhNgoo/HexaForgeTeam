@@ -38,7 +38,7 @@ public class InteractV2 : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
 
         playerInside = true;
         if (InteractManagerV2.Instance != null)
@@ -49,7 +49,7 @@ public class InteractV2 : MonoBehaviour
 
     private void OnTriggerExit(Collider other)
     {
-        if (!other.CompareTag(playerTag)) return;
+        if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
 
         playerInside = false;
         if (InteractManagerV2.Instance != null)
