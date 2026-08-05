@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening;
 
 public class LobbyBossSelectMenu : MenuBase
 {
@@ -38,23 +39,24 @@ public class LobbyBossSelectMenu : MenuBase
 
     public override void Open(object data = null)
     {
-        base.Open(data); // Tween mở UI tự động[cite: 68]
+        base.Open(data); // Tween mở UI
 
         if (LobbyHUDTopBar.Instance != null)
         {
-            LobbyHUDTopBar.Instance.ShowCurrencyOnly(); //[cite: 68]
+            LobbyHUDTopBar.Instance.ShowCurrencyOnly();
         }
 
-        SelectBoss(0); // Mặc định chọn Boss đầu tiên khi mở Menu
+        SetupBossButtons(); // Re-bind sự kiện click để đảm bảo không bị rụng listener
+        SelectBoss(0, isInitialOpen: true); // Mặc định chọn Boss 1 khi mở Menu (không bắn Notify)
     }
 
     public override void Close()
     {
-        base.Close(); // Tween đóng UI tự động[cite: 68]
+        base.Close(); // Tween đóng UI
 
         if (LobbyHUDTopBar.Instance != null)
         {
-            LobbyHUDTopBar.Instance.ShowFullHUD(); //[cite: 68]
+            LobbyHUDTopBar.Instance.ShowFullHUD();
         }
     }
 
@@ -66,32 +68,63 @@ public class LobbyBossSelectMenu : MenuBase
             if (bossOptions[i].selectButton != null)
             {
                 bossOptions[i].selectButton.onClick.RemoveAllListeners();
-                bossOptions[i].selectButton.onClick.AddListener(() => SelectBoss(index));
+                bossOptions[i].selectButton.onClick.AddListener(() =>
+                {
+                    SelectBoss(index, isInitialOpen: false);
+                });
             }
         }
     }
 
-    public void SelectBoss(int index)
+    public void SelectBoss(int index, bool isInitialOpen = false)
     {
+        if (bossOptions == null || bossOptions.Count == 0) return;
         if (index < 0 || index >= bossOptions.Count) return;
 
         selectedBossIndex = index;
 
-        // Cập nhật Visual Highlight
+        // Bật/tắt Highlight chuẩn xác kèm hiệu ứng DOTween
         for (int i = 0; i < bossOptions.Count; i++)
         {
-            if (bossOptions[i].highlightObject != null)
+            var option = bossOptions[i];
+            bool isSelected = (i == selectedBossIndex);
+
+            if (option.highlightObject != null)
             {
-                bossOptions[i].highlightObject.SetActive(i == selectedBossIndex);
+                option.highlightObject.SetActive(isSelected);
+
+                // Nảy nhẹ Highlight khi người chơi bấm chọn
+                if (isSelected && !isInitialOpen)
+                {
+                    option.highlightObject.transform.DOKill(true);
+                    option.highlightObject.transform.localScale = Vector3.one;
+                    option.highlightObject.transform.DOPunchScale(new Vector3(0.12f, 0.12f, 0f), 0.25f, 5);
+                }
+            }
+
+            // Nảy nhẹ nút bấm
+            if (isSelected && option.selectButton != null && !isInitialOpen)
+            {
+                option.selectButton.transform.DOKill(true);
+                option.selectButton.transform.localScale = Vector3.one;
+                option.selectButton.transform.DOPunchScale(new Vector3(0.06f, 0.06f, 0f), 0.2f, 4);
             }
         }
 
         var selected = bossOptions[selectedBossIndex];
 
-        // Đẩy cấu hình Boss đã chọn vào RunManager theo đúng thiết lập
+        // Đẩy thẳng cấu hình Boss đã chọn vào RunManager ngay lập tức
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(selected.targetSceneName, selected.bossPoolType); //
+            RunManager.Instance.ConfigureRun(selected.targetSceneName, selected.bossPoolType);
+            Debug.Log($"<color=green>[LobbyBossSelectMenu] Đã chọn Boss {selected.bossName} | PoolType: {selected.bossPoolType}</color>");
+        }
+
+        // Bắn Notify thông báo khi người chơi tự click
+        if (!isInitialOpen && LobbyNotifyManager.Instance != null)
+        {
+            string notifyText = string.IsNullOrEmpty(selected.bossName) ? $"Selected Boss {index + 1}" : $"Target: {selected.bossName}";
+            LobbyNotifyManager.Instance.ShowNotify(notifyText, Color.cyan);
         }
     }
 
@@ -99,13 +132,20 @@ public class LobbyBossSelectMenu : MenuBase
     {
         if (bossOptions.Count == 0) return;
 
+        // Hiệu ứng nảy nút Confirm Start Run
+        if (btnConfirmStartRun != null)
+        {
+            btnConfirmStartRun.transform.DOKill(true);
+            btnConfirmStartRun.transform.localScale = Vector3.one;
+            btnConfirmStartRun.transform.DOPunchScale(new Vector3(0.08f, 0.08f, 0f), 0.25f, 5);
+        }
+
         var selected = bossOptions[selectedBossIndex];
 
-        // Khóa cấu hình lần cuối trước khi phát lệnh Start Run
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(selected.targetSceneName, selected.bossPoolType); //
-            RunManager.Instance.StartRun(); //
+            RunManager.Instance.ConfigureRun(selected.targetSceneName, selected.bossPoolType);
+            RunManager.Instance.StartRun();
         }
     }
 

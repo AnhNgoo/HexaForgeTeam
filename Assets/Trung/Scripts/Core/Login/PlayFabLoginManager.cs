@@ -1,6 +1,7 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
@@ -29,6 +30,7 @@ public class PlayFabLoginManager : MonoBehaviour
     [SerializeField] private string loadingSceneName = "Loading Scene";
 
     private SavedAccountList savedAccounts = new SavedAccountList();
+    private bool isLoggingIn = false;
 
     private void Start()
     {
@@ -138,6 +140,8 @@ public class PlayFabLoginManager : MonoBehaviour
 
     public void Login()
     {
+        if (isLoggingIn) return;
+
         if (string.IsNullOrWhiteSpace(loginAccountInput.text))
         {
             UpdateStatus("Username or Email required.");
@@ -154,6 +158,7 @@ public class PlayFabLoginManager : MonoBehaviour
             return;
         }
 
+        isLoggingIn = true;
         UpdateStatus("Connecting...");
         if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Connecting...", Color.cyan);
 
@@ -262,6 +267,7 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void OnPlayFabError(PlayFabError error)
     {
+        isLoggingIn = false;
         string message = "An error occurred.";
 
         switch (error.Error)
@@ -318,6 +324,10 @@ public class PlayFabLoginManager : MonoBehaviour
         }
 
         CheckAndFixDisplayName();
+
+        // Dọn dẹp tài nguyên thừa giải phóng RAM chống khựng lag khung hình
+        System.GC.Collect();
+        Resources.UnloadUnusedAssets();
 
         if (PlayFabDataManager.Instance != null)
         {
