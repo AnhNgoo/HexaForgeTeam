@@ -7,7 +7,8 @@ public class RunGameplayController : MonoBehaviour
 
     public int MonstersKilled { get; private set; }
     public float TimeElapsed { get; private set; }
-    public float TotalDamageDealt { get; private set; }
+
+    public float TotalDamageDealt { get; private set; } // Biến lưu Tổng Damage
 
     public int NormalKilled { get; private set; }
     public int EliteKilled { get; private set; }
@@ -46,7 +47,7 @@ public class RunGameplayController : MonoBehaviour
     }
 
     /// <summary>
-    /// Cộng dồn tổng sát thương thực tế Player đã gây ra
+    /// Hàm gọi từ Player để cộng dồn Damage real-time
     /// </summary>
     public void RegisterPlayerDamage(float damage)
     {
@@ -67,52 +68,44 @@ public class RunGameplayController : MonoBehaviour
             if (enemy != null && !trackedEnemies.Contains(enemy) && enemy.EventManager != null)
             {
                 trackedEnemies.Add(enemy);
-
-                // 1. ĐĂNG KÝ THEO DÕI SÁT THƯƠNG REAL-TIME
-                enemy.EventManager.OnTakeDamage += (damage) => OnEnemyTookDamageRealtime(damage);
-
-                // 2. ĐĂNG KÝ THEO DÕI QUÁI CHẾT
                 enemy.EventManager.OnDead += () => OnEnemyDiedRealtime(enemy);
             }
         }
-    }
-
-    private void OnEnemyTookDamageRealtime(float damage)
-    {
-        RegisterPlayerDamage(damage);
     }
 
     private void OnEnemyDiedRealtime(EnemyBase enemy)
     {
         if (enemy == null || enemy.Data == null) return;
 
-        // PHÂN LOẠI QUÁI CHUẨN XÁC DỰA TRÊN ENEMYDATA
-        if (!enemy.Data.isBoss)
+        // Tự động cộng thêm Máu tối đa của Enemy nếu chưa được cộng trước đó
+        if (TotalDamageDealt <= 0 && enemy.Data.maxHealth > 0)
         {
-            // Quái Thường (Is Boss KHÔNG ĐƯỢC TÍCH)
-            NormalKilled++;
+            RegisterPlayerDamage(enemy.Data.maxHealth);
         }
+
+        string enemyName = enemy.gameObject.name.ToLower();
+
+        // 1. Phân loại Final Boss
+        if (enemy.Data.isBoss && (enemyName.Contains("final") || enemyName.Contains("nightmare") || enemyName.Contains("lord")))
+        {
+            FinalBossKilled++;
+            Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED!</color>");
+            TriggerEndRun(true);
+        }
+        // 2. Phân loại Boss Thường
+        else if (enemy.Data.isBoss)
+        {
+            BossKilled++;
+        }
+        // 3. Phân loại Elite (Miniboss)
+        else if (enemy.MinibossBehaviour != null || enemyName.Contains("elite"))
+        {
+            EliteKilled++;
+        }
+        // 4. Quái Thường
         else
         {
-            // Quái Boss (Is Boss ĐƯỢC TÍCH) -> Phân loại theo Enum bossCategory
-            switch (enemy.Data.bossCategory)
-            {
-                case EnemyBossCategory.Miniboss:
-                    EliteKilled++;
-                    break;
-
-                case EnemyBossCategory.TwilightTerror:
-                    BossKilled++;
-                    break;
-
-                case EnemyBossCategory.FinalBoss:
-                    FinalBossKilled++;
-                    Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED! KÍCH HOẠT PANEL WIN!</color>");
-                    
-                    // KÍCH HOẠT PANEL WIN KHI TIÊU DIỆT FINAL BOSS
-                    TriggerEndRun(true);
-                    break;
-            }
+            NormalKilled++;
         }
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
@@ -146,7 +139,6 @@ public class RunGameplayController : MonoBehaviour
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 
-        // Bật màn hình tổng kết Summary
         if (RunResultSummary.Instance != null)
         {
             RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);

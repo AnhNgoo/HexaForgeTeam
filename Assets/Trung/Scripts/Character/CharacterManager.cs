@@ -21,24 +21,18 @@ public class CharacterManager : MonoBehaviour
         }
 
         LoadData();
+
         Invoke(nameof(CheckUnlockCharacter), 0.1f);
     }
 
+    // THÊM MỚI HÀM NÀY ĐỂ KÍCH HOẠT TỰ ĐỘNG SPAWN
     private void Start()
     {
+        // Khi Scene Sảnh vừa load xong, tự động gọi hệ thống của bạn bạn để Spawn nhân vật
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();
             EventManager.Notify(GameEvent.OnLoadingComplete);
-        }
-
-        if (InteractManagerV2.Instance != null)
-        {
-            InteractManagerV2.Instance.ForceUnlockState();
-        }
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.LobbyTutorialMenu);
         }
     }
 
@@ -55,10 +49,6 @@ public class CharacterManager : MonoBehaviour
         }
 
         data.selectedCharacter = type;
-
-        // Đồng bộ dữ liệu lưu tên nhân vật cho PlayerPrefs
-        PlayerPrefs.SetString("SelectedCharacter", type.ToString());
-        PlayerPrefs.Save();
 
         if (RuneEquipUI.Instance != null)
         {
@@ -86,23 +76,11 @@ public class CharacterManager : MonoBehaviour
 
     public void CheckUnlockCharacter()
     {
-        int level = 1;
-        if (AccountLevelManager.Instance != null)
-        {
-            level = AccountLevelManager.Instance.GetLevel();
-        }
+        int level = AccountLevelManager.Instance.GetLevel();
 
-        data.kaelUnlocked = true;
-        data.lyraUnlocked = (level >= 5);
-        data.aresUnlocked = (level >= 15);
-        data.elaraUnlocked = (level >= 25);
-
-        if (!IsUnlocked(data.selectedCharacter))
-        {
-            data.selectedCharacter = CharacterType.Kael;
-            PlayerPrefs.SetString("SelectedCharacter", CharacterType.Kael.ToString());
-            PlayerPrefs.Save();
-        }
+        if (level >= 5) data.lyraUnlocked = true;
+        if (level >= 15) data.aresUnlocked = true;
+        if (level >= 25) data.elaraUnlocked = true;
 
         SaveData();
 
@@ -115,11 +93,8 @@ public class CharacterManager : MonoBehaviour
 
     private void SaveData()
     {
-        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
-        {
-            SaveLoadManager.Instance.SaveData.characterData = data;
-            SaveLoadManager.Instance.SaveGame();
-        }
+        SaveLoadManager.Instance.SaveData.characterData = data;
+        SaveLoadManager.Instance.SaveGame();
 
         if (PlayFabDataManager.Instance != null)
         {
@@ -129,10 +104,7 @@ public class CharacterManager : MonoBehaviour
 
     private void LoadData()
     {
-        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
-        {
-            data = SaveLoadManager.Instance.SaveData.characterData;
-        }
+        data = SaveLoadManager.Instance.SaveData.characterData;
 
         if (data == null)
         {
@@ -150,22 +122,15 @@ public class CharacterManager : MonoBehaviour
             };
         }
 
-        CheckUnlockCharacter();
+        if (!IsUnlocked(data.selectedCharacter))
+        {
+            data.selectedCharacter = CharacterType.Kael;
+        }
     }
 
     public void ResetCharacterData()
     {
         data = new CharacterUnlockData();
-        data.kaelUnlocked = true;
-        data.lyraUnlocked = false;
-        data.aresUnlocked = false;
-        data.elaraUnlocked = false;
-        data.selectedCharacter = CharacterType.Kael;
-
-        PlayerPrefs.SetString("SelectedCharacter", CharacterType.Kael.ToString());
-        PlayerPrefs.Save();
-
-        SaveData();
     }
 
     public CharacterRuneEquip GetCharacterRuneBuild(CharacterType type)

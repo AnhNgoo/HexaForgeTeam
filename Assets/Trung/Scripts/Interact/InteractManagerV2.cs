@@ -7,31 +7,41 @@ public class InteractManagerV2 : MonoBehaviour
     public static InteractManagerV2 Instance;
 
     [Header("Input")]
-    [SerializeField] private KeyCode interactKey = KeyCode.F;
-    [SerializeField] private bool enableMouseWheel = true;
+    [SerializeField]
+    private KeyCode interactKey = KeyCode.F;
+
+    [SerializeField]
+    private bool enableMouseWheel = true;
 
     [Header("Debug")]
-    [SerializeField] private bool debugMode;
-    [SerializeField] private float scrollCooldown = 0.15f;
-    private bool consumedInputThisFrame;
+    [SerializeField]
+    private bool debugMode;
+
+    [SerializeField]
+    private float scrollCooldown = 0.15f;
 
     private float nextScrollTime;
-    private float cooldownUntilTime = 0f;
 
     private readonly List<InteractV2> interactObjects = new List<InteractV2>();
-    private int currentIndex;
 
+    private int currentIndex;
     public bool IsBusy { get; set; }
 
-    public IReadOnlyList<InteractV2> InteractObjects => interactObjects;
+    public IReadOnlyList<InteractV2> InteractObjects
+    {
+        get { return interactObjects; }
+    }
 
     public InteractV2 CurrentInteract
     {
-        get
-        {
+        get {
+            // Dọn dẹp các đối tượng null trong danh sách phòng trường hợp Scene đổi làm mất GameObject
             interactObjects.RemoveAll(item => item == null || item.gameObject == null);
 
-            if (interactObjects.Count == 0) return null;
+            if (interactObjects.Count == 0)
+            {
+                return null;
+            }
 
             currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
             return interactObjects[currentIndex];
@@ -62,14 +72,10 @@ public class InteractManagerV2 : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    // TỰ ĐỘNG GIẢI PHÓNG VÀ RESET TRẠNG THÁI KHI CHUYỂN SCENE THÀNH CÔNG
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        ForceUnlockState();
-    }
-    public void ForceUnlockState()
-    {
         IsBusy = false;
-        cooldownUntilTime = 0f;
         currentIndex = 0;
         interactObjects.Clear();
 
@@ -77,36 +83,19 @@ public class InteractManagerV2 : MonoBehaviour
         {
             InteractUIV2.Instance.Hide();
         }
-
-        Invoke(nameof(ForceRefresh), 0.15f);
-    }
-
-    public void SetCooldown(float duration)
-    {
-        cooldownUntilTime = Time.unscaledTime + duration;
     }
 
     private void Update()
     {
-        // Loại bỏ triệt để các Object đã bị Destroy hoặc NULL khỏi danh sách đăng ký
-        interactObjects.RemoveAll(item => item == null || item.gameObject == null);
-
-        // Nếu danh sách trống, giải phóng IsBusy và ẩn UI lập tức
-        if (interactObjects.Count == 0)
+        if (IsBusy)
         {
-            if (IsBusy && (DialogueUI.Instance == null || !DialogueUI.Instance.gameObject.activeInHierarchy))
-            {
-                IsBusy = false;
-            }
-
-            if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
-            {
-                InteractUIV2.Instance.Hide();
-            }
             return;
         }
 
-        if (IsBusy || Time.unscaledTime < cooldownUntilTime)
+        // Tự động làm sạch rác nếu có GameObject bị xoá khi chuyển Scene
+        interactObjects.RemoveAll(item => item == null || item.gameObject == null);
+
+        if (interactObjects.Count == 0)
         {
             if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
             {
@@ -125,10 +114,14 @@ public class InteractManagerV2 : MonoBehaviour
             ExecuteCurrent();
         }
     }
+
     #region Register
+
     public void Register(InteractV2 interact)
     {
-        if (interact == null || interactObjects.Contains(interact)) return;
+        if (interact == null) return;
+
+        if (interactObjects.Contains(interact)) return;
 
         interactObjects.Add(interact);
 
@@ -159,9 +152,21 @@ public class InteractManagerV2 : MonoBehaviour
         RefreshUI();
         DebugCurrent();
     }
+
+    #endregion
+
+    #region Execute
+
+    public void ExecuteCurrent()
+    {
+        if (CurrentInteract == null) return;
+        CurrentInteract.Execute();
+    }
+
     #endregion
 
     #region Mouse Wheel
+
     private void HandleMouseWheel()
     {
         if (Time.unscaledTime < nextScrollTime) return;
@@ -207,9 +212,11 @@ public class InteractManagerV2 : MonoBehaviour
         RefreshUI();
         DebugCurrent();
     }
+
     #endregion
 
     #region UI
+
     public void ForceRefresh()
     {
         interactObjects.RemoveAll(item => item == null || item.gameObject == null);
@@ -225,31 +232,24 @@ public class InteractManagerV2 : MonoBehaviour
     }
 
     private void RefreshUI()
-{
-    if (IsBusy)
     {
-        if (InteractUIV2.Instance != null)
+        for (int i = 0; i < interactObjects.Count; i++)
         {
-            InteractUIV2.Instance.Hide();
+            if (interactObjects[i] != null)
+            {
+                interactObjects[i].SetSelected(i == currentIndex);
+            }
         }
-        return;
+
+        if (InteractUIV2.Instance == null) return;
+
+        InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
     }
 
-    for (int i = 0; i < interactObjects.Count; i++)
-    {
-        if (interactObjects[i] != null)
-        {
-            interactObjects[i].SetSelected(i == currentIndex);
-        }
-    }
-
-    if (InteractUIV2.Instance == null) return;
-
-    InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
-}
     #endregion
 
     #region Debug
+
     private void DebugCurrent()
     {
         if (!debugMode) return;
@@ -262,29 +262,15 @@ public class InteractManagerV2 : MonoBehaviour
 
         Debug.Log($"<color=#AAAAAA>[InteractV2] Current target focus: {CurrentInteract.InteractText}</color>");
     }
+
     #endregion
 
     #region Public API
+
     public bool HasInteract() => interactObjects.Count > 0;
     public int Count() => interactObjects.Count;
     public int CurrentIndex() => currentIndex;
     public List<InteractV2> GetObjects() => interactObjects;
+
     #endregion
-    private void LateUpdate()
-{
-    // Reset cờ ở cuối mỗi frame
-    consumedInputThisFrame = false;
-}
-
-public void ExecuteCurrent()
-{
-    if (IsBusy || Time.unscaledTime < cooldownUntilTime || CurrentInteract == null) return;
-
-    // Đánh dấu phím F đã bị tiêu thụ trong Frame này
-    consumedInputThisFrame = true;
-
-    CurrentInteract.Execute();
-}
-
-public bool WasInputConsumedThisFrame() => consumedInputThisFrame;
 }
