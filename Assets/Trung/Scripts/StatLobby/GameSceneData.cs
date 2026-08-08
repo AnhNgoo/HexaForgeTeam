@@ -42,6 +42,7 @@ public class GameSceneData : ScriptableObject
 
     [Header("Main Scene Config (Chính)")]
     public string loginScene = "Login Scene";
+    public string uiScene = "UIGame";
     public string loadingScene = "Loading Scene";
     public string lobbyMainScene = "LobbyMain Scene";
     public string runGameplayScene = "Run Scene";

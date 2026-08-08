@@ -4,6 +4,19 @@ using UnityEngine.SceneManagement;
 
 public class TutorialSkipHandler : MonoBehaviour
 {
+
+    private void Start()
+    {
+        if (PlayerManager.Instance == null)
+        {
+            Debug.LogError("[Tutorial] Không tìm thấy PlayerManager.");
+            return;
+        }
+
+        PlayerManager.Instance.SpawnCharacterInLobby();
+        EventManager.Notify(GameEvent.OnLoadingComplete);
+    }
+
     public void SkipOrCompleteTutorial()
     {
         if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)

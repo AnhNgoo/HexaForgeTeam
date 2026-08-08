@@ -1,18 +1,20 @@
 using UnityEngine;
+using Sirenix.OdinInspector;
 
 public class ResetDataManager : MonoBehaviour
 {
+    [Button("Reset All Data")]
     public void ResetAllData()
     {
         if (CharacterManager.Instance != null)
         {
-            CharacterManager.Instance.ResetCharacterData(); 
+            CharacterManager.Instance.ResetCharacterData();
         }
 
         if (SaveLoadManager.Instance != null)
         {
-            SaveLoadManager.Instance.DeleteSave(); 
-            
+            SaveLoadManager.Instance.DeleteSave();
+
             SaveLoadManager.Instance.SaveData = new GameSaveData();
             SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
             SaveLoadManager.Instance.SaveGame();
@@ -32,7 +34,7 @@ public class ResetDataManager : MonoBehaviour
 
         if (LeaderboardManager.Instance != null)
         {
-            LeaderboardManager.Instance.UpdatePowerScore(); 
+            LeaderboardManager.Instance.UpdatePowerScore();
         }
 
         if (PlayFabDataManager.Instance != null)

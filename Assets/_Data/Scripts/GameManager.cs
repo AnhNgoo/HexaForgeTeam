@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,6 +9,7 @@ public enum MapType
     Lobby = 1,
     Run = 2,
     Boss = 3,
+    Tutorial = 4
 }
 
 public class GameManager : Singleton<GameManager>
@@ -24,6 +24,11 @@ public class GameManager : Singleton<GameManager>
         EventManager.Subscribe(GameEvent.OnLoadingComplete, OnLoadingComplete);
     }
 
+    private void Start()
+    {
+        OnLoadingComplete(null);
+    }
+
     private void OnDestroy()
     {
         EventManager.Unsubscribe(GameEvent.OnLoadingComplete, OnLoadingComplete);
@@ -33,40 +38,21 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentMapType == MapType.Lobby)
         {
-            bool isTutorialDone = false;
-            if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+            if (UIManager.Instance != null)
             {
-                isTutorialDone = SaveLoadManager.Instance.SaveData.isTutorialCompleted;
-            }
-
-            if (!isTutorialDone)
-            {
-                StartCoroutine(DelayedOpenTutorialRoutine());
-            }
-            else
-            {
-                if (UIManager.Instance != null)
-                {
-                    UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-                }
+                UIManager.Instance.ChangeMenu(
+                    MenuType.DefaultLobbyInputMenu
+                );
             }
         }
-        else if (currentMapType == MapType.Run || currentMapType == MapType.Boss)
+        else if (currentMapType == MapType.Run || currentMapType == MapType.Boss || currentMapType == MapType.Tutorial)
         {
             if (UIManager.Instance != null)
             {
-                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+                UIManager.Instance.ChangeMenu(
+                    MenuType.GameplayMenu
+                );
             }
-        }
-    }
-
-    private IEnumerator DelayedOpenTutorialRoutine()
-    {
-        yield return null;
-
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.LobbyTutorialMenu);
         }
     }
 
@@ -77,29 +63,31 @@ public class GameManager : Singleton<GameManager>
 
     public void GetMapType()
     {
-        string mapTypeName = SceneManager.GetActiveScene().name;
-        if (mapTypeName.Contains("Lobby"))
-        {
-            currentMapType = MapType.Lobby;
-        }
-        else if (mapTypeName.Contains("Run"))
-        {
-            currentMapType = MapType.Run;
-        }
-        else if (mapTypeName.Contains("Boss"))
-        {
-            currentMapType = MapType.Boss;
-        }
-        else
+        string sceneName = SceneManager.GetActiveScene().name;
+        GameSceneData sceneData = GameSceneData.Instance;
+
+        if (sceneData == null)
         {
             currentMapType = MapType.None;
+            return;
         }
+
+        if (sceneName == sceneData.lobbyMainScene)
+            currentMapType = MapType.Lobby;
+        else if (sceneName == sceneData.runGameplayScene)
+            currentMapType = MapType.Run;
+        else if (sceneName == sceneData.finalBossScene)
+            currentMapType = MapType.Boss;
+        else if (sceneName == sceneData.tutorialScene)
+            currentMapType = MapType.Tutorial;
+        else
+            currentMapType = MapType.None;
     }
 
     private void OnLoadingComplete(object obj)
     {
         GetMapType();
-        
+
         if (UIManager.Instance != null)
         {
             UIManager.Instance.InitUI();

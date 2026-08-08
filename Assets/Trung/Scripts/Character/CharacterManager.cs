@@ -29,16 +29,11 @@ public class CharacterManager : MonoBehaviour
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();
-            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.ForceUnlockState();
-        }
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.LobbyTutorialMenu);
         }
     }
 

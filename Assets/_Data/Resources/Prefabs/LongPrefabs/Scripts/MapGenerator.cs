@@ -7,6 +7,13 @@ public class MapGenerator : MonoBehaviour
 {
     [SerializeField] private NavMeshSurface navMeshSurface;
     [SerializeField] private PrefabRandomruins randomruins;
+    public static bool IsNavMeshReady { get; private set; } = true;
+
+    private void Awake()
+    {
+        IsNavMeshReady = false;
+    }
+
     // Start is called before the first frame update
     private IEnumerator Start()
     {
@@ -19,7 +26,13 @@ public class MapGenerator : MonoBehaviour
         Debug.Log("Build NavMesh");
 
         navMeshSurface.BuildNavMesh();
+        IsNavMeshReady = true;
 
         Debug.Log("Build xong");
+    }
+
+    private void OnDestroy()
+    {
+        IsNavMeshReady = true;
     }
 }
