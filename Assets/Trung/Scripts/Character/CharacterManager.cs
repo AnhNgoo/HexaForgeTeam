@@ -32,6 +32,7 @@ public class CharacterManager : MonoBehaviour
         if (PlayerManager.Instance != null)
         {
             PlayerManager.Instance.SpawnCharacterInLobby();
+            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
     }
 

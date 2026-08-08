@@ -43,7 +43,7 @@ public class MysticOrbs : CharacterSkillBase
             detectionAreaEffect = lyraSkill_2_DetectionAreaEffect.GetComponent<LyraSkill_2_DetectionAreaEffect>();
             if (detectionAreaEffect != null)
             {
-                detectionAreaEffect.SetRadiusDetectionArea(radiusDetectionArea);
+                detectionAreaEffect.Init(lyra.transform, radiusDetectionArea);
             }
         }
 

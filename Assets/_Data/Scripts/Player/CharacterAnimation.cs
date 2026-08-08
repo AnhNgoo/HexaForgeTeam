@@ -98,6 +98,24 @@ public class CharacterAnimation : MonoBehaviour
         animator.CrossFade(stateName, transitionDuration, layer, normalizedTimeOffset);
     }
 
+    //Hàm reset lại animaton của Index 1 trở lên
+    public void ResetAnimationLayer(int layerIndex)
+    {
+        if (animator == null)
+        {
+            Debug.LogWarning("Animator chưa được gán cho CharacterAnimation!");
+            return;
+        }
+
+        if (layerIndex < 0 || layerIndex >= animator.layerCount)
+        {
+            Debug.LogWarning($"Layer index {layerIndex} không hợp lệ. Animator chỉ có {animator.layerCount} layers.");
+            return;
+        }
+
+        animator.Play("Entry", layerIndex, 0f);
+    }
+
     /// <summary>
     /// Sau khi gọi hàm này nhớ gọi hàm ResetState
     /// </summary>

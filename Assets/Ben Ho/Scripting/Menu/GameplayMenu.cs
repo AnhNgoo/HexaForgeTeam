@@ -252,43 +252,12 @@ public class GameplayMenu : MenuBase
 
     private void Update()
     {
-        HandleShortcutInput();
-
         if (InputManager.InputActions.Keyboard.Escape.triggered)
         {
-            OpenInventoryMenu();
+            UIManager.Instance?.ChangeMenu(MenuType.GameSystemMenu);
         }
     }
 
-    private void HandleShortcutInput()
-    {
-        if (Keyboard.current == null ||
-            UIManager.Instance == null)
-        {
-            return;
-        }
-
-        if (UIManager.Instance.CurrentMenuType !=
-            MenuType.GameplayMenu)
-        {
-            return;
-        }
-
-        if (Keyboard.current.iKey.wasPressedThisFrame)
-        {
-            UIManager.Instance.ChangeMenu(
-                MenuType.GameSystemMenu);
-        }
-    }
-
-    public void OpenInventoryMenu()
-    {
-        if (UIManager.Instance == null)
-            return;
-
-        UIManager.Instance.ChangeMenu(
-            MenuType.InventoryMenu);
-    }
 
     public void OpenPauseMenu()
     {

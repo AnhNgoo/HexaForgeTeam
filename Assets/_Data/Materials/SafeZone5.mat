@@ -21,7 +21,7 @@ Material:
   stringTagMap:
     RenderType: Transparent
   disabledShaderPasses:
-  - DepthOnly
+  - SHADOWCASTER
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
@@ -43,7 +43,7 @@ Material:
     - _AlphaClip: 0
     - _AlphaToMask: 0
     - _Blend: 2
-    - _CastShadows: 1
+    - _CastShadows: 0
     - _Cull: 0
     - _DstBlend: 1
     - _IntersectPower: 0.01
@@ -52,11 +52,11 @@ Material:
     - _SrcBlend: 5
     - _Surface: 1
     - _ZTest: 4
-    - _ZWrite: 0
-    - _ZWriteControl: 0
+    - _ZWrite: 1
+    - _ZWriteControl: 1
     m_Colors:
-    - _BaseColor: {r: 0.035177104, g: 0.11499379, b: 0.1462264, a: 1}
-    - _IntersectColor: {r: 0, g: 10.041342, b: 11.984315, a: 1}
+    - _BaseColor: {r: 0.028956898, g: 0.14034884, b: 0.18490559, a: 1}
+    - _IntersectColor: {r: 0, g: 13.486912, b: 16, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &2949186348028348144
 MonoBehaviour:

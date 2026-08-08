@@ -9,8 +9,8 @@ public class LobbyHUDTopBar : MonoBehaviour
     public static LobbyHUDTopBar Instance;
 
     [Header("Visual Groups (Dùng để bật/ẩn nhanh theo cụm nếu cần)")]
-    [SerializeField] private GameObject levelGroup;      
-    [SerializeField] private GameObject currencyGroup;   
+    [SerializeField] private GameObject levelGroup;
+    [SerializeField] private GameObject currencyGroup;
 
     [Header("Gem, Rune Shard & Ticket UI")]
     [SerializeField] private TMP_Text gemText;
@@ -22,6 +22,7 @@ public class LobbyHUDTopBar : MonoBehaviour
     [SerializeField] private TMP_Text userNameText;
     [SerializeField] private TMP_Text expText;
     [SerializeField] private Slider expBar;
+    [SerializeField] private string sceneRunName = "Run Scene";
 
     private float animatedCurrentExp;
     private int cachedRequiredExp;
@@ -48,7 +49,7 @@ public class LobbyHUDTopBar : MonoBehaviour
     private void Start()
     {
         RefreshLayoutByScene();
-        
+
         if (AccountLevelManager.Instance != null)
         {
             int currentLv = AccountLevelManager.Instance.GetLevel();
@@ -68,7 +69,7 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void RefreshLayoutByScene()
     {
-        Scene runScene = SceneManager.GetSceneByName("Run Scene");
+        Scene runScene = SceneManager.GetSceneByName(sceneRunName);
 
         if (runScene.isLoaded)
         {
@@ -142,11 +143,11 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void ShowCurrencyOnly()
     {
-        Scene runScene = SceneManager.GetSceneByName("Run Scene");
+        Scene runScene = SceneManager.GetSceneByName(sceneRunName);
         if (!runScene.isLoaded)
         {
-            if (levelGroup != null) levelGroup.SetActive(false); 
-            if (currencyGroup != null) currencyGroup.SetActive(true);  
+            if (levelGroup != null) levelGroup.SetActive(false);
+            if (currencyGroup != null) currencyGroup.SetActive(true);
             RefreshCurrencyUI();
         }
     }

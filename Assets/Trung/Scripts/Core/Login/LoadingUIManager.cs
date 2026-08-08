@@ -14,10 +14,11 @@ public class LoadingUIManager : MonoBehaviour
     [SerializeField] private TMP_Text loadingTipText;
 
     [Header("Config")]
-    [SerializeField] [Range(0.1f, 2f)] private float fillSpeed = 1.5f; // Tốc độ trượt Slider giả lập
+    [SerializeField][Range(0.1f, 2f)] private float fillSpeed = 1.5f; // Tốc độ trượt Slider giả lập
 
     [Header("Loading Tips (English - No Font Errors)")]
-    [SerializeField] private List<string> loadingTips = new List<string>()
+    [SerializeField]
+    private List<string> loadingTips = new List<string>()
     {
         "Sharpening Ares's axe... Hopefully it does not break this time.",
         "Lyra is memorizing three more ancient spells.",
@@ -92,7 +93,7 @@ public class LoadingUIManager : MonoBehaviour
         if (progressSlider == null || targetSceneLoad == null) yield break;
 
         // Ép buộc thời gian chờ ngẫu nhiên từ 5 đến 7 giây thực tế
-        float minLoadingDuration = Random.Range(5f, 7f); 
+        float minLoadingDuration = Random.Range(5f, 7f);
         float elapsedTime = 0f;
 
         progressSlider.value = 0f;
@@ -101,7 +102,7 @@ public class LoadingUIManager : MonoBehaviour
         while (elapsedTime < minLoadingDuration)
         {
             elapsedTime += Time.unscaledDeltaTime;
-            
+
             // Tính toán % tiến trình dựa trên thời gian trôi qua thực tế so với mốc thời gian tối thiểu
             float timeRatio = Mathf.Clamp01(elapsedTime / minLoadingDuration);
 

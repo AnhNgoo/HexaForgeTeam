@@ -119,6 +119,18 @@ public class CharacterLockTarget : LoadComponents
         lookAtTarget = null;
     }
 
+    //Tắt khoá mục tiêu 
+    public void ForceUnlockTarget()
+    {
+        if (!IsLockingTarget) return;
+
+        if (lockTargetMarker != null)
+            ObjectPooling.Instance?.ReturnToPool(PoolType.LockTargetMarker, lockTargetMarker); // Trả marker cũ về pool nếu có
+        CameraManager.Instance?.SetCamera(CameraType.Normal, followTarget, followTarget);
+        IsLockingTarget = false;
+        lookAtTarget = null;
+    }
+
     /// <summary>
     /// Thiết lập camera theo chế độ Normal, chế độ này sẽ theo dõi đối tượng mà không khóa mục tiêu nhìn.
     /// </summary>

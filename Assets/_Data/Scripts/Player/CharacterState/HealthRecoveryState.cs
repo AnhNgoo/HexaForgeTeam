@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
@@ -11,12 +13,21 @@ public class HealthRecoveryState : ICharacterState
     private GameObject recoveryBottle;
     private GameObject healingEffect;
     private CharacterBase character;
+    private CancellationTokenSource cancellationTokenSource;
+
     public HealthRecoveryState(CharacterBase character)
     {
         this.character = character;
     }
+
     public void Enter()
     {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
+
+        cancellationTokenSource = new CancellationTokenSource();
+
+        character.IsHealthRecoveryInterrupted = false;
         character.CharacterInput.IsHealthRecovering = true;
         healthRecoveryIndex = character.CharacterAnimation.GetAnimationLayerWeight("Layer_1");
         character.CharacterAnimation.CrossFade("HealthRecovery", 0.1f, healthRecoveryIndex);
@@ -26,6 +37,10 @@ public class HealthRecoveryState : ICharacterState
 
     public void Exit()
     {
+        cancellationTokenSource?.Cancel();
+        cancellationTokenSource?.Dispose();
+        cancellationTokenSource = null;
+
         character.CharacterMovement.Stop();
         character.CharacterAnimation.ResetState();
         character.CharacterInput.IsHealthRecovering = false;
@@ -65,6 +80,8 @@ public class HealthRecoveryState : ICharacterState
 
     private async void StartHealthRecovery()
     {
+        CancellationToken token = cancellationTokenSource?.Token ?? CancellationToken.None;
+
         if (recoveryBottle != null)
             ObjectPooling.Instance.ReturnToPool(PoolType.RecoveryBottle, recoveryBottle);
         recoveryBottle = ObjectPooling.Instance.SpawnFromPool(PoolType.RecoveryBottle, character.HandRight.transform.position, character.HandRight.transform.rotation, character.HandRight.transform);
@@ -74,15 +91,47 @@ public class HealthRecoveryState : ICharacterState
         healingEffect = ObjectPooling.Instance.SpawnFromPool(PoolType.HealingEffect, character.bottomEffectPoint.transform.position, Quaternion.identity, character.bottomEffectPoint.transform);
         character.CharacterWeapon.StoreWeapon();
 
-        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) >= recoveryDuration);
-        character.CharacterRecovery.UseRecoveryBottle();
-        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) >= healthRecoveryCompleteThreshold);
+        try
+        {
+            await UniTask.WaitUntil(
+                () => character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) >= recoveryDuration,
+                cancellationToken: token);
 
-        ObjectPooling.Instance.ReturnToPool(PoolType.RecoveryBottle, recoveryBottle);
-        ObjectPooling.Instance.ReturnToPool(PoolType.HealingEffect, healingEffect);
+            character.CharacterRecovery.UseRecoveryBottle();
+
+            await UniTask.WaitUntil(
+                () => character.CharacterAnimation.GetAnimationTime("HealthRecovery", healthRecoveryIndex) >= healthRecoveryCompleteThreshold,
+                cancellationToken: token);
+
+            ObjectPooling.Instance.ReturnToPool(PoolType.RecoveryBottle, recoveryBottle);
+            ObjectPooling.Instance.ReturnToPool(PoolType.HealingEffect, healingEffect);
+            character.CharacterWeapon.RetrieveWeapon();
+
+            await UniTask.Delay(500, cancellationToken: token); // Delay 0.5 giây để đảm bảo uống máu đã hoàn tất trước khi chuyển trạng thái
+            character.StateController.ChangeState(new IdleState(character));
+        }
+        catch (OperationCanceledException)
+        {
+            ResetHealthRecovery(false);
+            return;
+        }
+    }
+
+    private void ResetHealthRecovery(bool changeToIdle = true)
+    {
+        if (recoveryBottle != null)
+        {
+            ObjectPooling.Instance.ReturnToPool(PoolType.RecoveryBottle, recoveryBottle);
+            recoveryBottle = null;
+        }
+        if (healingEffect != null)
+        {
+            ObjectPooling.Instance.ReturnToPool(PoolType.HealingEffect, healingEffect);
+            healingEffect = null;
+        }
         character.CharacterWeapon.RetrieveWeapon();
-
-        await UniTask.Delay(500); // Delay 0.5 giây để đảm bảo uống máu đã hoàn tất trước khi chuyển trạng thái
-        character.StateController.ChangeState(new IdleState(character));
+        character.CharacterAnimation.ResetAnimationLayer(healthRecoveryIndex);
+        if (changeToIdle)
+            character.StateController.ChangeState(new IdleState(character));
     }
 }

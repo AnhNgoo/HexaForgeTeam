@@ -27,6 +27,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
     public CharacterData CharacterData => characterData;
+    [Header("Respawn Settings")]
+    [SerializeField] protected float respawnDelay = 3f; // Thời gian delay trước khi respawn
     [Header("Dust Effect Settings")]
     [SerializeField] protected ParticleSystem dustEffect;
     protected bool isDustEffectPlaying = false;
@@ -96,6 +98,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public StateController StateController => stateController;
     protected Cooldown dodgeCooldown = new Cooldown();
     public bool IsHealthRecovering { get; set; } = false;
+    public bool IsHealthRecoveryInterrupted { get; set; } = false;
     public DashShadowEffect DashShadowEffect { get; set; }
     public GhostEffect GhostEffect { get; set; }
     public bool IsHitStateActive { get; set; } = false;
@@ -168,7 +171,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (punchEffectPoint_4 == null)
             punchEffectPoint_4 = effectPoints?.transform.Find("PunchEffectPoint_4")?.gameObject;
     }
-    #region Init Character
+    #region Init Character And Reset
 
     [Button("Init Character Data")]
     public virtual void Init(CharacterData data)
@@ -211,6 +214,18 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     }
 
+    public void ResetCharacter()
+    {
+        stateController?.ChangeState(new IdleState(this));
+        characterHealth?.ResetHealth();
+        characterStamina?.ResetStamina();
+        characterMP?.ResetMP();
+        characterRecovery?.ResetRecovery();
+        characterCombat?.ResetCombo();
+        CanBeAttacked = true;
+        IsHitStateActive = false;
+        characterLockTarget?.ForceUnlockTarget();
+    }
     #endregion
 
     protected virtual void Update()
@@ -444,6 +459,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         return false;
     }
     #endregion
+
+    /// <summary>
+    /// Bật khoá mục tiêu, nếu đang khoá thì tắt, nếu đang tắt thì bật
+    /// </summary>
     protected virtual void OnLockTarget()
     {
         if (CharacterLockTarget == null)
@@ -475,13 +494,16 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
         if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
         {
+            if (stateController?.currentState is HealthRecoveryState)
+            {
+                IsHealthRecoveryInterrupted = true;
+            }
+
             characterMovement.KnockBack(damageInfo.attacker);
             CameraShake.Instance?.Shake();
-            if (!IsHitStateActive) // Nếu đang không ở trạng thái HitState
+            if (!IsHitStateActive || stateController?.currentState is HealthRecoveryState)
                 stateController.ChangeState(new HitState(this));
         }
-
-        Debug.Log($"{gameObject.name} took {finalDamage} damage. Remaining health: {characterHealth.CurrentHealth}");
 
         if (characterHealth.CurrentHealth <= 0)
         {
@@ -497,6 +519,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     {
         CanBeAttacked = false;
         stateController.ChangeState(new DeathState(this));
+        EventManager.Notify(GameEvent.OnPlayerDeath);
     }
 
     protected virtual void GetDashShadowEffect(GameObject characterVisual)

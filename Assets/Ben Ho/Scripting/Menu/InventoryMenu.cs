@@ -109,14 +109,6 @@ public class InventoryMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnDiscardItemInInventory, OnDiscardWeaponFromWeaponSlots);
     }
 
-    private void Update()
-    {
-        if (InputManager.InputActions.Keyboard.Escape.triggered)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-        }
-    }
-
     private void OnHideDiscardButton(object obj)
     {
         if (btn_Discard != null)

@@ -37,26 +37,20 @@ public class SafeZoneChecker : LoadComponents
         if (SafeZoneManager.Instance?.SafeZone == null) return;
         if (!SafeZoneManager.Instance.IsActiveSafeZone) return;
 
-        var safeZone = SafeZoneManager.Instance.SafeZone;
-
-        //Tính khoảng cách từ đối tượng này đến tâm vòng bo
-        Vector2 thisObjectPos = new Vector2(transform.position.x, transform.position.z);
-        Vector2 safeZoneCenter = new Vector2(safeZone.CurrentCenterPoint.x, safeZone.CurrentCenterPoint.z);
-        float distanceToSafeZoneCenter = Vector2.Distance(thisObjectPos, safeZoneCenter);
+        var safeZone = SafeZoneManager.Instance;
 
         if (!isFirstTimeCheckDistanceSafeZone)
         {
             isFirstTimeCheckDistanceSafeZone = true;
-            CheckDistanceSafeZoneFirstTime(distanceToSafeZoneCenter, safeZone);
+            CheckDistanceSafeZoneFirstTime(safeZone);
         }
         //Nếu ở ngoài vòng bo
-        if (distanceToSafeZoneCenter > safeZone.CurrentRadius)
+        if (!safeZone.CheckObjectInSafeZone(transform))
         {
             // Đối tượng này đã rời khỏi vòng bo
             if (isInSafeZone)
             {
                 OutsideSafeZone();
-                Debug.Log($"{gameObject.name} has left the safe zone.");
             }
         }
         // Nếu ở trong vòng bo
@@ -66,14 +60,13 @@ public class SafeZoneChecker : LoadComponents
             if (!isInSafeZone)
             {
                 InsideSafeZone();
-                Debug.Log($"{gameObject.name} has entered the safe zone.");
             }
         }
     }
 
-    private void CheckDistanceSafeZoneFirstTime(float distanceToSafeZoneCenter, SafeZone safeZone)
+    private void CheckDistanceSafeZoneFirstTime(SafeZoneManager safeZone)
     {
-        if (distanceToSafeZoneCenter > safeZone.CurrentRadius)
+        if (!safeZone.CheckObjectInSafeZone(transform))
         {
             isInSafeZone = true;
         }
@@ -129,7 +122,6 @@ public class SafeZoneChecker : LoadComponents
                 itakeDamage.TakeDamage(damageInfo);
             }
 
-            Debug.Log("Damage: " + damagePerSecondOutsideSafeZone);
             yield return new WaitForSeconds(damageInterval);
         }
     }

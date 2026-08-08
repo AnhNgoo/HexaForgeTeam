@@ -15,8 +15,13 @@ public class CharacterRecovery : MonoBehaviour
     public void Init(CharacterBase character)
     {
         this.character = character;
-        AddBottle(3); // Khởi tạo số lượng bình hồi máu ban đầu
+        AddBottle(maxRecoveryBottle); // Khởi tạo số lượng bình hồi máu ban đầu
         EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
+    }
+
+    public void ResetRecovery()
+    {
+        AddBottle(maxRecoveryBottle);
     }
 
     [Button("Add Recovery Bottle")]

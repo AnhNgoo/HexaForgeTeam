@@ -85,6 +85,8 @@ public class CharacterInput : MonoBehaviour
         wallJump = inputActions.Keyboard.Jump.triggered;
         attack = inputActions.Keyboard.Attack.triggered;
         healthRecovery = inputActions.Keyboard.HealthRecovery.triggered;
+        if (!healthRecovery && characterBase != null)
+            characterBase.IsHealthRecoveryInterrupted = false;
         lockTarget = inputActions.Keyboard.LockTarget.triggered;
         skill_1 = inputActions.Keyboard.Skill_1.triggered;
         skill_2 = inputActions.Keyboard.Skill_2.triggered;
