@@ -86,8 +86,7 @@ public class PlayFabDataManager : MonoBehaviour
             return;
         }
 
-        string tutorialSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.tutorialScene : "Tutorial Scene";
-        string lobbySceneName = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
+        string uiSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.uiScene : "UIGame";
 
         if (result.Data == null || !result.Data.ContainsKey("PlayerData"))
         {
@@ -97,7 +96,7 @@ public class PlayFabDataManager : MonoBehaviour
             SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
             SaveLoadManager.Instance.SaveGame();
 
-            StartCoroutine(SwitchSceneRoutine(tutorialSceneName));
+            StartCoroutine(SwitchSceneRoutine(uiSceneName));
             return;
         }
 
@@ -109,7 +108,7 @@ public class PlayFabDataManager : MonoBehaviour
             SaveLoadManager.Instance.SaveData = new GameSaveData();
             SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
             SaveLoadManager.Instance.SaveGame();
-            StartCoroutine(SwitchSceneRoutine(tutorialSceneName));
+            StartCoroutine(SwitchSceneRoutine(uiSceneName));
             return;
         }
 
@@ -125,16 +124,7 @@ public class PlayFabDataManager : MonoBehaviour
 
         Debug.Log($"[CLOUD] Đồng bộ thành công! Trạng thái isTutorialCompleted hiện tại là: {SaveLoadManager.Instance.SaveData.isTutorialCompleted}");
 
-        if (!SaveLoadManager.Instance.SaveData.isTutorialCompleted)
-        {
-            Debug.Log($"[CLOUD] Tài khoản chưa hoàn thành Tutorial -> Chuyển hướng tới {tutorialSceneName}");
-            StartCoroutine(SwitchSceneRoutine(tutorialSceneName));
-        }
-        else
-        {
-            Debug.Log($"[CLOUD] Tài khoản đã hoàn thành Tutorial -> Chuyển hướng tới {lobbySceneName}");
-            StartCoroutine(SwitchSceneRoutine(lobbySceneName));
-        }
+        StartCoroutine(SwitchSceneRoutine(uiSceneName));
     }
     #endregion
 

@@ -149,6 +149,7 @@ public class CampSpawner : MonoBehaviour
 
     private async UniTaskVoid CampCheckRoutine()
     {
+        await UniTask.WaitUntil(() => MapGenerator.IsNavMeshReady, cancellationToken: this.GetCancellationTokenOnDestroy());
         while (this != null) //Nếu camp bị huỷ -> dừng vĩnh viễn
         {
             if (_playerTransform != null)
@@ -184,6 +185,11 @@ public class CampSpawner : MonoBehaviour
                 continue;
             }
 
+            if (!UnityEngine.AI.NavMesh.SamplePosition(node.spawnPoint.position, out UnityEngine.AI.NavMeshHit navHit, 4f, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                Debug.LogWarning($"[CampSpawner] Spawn Point {node.spawnPoint.name} không nằm gần NavMesh.", node.spawnPoint);
+                continue;
+            }
             node.spawnedEnemyObject = ObjectPooling.Instance.SpawnFromPool(node.enemyType, node.spawnPoint.position, node.spawnPoint.rotation); // Spawn enemy từ pool tại vị trí của spawn point với rotation mặc định
 
             if (node.spawnedEnemyObject != null)

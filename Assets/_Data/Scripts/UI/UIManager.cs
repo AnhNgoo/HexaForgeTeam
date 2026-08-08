@@ -162,11 +162,11 @@ public class UIManager : Singleton<UIManager>
 
         foreach (var menu in menus)
         {
-            if (menu?.menuBase != null)
-            {
-                menu.menuBase.Open();
-                menu.menuBase.Close();
-            }
+            if (menu?.menuBase != null) menu.menuBase.gameObject.SetActive(false);
         }
+
+        CurrentMenu = null;
+        CurrentMenuType = MenuType.None;
+        PreviousMenuType = MenuType.None;
     }
 }

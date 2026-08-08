@@ -119,26 +119,90 @@ public class RunManager : MonoBehaviour
 
         SafeZoneManager.Instance?.StopForFinalBoss();
 
-        Scene previousRunScene = SceneManager.GetSceneByName(gameplaySceneName);
+        Scene previousRunScene =
+            SceneManager.GetSceneByName(gameplaySceneName);
 
-        AsyncOperation load = SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
+        AsyncOperation load =
+            SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
 
         while (!load.isDone)
             yield return null;
 
-        Scene finalBossScene = SceneManager.GetSceneByName(sceneName);
+        Scene finalBossScene =
+            SceneManager.GetSceneByName(sceneName);
 
-        if (finalBossScene.IsValid()) SceneManager.SetActiveScene(finalBossScene);
+        if (!finalBossScene.IsValid() || !finalBossScene.isLoaded)
+        {
+            Debug.LogError(
+                $"[RunManager] Không load được Final Boss scene: {sceneName}"
+            );
+
+            if (InteractManagerV2.Instance != null)
+                InteractManagerV2.Instance.IsBusy = false;
+
+            yield break;
+        }
+
+        SceneManager.SetActiveScene(finalBossScene);
+
+        GameObject playerObject =
+            GameObject.FindGameObjectWithTag("Player");
+
+        if (playerObject == null)
+        {
+            Debug.LogError(
+                "[RunManager] Không tìm thấy Player trước khi unload RunGame."
+            );
+
+            if (InteractManagerV2.Instance != null)
+                InteractManagerV2.Instance.IsBusy = false;
+
+            yield break;
+        }
+
+        // MoveGameObjectToScene chỉ nhận root GameObject.
+        playerObject.transform.SetParent(null, true);
+        SceneManager.MoveGameObjectToScene(
+            playerObject,
+            finalBossScene
+        );
+
+        if (RunGameplayController.Instance != null)
+        {
+            GameObject runController =
+                RunGameplayController.Instance.gameObject;
+
+            runController.transform.SetParent(null, true);
+
+            if (runController.scene != finalBossScene)
+            {
+                SceneManager.MoveGameObjectToScene(
+                    runController,
+                    finalBossScene
+                );
+            }
+        }
 
         gameplaySceneName = sceneName;
 
-        if (previousRunScene.isLoaded)
+        if (previousRunScene.IsValid() && previousRunScene.isLoaded)
         {
-            AsyncOperation unload = SceneManager.UnloadSceneAsync(previousRunScene);
+            AsyncOperation unload =
+                SceneManager.UnloadSceneAsync(previousRunScene);
 
             while (unload != null && !unload.isDone)
                 yield return null;
         }
+
+        FinalBossEncounterDirector director =
+            FindObjectOfType<FinalBossEncounterDirector>();
+
+        if (director != null)
+            director.StartEncounter();
+        else
+            Debug.LogError("[RunManager] Không tìm thấy FinalBossEncounterDirector.");
+
+        EventManager.Notify(GameEvent.OnLoadingComplete);
 
         if (InteractManagerV2.Instance != null)
             InteractManagerV2.Instance.IsBusy = false;
@@ -183,6 +247,7 @@ public class RunManager : MonoBehaviour
 
         yield return new WaitForFixedUpdate();
 
+        CharacterController playerController = null;
         CharacterBase charBase = null;
         if (PlayerManager.Instance != null)
         {
@@ -208,10 +273,9 @@ public class RunManager : MonoBehaviour
                 }
             }
 
-            CharacterController cc = charBase.GetComponent<CharacterController>();
-            if (cc != null) cc.enabled = false;
+            playerController = charBase.CharacterMovement?.CC ?? charBase.GetComponent<CharacterController>();
 
-            Physics.SyncTransforms();
+            if (playerController != null) playerController.enabled = false;
         }
 
         isRunActive = true;
@@ -219,11 +283,17 @@ public class RunManager : MonoBehaviour
         yield return new WaitForSeconds(0.4f);
 
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
+
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
-            while (!unloadLoading.isDone) yield return null;
+            while (!unloadLoading.isDone)
+                yield return null;
         }
+
+        if (playerController != null) playerController.enabled = true;
+
+        Physics.SyncTransforms();
         EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 

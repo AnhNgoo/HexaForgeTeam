@@ -58,17 +58,23 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private Characters LoadCharacterSelected()
     {
-        string selectedCharacter = PlayerPrefs.GetString("SelectedCharacter", Character.Kael.ToString());
-        Character character = (Character)System.Enum.Parse(typeof(Character), selectedCharacter);
-        Characters _character = characterList.Find(c => c.character == character);
-        if (_character != null)
+        Character selected = Character.Kael;
+        CharacterUnlockData savedData =
+            SaveLoadManager.Instance?.SaveData?.characterData;
+
+        if (savedData != null &&
+            savedData.selectedCharacter == CharacterType.Lyra &&
+            savedData.lyraUnlocked)
         {
-            return _character;
+            selected = Character.Lyra;
         }
-        else
-        {
-            return characterList[0];
-        }
+
+        Characters result =
+            characterList.Find(item => item.character == selected);
+
+        return result ??
+               characterList.Find(item => item.character == Character.Kael) ??
+               characterList[0];
     }
 
     private void SaveCharacterSelected()
@@ -205,6 +211,23 @@ public class PlayerManager : Singleton<PlayerManager>
         await UniTask.Delay((int)(delayRespawn * 1000));
         UIManager.Instance?.ChangeMenu(MenuType.YouDiedRespawnMenu, true); // Hiện menu respawn
         await UniTask.Delay(3000); //NOTE - Delay theo tổng thời gian note bên Menu YouDiedRespawnMenu, chừa 1000ms của tổng để spawn nhân vật
+
+        MapType mapType = GameManager.Instance != null ? GameManager.Instance.MapType : MapType.None;
+
+        if (mapType == MapType.Tutorial)
+        {
+            TutorialSkipHandler handler =
+                FindFirstObjectByType<TutorialSkipHandler>();
+
+            handler?.SkipOrCompleteTutorial();
+            return;
+        }
+
+        if (mapType == MapType.Boss)
+        {
+            RunGameplayController.Instance?.TriggerEndRun(false);
+            return;
+        }
 
         if (currentCharacterBase == null)
         {

@@ -108,7 +108,7 @@ public class RunGameplayController : MonoBehaviour
                 case EnemyBossCategory.FinalBoss:
                     FinalBossKilled++;
                     Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED! KÍCH HOẠT PANEL WIN!</color>");
-                    
+
                     // KÍCH HOẠT PANEL WIN KHI TIÊU DIỆT FINAL BOSS
                     TriggerEndRun(true);
                     break;
@@ -133,16 +133,6 @@ public class RunGameplayController : MonoBehaviour
     public void TriggerEndRun(bool isVictory)
     {
         StopAllCoroutines();
-
-        var spawners = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-        foreach (var script in spawners)
-        {
-            if (script != null && script.gameObject.scene.name == "Run Scene" && script != this)
-            {
-                script.StopAllCoroutines();
-                script.CancelInvoke();
-            }
-        }
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 

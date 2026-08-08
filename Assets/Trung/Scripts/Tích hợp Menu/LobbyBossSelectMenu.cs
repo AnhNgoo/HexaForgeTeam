@@ -21,7 +21,6 @@ public class LobbyBossSelectMenu : MenuBase
     {
         public string bossName;
         public PoolType bossPoolType;
-        public string targetSceneName = "Run Scene";
         public Button selectButton;
         public GameObject highlightObject;
     }
@@ -116,7 +115,7 @@ public class LobbyBossSelectMenu : MenuBase
         // Đẩy thẳng cấu hình Boss đã chọn vào RunManager ngay lập tức
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(selected.targetSceneName, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(GameSceneData.Instance.runGameplayScene, selected.bossPoolType);
             Debug.Log($"<color=green>[LobbyBossSelectMenu] Đã chọn Boss {selected.bossName} | PoolType: {selected.bossPoolType}</color>");
         }
 
@@ -144,7 +143,7 @@ public class LobbyBossSelectMenu : MenuBase
 
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(selected.targetSceneName, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(GameSceneData.Instance.runGameplayScene, selected.bossPoolType);
             RunManager.Instance.StartRun();
         }
     }

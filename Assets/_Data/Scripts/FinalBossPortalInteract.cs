@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class FinalBossPortalInteract : MonoBehaviour
 {
-    [SerializeField] private string finalBossSceneName = "Finalbosstest";
-
     public void OnInteract()
     {
         if (RunManager.Instance == null)
@@ -12,6 +10,6 @@ public class FinalBossPortalInteract : MonoBehaviour
             return;
         }
 
-        RunManager.Instance.EnterFinalBoss(finalBossSceneName);
+        RunManager.Instance.EnterFinalBoss();
     }
 }

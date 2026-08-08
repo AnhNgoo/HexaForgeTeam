@@ -9,6 +9,12 @@ using UnityEditor;
 
 public class SafeZoneManager : Singleton<SafeZoneManager>
 {
+    [Header("Scene Mode")]
+    [SerializeField] private bool isTutorialMode;
+    [SerializeField] private PoolType normalSafeZonePool = PoolType.SafeZone;
+    [SerializeField] private PoolType tutorialSafeZonePool = PoolType.TutorialSafeZone;
+    private PoolType activeSafeZonePool;
+
     [SerializeField] private SafeZone safeZone;
     public SafeZone SafeZone => safeZone;
     [SerializeField][InlineEditor()] private SafeZoneData safeZoneData;
@@ -24,10 +30,18 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     [ReadOnly, SerializeField] private List<Transform> usedTargetCenterPoints = new();
     public event Action<int, Transform> OnSafeZonePhaseCompleted;
 
-    public void Start()
+    private void Start()
     {
-        if (autoStartOnPlay)
-            StartSafeZoneFlow().Forget();
+        if (!autoStartOnPlay)
+            return;
+
+        if (isTutorialMode)
+        {
+            CreateSafeZone();
+            return;
+        }
+
+        StartSafeZoneFlow().Forget();
     }
 
     public async UniTaskVoid StartSafeZoneFlow(bool skipDelay = false)
@@ -57,26 +71,23 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     [Button("Step 1: Create Safe Zone")]
     public void CreateSafeZone()
     {
-        if (targetCenterPoints.Count > 0) return; // Đã có điểm trung tâm, không cần tạo lại vòng bo
-
         if (safeZone != null)
+            return;
+
+        activeSafeZonePool = isTutorialMode ? tutorialSafeZonePool : normalSafeZonePool;
+
+        safeZone = ObjectPooling.Instance?.SpawnFromPool(activeSafeZonePool, transform.position, Quaternion.identity)?.GetComponent<SafeZone>();
+
+        if (safeZone == null)
         {
-            if (safeZone.IsShrinking) return; // Nếu vòng bo đang thu nhỏ thì không được tạo bo
+            Debug.LogError($"[SafeZone] Không spawn được pool {activeSafeZonePool}.");
 
-            ObjectPooling.Instance?.ReturnToPool(PoolType.SafeZone, safeZone.gameObject);
-            safeZone = null;
+            return;
         }
-
-        safeZone = ObjectPooling.Instance?
-                .SpawnFromPool(PoolType.SafeZone,
-                transform.position,
-                Quaternion.identity)?.GetComponent<SafeZone>();
-
-        if (safeZone == null) return;
 
         ResetSafeZone(safeZone);
         GetAllTargetCenterPoint();
-        IsActiveSafeZone = true; //Khi tạo vòng bo mới kích hoạt bo đốt
+        IsActiveSafeZone = true;
     }
 
     [Button("Step 2: Start Shrink Safe Zone")]
@@ -122,7 +133,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         IsSafeZoneCompleted = false;
 
         if (safeZone != null)
-            ObjectPooling.Instance.ReturnToPool(PoolType.SafeZone, safeZone.gameObject);
+            ObjectPooling.Instance.ReturnToPool(activeSafeZonePool, safeZone.gameObject);
 
         safeZone = null;
         targetCenterPoints.Clear();
@@ -184,13 +195,10 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     /// </summary>
     public bool CheckObjectInSafeZone(Transform obj)
     {
-        if (safeZone == null) return true; // Nếu không có vòng bo thì mặc định là true
+        if (safeZone == null || obj == null)
+            return true;
 
-        Vector2 objPos = new Vector2(obj.position.x, obj.position.z);
-        Vector2 safeZoneCenter = new Vector2(safeZone.CurrentCenterPoint.x, safeZone.CurrentCenterPoint.z);
-        float distanceToSafeZoneCenter = Vector2.Distance(objPos, safeZoneCenter);
-
-        return distanceToSafeZoneCenter <= safeZone.CurrentRadius;
+        return safeZone.Contains(obj.position);
     }
 
     /// <summary>
@@ -198,13 +206,10 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     /// </summary>
     public bool CheckObjectInSafeZone(Transform obj, float distanceFromEdge)
     {
-        if (safeZone == null) return true; // Nếu không có vòng bo thì mặc định là true
+        if (safeZone == null || obj == null)
+            return true;
 
-        Vector2 objPos = new Vector2(obj.position.x, obj.position.z);
-        Vector2 safeZoneCenter = new Vector2(safeZone.CurrentCenterPoint.x, safeZone.CurrentCenterPoint.z);
-        float distanceToSafeZoneCenter = Vector2.Distance(objPos, safeZoneCenter);
-
-        return distanceToSafeZoneCenter <= (safeZone.CurrentRadius - distanceFromEdge);
+        return safeZone.Contains(obj.position, distanceFromEdge);
     }
 
     public void StopForFinalBoss()
@@ -216,10 +221,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
         safeZone.StopShrinkingSafeZone();
 
-        ObjectPooling.Instance?.ReturnToPool(
-            PoolType.SafeZone,
-            safeZone.gameObject
-        );
+        ObjectPooling.Instance?.ReturnToPool(activeSafeZonePool, safeZone.gameObject);
 
         safeZone = null;
     }

@@ -61,6 +61,11 @@ public class CharacterStamina : MonoBehaviour
 
     public void SubtractStamina(float amount)
     {
+        if (GameManager.Instance != null && GameManager.Instance.MapType == MapType.Lobby)
+        {
+            return;
+        }
+
         currentStamina -= amount;
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
@@ -94,6 +99,11 @@ public class CharacterStamina : MonoBehaviour
 
     public void SubtractStaminaOverTime(float amount)
     {
+        if (GameManager.Instance != null && GameManager.Instance.MapType == MapType.Lobby)
+        {
+            return;
+        }
+
         currentStamina -= amount * Time.deltaTime;
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 

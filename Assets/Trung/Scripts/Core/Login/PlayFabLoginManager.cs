@@ -124,15 +124,18 @@ public class PlayFabLoginManager : MonoBehaviour
             {
                 DisplayName = registerUsernameInput.text
             },
-            displayResult => {
+            displayResult =>
+            {
                 Debug.Log($"<color=#00FFCC><b>[ĐĂNG KÝ]</b> Đã gán DisplayName chuẩn theo Username thành công: {registerUsernameInput.text}</color>");
             },
-            error => {
+            error =>
+            {
                 Debug.LogError($"<color=#FF3333><b>[ĐĂNG KÝ LỖI DISPLAYNAME]</b> {error.GenerateErrorReport()}</color>");
             });
 
         loginPanel.SetActive(true);
         registerPanel.SetActive(false);
+        SaveRememberAccount();
 
         UpdateStatus("Account created successfully.");
         if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Registration complete!", Color.green);
