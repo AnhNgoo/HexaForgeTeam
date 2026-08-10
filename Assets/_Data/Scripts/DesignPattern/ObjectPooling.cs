@@ -95,6 +95,7 @@ public enum PoolType
     EarthshakerCrackTelegraph = 1105,
     EarthshakerCrackEruption = 1106,
     TutorialSafeZone = 2001,
+    EnemyBatAttackVFX = 3002,
 
 }
 
