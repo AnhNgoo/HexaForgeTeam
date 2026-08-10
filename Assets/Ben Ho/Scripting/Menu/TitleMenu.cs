@@ -10,6 +10,7 @@ public class TitleMenu : MenuBase
     [SerializeField] private Button btn_Play;
     [SerializeField] private Button btn_Credits;
     [SerializeField] private Button btn_Settings;
+    [SerializeField] private Button btn_Logout;
 
     private void Start()
     {
@@ -21,8 +22,6 @@ public class TitleMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnTestEventFromOtherToMenu, OnTestEventFromOtherToMenu);
     }
 
-
-
     protected override void LoadComponent()
     {
         if (btn_Play == null)
@@ -31,6 +30,8 @@ public class TitleMenu : MenuBase
             btn_Credits = transform.Find("Btn_Credits")?.GetComponent<Button>();
         if (btn_Settings == null)
             btn_Settings = transform.Find("Btn_Settings")?.GetComponent<Button>();
+        if (btn_Logout == null)
+            btn_Logout = transform.Find("Btn_Logout")?.GetComponent<Button>();
     }
 
     protected override void LoadComponentRuntime()
@@ -44,6 +45,9 @@ public class TitleMenu : MenuBase
         btn_Play.onClick.AddListener(OnPlayButtonClicked);
         btn_Credits.onClick.AddListener(OnCreditsButtonClicked);
         btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
+
+        if (btn_Logout != null)
+            btn_Logout.onClick.AddListener(OnLogoutButtonClicked);
     }
 
     public override void Close()
@@ -52,6 +56,9 @@ public class TitleMenu : MenuBase
         btn_Play.onClick.RemoveListener(OnPlayButtonClicked);
         btn_Credits.onClick.RemoveListener(OnCreditsButtonClicked);
         btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
+
+        if (btn_Logout != null)
+            btn_Logout.onClick.RemoveListener(OnLogoutButtonClicked);
     }
 
     // Button callback stubs
@@ -69,12 +76,70 @@ public class TitleMenu : MenuBase
         UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }
 
+    private void OnLogoutButtonClicked()
+    {
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance.SaveCloud();
+        }
+
+        PlayerPrefs.DeleteKey("IsAutoLoginActive");
+        PlayerPrefs.DeleteKey("LastAccountUser");
+        PlayerPrefs.DeleteKey("LastAccountPass");
+
+        if (PlayerPrefs.HasKey("PlayFabID"))
+        {
+            PlayerPrefs.DeleteKey("PlayFabID");
+        }
+
+        PlayerPrefs.Save();
+
+        Time.timeScale = 1f;
+
+        StartCoroutine(LogoutTransitionRoutine());
+    }
+
+    private IEnumerator LogoutTransitionRoutine()
+    {
+        string loginSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loginScene : "Login Scene";
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
+        while (!loadLoading.isDone) yield return null;
+
+        yield return new WaitForSecondsRealtime(0.1f);
+
+        if (LoadingUIManager.Instance != null)
+        {
+            LoadingUIManager.Instance.SetDestinationName(loginSceneName);
+        }
+
+        AsyncOperation loadLogin = SceneManager.LoadSceneAsync(loginSceneName, LoadSceneMode.Single);
+        loadLogin.allowSceneActivation = false;
+
+        if (LoadingUIManager.Instance != null)
+        {
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLogin));
+        }
+
+        loadLogin.allowSceneActivation = true;
+        while (!loadLogin.isDone) yield return null;
+
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
+        if (loadingScene.isLoaded)
+        {
+            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
+            while (!unloadLoading.isDone) yield return null;
+        }
+    }
+
     private void OnHelpButtonClicked()
     {
         HelpMenuData.BackMenu = MenuType.TitleMenu;
 
         UIManager.Instance.ChangeMenu(MenuType.HelpMenu);
     }
+
     private void OnCreditsButtonClicked()
     {
         // UIManager.Instance.ChangeMenu(MenuType.CreditsMenu);
@@ -97,13 +162,11 @@ public class TitleMenu : MenuBase
         UIManager.Instance.ChangeMenu(MenuType.AchievementMenu);
     }
 
-    // *NOTE - Gợi event từ menu ra nơi khác
     private void OnTestEvent()
     {
         EventManager.Notify(GameEvent.OnBtn_TestEventFromMenuToOther);
     }
 
-    // *NOTE - Nhận event từ nơi khác vào menu
     private void OnTestEventFromOtherToMenu(object obj)
     {
         Debug.Log("Test event from other to menu Triggered");
