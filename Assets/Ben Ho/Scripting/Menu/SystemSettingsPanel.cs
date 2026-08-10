@@ -7,7 +7,8 @@ public enum SystemSettingPage
     Audio = 0,
     Graphics = 1,
     Controller = 2,
-    Exit = 3
+    Exit = 3,
+    Logout = 4
 }
 
 public class SystemSettingsPanel : MonoBehaviour
@@ -17,11 +18,14 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private Button btnGraphics;
     [SerializeField] private Button btnController;
     [SerializeField] private Button btnExit;
+    [SerializeField] private Button btnLogout;
+
     [Header("Setting Pages")]
     [SerializeField] private ScrollRect audioPage;
     [SerializeField] private ScrollRect graphicsPage;
     [SerializeField] private ScrollRect controllerPage;
     [SerializeField] private ScrollRect exitPage;
+    [SerializeField] private ScrollRect logoutPage;
 
     [Header("Parent Menu")]
     [SerializeField] private GameSystemMenu gameSystemMenu;
@@ -31,12 +35,14 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private GameObject graphicsLine;
     [SerializeField] private GameObject controllerLine;
     [SerializeField] private GameObject exitLine;
+    [SerializeField] private GameObject logoutLine;
 
     [Header("Tab Labels")]
     [SerializeField] private TMP_Text audioLabel;
     [SerializeField] private TMP_Text graphicsLabel;
     [SerializeField] private TMP_Text controllerLabel;
     [SerializeField] private TMP_Text exitLabel;
+    [SerializeField] private TMP_Text logoutLabel;
 
     [Header("Colors")]
     [SerializeField] private Color normalColor = Color.white;
@@ -91,6 +97,9 @@ public class SystemSettingsPanel : MonoBehaviour
         if (btnExit != null)
             btnExit.onClick.AddListener(ShowExit);
 
+        if (btnLogout != null)
+            btnLogout.onClick.AddListener(ShowLogout);
+
         eventsAdded = true;
     }
 
@@ -111,28 +120,17 @@ public class SystemSettingsPanel : MonoBehaviour
         if (btnExit != null)
             btnExit.onClick.RemoveListener(ShowExit);
 
+        if (btnLogout != null)
+            btnLogout.onClick.RemoveListener(ShowLogout);
+
         eventsAdded = false;
     }
 
-    public void ShowAudio()
-    {
-        ShowPage(SystemSettingPage.Audio);
-    }
-
-    public void ShowGraphics()
-    {
-        ShowPage(SystemSettingPage.Graphics);
-    }
-
-    public void ShowController()
-    {
-        ShowPage(SystemSettingPage.Controller);
-    }
-
-    public void ShowExit()
-    {
-        ShowPage(SystemSettingPage.Exit);
-    }
+    public void ShowAudio() => ShowPage(SystemSettingPage.Audio);
+    public void ShowGraphics() => ShowPage(SystemSettingPage.Graphics);
+    public void ShowController() => ShowPage(SystemSettingPage.Controller);
+    public void ShowExit() => ShowPage(SystemSettingPage.Exit);
+    public void ShowLogout() => ShowPage(SystemSettingPage.Logout);
 
     public void ShowPage(SystemSettingPage page)
     {
@@ -142,6 +140,8 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(graphicsPage, page == SystemSettingPage.Graphics);
         SetPage(controllerPage, page == SystemSettingPage.Controller);
         SetPage(exitPage, page == SystemSettingPage.Exit);
+        SetPage(logoutPage, page == SystemSettingPage.Logout);
+
         UpdateVisual(page);
     }
 
@@ -151,6 +151,7 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(graphicsPage, false);
         SetPage(controllerPage, false);
         SetPage(exitPage, false);
+        SetPage(logoutPage, false);
     }
 
     private void SetPage(ScrollRect page, bool active)
@@ -174,15 +175,19 @@ public class SystemSettingsPanel : MonoBehaviour
         bool graphicsSelected = page == SystemSettingPage.Graphics;
         bool controllerSelected = page == SystemSettingPage.Controller;
         bool exitSelected = page == SystemSettingPage.Exit;
+        bool logoutSelected = page == SystemSettingPage.Logout;
+
         SetActive(audioLine, audioSelected);
         SetActive(graphicsLine, graphicsSelected);
         SetActive(controllerLine, controllerSelected);
         SetActive(exitLine, exitSelected);
+        SetActive(logoutLine, logoutSelected);
 
         SetLabel(audioLabel, audioSelected);
         SetLabel(graphicsLabel, graphicsSelected);
         SetLabel(controllerLabel, controllerSelected);
         SetLabel(exitLabel, exitSelected);
+        SetLabel(logoutLabel, logoutSelected);
     }
 
     private void SetActive(GameObject target, bool value)

@@ -1,16 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public enum SceneType
 {
     None = 0,
     Login = 1,
-    Loading = 2,
-    LobbyMain = 3,
-    RunGameplay = 4,
-    Tutorial = 5,
-    FinalBoss = 6,
-    CustomRun = 7
+    UIGame = 2,
+    Loading = 3,
+    LobbyMain = 4,
+    RunGameplay = 5,
+    Tutorial = 6,
+    FinalBoss = 7,
+    CustomRun = 8
 }
 
 [System.Serializable]
@@ -48,6 +50,7 @@ public class GameSceneData : ScriptableObject
     public string runGameplayScene = "Run Scene";
     public string tutorialScene = "Tutorial Scene";
     public string finalBossScene = "FinalBoss Scene";
+
     [Header("Custom Scene List (Mở rộng cho Scene)")]
     [SerializeField] private List<SceneEntry> customScenes = new List<SceneEntry>();
 
@@ -56,6 +59,7 @@ public class GameSceneData : ScriptableObject
         switch (type)
         {
             case SceneType.Login: return loginScene;
+            case SceneType.UIGame: return uiScene;
             case SceneType.Loading: return loadingScene;
             case SceneType.LobbyMain: return lobbyMainScene;
             case SceneType.RunGameplay: return runGameplayScene;
@@ -68,5 +72,18 @@ public class GameSceneData : ScriptableObject
             default:
                 return runGameplayScene;
         }
+    }
+
+    public bool IsSceneActive(SceneType type)
+    {
+        string targetName = GetSceneName(type);
+        return SceneManager.GetActiveScene().name == targetName;
+    }
+
+    public bool IsSceneLoaded(SceneType type)
+    {
+        string targetName = GetSceneName(type);
+        Scene scene = SceneManager.GetSceneByName(targetName);
+        return scene.IsValid() && scene.isLoaded;
     }
 }
