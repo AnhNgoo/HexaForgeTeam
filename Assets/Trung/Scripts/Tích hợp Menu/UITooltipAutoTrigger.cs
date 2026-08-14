@@ -18,7 +18,7 @@ public class UITooltipAutoTrigger : MonoBehaviour, IPointerEnterHandler, IPointe
     {
         if (skillData == null) return;
         this.title = skillData.skillName;
-        this.description = skillData.skillDescription; // Đã sửa tên biến thành skillDescription
+        this.description = skillData.skillDescription;
         this.icon = skillData.skillIcon;
     }
 
