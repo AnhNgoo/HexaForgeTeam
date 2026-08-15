@@ -30,6 +30,7 @@ public enum MenuType
     ControllerMenu = 17,
     GameSystemMenu = 18,
     AchievementMenu = 19,
+    CreditsMenu = 20,
 
     LobbyCharacterMenu = 100,
     LobbyRuneInventoryMenu = 101,
@@ -43,6 +44,7 @@ public enum MenuType
     YouDiedRespawnMenu = 109,
     LobbyRunResultSummaryMenu = 110,
     LobbyBossSelectMenu = 111,
+    LobbyTutorialMenu = 112,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -160,11 +162,11 @@ public class UIManager : Singleton<UIManager>
 
         foreach (var menu in menus)
         {
-            if (menu?.menuBase != null)
-            {
-                menu.menuBase.Open();
-                menu.menuBase.Close();
-            }
+            if (menu?.menuBase != null) menu.menuBase.gameObject.SetActive(false);
         }
+
+        CurrentMenu = null;
+        CurrentMenuType = MenuType.None;
+        PreviousMenuType = MenuType.None;
     }
 }

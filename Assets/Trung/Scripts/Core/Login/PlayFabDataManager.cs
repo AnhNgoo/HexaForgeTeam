@@ -6,7 +6,6 @@ using System.Collections.Generic;
 
 public class PlayFabDataManager : MonoBehaviour
 {
-    [SerializeField] private string sceneToLoadAfterLoading = "LobbyMain Scene";
     public static PlayFabDataManager Instance;
     private bool needSaveCloud = false;
     private float saveTimer = 0f;
@@ -28,7 +27,9 @@ public class PlayFabDataManager : MonoBehaviour
     private void Start()
     {
         string activeSceneName = SceneManager.GetActiveScene().name;
-        if (activeSceneName == "Login Scene")
+        string loginSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loginScene : "Login Scene";
+
+        if (activeSceneName == loginSceneName)
         {
             Debug.Log("[PlayFabDataManager] Loading Scene mở Additive từ Login. Kích hoạt LoadCloud...");
             LoadCloud();
@@ -85,6 +86,8 @@ public class PlayFabDataManager : MonoBehaviour
             return;
         }
 
+        string uiSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.uiScene : "UIGame";
+
         if (result.Data == null || !result.Data.ContainsKey("PlayerData"))
         {
             Debug.Log("[CLOUD] Tài khoản mới tinh trên Cloud. Thiết lập data mặc định...");
@@ -93,7 +96,7 @@ public class PlayFabDataManager : MonoBehaviour
             SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
             SaveLoadManager.Instance.SaveGame();
 
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
+            StartCoroutine(SwitchSceneRoutine(uiSceneName));
             return;
         }
 
@@ -105,7 +108,7 @@ public class PlayFabDataManager : MonoBehaviour
             SaveLoadManager.Instance.SaveData = new GameSaveData();
             SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
             SaveLoadManager.Instance.SaveGame();
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
+            StartCoroutine(SwitchSceneRoutine(uiSceneName));
             return;
         }
 
@@ -121,16 +124,7 @@ public class PlayFabDataManager : MonoBehaviour
 
         Debug.Log($"[CLOUD] Đồng bộ thành công! Trạng thái isTutorialCompleted hiện tại là: {SaveLoadManager.Instance.SaveData.isTutorialCompleted}");
 
-        if (!SaveLoadManager.Instance.SaveData.isTutorialCompleted)
-        {
-            Debug.Log("[CLOUD] Tài khoản chưa hoàn thành Tutorial -> Chuyển hướng tới Tutorial Scene");
-            StartCoroutine(SwitchSceneRoutine("Tutorial Scene"));
-        }
-        else
-        {
-            Debug.Log("[CLOUD] Tài khoản đã hoàn thành Tutorial -> Chuyển hướng tới LobbyMain Scene");
-            StartCoroutine(SwitchSceneRoutine(sceneToLoadAfterLoading));
-        }
+        StartCoroutine(SwitchSceneRoutine(uiSceneName));
     }
     #endregion
 
@@ -139,12 +133,15 @@ public class PlayFabDataManager : MonoBehaviour
         if (isSwitchingScene) yield break;
         isSwitchingScene = true;
 
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        string lobbySceneName = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
+
         Debug.Log($"[PlayFabDataManager] Bắt đầu luồng chuyển cảnh mượt mà tới: {targetSceneName}");
 
-        Scene existingLoadingScene = SceneManager.GetSceneByName("Loading Scene");
+        Scene existingLoadingScene = SceneManager.GetSceneByName(loadingSceneName);
         if (!existingLoadingScene.isLoaded)
         {
-            AsyncOperation loadLoading = SceneManager.LoadSceneAsync("Loading Scene", LoadSceneMode.Additive);
+            AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
             while (!loadLoading.isDone) yield return null;
         }
 
@@ -172,20 +169,19 @@ public class PlayFabDataManager : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(0.2f);
 
-        Scene loadingScene = SceneManager.GetSceneByName("Loading Scene");
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
             while (!unloadLoading.isDone) yield return null;
         }
 
-        if (targetSceneName == "LobbyMain Scene" && UIManager.Instance != null)
+        if (targetSceneName == lobbySceneName && UIManager.Instance != null)
         {
             UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
         }
 
         isSwitchingScene = false;
-
     }
 
     private void OnPlayFabError(PlayFabError error)

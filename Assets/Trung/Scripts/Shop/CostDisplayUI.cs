@@ -45,13 +45,11 @@ public class CostDisplayUI : MonoBehaviour
             CostSlot slot = costSlots[i];
             if (slot.rootGroup != null) slot.rootGroup.SetActive(true);
 
-            // Gán số lượng
             if (slot.amountText != null)
             {
                 slot.amountText.SetTextSafe(cost.amount.ToString("N0"));
             }
 
-            // Gán Icon: Thử tìm trong InventoryItemDatabase
             if (slot.iconImage != null)
             {
                 Sprite iconSprite = GetSpriteFromDatabases(cost.itemID);
@@ -63,12 +61,10 @@ public class CostDisplayUI : MonoBehaviour
                 }
                 else
                 {
-                    // Nếu không có Sprite Icon (ví dụ là mở khóa Nhân vật), ẩn riêng phần Image icon đi để chỉ hiện số/tên
                     slot.iconImage.gameObject.SetActive(false);
                 }
             }
 
-            // Bật dấu '+' phía trước slot này nếu là slot thứ 2 trở đi
             if (validCostCount > 0 && (validCostCount - 1) < plusSigns.Count)
             {
                 if (plusSigns[validCostCount - 1] != null)
@@ -80,7 +76,16 @@ public class CostDisplayUI : MonoBehaviour
             validCostCount++;
         }
 
-        LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
+        // Ép Canvas tính toán lại kích thước Khung Nền & Text tức thì tương tự UITooltipPanel
+        Canvas.ForceUpdateCanvases();
+        for (int i = 0; i < costSlots.Count; i++)
+        {
+            if (costSlots[i].rootGroup != null && costSlots[i].rootGroup.activeSelf)
+            {
+                UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(costSlots[i].rootGroup.transform as RectTransform);
+            }
+        }
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(transform as RectTransform);
     }
 
     private Sprite GetSpriteFromDatabases(string id)

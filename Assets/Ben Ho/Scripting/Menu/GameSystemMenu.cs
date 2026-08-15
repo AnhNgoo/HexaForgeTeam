@@ -90,6 +90,10 @@ public class GameSystemMenu : MenuBase
 
     private void Update()
     {
+        // Không xử lý lại phím ESC trong frame vừa mở menu.
+        if (Time.frameCount == openedFrame)
+            return;
+
         if (InputManager.InputActions.Keyboard.Escape.triggered)
         {
             if (GameManager.Instance.MapType == MapType.Lobby)

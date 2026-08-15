@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Sirenix.OdinInspector;
 public class CheatManager : MonoBehaviour
 {
     public static CheatManager Instance;
@@ -60,7 +60,7 @@ public class CheatManager : MonoBehaviour
     }
 
     #region Hack Functions
-
+    [Button("Hack Gems +5,000")]
     public void HackGems()
     {
         if (GemManager.Instance != null)
@@ -74,6 +74,7 @@ public class CheatManager : MonoBehaviour
         }
     }
 
+    [Button("Hack Rune Shards +2,000")]
     public void HackRuneShards()
     {
         if (RuneShardManager.Instance != null)
@@ -87,6 +88,7 @@ public class CheatManager : MonoBehaviour
         }
     }
 
+    [Button("Hack Experience +1,000")]
     public void HackExperience()
     {
         if (AccountLevelManager.Instance != null)
@@ -105,6 +107,7 @@ public class CheatManager : MonoBehaviour
         }
     }
 
+    [Button("Hack Skip All Achievements")]
     public void HackSkipAllAchievements()
     {
         if (AchievementManager.Instance != null)
@@ -117,12 +120,13 @@ public class CheatManager : MonoBehaviour
         }
     }
 
+    [Button("Hack Add Kills and Runs")]
     public void HackAddKillsAndRuns()
     {
         if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
             var data = SaveLoadManager.Instance.SaveData;
-            
+
             data.totalKills += 100;
             data.totalRuns += 5;
 

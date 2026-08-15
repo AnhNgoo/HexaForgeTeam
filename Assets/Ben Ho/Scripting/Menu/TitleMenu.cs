@@ -7,13 +7,10 @@ using UnityEngine.UI;
 public class TitleMenu : MenuBase
 {
     public override MenuType menuType => MenuType.TitleMenu;
-    [SerializeField] private string lobbySceneName = "Lobby";
     [SerializeField] private Button btn_Play;
-    [SerializeField] private Button btn_Help;
     [SerializeField] private Button btn_Credits;
     [SerializeField] private Button btn_Settings;
-    [SerializeField] private Button btn_Language;
-    [SerializeField] private Button btn_Achievement;
+    [SerializeField] private Button btn_Logout;
 
     private void Start()
     {
@@ -25,60 +22,115 @@ public class TitleMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnTestEventFromOtherToMenu, OnTestEventFromOtherToMenu);
     }
 
-    
-
     protected override void LoadComponent()
     {
         if (btn_Play == null)
             btn_Play = transform.Find("Btn_Play")?.GetComponent<Button>();
-        if (btn_Help == null)
-            btn_Help = transform.Find("Btn_Help")?.GetComponent<Button>();
         if (btn_Credits == null)
             btn_Credits = transform.Find("Btn_Credits")?.GetComponent<Button>();
         if (btn_Settings == null)
             btn_Settings = transform.Find("Btn_Settings")?.GetComponent<Button>();
-        if (btn_Language == null)
-            btn_Language = transform.Find("Btn_Language")?.GetComponent<Button>();
-        if (btn_Achievement == null)
-            btn_Achievement = transform.Find("Btn_Achievement")?.GetComponent<Button>();
+        if (btn_Logout == null)
+            btn_Logout = transform.Find("Btn_Logout")?.GetComponent<Button>();
     }
 
     protected override void LoadComponentRuntime()
     {
-        
+
     }
 
     public override void Open(object data = null)
     {
         base.Open(data);
         btn_Play.onClick.AddListener(OnPlayButtonClicked);
-        btn_Help.onClick.AddListener(OnHelpButtonClicked);
         btn_Credits.onClick.AddListener(OnCreditsButtonClicked);
         btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
-        btn_Language.onClick.AddListener(OnLanguageButtonClicked);
-        btn_Achievement.onClick.AddListener(OnAchievementButtonClicked);
+
+        if (btn_Logout != null)
+            btn_Logout.onClick.AddListener(OnLogoutButtonClicked);
     }
 
     public override void Close()
     {
         base.Close();
         btn_Play.onClick.RemoveListener(OnPlayButtonClicked);
-        btn_Help.onClick.RemoveListener(OnHelpButtonClicked);
         btn_Credits.onClick.RemoveListener(OnCreditsButtonClicked);
         btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
-        btn_Language.onClick.RemoveListener(OnLanguageButtonClicked);
-        btn_Achievement.onClick.RemoveListener(OnAchievementButtonClicked);
+
+        if (btn_Logout != null)
+            btn_Logout.onClick.RemoveListener(OnLogoutButtonClicked);
     }
 
     // Button callback stubs
     private void OnPlayButtonClicked()
     {
-        Debug.Log("Play button clicked");
+        Time.timeScale = 1f;
+
+        GameSaveData saveData = SaveLoadManager.Instance?.SaveData;
+
+        LoadingData.TargetSceneName =
+            saveData?.isTutorialCompleted == true
+                ? GameSceneData.Instance.lobbyMainScene
+                : GameSceneData.Instance.tutorialScene;
+
+        UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
+    }
+
+    private void OnLogoutButtonClicked()
+    {
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance.SaveCloud();
+        }
+
+        PlayerPrefs.DeleteKey("IsAutoLoginActive");
+        PlayerPrefs.DeleteKey("LastAccountUser");
+        PlayerPrefs.DeleteKey("LastAccountPass");
+
+        if (PlayerPrefs.HasKey("PlayFabID"))
+        {
+            PlayerPrefs.DeleteKey("PlayFabID");
+        }
+
+        PlayerPrefs.Save();
 
         Time.timeScale = 1f;
 
-        LoadingData.TargetSceneName = "Lobby";
-        UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
+        StartCoroutine(LogoutTransitionRoutine());
+    }
+
+    private IEnumerator LogoutTransitionRoutine()
+    {
+        string loginSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loginScene : "Login Scene";
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
+        while (!loadLoading.isDone) yield return null;
+
+        yield return new WaitForSecondsRealtime(0.1f);
+
+        if (LoadingUIManager.Instance != null)
+        {
+            LoadingUIManager.Instance.SetDestinationName(loginSceneName);
+        }
+
+        AsyncOperation loadLogin = SceneManager.LoadSceneAsync(loginSceneName, LoadSceneMode.Single);
+        loadLogin.allowSceneActivation = false;
+
+        if (LoadingUIManager.Instance != null)
+        {
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLogin));
+        }
+
+        loadLogin.allowSceneActivation = true;
+        while (!loadLogin.isDone) yield return null;
+
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
+        if (loadingScene.isLoaded)
+        {
+            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
+            while (!unloadLoading.isDone) yield return null;
+        }
     }
 
     private void OnHelpButtonClicked()
@@ -87,6 +139,7 @@ public class TitleMenu : MenuBase
 
         UIManager.Instance.ChangeMenu(MenuType.HelpMenu);
     }
+
     private void OnCreditsButtonClicked()
     {
         // UIManager.Instance.ChangeMenu(MenuType.CreditsMenu);
@@ -108,14 +161,12 @@ public class TitleMenu : MenuBase
     {
         UIManager.Instance.ChangeMenu(MenuType.AchievementMenu);
     }
-    
-    // *NOTE - Gợi event từ menu ra nơi khác
+
     private void OnTestEvent()
     {
         EventManager.Notify(GameEvent.OnBtn_TestEventFromMenuToOther);
     }
 
-    // *NOTE - Nhận event từ nơi khác vào menu
     private void OnTestEventFromOtherToMenu(object obj)
     {
         Debug.Log("Test event from other to menu Triggered");

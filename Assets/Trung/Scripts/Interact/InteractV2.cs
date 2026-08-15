@@ -5,213 +5,139 @@ using UnityEngine;
 public class InteractV2 : MonoBehaviour
 {
     [Header("Interaction")]
-
-    [SerializeField]
-    private string interactText = "Interact";
-
-    [SerializeField]
-    private Sprite interactIcon;
-
-    [SerializeField]
-    private int priority = 0;
+    [SerializeField] private string interactText = "Interact";
+    [SerializeField] private Sprite interactIcon;
+    [SerializeField] private int priority = 0;
 
     [Header("Trigger")]
-
-    [SerializeField]
-    private string playerTag = "Player";
+    [SerializeField] private string playerTag = "Player";
 
     private bool playerInside;
-
     private bool isSelected;
-    [SerializeField]
-private bool openPanel;
 
-[SerializeField]
-private MenuType menuType =
-    MenuType.None;
+    [SerializeField] private bool openPanel;
+    [SerializeField] private MenuType menuType = MenuType.None;
 
     #region Property
-
-    public string InteractText
-    {
-        get
-        {
-            return interactText;
-        }
-    }
-
-    public Sprite InteractIcon
-    {
-        get
-        {
-            return interactIcon;
-        }
-    }
-
-    public int Priority
-    {
-        get
-        {
-            return priority;
-        }
-    }
-
-    public bool PlayerInside
-    {
-        get
-        {
-            return playerInside;
-        }
-    }
-
-    public bool IsSelected
-    {
-        get
-        {
-            return isSelected;
-        }
-    }
-
+    public string InteractText => interactText;
+    public Sprite InteractIcon => interactIcon;
+    public int Priority => priority;
+    public bool PlayerInside => playerInside;
+    public bool IsSelected => isSelected;
     #endregion
 
     #region Trigger
-
     private void Reset()
     {
-        Collider col =
-            GetComponent<Collider>();
-
+        Collider col = GetComponent<Collider>();
         if (col != null)
         {
             col.isTrigger = true;
         }
     }
 
-    private void OnTriggerEnter(
-        Collider other)
+    private void OnTriggerEnter(Collider other)
     {
-        if (!other.CompareTag(playerTag))
-        {
-            return;
-        }
+        if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
 
         playerInside = true;
-
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance
-                .Register(this);
+            InteractManagerV2.Instance.Register(this);
         }
     }
 
-    private void OnTriggerExit(
-        Collider other)
+    private void OnTriggerExit(Collider other)
     {
-        if (!other.CompareTag(playerTag))
-        {
-            return;
-        }
+        if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
 
         playerInside = false;
-
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance
-                .Unregister(this);
+            InteractManagerV2.Instance.Unregister(this);
         }
     }
-
     #endregion
 
     #region Execute
-
     public virtual void Execute()
 {
-    if (!playerInside)
+    if (!playerInside || (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy))
     {
         return;
     }
 
-    NPCDialogue dialogue =
-        GetComponent<NPCDialogue>();
-
+    NPCDialogue dialogue = GetComponent<NPCDialogue>();
     if (dialogue != null)
     {
         if (DialogueUI.Instance != null)
         {
-            DialogueUI.Instance.Show(
-                dialogue.GetDialogue());
+            DialogueUI.Instance.Show(dialogue.GetDialogue());
         }
-
         return;
     }
 
     if (openPanel)
     {
-        UIManager.Instance
-        .ChangeMenu(menuType);
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.IsBusy = true;
+            if (InteractUIV2.Instance != null)
+            {
+                InteractUIV2.Instance.Hide();
+            }
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.Unregister(this);
+        }
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(menuType);
+        }
 
         return;
     }
 
-    SendMessage(
-        "OnInteract",
-        SendMessageOptions
-            .DontRequireReceiver);
+    SendMessage("OnInteract", SendMessageOptions.DontRequireReceiver);
 }
-
     #endregion
 
     #region Selected
-
-    public void SetSelected(
-        bool value)
+    public void SetSelected(bool value)
     {
-        if (isSelected == value)
-        {
-            return;
-        }
+        if (isSelected == value) return;
 
         isSelected = value;
-
         if (value)
         {
-            SendMessage(
-                "OnSelected",
-                SendMessageOptions.DontRequireReceiver);
+            SendMessage("OnSelected", SendMessageOptions.DontRequireReceiver);
         }
         else
         {
-            SendMessage(
-                "OnDeselected",
-                SendMessageOptions.DontRequireReceiver);
+            SendMessage("OnDeselected", SendMessageOptions.DontRequireReceiver);
         }
     }
-
     #endregion
 
     #region Public
-
-    public void SetInteractText(
-        string value)
+    public void SetInteractText(string value)
     {
         interactText = value;
-
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance
-                .ForceRefresh();
+            InteractManagerV2.Instance.ForceRefresh();
         }
     }
-
     #endregion
 
     private void OnDisable()
     {
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance
-                .Unregister(this);
+            InteractManagerV2.Instance.Unregister(this);
         }
     }
 
@@ -219,8 +145,7 @@ private MenuType menuType =
     {
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance
-                .Unregister(this);
+            InteractManagerV2.Instance.Unregister(this);
         }
     }
 }

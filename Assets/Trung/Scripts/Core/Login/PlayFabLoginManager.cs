@@ -1,9 +1,11 @@
+using System.Collections;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
+using DG.Tweening;
 
 public class PlayFabLoginManager : MonoBehaviour
 {
@@ -11,94 +13,211 @@ public class PlayFabLoginManager : MonoBehaviour
     [SerializeField] private GameObject loginPanel;
     [SerializeField] private GameObject registerPanel;
 
-    [Header("Login")]
+    [Header("Universal Loading UI (Dùng chung)")]
+    [SerializeField] private GameObject autoLoginLoadingPanel;
+    [SerializeField] private CanvasGroup autoLoginCanvasGroup;
+    [SerializeField] private Transform loadingSpinnerTransform;
+    [SerializeField] private Slider loadingProgressSlider;
+    [SerializeField] private TMP_Text autoLoginStatusText;
+
+    [Header("Login Inputs")]
     [SerializeField] private TMP_Dropdown savedAccountDropdown;
     [SerializeField] private TMP_InputField loginAccountInput;
     [SerializeField] private TMP_InputField loginPasswordInput;
     [SerializeField] private Toggle rememberToggle;
 
-    [Header("Register")]
+    [Header("Register Inputs")]
     [SerializeField] private TMP_InputField registerUsernameInput;
     [SerializeField] private TMP_InputField registerEmailInput;
     [SerializeField] private TMP_InputField registerPasswordInput;
     [SerializeField] private TMP_InputField confirmPasswordInput;
 
-    [Header("Status")]
+    [Header("Status Text")]
     [SerializeField] private TMP_Text statusText;
-    [Header("Scene")]
+    
+    [Header("Scene Config")]
     [SerializeField] private string loadingSceneName = "Loading Scene";
 
     private SavedAccountList savedAccounts = new SavedAccountList();
+    private bool isLoggingIn = false;
+    private Tween spinnerTween;
+
+    private const string AutoLoginKey = "IsAutoLoginActive";
+    private const string LastAccountKey = "LastAccountUser";
+    private const string LastPasswordKey = "LastAccountPass";
 
     private void Start()
     {
-        if (rememberToggle != null)
-        {
-            rememberToggle.isOn = false;
-        }
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+        if (rememberToggle != null) rememberToggle.isOn = false;
 
         LoadSavedAccounts();
+
+        if (CheckAndTryAutoLogin())
+        {
+            return;
+        }
+
+        OpenLoginPanel();
     }
 
-    private void UpdateStatus(string message)
+    private bool CheckAndTryAutoLogin()
     {
+        bool isAutoLoginActive = PlayerPrefs.GetInt(AutoLoginKey, 0) == 1;
+        string lastUser = PlayerPrefs.GetString(LastAccountKey, "");
+        string lastPass = PlayerPrefs.GetString(LastPasswordKey, "");
+
+        if (isAutoLoginActive && !string.IsNullOrEmpty(lastUser) && !string.IsNullOrEmpty(lastPass))
+        {
+            loginAccountInput.text = lastUser;
+            loginPasswordInput.text = lastPass;
+
+            if (loginPanel != null) loginPanel.SetActive(false);
+            if (registerPanel != null) registerPanel.SetActive(false);
+
+            ShowLoadingOverlay($"Welcome back! Reconnecting as {lastUser}...");
+            StartCoroutine(AutoLoginRoutine());
+            return true;
+        }
+
+        return false;
+    }
+
+    private void ShowLoadingOverlay(string message)
+    {
+        if (autoLoginLoadingPanel == null) return;
+
+        autoLoginLoadingPanel.SetActive(true);
+
+        if (autoLoginStatusText != null)
+        {
+            autoLoginStatusText.SetTextSafe(message);
+        }
+
+        if (autoLoginCanvasGroup == null)
+        {
+            autoLoginCanvasGroup = autoLoginLoadingPanel.GetComponent<CanvasGroup>();
+            if (autoLoginCanvasGroup == null) autoLoginCanvasGroup = autoLoginLoadingPanel.AddComponent<CanvasGroup>();
+        }
+
+        autoLoginCanvasGroup.DOKill();
+        autoLoginCanvasGroup.alpha = 0f;
+        autoLoginCanvasGroup.DOFade(1f, 0.25f).SetUpdate(true);
+
+        if (loadingSpinnerTransform != null)
+        {
+            loadingSpinnerTransform.DOKill();
+            loadingSpinnerTransform.localRotation = Quaternion.identity;
+            spinnerTween = loadingSpinnerTransform.DORotate(new Vector3(0, 0, -360f), 1.2f, RotateMode.FastBeyond360)
+                .SetLoops(-1, LoopType.Incremental)
+                .SetEase(Ease.Linear)
+                .SetUpdate(true);
+        }
+
+        if (loadingProgressSlider != null)
+        {
+            loadingProgressSlider.DOKill();
+            loadingProgressSlider.value = 0f;
+            loadingProgressSlider.DOValue(0.85f, 2.0f).SetEase(Ease.OutQuad).SetUpdate(true);
+        }
+    }
+
+    private void HideLoadingOverlay(System.Action onComplete = null)
+    {
+        if (spinnerTween != null) spinnerTween.Kill();
+
+        if (autoLoginCanvasGroup != null)
+        {
+            autoLoginCanvasGroup.DOKill();
+            autoLoginCanvasGroup.DOFade(0f, 0.2f).SetUpdate(true).OnComplete(() =>
+            {
+                if (autoLoginLoadingPanel != null) autoLoginLoadingPanel.SetActive(false);
+                onComplete?.Invoke();
+            });
+        }
+        else
+        {
+            if (autoLoginLoadingPanel != null) autoLoginLoadingPanel.SetActive(false);
+            onComplete?.Invoke();
+        }
+    }
+
+    private IEnumerator AutoLoginRoutine()
+    {
+        yield return new WaitForSeconds(1.0f);
+        Login();
+    }
+
+    private void UpdateStatus(string message, Color? notifyColor = null)
+    {
+        Debug.Log($"[PlayFabLogin] Status: {message}");
+
         if (statusText != null)
         {
             statusText.SetTextSafe(message);
+        }
+        
+        if (autoLoginStatusText != null && autoLoginLoadingPanel != null && autoLoginLoadingPanel.activeSelf)
+        {
+            autoLoginStatusText.SetTextSafe(message);
+        }
+
+        if (LobbyNotifyManager.Instance != null)
+        {
+            Color color = notifyColor ?? Color.white;
+            LobbyNotifyManager.Instance.ShowNotify(message, color);
         }
     }
 
     public void OpenRegisterPanel()
     {
-        loginPanel.SetActive(false);
-        registerPanel.SetActive(true);
-        UpdateStatus("");
+        HideLoadingOverlay(() =>
+        {
+            if (loginPanel != null) loginPanel.SetActive(false);
+            if (registerPanel != null) registerPanel.SetActive(true);
+            UpdateStatus("");
+        });
     }
 
     public void OpenLoginPanel()
     {
-        loginPanel.SetActive(true);
-        registerPanel.SetActive(false);
-        UpdateStatus("");
+        HideLoadingOverlay(() =>
+        {
+            if (loginPanel != null) loginPanel.SetActive(true);
+            if (registerPanel != null) registerPanel.SetActive(false);
+            UpdateStatus("");
+        });
     }
 
     public void Register()
     {
         if (string.IsNullOrWhiteSpace(registerUsernameInput.text))
         {
-            UpdateStatus("Username required.");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Username required.", Color.yellow);
-            Debug.LogWarning("<color=#FFFF66><b>[ĐĂNG KÝ]</b> Thất bại - Thiếu tên tài khoản.</color>");
+            UpdateStatus("Username required.", Color.yellow);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(registerEmailInput.text))
         {
-            UpdateStatus("Email required.");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Email required.", Color.yellow);
-            Debug.LogWarning("<color=#FFFF66><b>[ĐĂNG KÝ]</b> Thất bại - Thiếu email đăng ký.</color>");
+            UpdateStatus("Email required.", Color.yellow);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(registerPasswordInput.text))
         {
-            UpdateStatus("Password required.");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Password required.", Color.yellow);
-            Debug.LogWarning("<color=#FFFF66><b>[ĐĂNG KÝ]</b> Thất bại - Thiếu mật khẩu đăng ký.</color>");
+            UpdateStatus("Password required.", Color.yellow);
             return;
         }
 
         if (registerPasswordInput.text != confirmPasswordInput.text)
         {
-            UpdateStatus("Passwords do not match.");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Passwords do not match.", Color.red);
-            Debug.LogWarning("<color=#FF3333><b>[ĐĂNG KÝ]</b> Xử lý dừng - Mật khẩu nhập lại không trùng khớp.</color>");
+            UpdateStatus("Passwords do not match.", Color.red);
             return;
         }
 
-        UpdateStatus("Creating account...");
-        if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Creating account...", Color.cyan);
-        Debug.Log("<color=#00FFCC><b>[ĐĂNG KÝ]</b> Gửi yêu cầu khởi tạo tài khoản mới lên hệ thống PlayFab...</color>");
+        ShowLoadingOverlay("Creating account...");
+        UpdateStatus("Creating account...", Color.cyan);
 
         RegisterPlayFabUserRequest request = new RegisterPlayFabUserRequest
         {
@@ -113,50 +232,40 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void OnRegisterSuccess(RegisterPlayFabUserResult result)
     {
-        Debug.Log($"<color=#00FFCC><b>[ĐĂNG KÝ]</b> Tài khoản tạo thành công. ID hệ thống: {result.PlayFabId}. Bắt đầu gán DisplayName...</color>");
-
         PlayFabClientAPI.UpdateUserTitleDisplayName(
-            new UpdateUserTitleDisplayNameRequest
-            {
-                DisplayName = registerUsernameInput.text
-            },
-            displayResult => {
-                Debug.Log($"<color=#00FFCC><b>[ĐĂNG KÝ]</b> Đã gán DisplayName chuẩn theo Username thành công: {registerUsernameInput.text}</color>");
-            },
-            error => {
-                Debug.LogError($"<color=#FF3333><b>[ĐĂNG KÝ LỖI DISPLAYNAME]</b> {error.GenerateErrorReport()}</color>");
-            });
+            new UpdateUserTitleDisplayNameRequest { DisplayName = registerUsernameInput.text },
+            displayResult => {},
+            error => {});
 
-        loginPanel.SetActive(true);
-        registerPanel.SetActive(false);
+        SaveRememberAccount();
 
-        UpdateStatus("Account created successfully.");
-        if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Registration complete!", Color.green);
+        HideLoadingOverlay(() =>
+        {
+            if (loginPanel != null) loginPanel.SetActive(true);
+            if (registerPanel != null) registerPanel.SetActive(false);
+            UpdateStatus("Account created successfully!", Color.green);
+        });
     }
 
     public void Login()
     {
-        if (string.IsNullOrWhiteSpace(loginAccountInput.text))
+        if (isLoggingIn) return;
+
+        if (string.IsNullOrWhiteSpace(loginAccountInput.text) || string.IsNullOrWhiteSpace(loginPasswordInput.text))
         {
-            UpdateStatus("Username or Email required.");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Username or Email required.", Color.yellow);
-            Debug.LogWarning("<color=#FFFF66><b>[ĐĂNG NHẬP]</b> Thất bại - Trường tên tài khoản/email để trống.</color>");
+            UpdateStatus("Username and Password required.", Color.yellow);
+            if (autoLoginLoadingPanel != null && autoLoginLoadingPanel.activeSelf)
+            {
+                OpenLoginPanel();
+            }
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(loginPasswordInput.text))
-        {
-            UpdateStatus("Password required.");
-            if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Password required.", Color.yellow);
-            Debug.LogWarning("<color=#FFFF66><b>[ĐĂNG NHẬP]</b> Thất bại - Trường mật khẩu để trống.</color>");
-            return;
-        }
-
-        UpdateStatus("Connecting...");
-        if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Connecting...", Color.cyan);
+        isLoggingIn = true;
+        ShowLoadingOverlay("Connecting to server...");
+        UpdateStatus("Connecting...", Color.cyan);
 
         string account = loginAccountInput.text.Trim();
-        Debug.Log($"<color=#00FFCC><b>[ĐĂNG NHẬP]</b> Bắt đầu gửi thông tin xác thực cho tài khoản: {account}</color>");
 
         if (account.Contains("@"))
         {
@@ -182,11 +291,6 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void SaveRememberAccount()
     {
-        if (!rememberToggle.isOn)
-        {
-            return;
-        }
-
         bool found = false;
 
         foreach (SavedAccount account in savedAccounts.accounts)
@@ -201,15 +305,16 @@ public class PlayFabLoginManager : MonoBehaviour
 
         if (!found)
         {
-            SavedAccount newAccount = new SavedAccount();
-            newAccount.username = loginAccountInput.text;
-            newAccount.password = loginPasswordInput.text;
+            SavedAccount newAccount = new SavedAccount
+            {
+                username = loginAccountInput.text,
+                password = loginPasswordInput.text
+            };
             savedAccounts.accounts.Add(newAccount);
         }
 
         string json = JsonUtility.ToJson(savedAccounts);
         PlayerPrefs.SetString("SavedAccounts", json);
-        Debug.Log("<color=#FFFF66><b>[GHI NHỚ TÀI KHOẢN]</b> Đã cập nhật thông tin đăng nhập cục bộ thành công.</color>");
     }
 
     private void LoadSavedAccounts()
@@ -226,15 +331,11 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void RefreshDropdown()
     {
-        if (savedAccountDropdown == null)
-        {
-            return;
-        }
+        if (savedAccountDropdown == null) return;
 
         savedAccountDropdown.ClearOptions();
 
-        List<string> options = new List<string>();
-        options.Add("Select Account");
+        List<string> options = new List<string> { "Select Account" };
 
         foreach (SavedAccount account in savedAccounts.accounts)
         {
@@ -248,10 +349,7 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void OnAccountSelected(int index)
     {
-        if (index <= 0)
-        {
-            return;
-        }
+        if (index <= 0) return;
 
         SavedAccount account = savedAccounts.accounts[index - 1];
         loginAccountInput.text = account.username;
@@ -260,55 +358,37 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void OnPlayFabError(PlayFabError error)
     {
-        string message = "An error occurred.";
+        isLoggingIn = false;
+        
+        PlayerPrefs.SetInt(AutoLoginKey, 0);
+        PlayerPrefs.Save();
 
-        switch (error.Error)
+        string message = error.ErrorMessage;
+        
+        // Ẩn Overlay Loading trả về màn hình nhập tay để người chơi sửa lại mật khẩu/tài khoản
+        HideLoadingOverlay(() =>
         {
-            case PlayFabErrorCode.InvalidEmailAddress:
-                message = "Invalid email address.";
-                break;
-            case PlayFabErrorCode.EmailAddressNotAvailable:
-                message = "Email address already in use.";
-                break;
-            case PlayFabErrorCode.UsernameNotAvailable:
-                message = "Username already exists.";
-                break;
-            case PlayFabErrorCode.InvalidUsername:
-                message = "Invalid username.";
-                break;
-            case PlayFabErrorCode.InvalidPassword:
-                message = "Invalid password layout.";
-                break;
-            case PlayFabErrorCode.AccountNotFound:
-                message = "Account not found.";
-                break;
-            case PlayFabErrorCode.InvalidParams:
-                message = "Invalid parameters entered.";
-                break;
-            case PlayFabErrorCode.InvalidUsernameOrPassword:
-                message = "Wrong username or password.";
-                break;
-            default:
-                message = error.ErrorMessage;
-                break;
-        }
-
-        UpdateStatus(message);
-        if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify(message, Color.red);
-
-        Debug.LogError($"<color=#FF3333><b>[PLAYFAB ERROR]</b> Kết nối thất bại: {error.GenerateErrorReport()}</color>");
+            UpdateStatus(message, Color.red);
+        });
     }
 
     private void OnLoginSuccess(LoginResult result)
     {
-        UpdateStatus("Login successful.");
-        if (LobbyNotifyManager.Instance != null) LobbyNotifyManager.Instance.ShowNotify("Login successful!", Color.green);
+        UpdateStatus("Login successful!", Color.green);
+
+        if (loadingProgressSlider != null)
+        {
+            loadingProgressSlider.DOKill();
+            loadingProgressSlider.DOValue(1f, 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        }
 
         PlayerPrefs.SetString("PlayFabID", result.PlayFabId);
+        PlayerPrefs.SetInt(AutoLoginKey, 1);
+        PlayerPrefs.SetString(LastAccountKey, loginAccountInput.text.Trim());
+        PlayerPrefs.SetString(LastPasswordKey, loginPasswordInput.text);
+
         SaveRememberAccount();
         PlayerPrefs.Save();
-
-        Debug.Log($"<color=#00FFCC><b>[ĐĂNG NHẬP]</b> Thành công - Kích hoạt phiên làm việc PlayFabID: {result.PlayFabId}</color>");
 
         if (SaveLoadManager.Instance != null)
         {
@@ -317,14 +397,15 @@ public class PlayFabLoginManager : MonoBehaviour
 
         CheckAndFixDisplayName();
 
+        System.GC.Collect();
+        Resources.UnloadUnusedAssets();
+
         if (PlayFabDataManager.Instance != null)
         {
-            Debug.Log("<color=#00FFCC><b>[ĐĂNG NHẬP]</b> Gọi luồng LoadCloud từ PlayFabDataManager để xử lý dữ liệu...</color>");
             PlayFabDataManager.Instance.LoadCloud();
         }
         else
         {
-            Debug.LogWarning("<color=#FFFF66><b>[ĐĂNG NHẬP WARNING]</b> Không tìm thấy PlayFabDataManager. Khởi chạy khẩn cấp bằng SceneManager Additive.</color>");
             UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(loadingSceneName, UnityEngine.SceneManagement.LoadSceneMode.Additive);
         }
     }
@@ -341,36 +422,26 @@ public class PlayFabLoginManager : MonoBehaviour
                 {
                     PlayerPrefs.SetString("DisplayName", displayName);
                     PlayerPrefs.Save();
-                    Debug.Log($"<color=#00FFCC><b>[ĐỒNG BỘ DISPLAYNAME]</b> Đã đồng bộ DisplayName hiện tại về thiết bị: {displayName}</color>");
                     return;
                 }
 
                 string email = loginAccountInput.text.Trim();
-
-                if (!email.Contains("@"))
-                {
-                    return;
-                }
+                if (!email.Contains("@")) return;
 
                 PlayFabClientAPI.UpdateUserTitleDisplayName(
-                    new UpdateUserTitleDisplayNameRequest
-                    {
-                        DisplayName = email
-                    },
+                    new UpdateUserTitleDisplayNameRequest { DisplayName = email },
                     updateResult =>
                     {
                         PlayerPrefs.SetString("DisplayName", email);
                         PlayerPrefs.Save();
-                        Debug.Log($"<color=#00FFCC><b>[ĐỒNG BỘ DISPLAYNAME]</b> Tài khoản trống DisplayName -> Đã tự động cập nhật theo Email thành công: {email}</color>");
                     },
-                    error =>
-                    {
-                        Debug.LogError($"<color=#FF3333><b>[ĐỒNG BỘ DISPLAYNAME LỖI]</b> {error.GenerateErrorReport()}</color>");
-                    });
+                    error => {});
             },
-            error =>
-            {
-                Debug.LogError($"<color=#FF3333><b>[THÔNG TIN TÀI KHOẢN LỖI]</b> {error.GenerateErrorReport()}</color>");
-            });
+            error => {});
+    }
+
+    private void OnDestroy()
+    {
+        if (spinnerTween != null) spinnerTween.Kill();
     }
 }
