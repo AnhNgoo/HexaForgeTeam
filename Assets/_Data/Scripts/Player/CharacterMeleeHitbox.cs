@@ -66,8 +66,8 @@ public class CharacterMeleeHitbox : MonoBehaviour
     {
         if (other.TryGetComponent(out EnemyBase enemy))
         {
-            float damage = characterBase.CharacterData.stats.damage;
-            float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
+            float damage = characterBase.CharacterStat.finalStats.damage + characterBase.CharacterStat.GetWeaponDamage();
+            float poisonDamage = characterBase.CharacterStat.finalStats.poisonDamage + characterBase.CharacterStat.GetWeaponPoisonDamage();
             if (enemy.DamageReceiver != null)
             {
                 enemy.DamageReceiver.TakeHit(damage, poisonDamage, transform);
@@ -77,7 +77,6 @@ public class CharacterMeleeHitbox : MonoBehaviour
         if (hitEffect != PoolType.None)
         {
             ObjectPooling.Instance.SpawnFromPool(hitEffect, other.ClosestPoint(transform.position), Quaternion.identity);
-            Debug.Log("Spawn ra hit effect: " + hitEffect.ToString());
         }
 
         CameraShake.Instance.Shake();

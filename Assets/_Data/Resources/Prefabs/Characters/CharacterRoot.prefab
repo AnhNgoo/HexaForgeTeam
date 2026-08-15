@@ -282,6 +282,7 @@ GameObject:
   - component: {fileID: 4158129128601078523}
   - component: {fileID: 9075692546067147301}
   - component: {fileID: -8029927256645247352}
+  - component: {fileID: -7855983501107701153}
   m_Layer: 3
   m_Name: CharacterRoot
   m_TagString: Player
@@ -579,7 +580,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba2aa026dc4515b47b5bdec148d7971a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  stats:
+  originStats:
     maxHealth: 0
     speed: 0
     damage: 0
@@ -654,6 +655,20 @@ MonoBehaviour:
   poisonDuration: 5
   poisonTickInterval: 1
   poisonDamagePerTick: 8
+--- !u!114 &-7855983501107701153
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8931283889870276570}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93bfcf68bd67504428cdd6b13b8fa1d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  statGainedLevelUp: {fileID: 11400000, guid: 6bcc370c4eaa4d047ab2ecc091e2a4c5, type: 2}
+  currentLevel: 0
 --- !u!1001 &3834460150445873705
 PrefabInstance:
   m_ObjectHideFlags: 0

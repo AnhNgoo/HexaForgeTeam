@@ -6,12 +6,16 @@ using UnityEngine.UI;
 public class CharacterSkill : MonoBehaviour
 {
     [SerializeField] private CharacterSkillData skill1Data;
+    public CharacterSkillData Skill1Data => skill1Data;
     [SerializeField] private CharacterSkillData skill2Data;
+    public CharacterSkillData Skill2Data => skill2Data;
     private ICharacterSkill skill1;
     private ICharacterSkill skill2;
     public bool CanUseSkill1 { get; set; } = true;
     public bool CanUseSkill2 { get; set; } = true;
     public bool IsUsingSkill { get; set; } = false;
+    public bool IsUsingSkill1 { get; set; } = false;
+    public bool IsUsingSkill2 { get; set; } = false;
 
     private CharacterBase characterBase;
 
@@ -40,6 +44,7 @@ public class CharacterSkill : MonoBehaviour
     {
         if (!CanUseSkill1)
             return;
+        IsUsingSkill1 = true;
         skill1?.UseSkill();
     }
 
@@ -47,6 +52,7 @@ public class CharacterSkill : MonoBehaviour
     {
         if (!CanUseSkill2)
             return;
+        IsUsingSkill2 = true;
         skill2?.UseSkill();
     }
 }

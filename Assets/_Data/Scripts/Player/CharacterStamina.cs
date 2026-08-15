@@ -82,7 +82,7 @@ public class CharacterStamina : MonoBehaviour
 
         if (currentStamina < maxStamina)
         {
-            currentStamina += characterBase.CharacterStat.Stats.staminaRegen * Time.deltaTime;
+            currentStamina += characterBase.CharacterStat.OriginStats.staminaRegen * Time.deltaTime;
             currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
             staminaData.MaxStamina = maxStamina;
