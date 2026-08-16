@@ -24,7 +24,7 @@ public class MysticOrbs : CharacterSkillBase
         }
 
         character.CanBeAttacked = false;
-        EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.cooldown);
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.skillStats.cooldown);
 
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
         character.CharacterWeapon.StoreWeapon();
@@ -72,7 +72,7 @@ public class MysticOrbs : CharacterSkillBase
         delayCts?.Dispose();
         delayCts = new CancellationTokenSource();
 
-        await UniTask.Delay(7000, cancellationToken: delayCts.Token).SuppressCancellationThrow();
+        await UniTask.Delay((int)(1000 * skillData.skillStats.duration), cancellationToken: delayCts.Token).SuppressCancellationThrow();
 
         delayCts?.Dispose();
         delayCts = null;
@@ -95,6 +95,7 @@ public class MysticOrbs : CharacterSkillBase
         character.CharacterMovement.UseGravity = true;
         character.StateController.ChangeState(new IdleState(character));
         character.CharacterWeapon.RetrieveWeapon();
+        character.CharacterSkill.IsUsingSkill2 = false;
     }
 
     public void CancelSkillDelay()

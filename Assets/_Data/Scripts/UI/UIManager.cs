@@ -142,7 +142,6 @@ public class UIManager : Singleton<UIManager>
             CurrentMenu.Open(data);
 
         CurrentMenuType = CurrentMenu.menuType;
-        Debug.Log("TAO DAY NE" + CurrentMenuType);
     }
 
     //Đóng tất cả menu

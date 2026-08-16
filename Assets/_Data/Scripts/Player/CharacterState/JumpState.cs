@@ -64,7 +64,7 @@ public class JumpState : ICharacterState
             return;
         }
 
-        float speed = character.CharacterData.stats.speed;
+        float speed = character.CharacterStat.finalStats.speed;
 
         Vector3 rotationDirection = new Vector3(character.CharacterMovement.MoveDirection.x,
                                                 0f,

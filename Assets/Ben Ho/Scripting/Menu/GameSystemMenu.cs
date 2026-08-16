@@ -65,7 +65,7 @@ public class GameSystemMenu : MenuBase
     public override void Open(object data = null)
     {
         base.Open(data);
-
+        MouseManager.Instance?.ShowMouse();
         transform.SetAsLastSibling();
 
         if (mainTabMenu != null)

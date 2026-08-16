@@ -143,8 +143,8 @@ public class LyraSkill_2_Projectile : LoadComponents, IPoolable
 
         if (other.TryGetComponent(out EnemyBase enemy))
         {
-            float damage = characterBase.CharacterData.stats.damage;
-            float poisonDamage = characterBase.CharacterData.stats.poisonDamage;
+            float damage = characterBase.CharacterStat.GetSkillDamage(characterBase.CharacterSkill.Skill2Data);
+            float poisonDamage = characterBase.CharacterSkill.Skill2Data.skillStats.poisonDamage;
             enemy.DamageReceiver?.TakeHit(damage, poisonDamage, transform);
         }
 
