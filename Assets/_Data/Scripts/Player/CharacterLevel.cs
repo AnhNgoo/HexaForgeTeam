@@ -47,6 +47,23 @@ public class CharacterLevel : LoadComponents
         }
     }
 
+    public void DecreaseLevel(int amount = 1)
+    {
+        if (currentLevel > 0)
+        {
+            currentLevel -= amount;
+            if (currentLevel < 0)
+                currentLevel = 0;
+            CharacterStats levelStats = CalculateLevelUpStats(currentLevel); // Tính toán các chỉ số giảm xuống dựa trên cấp độ hiện tại
+            characterBase.CharacterStat.SetLevelStats(levelStats);
+            EventManager.Notify(GameEvent.OnUpdateLevel, currentLevel);
+        }
+        else
+        {
+            Debug.LogWarning("Đã đạt cấp tối thiểu!");
+        }
+    }
+
     public void ResetLevel()
     {
         currentLevel = 0;
