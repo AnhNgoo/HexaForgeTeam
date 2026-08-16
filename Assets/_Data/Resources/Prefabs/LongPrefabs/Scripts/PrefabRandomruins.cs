@@ -1,54 +1,156 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 public class PrefabRandomruins : MonoBehaviour
 {
     public SpawnData[] spawnDatas;
-    public Transform target;    
-    
-    public void SpawnRuin()
-    {   
+    public Transform target;
+
+    [SerializeField] private Transform spawnedParent;
+
+    [ContextMenu("Spawn Ruins")]
+    public void SpawnRuins()
+    {
+        ClearRuins();
+
+        Transform parent = GetOrCreateSpawnedParent();
+
         foreach (SpawnData data in spawnDatas)
         {
-            if (data.prefabs == null) continue;
+            if (data.prefabs == null || data.spawnPoints == null)
+                continue;
 
-            int spawnCount = Mathf.Min(data.spawnPoints.Length, data.prefabs.Length);
+            int spawnCount = Mathf.Min(
+                data.spawnPoints.Length,
+                data.prefabs.Length
+            );
 
-            List<int> prefabIndexes = Enumerable.Range(0, data.prefabs.Length).ToList();
-            for (int i = 0; i < prefabIndexes.Count; i++)
-            {
-                int randomIndex = Random.Range(i, prefabIndexes.Count);
-                (prefabIndexes[i], prefabIndexes[randomIndex]) = (prefabIndexes[randomIndex], prefabIndexes[i]);
-            }
+            List<int> prefabIndexes =
+                Enumerable.Range(0, data.prefabs.Length).ToList();
 
-            List<int> pointIndexes = Enumerable.Range(0, data.spawnPoints.Length).ToList();
-            for (int i = 0; i < pointIndexes.Count; i++)
-            {
-                int randomIndex = Random.Range(i, pointIndexes.Count);
-                (pointIndexes[i], pointIndexes[randomIndex]) = (pointIndexes[randomIndex], pointIndexes[i]);
-            }
+            Shuffle(prefabIndexes);
+
+            List<int> pointIndexes =
+                Enumerable.Range(0, data.spawnPoints.Length).ToList();
+
+            Shuffle(pointIndexes);
 
             for (int i = 0; i < spawnCount; i++)
             {
-                GameObject prefabs = data.prefabs[prefabIndexes[i]];
+                GameObject prefab = data.prefabs[prefabIndexes[i]];
                 Transform point = data.spawnPoints[pointIndexes[i]];
 
-                Ray ray = new Ray(point.position + Vector3.up * 40f, Vector3.down);
-            
-                if (Physics.Raycast(ray, out RaycastHit hit, 100f))
-                {
-                    GameObject bonus = Instantiate(prefabs, hit.point + Vector3.up * data.yOffset, Quaternion.identity);
+                if (prefab == null || point == null)
+                    continue;
 
-                    if (target != null)
+                Ray ray = new Ray(
+                    point.position + Vector3.up * 40f,
+                    Vector3.down
+                );
+
+                if (!Physics.Raycast(ray, out RaycastHit hit, 100f))
+                    continue;
+
+                GameObject spawnedObject = Instantiate(
+                    prefab,
+                    hit.point + Vector3.up * data.yOffset,
+                    Quaternion.identity,
+                    parent
+                );
+
+                spawnedObject.name = prefab.name;
+
+                if (target != null)
+                {
+                    Vector3 direction =
+                        target.position - spawnedObject.transform.position;
+
+                    direction.y = 0;
+
+                    if (direction.sqrMagnitude > 0.001f)
                     {
-                        Vector3 direction = target.position - bonus.transform.position;
-                        direction.y = 0;
-                        bonus.transform.rotation = Quaternion.LookRotation(direction);
+                        spawnedObject.transform.rotation =
+                            Quaternion.LookRotation(direction);
                     }
                 }
+
+#if UNITY_EDITOR
+                if (!Application.isPlaying)
+                {
+                    Undo.RegisterCreatedObjectUndo(
+                        spawnedObject,
+                        "Spawn Ruin"
+                    );
+                }
+#endif
             }
+        }
+    }
+
+    [ContextMenu("Clear Ruins")]
+    public void ClearRuins()
+    {
+        if (spawnedParent == null)
+            return;
+
+        for (int i = spawnedParent.childCount - 1; i >= 0; i--)
+        {
+            GameObject child =
+                spawnedParent.GetChild(i).gameObject;
+
+#if UNITY_EDITOR
+            if (!Application.isPlaying)
+            {
+                Undo.DestroyObjectImmediate(child);
+            }
+            else
+#endif
+            {
+                Destroy(child);
+            }
+        }
+    }
+
+    private Transform GetOrCreateSpawnedParent()
+    {
+        if (spawnedParent != null)
+            return spawnedParent;
+
+        GameObject parentObject =
+            new GameObject("Spawned Ruins");
+
+        parentObject.transform.SetParent(transform);
+        spawnedParent = parentObject.transform;
+
+#if UNITY_EDITOR
+        if (!Application.isPlaying)
+        {
+            Undo.RegisterCreatedObjectUndo(
+                parentObject,
+                "Create Spawned Ruins Parent"
+            );
+
+            EditorUtility.SetDirty(this);
+        }
+#endif
+
+        return spawnedParent;
+    }
+
+    private void Shuffle(List<int> indexes)
+    {
+        for (int i = 0; i < indexes.Count; i++)
+        {
+            int randomIndex =
+                Random.Range(i, indexes.Count);
+
+            (indexes[i], indexes[randomIndex]) =
+                (indexes[randomIndex], indexes[i]);
         }
     }
 }
