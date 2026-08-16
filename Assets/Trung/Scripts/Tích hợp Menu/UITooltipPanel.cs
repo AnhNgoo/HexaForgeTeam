@@ -54,7 +54,6 @@ public class UITooltipPanel : MonoBehaviour
     {
         if (tooltipRoot == null) return;
 
-        // 1. Gán nội dung
         if (titleText != null)
         {
             titleText.gameObject.SetActive(!string.IsNullOrEmpty(title));
@@ -73,17 +72,14 @@ public class UITooltipPanel : MonoBehaviour
             if (icon != null) iconImage.sprite = icon;
         }
 
-        // 2. Ép Unity UI tính toán lại kích thước Khung Nền vừa vặn với độ dài chữ mới ngay lập tức
         if (containerRect != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(containerRect);
         }
 
-        // 3. Cập nhật vị trí bám chuột & Bật Panel
         UpdatePositionAndPivot();
         tooltipRoot.SetActive(true);
 
-        // 4. Hiệu ứng Scale & Fade mượt mà bằng DOTween
         if (canvasGroup != null)
         {
             canvasGroup.DOKill();
@@ -123,13 +119,11 @@ public class UITooltipPanel : MonoBehaviour
 
         Vector2 mousePos = Input.mousePosition;
 
-        // Tính toán Pivot tự động lật mép nếu Tooltip tiến sát cạnh màn hình
         float pivotX = (mousePos.x + containerRect.rect.width + cursorOffset.x > Screen.width) ? 1f : 0f;
         float pivotY = (mousePos.y - containerRect.rect.height + cursorOffset.y < 0) ? 0f : 1f;
 
         containerRect.pivot = new Vector2(pivotX, pivotY);
 
-        // Điều chỉnh Offset hướng theo Pivot
         float offsetX = pivotX == 1f ? -cursorOffset.x : cursorOffset.x;
         float offsetY = pivotY == 1f ? -cursorOffset.y : cursorOffset.y;
 

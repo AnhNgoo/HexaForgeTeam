@@ -56,22 +56,27 @@ public class LoadingUIManager : MonoBehaviour
         if (destinationText == null) return;
 
         string formattedName = "Unknown Zone";
+        GameSceneData data = GameSceneData.Instance;
 
-        if (sceneName == "LobbyMain Scene")
+        string lobbySceneName = data != null ? data.GetSceneName(SceneType.LobbyMain) : "LobbyMain Scene";
+        string runSceneName = data != null ? data.GetSceneName(SceneType.RunGameplay) : "Run Scene";
+        string tutorialSceneName = data != null ? data.GetSceneName(SceneType.Tutorial) : "Tutorial Scene";
+
+        if (sceneName == lobbySceneName)
         {
             formattedName = "TRAVELING TO: HEROES' LOBBY";
         }
-        else if (sceneName == "Run Scene")
+        else if (sceneName == runSceneName)
         {
             formattedName = "ENTERING: THE DEEP DUNGEON";
         }
-        else if (sceneName == "Tutorial Scene")
+        else if (sceneName == tutorialSceneName)
         {
             formattedName = "ENTERING: TRIAL GROUNDS";
         }
         else
         {
-            formattedName = $"TRAVELING TO: {sceneName.Replace(" Scene", "").ToUpper()}";
+            formattedName = $"TRAVELING TO: {sceneName.Replace(" Scene", "").Replace("Game", "").ToUpper()}";
         }
 
         destinationText.SetTextSafe(formattedName);

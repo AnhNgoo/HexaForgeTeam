@@ -72,16 +72,24 @@ public class GameManager : Singleton<GameManager>
             return;
         }
 
-        if (sceneName == sceneData.lobbyMainScene)
+        // BẮT BỘC DÙNG GetSceneName(...) ĐỂ SO SÁNH CHUẨN TÊN SCENE LOBBY CÁ NHÂN (VD: LobbyMainGameTrung)
+        string expectedLobbyScene = sceneData.GetSceneName(SceneType.LobbyMain);
+        string expectedRunScene = sceneData.GetSceneName(SceneType.RunGameplay);
+        string expectedBossScene = sceneData.GetSceneName(SceneType.FinalBoss);
+        string expectedTutorialScene = sceneData.GetSceneName(SceneType.Tutorial);
+
+        if (sceneName == expectedLobbyScene)
             currentMapType = MapType.Lobby;
-        else if (sceneName == sceneData.runGameplayScene)
+        else if (sceneName == expectedRunScene)
             currentMapType = MapType.Run;
-        else if (sceneName == sceneData.finalBossScene)
+        else if (sceneName == expectedBossScene)
             currentMapType = MapType.Boss;
-        else if (sceneName == sceneData.tutorialScene)
+        else if (sceneName == expectedTutorialScene)
             currentMapType = MapType.Tutorial;
         else
             currentMapType = MapType.None;
+            
+        Debug.Log($"<color=#00FFCC>[GameManager] Active Scene Name: '{sceneName}' -> Target MapType evaluated: {currentMapType}</color>");
     }
 
     private void OnLoadingComplete(object obj)
