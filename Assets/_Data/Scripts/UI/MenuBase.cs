@@ -41,25 +41,32 @@ public abstract class MenuBase : LoadComponents
 
     protected virtual void AnimateOpen()
     {
-        DG.Tweening.DOTween.Kill(transform);
+        DOTween.Kill(transform);
         CanvasGroup group = GetComponent<CanvasGroup>();
         if (group == null) group = gameObject.AddComponent<CanvasGroup>();
 
+        // Đảm bảo hiển thị ngay lập tức trước khi chạy Tween
+        group.alpha = 1f;
+        transform.localScale = Vector3.one;
+
+        // Reset vị trí và hiệu ứng Scale nảy nhẹ
+        group.DOKill();
         group.alpha = 0f;
-        transform.localScale = Vector3.one * 0.92f;
+        transform.localScale = Vector3.one * 0.95f;
 
         group.DOFade(1f, 0.2f).SetUpdate(true);
-        transform.DOScale(Vector3.one, 0.25f).SetEase(DG.Tweening.Ease.OutBack).SetUpdate(true);
+        transform.DOScale(Vector3.one, 0.25f).SetEase(Ease.OutBack).SetUpdate(true);
     }
 
     protected virtual void AnimateClose(System.Action onComplete)
     {
-        DG.Tweening.DOTween.Kill(transform);
+        DOTween.Kill(transform);
         CanvasGroup group = GetComponent<CanvasGroup>();
         if (group != null)
         {
+            group.DOKill();
             group.DOFade(0f, 0.15f).SetUpdate(true);
-            transform.DOScale(Vector3.one * 0.95f, 0.15f).SetEase(DG.Tweening.Ease.InQuad).SetUpdate(true).OnComplete(() =>
+            transform.DOScale(Vector3.one * 0.95f, 0.15f).SetEase(Ease.InQuad).SetUpdate(true).OnComplete(() =>
             {
                 onComplete?.Invoke();
             });
