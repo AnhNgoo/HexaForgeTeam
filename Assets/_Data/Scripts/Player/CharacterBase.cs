@@ -22,6 +22,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterStat))]
 [RequireComponent(typeof(CharacterStamina))]
 [RequireComponent(typeof(CharacterMP))]
+[RequireComponent(typeof(CharacterLevel))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage
 {
     [Header("Character Data")]
@@ -78,6 +79,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public CharacterStamina CharacterStamina => characterStamina;
     [SerializeField] protected CharacterMP characterMP;
     public CharacterMP CharacterMP => characterMP;
+    [SerializeField] protected CharacterLevel characterLevel;
+    public CharacterLevel CharacterLevel => characterLevel;
 
 
     [Header("Character Effect General")]
@@ -141,6 +144,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterStamina = GetComponent<CharacterStamina>();
         if (characterMP == null)
             characterMP = GetComponent<CharacterMP>();
+        if (characterLevel == null)
+            characterLevel = GetComponent<CharacterLevel>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -187,15 +192,13 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
             characterMeleeHitbox.Init(this);
             characterStat.Init(this, characterData.stats);
-            Debug.Log("Stamina & MP");
             characterStamina.Init(this);
             characterMP.Init(this);
-            Debug.Log("State");
+            characterLevel.Init(this);
             stateController = new StateController();
             stateController.ChangeState(new IdleState(this));
 
             //SECTION - Skill
-            Debug.Log("Skill");
             characterSkill?.Init(this, characterData.skill1Data, characterData.skill2Data, GetSkill_1(characterData.skill1Data), GetSkill_2(characterData.skill2Data));
 
             GetDashShadowEffect(characterVisual);
@@ -265,7 +268,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     #region Move
     public virtual void MoveNormal()
     {
-        float speed = characterData.stats.speed;
+        float speed = characterStat.finalStats.speed;
 
         Vector3 rotationDirection = new Vector3(characterMovement.MoveDirection.x,
                                                 0f,
@@ -307,7 +310,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         float x = characterInput.MoveInput.x; // Hướng đi ngang
         float y = characterInput.MoveInput.y; // Hướng đi dọc
         float yAbs = Mathf.Abs(y); // Ngưỡng y để xác định di chuyển chéo hay thẳng
-        float speed = characterData.stats.speed;
+        float speed = characterStat.finalStats.speed;
 
         if (x < 0 && yAbs < characterMovement.StrafeThreshold)
         {
@@ -339,7 +342,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     protected virtual void ConsumeStaminaForSprint()
     {
-        if (characterStamina.HasEnoughStamina(characterData.staminaCost.sprintCost) &&
+        if (characterStamina.HasEnoughStamina(characterStat.finalStats.stamina) &&
                  characterInput.Sprint &&
                  characterInput.MoveInput != Vector2.zero)
         {
@@ -480,7 +483,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     #region Take Damage
     [Button("Take Damage (Test)")]
-    public void TakeDamage(DamageInfo damageInfo)
+    public virtual void TakeDamage(DamageInfo damageInfo)
     {
         if (!CanBeAttacked) // Nếu nhân vật không thể bị tấn công, bỏ qua
             return;
@@ -488,7 +491,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         if (characterHealth.CurrentHealth <= 0)
             return;
 
-        float finalDamage = damageInfo.damageAmount - characterData.stats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
+        float finalDamage = damageInfo.damageAmount - characterStat.finalStats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
         finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
 
@@ -515,7 +518,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     #endregion
 
-    private void Die()
+    protected virtual void Die()
     {
         CanBeAttacked = false;
         stateController.ChangeState(new DeathState(this));

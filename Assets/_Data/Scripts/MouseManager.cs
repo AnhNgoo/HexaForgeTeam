@@ -23,7 +23,7 @@ public class MouseManager : Singleton<MouseManager>
     {
         if (UIManager.Instance?.CurrentMenuType != lastMenuState)
         {
-            if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu|| 
+            if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu ||
                 UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu)
             {
                 HideMouse();
@@ -36,7 +36,7 @@ public class MouseManager : Singleton<MouseManager>
         }
 
 
-        if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu|| 
+        if (UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu ||
                 UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu)
             RotateCamera();
     }
@@ -63,16 +63,20 @@ public class MouseManager : Singleton<MouseManager>
     // Hiển chuột
     public void ShowMouse()
     {
+        Debug.Log("ShowMouse");
         IsMouseVisible = true;
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
+
     }
 
     // Ẩn chuột
     public void HideMouse()
     {
+        Debug.Log("HideMouse");
         IsMouseVisible = false;
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
+
     }
 }

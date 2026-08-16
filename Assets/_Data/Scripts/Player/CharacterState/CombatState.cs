@@ -64,7 +64,7 @@ public class CombatState : ICharacterState
 
     public virtual void MoveNormal()
     {
-        float speed = character.CharacterData.stats.speed;
+        float speed = character.CharacterStat.finalStats.speed;
 
         Vector3 rotationDirection = new Vector3(character.CharacterMovement.MoveDirection.x,
                                                 0f,
@@ -80,7 +80,7 @@ public class CombatState : ICharacterState
         float x = character.CharacterInput.MoveInput.x; // Hướng đi ngang
         float y = character.CharacterInput.MoveInput.y; // Hướng đi dọc
         float yAbs = Mathf.Abs(y); // Ngưỡng y để xác định di chuyển chéo hay thẳng
-        float speed = character.CharacterData.stats.speed;
+        float speed = character.CharacterStat.finalStats.speed;
 
         if (x < 0 && yAbs < character.CharacterMovement.StrafeThreshold)
         {

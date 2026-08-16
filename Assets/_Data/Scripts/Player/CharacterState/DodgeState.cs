@@ -41,7 +41,7 @@ public class DodgeState : ICharacterState
             dodgeDirection = new Vector2(character.transform.forward.x, character.transform.forward.z).normalized;
 
         character.CharacterAnimation.CrossFade("Dodge", 0.1f);
-        character.CharacterMovement.Dodge(dodgeDirection, character.CharacterData.stats.speed);
+        character.CharacterMovement.Dodge(dodgeDirection, character.CharacterStat.finalStats.speed);
         // character.dashShadowEffect.CreateShadowEffect();
         CreateDashShadowEffect(); // Tạo hiệu ứng bóng trong khi đang dodge
 

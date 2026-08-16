@@ -1,5 +1,6 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
+using PlayFab;
 
 public class ResetDataManager : MonoBehaviour
 {
@@ -30,6 +31,10 @@ public class ResetDataManager : MonoBehaviour
             PlayerPrefs.DeleteKey("SelectedCharacter");
         }
 
+        PlayerPrefs.SetInt("IsAutoLoginActive", 0);
+        PlayerPrefs.DeleteKey("LastAccountUser");
+        PlayerPrefs.DeleteKey("LastAccountPass");
+
         PlayerPrefs.Save();
 
         if (LeaderboardManager.Instance != null)
@@ -43,8 +48,22 @@ public class ResetDataManager : MonoBehaviour
             PlayFabDataManager.Instance.SaveCloud();
         }
 
+        if (PlayFabClientAPI.IsClientLoggedIn())
+        {
+            PlayFabClientAPI.ForgetAllCredentials();
+            if (PlayFabSettings.staticPlayer != null)
+            {
+                PlayFabSettings.staticPlayer.PlayFabId = null;
+            }
+            Debug.Log("[Reset Data] Đã Logout PlayFab thành công!");
+        }
+
         Debug.Log("All Data Reset thành công!");
 
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Login Scene");
+        string targetLoginScene = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetSceneName(SceneType.Login) 
+            : "Login Scene";
+
+        UnityEngine.SceneManagement.SceneManager.LoadScene(targetLoginScene);
     }
 }
