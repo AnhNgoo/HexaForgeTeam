@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 public class CharacterSkillData : ScriptableObject
 {
     public string skillName;
-    [TextArea] public string skillDescription;
+    [TextArea(3, 10)] public string skillDescription;
     public Sprite skillIcon;
     public SkillStats skillStats;
 }

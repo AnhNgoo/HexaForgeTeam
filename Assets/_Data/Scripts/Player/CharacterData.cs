@@ -8,6 +8,7 @@ public class CharacterData : ScriptableObject
     public string characterName;
     public CharacterTypes characterTypes;
     public PoolType characterPoolType;
+    public WeaponData weaponData;
     public CharacterStats stats;
     public StaminaCost staminaCost;
     public MPCost mpCost;

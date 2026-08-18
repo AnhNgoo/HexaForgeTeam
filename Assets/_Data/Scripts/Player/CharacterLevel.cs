@@ -16,8 +16,7 @@ public class CharacterLevel : LoadComponents
 
     protected override void LoadComponent()
     {
-        if (statGainedLevelUp == null)
-            statGainedLevelUp = Resources.Load<StatGainedLevelUp>("ScriptableObjects/StatGainedLevelUp/StatGainedLevelUp");
+
     }
 
     protected override void LoadComponentRuntime()
