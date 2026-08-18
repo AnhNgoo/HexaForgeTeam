@@ -8,17 +8,28 @@ public class LobbyStatManager : MonoBehaviour
     [Header("Current Evaluated Stats")]
     public CombinedLobbyStats currentCombinedStats = new CombinedLobbyStats();
 
+    [Header("Exposed Converted Stats for Character")]
+    public CharacterStats currentRuneAndAccountStats = new CharacterStats();
+
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
             return;
         }
+
+        EventManager.Subscribe(GameEvent.OnPlayerSpawned, OnPlayerSpawnedHandler);
+    }
+
+    private void OnDestroy()
+    {
+        EventManager.Unsubscribe(GameEvent.OnPlayerSpawned, OnPlayerSpawnedHandler);
     }
 
     private void Start()
@@ -47,6 +58,8 @@ public class LobbyStatManager : MonoBehaviour
         CalculateRuneStats(targetChar);
 
         DebugBonusStats();
+
+        ApplyStatsToCurrentSpawnedPlayer();
     }
 
     private void CalculateAccountLevelStats()
@@ -97,6 +110,79 @@ public class LobbyStatManager : MonoBehaviour
         }
     }
 
+    private void OnPlayerSpawnedHandler(object playerTransformObj)
+    {
+        Transform playerTransform = playerTransformObj as Transform;
+        if (playerTransform == null) return;
+
+        CharacterBase charBase = playerTransform.GetComponent<CharacterBase>();
+        if (charBase == null) return;
+
+        ApplyStatsToCharacter(charBase);
+    }
+
+    public void ApplyStatsToCurrentSpawnedPlayer()
+    {
+        if (PlayerManager.Instance != null && PlayerManager.Instance.CurrentCharacterBase != null)
+        {
+            ApplyStatsToCharacter(PlayerManager.Instance.CurrentCharacterBase);
+        }
+    }
+
+    public void ApplyStatsToCharacter(CharacterBase characterBase)
+    {
+        if (characterBase == null || characterBase.CharacterStat == null) return;
+
+        CharacterType deployedType = CharacterType.Kael;
+        if (CharacterManager.Instance != null)
+        {
+            deployedType = CharacterManager.Instance.GetSelectedCharacter();
+        }
+
+        currentCombinedStats.targetCharacter = deployedType;
+        currentCombinedStats.levelBonusStats.Reset();
+        currentCombinedStats.runeBonusStats.Reset();
+
+        CalculateAccountLevelStats();
+        CalculateRuneStats(deployedType);
+
+        // Gộp toàn bộ Rune Stats và Account Level Stats (HP, ATK vĩnh viễn) thành một gói duy nhất
+        currentRuneAndAccountStats = GetCalculatedCharacterStats(deployedType, characterBase.CharacterStat.OriginStats);
+
+        // Truyền trực tiếp vào SetRuneStats của Player (Không đụng vào SetLevelStats của Run Gameplay)
+        characterBase.CharacterStat.SetRuneStats(currentRuneAndAccountStats);
+
+        Debug.Log($"<color=#00FFCC><b>[LobbyStatManager]</b> Đã nạp Rune & Account Level Stats cho nhân vật: {deployedType}!</color>");
+    }
+
+    public CharacterStats GetCalculatedCharacterStats(CharacterType charType, CharacterStats originStats)
+    {
+        CharacterStats stats = new CharacterStats();
+
+        float baseHp = originStats != null ? originStats.maxHealth : 0f;
+        float baseMp = originStats != null ? originStats.mp : 0f;
+        float baseSta = originStats != null ? originStats.stamina : 0f;
+        float baseAtk = originStats != null ? originStats.damage : 0f;
+        float baseDef = originStats != null ? originStats.defense : 0f;
+
+        LobbyStatData runeData = currentCombinedStats.runeBonusStats;
+        LobbyStatData accountLevelData = currentCombinedStats.levelBonusStats;
+
+        // Tổng HP = Rune HP + Account Level HP + (% HP từ Rune)
+        stats.maxHealth = runeData.HP + accountLevelData.HP + (baseHp * (runeData.HPPercent / 100f));
+        
+        // Tổng ATK/Damage = Rune ATK + Account Level ATK + (% ATK từ Rune)
+        stats.damage = runeData.ATK + accountLevelData.ATK + (baseAtk * (runeData.ATKPercent / 100f));
+
+        // Các chỉ số Rune còn lại
+        stats.mp = runeData.MP + (baseMp * (runeData.MPPercent / 100f));
+        stats.stamina = runeData.Stamina + (baseSta * (runeData.StaminaPercent / 100f));
+        stats.defense = runeData.DEF + (baseDef * (runeData.DEFPercent / 100f));
+        stats.staminaRegen = runeData.StaminaRegen;
+
+        return stats;
+    }
+
     public CombinedLobbyStats GetCombinedStats() => currentCombinedStats;
 
     private void DebugBonusStats()
@@ -106,9 +192,9 @@ public class LobbyStatManager : MonoBehaviour
 
         Debug.Log(
             $"===== LOBBY BONUS [{currentCombinedStats.targetCharacter}] =====\n" +
-            $"[LEVEL BONUS] HP +{lv.HP} | ATK +{lv.ATK}\n" +
+            $"[ACCOUNT LEVEL BONUS] HP +{lv.HP} | ATK +{lv.ATK}\n" +
             $"[RUNE BONUS] HP +{rune.HP} ({rune.HPPercent}%) | ATK +{rune.ATK} ({rune.ATKPercent}%) | DEF +{rune.DEF} ({rune.DEFPercent}%)\n" +
-            $"[RUNE COMBAT] Crit Chance +{rune.CritChance}% | Crit DMG +{rune.CritDamage}% | Armor Pen +{rune.ArmorPenetration}%"
+            $"[COMBAT STATS] Crit Chance +{rune.CritChance}% | Crit DMG +{rune.CritDamage}% | Armor Pen +{rune.ArmorPenetration}%"
         );
     }
 }

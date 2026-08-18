@@ -80,6 +80,9 @@ public class RunManager : MonoBehaviour
 
         ResetDamageData();
 
+        // ẨN TRIỆT ĐỂ LOBBY TOPBAR VÀ CHUYỂN MENU
+        HideLobbyHUD();
+
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
@@ -93,16 +96,36 @@ public class RunManager : MonoBehaviour
         StartCoroutine(LoadSceneCoroutine());
     }
 
-    public void EnterFinalBoss(string sceneName = "")
+    public void EnterFinalBoss(string overrideSceneName = "")
     {
         if (!isRunActive) return;
 
-        if (string.IsNullOrWhiteSpace(sceneName))
+        string targetBossScene = overrideSceneName;
+
+        if (string.IsNullOrWhiteSpace(targetBossScene))
         {
-            sceneName = GameSceneData.Instance != null ? GameSceneData.Instance.finalBossScene : "FinalBoss Scene";
+            targetBossScene = GameSceneData.Instance != null 
+                ? GameSceneData.Instance.GetSceneName(SceneType.FinalBoss) 
+                : "FinalBoss Scene";
         }
 
-        StartCoroutine(EnterFinalBossCoroutine(sceneName));
+        // ẨN TRIỆT ĐỂ LOBBY TOPBAR KHI VÀO BOSS
+        HideLobbyHUD();
+
+        StartCoroutine(EnterFinalBossCoroutine(targetBossScene));
+    }
+
+    private void HideLobbyHUD()
+    {
+        if (lobbyHUDMainObject != null)
+        {
+            lobbyHUDMainObject.SetActive(false);
+        }
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(false);
+        }
     }
 
     private IEnumerator EnterFinalBossCoroutine(string sceneName)
@@ -126,6 +149,10 @@ public class RunManager : MonoBehaviour
 
         SceneManager.SetActiveScene(finalBossScene);
 
+        // Bảo đảm Lobby HUD không bị kích hoạt lại
+        HideLobbyHUD();
+
+        // Chuyển Player sang Scene Boss
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
         if (playerObject != null)
         {
@@ -133,6 +160,7 @@ public class RunManager : MonoBehaviour
             SceneManager.MoveGameObjectToScene(playerObject, finalBossScene);
         }
 
+        // Chuyển RunGameplayController sang Scene Boss
         if (RunGameplayController.Instance != null)
         {
             GameObject runController = RunGameplayController.Instance.gameObject;
@@ -145,6 +173,7 @@ public class RunManager : MonoBehaviour
 
         gameplaySceneName = sceneName;
 
+        // Dỡ bỏ Run Scene cũ
         if (previousRunScene.IsValid() && previousRunScene.isLoaded)
         {
             AsyncOperation unload = SceneManager.UnloadSceneAsync(previousRunScene);
@@ -154,6 +183,12 @@ public class RunManager : MonoBehaviour
         FinalBossEncounterDirector director = FindFirstObjectByType<FinalBossEncounterDirector>();
         if (director != null) director.StartEncounter();
 
+        // Cập nhật lại UI Gameplay
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        }
+
         EventManager.Notify(GameEvent.OnLoadingComplete);
 
         if (InteractManagerV2.Instance != null) InteractManagerV2.Instance.IsBusy = false;
@@ -161,7 +196,9 @@ public class RunManager : MonoBehaviour
 
     private IEnumerator LoadSceneCoroutine()
     {
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        string loadingSceneName = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading) 
+            : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
@@ -194,6 +231,8 @@ public class RunManager : MonoBehaviour
         {
             lobbyVisuals.SetActive(false);
         }
+
+        HideLobbyHUD();
 
         yield return new WaitForFixedUpdate();
 
@@ -299,10 +338,15 @@ public class RunManager : MonoBehaviour
 
         if (GoldManager.Instance != null) GoldManager.Instance.ResetGold();
 
+        // BẬT LẠI LOBBY HUD KHI VỀ SẢNH
         if (lobbyHUDMainObject != null)
         {
             lobbyHUDMainObject.SetActive(true);
-            if (LobbyHUDTopBar.Instance != null) LobbyHUDTopBar.Instance.ShowFullHUD();
+        }
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.ShowFullHUD();
         }
 
         if (GemManager.Instance != null && pendingGem > 0) GemManager.Instance.AddGem(pendingGem);
