@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector;
+#endif
 
 public class RunGameplayController : MonoBehaviour
 {
@@ -45,9 +48,6 @@ public class RunGameplayController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Cộng dồn tổng sát thương thực tế Player đã gây ra
-    /// </summary>
     public void RegisterPlayerDamage(float damage)
     {
         if (damage <= 0) return;
@@ -68,10 +68,7 @@ public class RunGameplayController : MonoBehaviour
             {
                 trackedEnemies.Add(enemy);
 
-                // 1. ĐĂNG KÝ THEO DÕI SÁT THƯƠNG REAL-TIME
                 enemy.EventManager.OnTakeDamage += (damage) => OnEnemyTookDamageRealtime(damage);
-
-                // 2. ĐĂNG KÝ THEO DÕI QUÁI CHẾT
                 enemy.EventManager.OnDead += () => OnEnemyDiedRealtime(enemy);
             }
         }
@@ -86,15 +83,12 @@ public class RunGameplayController : MonoBehaviour
     {
         if (enemy == null || enemy.Data == null) return;
 
-        // PHÂN LOẠI QUÁI CHUẨN XÁC DỰA TRÊN ENEMYDATA
         if (!enemy.Data.isBoss)
         {
-            // Quái Thường (Is Boss KHÔNG ĐƯỢC TÍCH)
             NormalKilled++;
         }
         else
         {
-            // Quái Boss (Is Boss ĐƯỢC TÍCH) -> Phân loại theo Enum bossCategory
             switch (enemy.Data.bossCategory)
             {
                 case EnemyBossCategory.Miniboss:
@@ -108,8 +102,6 @@ public class RunGameplayController : MonoBehaviour
                 case EnemyBossCategory.FinalBoss:
                     FinalBossKilled++;
                     Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED! KÍCH HOẠT PANEL WIN!</color>");
-
-                    // KÍCH HOẠT PANEL WIN KHI TIÊU DIỆT FINAL BOSS
                     TriggerEndRun(true);
                     break;
             }
@@ -136,7 +128,6 @@ public class RunGameplayController : MonoBehaviour
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 
-        // Bật màn hình tổng kết Summary
         if (RunResultSummary.Instance != null)
         {
             RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);
@@ -146,5 +137,22 @@ public class RunGameplayController : MonoBehaviour
     public void OnSkipRunPressed(bool forceVictory = false)
     {
         TriggerEndRun(forceVictory);
+    }
+
+#if UNITY_EDITOR
+    [Button("⚡ SKIP TO FINAL BOSS MAP", ButtonSizes.Large)]
+    [GUIColor(1f, 0.8f, 0.2f)]
+#endif
+    public void SkipToFinalBoss()
+    {
+        if (Application.isPlaying && RunManager.Instance != null)
+        {
+            Debug.Log("<color=yellow>[Cheat/Skip] Chuyển thẳng vào Final Boss Map!</color>");
+            RunManager.Instance.EnterFinalBoss();
+        }
+        else
+        {
+            Debug.LogWarning("Chỉ có thể bấm Skip khi đang chạy game (Play Mode)!");
+        }
     }
 }

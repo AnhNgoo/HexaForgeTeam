@@ -50,6 +50,8 @@ public class InteractManagerV2 : MonoBehaviour
             Destroy(gameObject);
             return;
         }
+
+        EventManager.Subscribe(GameEvent.OnLoadingComplete, OnLoadingCompleteEvent);
     }
 
     private void OnEnable()
@@ -62,10 +64,24 @@ public class InteractManagerV2 : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    private void OnDestroy()
+    {
+        EventManager.Unsubscribe(GameEvent.OnLoadingComplete, OnLoadingCompleteEvent);
+    }
+
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         ForceUnlockState();
     }
+
+    private void OnLoadingCompleteEvent(object obj)
+    {
+        ForceUnlockState();
+    }
+
+    /// <summary>
+    /// Reset triệt để mọi trạng thái khóa tương tác, cooldown và dọn sạch danh sách rác khi chuyển Scene
+    /// </summary>
     public void ForceUnlockState()
     {
         IsBusy = false;
@@ -78,6 +94,8 @@ public class InteractManagerV2 : MonoBehaviour
             InteractUIV2.Instance.Hide();
         }
 
+        // Tự động kiểm tra và làm mới lại UI sau 1 khoảng trễ ngắn để nhận diện các NPC ở Scene mới
+        CancelInvoke(nameof(ForceRefresh));
         Invoke(nameof(ForceRefresh), 0.15f);
     }
 
@@ -125,6 +143,7 @@ public class InteractManagerV2 : MonoBehaviour
             ExecuteCurrent();
         }
     }
+
     #region Register
     public void Register(InteractV2 interact)
     {
@@ -225,28 +244,28 @@ public class InteractManagerV2 : MonoBehaviour
     }
 
     private void RefreshUI()
-{
-    if (IsBusy)
     {
-        if (InteractUIV2.Instance != null)
+        if (IsBusy)
         {
-            InteractUIV2.Instance.Hide();
+            if (InteractUIV2.Instance != null)
+            {
+                InteractUIV2.Instance.Hide();
+            }
+            return;
         }
-        return;
-    }
 
-    for (int i = 0; i < interactObjects.Count; i++)
-    {
-        if (interactObjects[i] != null)
+        for (int i = 0; i < interactObjects.Count; i++)
         {
-            interactObjects[i].SetSelected(i == currentIndex);
+            if (interactObjects[i] != null)
+            {
+                interactObjects[i].SetSelected(i == currentIndex);
+            }
         }
+
+        if (InteractUIV2.Instance == null) return;
+
+        InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
     }
-
-    if (InteractUIV2.Instance == null) return;
-
-    InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
-}
     #endregion
 
     #region Debug
@@ -270,21 +289,19 @@ public class InteractManagerV2 : MonoBehaviour
     public int CurrentIndex() => currentIndex;
     public List<InteractV2> GetObjects() => interactObjects;
     #endregion
+
     private void LateUpdate()
-{
-    // Reset cờ ở cuối mỗi frame
-    consumedInputThisFrame = false;
-}
+    {
+        consumedInputThisFrame = false;
+    }
 
-public void ExecuteCurrent()
-{
-    if (IsBusy || Time.unscaledTime < cooldownUntilTime || CurrentInteract == null) return;
+    public void ExecuteCurrent()
+    {
+        if (IsBusy || Time.unscaledTime < cooldownUntilTime || CurrentInteract == null) return;
 
-    // Đánh dấu phím F đã bị tiêu thụ trong Frame này
-    consumedInputThisFrame = true;
+        consumedInputThisFrame = true;
+        CurrentInteract.Execute();
+    }
 
-    CurrentInteract.Execute();
-}
-
-public bool WasInputConsumedThisFrame() => consumedInputThisFrame;
+    public bool WasInputConsumedThisFrame() => consumedInputThisFrame;
 }

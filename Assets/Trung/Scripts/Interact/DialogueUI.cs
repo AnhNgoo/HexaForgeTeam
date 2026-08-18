@@ -1,12 +1,23 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 
 public class DialogueUI : MonoBehaviour
 {
     public static DialogueUI Instance;
+
+    [System.Serializable]
+    public class ChoiceTabItem
+    {
+        public Button button;
+        public GameObject selectedLine;
+        public TMP_Text text;
+        [HideInInspector] public EventTrigger trigger;
+    }
 
     [Header("Root")]
     [SerializeField] private GameObject root;
@@ -15,14 +26,10 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private TMP_Text npcNameText;
     [SerializeField] private TMP_Text dialogueText;
 
-    [Header("Choice")]
-    [SerializeField] private Button choice1Button;
-    [SerializeField] private Button choice2Button;
-    [SerializeField] private Button choice3Button;
-
-    [SerializeField] private TMP_Text choice1Text;
-    [SerializeField] private TMP_Text choice2Text;
-    [SerializeField] private TMP_Text choice3Text;
+    [Header("Choices with Hover Line Indicator")]
+    [SerializeField] private ChoiceTabItem choice1Tab;
+    [SerializeField] private ChoiceTabItem choice2Tab;
+    [SerializeField] private ChoiceTabItem choice3Tab;
 
     [Header("Typewriter Settings")]
     [SerializeField] private float textSpeedPerChar = 0.03f;
@@ -35,9 +42,15 @@ public class DialogueUI : MonoBehaviour
     private bool isTyping = false;
     private string targetFullText = "";
 
+    private List<ChoiceTabItem> allChoices = new List<ChoiceTabItem>();
+
     private void Awake()
     {
         Instance = this;
+
+        allChoices = new List<ChoiceTabItem>() { choice1Tab, choice2Tab, choice3Tab };
+        InitTabHoverTriggers();
+
         Hide();
 
         if (InteractManagerV2.Instance != null)
@@ -45,79 +58,167 @@ public class DialogueUI : MonoBehaviour
             InteractManagerV2.Instance.IsBusy = false;
         }
     }
+
+    private void InitTabHoverTriggers()
+    {
+        for (int i = 0; i < allChoices.Count; i++)
+        {
+            int index = i;
+            var tab = allChoices[index];
+            if (tab == null || tab.button == null) continue;
+
+            EventTrigger trigger = tab.button.gameObject.GetComponent<EventTrigger>();
+            if (trigger == null) trigger = tab.button.gameObject.AddComponent<EventTrigger>();
+            tab.trigger = trigger;
+
+            trigger.triggers.Clear();
+
+            // Hover vào -> Hiển thị line trượt ngang
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enterEntry.callback.AddListener((eventData) => { SetTabHoverVisual(index, true); });
+            trigger.triggers.Add(enterEntry);
+
+            // Rê chuột ra -> Thu gọn line
+            EventTrigger.Entry exitEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            exitEntry.callback.AddListener((eventData) => { SetTabHoverVisual(index, false); });
+            trigger.triggers.Add(exitEntry);
+
+            if (tab.selectedLine != null)
+            {
+                tab.selectedLine.SetActive(false);
+            }
+        }
+    }
+
+    private void SetTabHoverVisual(int index, bool isHovered)
+    {
+        if (index < 0 || index >= allChoices.Count) return;
+        var tab = allChoices[index];
+        if (tab == null) return;
+
+        if (tab.selectedLine != null)
+        {
+            tab.selectedLine.transform.DOKill();
+            if (isHovered)
+            {
+                tab.selectedLine.SetActive(true);
+                tab.selectedLine.transform.localScale = new Vector3(0f, 1f, 1f);
+                tab.selectedLine.transform.DOScaleX(1f, 0.15f).SetUpdate(true);
+            }
+            else
+            {
+                tab.selectedLine.transform.DOScaleX(0f, 0.12f).SetUpdate(true).OnComplete(() =>
+                {
+                    tab.selectedLine.SetActive(false);
+                });
+            }
+        }
+
+        if (tab.text != null)
+        {
+            tab.text.color = isHovered ? new Color(1f, 0.85f, 0.2f) : Color.white;
+        }
+    }
+
+    private void ResetAllHoverLines()
+    {
+        for (int i = 0; i < allChoices.Count; i++)
+        {
+            var tab = allChoices[i];
+            if (tab == null) continue;
+
+            if (tab.selectedLine != null)
+            {
+                tab.selectedLine.transform.DOKill();
+                tab.selectedLine.SetActive(false);
+            }
+            if (tab.text != null)
+            {
+                tab.text.color = Color.white;
+            }
+        }
+    }
+
     public void Show(DialogueData data)
-{
-    if (data == null) return;
-
-    currentDialogue = data;
-    currentIndex = 0;
-    if (InteractManagerV2.Instance != null)
     {
-        InteractManagerV2.Instance.IsBusy = true;
-    }
+        if (data == null) return;
 
-    if (InteractUIV2.Instance != null)
-    {
-        InteractUIV2.Instance.Hide();
-    }
-
-    UIManager.Instance.ChangeMenu(MenuType.LobbyDialogueMenu);
-
-    if (npcNameText != null)
-    {
-        npcNameText.SetTextSafe(data.npcName);
-    }
-
-    if (root != null)
-    {
-        root.SetActive(true);
-        root.transform.localScale = Vector3.one * 0.85f;
-        root.transform.DOScale(Vector3.one, 0.25f).SetEase(Ease.OutBack).SetUpdate(true);
-    }
-
-    RefreshDialogue();
-    SetChoiceVisible(false);
-
-    allowInputTime = Time.unscaledTime + 0.15f;
-}
-
-public void Hide()
-{
-    StopTypewriterRoutine();
-
-    isTyping = false;
-    currentDialogue = null;
-    currentIndex = 0;
-
-    if (root != null)
-    {
-        root.SetActive(false);
-    }
-
-    if (UIManager.Instance != null)
-    {
-        UnityEngine.SceneManagement.Scene activeScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-        if (activeScene.name == "Run Scene")
+        currentDialogue = data;
+        currentIndex = 0;
+        if (InteractManagerV2.Instance != null)
         {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+            InteractManagerV2.Instance.IsBusy = true;
         }
-        else
+
+        if (InteractUIV2.Instance != null)
         {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+            InteractUIV2.Instance.Hide();
         }
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.LobbyDialogueMenu);
+        }
+
+        if (npcNameText != null)
+        {
+            npcNameText.SetTextSafe(data.npcName);
+        }
+
+        if (root != null)
+        {
+            root.SetActive(true);
+            root.transform.localScale = Vector3.one * 0.85f;
+            root.transform.DOScale(Vector3.one, 0.25f).SetEase(Ease.OutBack).SetUpdate(true);
+        }
+
+        RefreshDialogue();
+        SetChoiceVisible(false);
+
+        allowInputTime = Time.unscaledTime + 0.15f;
     }
 
-    if (InteractManagerV2.Instance != null)
+    public void Hide()
     {
-        InteractManagerV2.Instance.SetCooldown(0.25f);
-        InteractManagerV2.Instance.IsBusy = false;
-        InteractManagerV2.Instance.ForceRefresh();
+        StopTypewriterRoutine();
+        ResetAllHoverLines();
+
+        isTyping = false;
+        currentDialogue = null;
+        currentIndex = 0;
+
+        if (root != null)
+        {
+            root.SetActive(false);
+        }
+
+        if (UIManager.Instance != null)
+        {
+            string sceneLobbyName = GameSceneData.Instance != null ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain) : "LobbyMain Scene";
+            string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+
+            if (currentSceneName == sceneLobbyName)
+            {
+                UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+            }
+            else
+            {
+                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+            }
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.SetCooldown(0.25f);
+            InteractManagerV2.Instance.IsBusy = false;
+            InteractManagerV2.Instance.ForceRefresh();
+        }
     }
-}
 
     private void OnDisable()
     {
         StopTypewriterRoutine();
+        ResetAllHoverLines();
     }
 
     private void RefreshDialogue()
@@ -172,81 +273,136 @@ public void Hide()
     }
 
     private void Update()
-{
-    if (root == null || !root.activeSelf) return;
-
-    if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.WasInputConsumedThisFrame())
     {
-        return;
+        if (root == null || !root.activeSelf) return;
+
+        if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.WasInputConsumedThisFrame())
+        {
+            return;
+        }
+
+        if (Time.unscaledTime < allowInputTime) return;
+
+        // Xử lý phím tắt 1, 2, 3 khi các nút lựa chọn đang hiển thị
+        if (AreChoicesVisible())
+        {
+            HandleChoiceHotkeys();
+            return;
+        }
+
+        if (!Input.GetKeyDown(KeyCode.F) && !Input.GetMouseButtonDown(0)) return;
+
+        if (currentDialogue == null) return;
+
+        if (isTyping)
+        {
+            SkipTypingEffect();
+            return;
+        }
+
+        if (currentIndex < currentDialogue.dialogues.Count - 1)
+        {
+            currentIndex++;
+            RefreshDialogue();
+            return;
+        }
+
+        SetChoiceVisible(true);
     }
 
-    if (Time.unscaledTime < allowInputTime) return;
-
-    if (choice1Button != null && choice1Button.gameObject.activeSelf) return;
-
-    if (!Input.GetKeyDown(KeyCode.F) && !Input.GetMouseButtonDown(0)) return;
-
-    if (currentDialogue == null) return;
-
-    if (isTyping)
+    private bool AreChoicesVisible()
     {
-        SkipTypingEffect();
-        return;
+        return (choice1Tab?.button != null && choice1Tab.button.gameObject.activeSelf) ||
+               (choice2Tab?.button != null && choice2Tab.button.gameObject.activeSelf) ||
+               (choice3Tab?.button != null && choice3Tab.button.gameObject.activeSelf);
     }
 
-    if (currentIndex < currentDialogue.dialogues.Count - 1)
+    private void HandleChoiceHotkeys()
     {
-        currentIndex++;
-        RefreshDialogue();
-        return;
+        if (currentDialogue == null || currentDialogue.choices == null) return;
+
+        // Phím 1 (hoặc Numpad 1) -> Chọn Choice 1
+        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+        {
+            TriggerChoiceAtIndex(0);
+        }
+        // Phím 2 (hoặc Numpad 2) -> Chọn Choice 2
+        else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+        {
+            TriggerChoiceAtIndex(1);
+        }
+        // Phím 3 (hoặc Numpad 3) -> Chọn Choice 3
+        else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+        {
+            TriggerChoiceAtIndex(2);
+        }
     }
 
-    SetChoiceVisible(true);
-}
+    private void TriggerChoiceAtIndex(int index)
+    {
+        if (index < 0 || index >= currentDialogue.choices.Count) return;
+
+        ChoiceTabItem targetTab = (index == 0) ? choice1Tab : (index == 1) ? choice2Tab : choice3Tab;
+        if (targetTab != null && targetTab.button != null && targetTab.button.gameObject.activeSelf)
+        {
+            SetTabHoverVisual(index, true);
+            ExecuteChoice(currentDialogue.choices[index]);
+        }
+    }
 
     private void SetChoiceVisible(bool value)
     {
-        if (choice1Button != null) choice1Button.gameObject.SetActive(value);
-        if (choice2Button != null) choice2Button.gameObject.SetActive(value);
-        if (choice3Button != null) choice3Button.gameObject.SetActive(value);
+        ResetAllHoverLines();
 
-        if (!value) return;
-
-        SetupButton(choice1Button, choice1Text, currentDialogue, 0);
-        SetupButton(choice2Button, choice2Text, currentDialogue, 1);
-        SetupButton(choice3Button, choice3Text, currentDialogue, 2);
-
-        Button[] buttons = { choice1Button, choice2Button, choice3Button };
-        for (int i = 0; i < buttons.Length; i++)
+        if (!value)
         {
-            if (buttons[i] != null && buttons[i].gameObject.activeSelf)
+            if (choice1Tab?.button != null) choice1Tab.button.gameObject.SetActive(false);
+            if (choice2Tab?.button != null) choice2Tab.button.gameObject.SetActive(false);
+            if (choice3Tab?.button != null) choice3Tab.button.gameObject.SetActive(false);
+            return;
+        }
+
+        SetupTabChoice(choice1Tab, currentDialogue, 0);
+        SetupTabChoice(choice2Tab, currentDialogue, 1);
+        SetupTabChoice(choice3Tab, currentDialogue, 2);
+
+        for (int i = 0; i < allChoices.Count; i++)
+        {
+            var tab = allChoices[i];
+            if (tab != null && tab.button != null && tab.button.gameObject.activeSelf)
             {
-                buttons[i].transform.localScale = Vector3.zero;
-                buttons[i].transform.DOScale(Vector3.one, 0.2f).SetDelay(i * 0.05f).SetEase(Ease.OutBack).SetUpdate(true);
+                tab.button.transform.localScale = Vector3.zero;
+                tab.button.transform.DOScale(Vector3.one, 0.2f).SetDelay(i * 0.05f).SetEase(Ease.OutBack).SetUpdate(true);
             }
         }
     }
 
-    private void SetupButton(Button button, TMP_Text text, DialogueData data, int index)
+    private void SetupTabChoice(ChoiceTabItem tab, DialogueData data, int index)
     {
-        if (button == null) return;
+        if (tab == null || tab.button == null) return;
 
         if (index >= data.choices.Count)
         {
-            button.gameObject.SetActive(false);
+            tab.button.gameObject.SetActive(false);
             return;
         }
 
-        button.gameObject.SetActive(true);
+        tab.button.gameObject.SetActive(true);
         DialogueChoice choice = data.choices[index];
 
-        if (text != null)
+        if (tab.text != null)
         {
-            text.SetTextSafe(choice.choiceText);
+            tab.text.SetTextSafe(choice.choiceText);
+            tab.text.color = Color.white;
         }
 
-        button.onClick.RemoveAllListeners();
-        button.onClick.AddListener(() => ExecuteChoice(choice));
+        if (tab.selectedLine != null)
+        {
+            tab.selectedLine.SetActive(false);
+        }
+
+        tab.button.onClick.RemoveAllListeners();
+        tab.button.onClick.AddListener(() => ExecuteChoice(choice));
     }
 
     private void ExecuteChoice(DialogueChoice choice)
@@ -257,7 +413,10 @@ public void Hide()
                 StopTypewriterRoutine();
                 if (root != null) root.SetActive(false);
 
-                UIManager.Instance.ChangeMenu(choice.menuType);
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.ChangeMenu(choice.menuType);
+                }
                 break;
 
             case DialogueAction.CloseDialogue:
