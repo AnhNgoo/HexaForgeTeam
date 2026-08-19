@@ -81,6 +81,7 @@ public class GameSystemMenu : MenuBase
             : defaultTab;
 
         SelectTab(tab);
+        Debug.Log($"GameSystemMenu opened. Current tab: {currentTab}");
     }
 
     public override void Close()

@@ -85,7 +85,7 @@ public class CharacterStat : MonoBehaviour
     public void ResetStatsAfterSkill()
     {
         finalStats = cachedCurrentStats; // Khôi phục lại chỉ số trước khi dùng skill
-        characterBase.CharacterHealth.SetMaxHealth(finalStats.maxHealth);
+        characterBase.CharacterHealth.SetMaxHealth(finalStats.maxHealth, false);
         characterBase.CharacterStamina.SetMaxStamina(finalStats.stamina);
         characterBase.CharacterMP.SetMaxMP(finalStats.mp);
     }

@@ -641,17 +641,4 @@ public class GameplayMenu : MenuBase
     }
 
     #endregion
-    private Transform FindDeepChild(string childName)
-    {
-        Transform[] children =
-            GetComponentsInChildren<Transform>(true);
-
-        foreach (Transform child in children)
-        {
-            if (child.name == childName)
-                return child;
-        }
-
-        return null;
-    }
 }

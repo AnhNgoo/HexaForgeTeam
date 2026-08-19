@@ -136,7 +136,7 @@ public class Kael : CharacterMelee
             return;
 
         float finalDamage = damageInfo.damageAmount - characterStat.finalStats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
-        finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
+        finalDamage = Mathf.Max(finalDamage, minTakeDamage); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
 
         if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
