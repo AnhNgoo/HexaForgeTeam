@@ -16,8 +16,7 @@ public class CharacterLevel : LoadComponents
 
     protected override void LoadComponent()
     {
-        if (statGainedLevelUp == null)
-            statGainedLevelUp = Resources.Load<StatGainedLevelUp>("ScriptableObjects/StatGainedLevelUp/StatGainedLevelUp");
+
     }
 
     protected override void LoadComponentRuntime()
@@ -44,6 +43,23 @@ public class CharacterLevel : LoadComponents
         else
         {
             Debug.LogWarning("Đã đạt cấp tối đa!");
+        }
+    }
+
+    public void DecreaseLevel(int amount = 1)
+    {
+        if (currentLevel > 0)
+        {
+            currentLevel -= amount;
+            if (currentLevel < 0)
+                currentLevel = 0;
+            CharacterStats levelStats = CalculateLevelUpStats(currentLevel); // Tính toán các chỉ số giảm xuống dựa trên cấp độ hiện tại
+            characterBase.CharacterStat.SetLevelStats(levelStats);
+            EventManager.Notify(GameEvent.OnUpdateLevel, currentLevel);
+        }
+        else
+        {
+            Debug.LogWarning("Đã đạt cấp tối thiểu!");
         }
     }
 
