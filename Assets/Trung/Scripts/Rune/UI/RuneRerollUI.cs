@@ -59,10 +59,10 @@ public class RuneRerollUI : MonoBehaviour
         if (useTargetRerollToggle != null) useTargetRerollToggle.onValueChanged.AddListener((x) => UpdateCostVisual());
         if (statTargetDropdown != null) statTargetDropdown.onValueChanged.AddListener((x) => UpdateCostVisual());
         if (useTargetRerollToggle != null)
-{
-    var trigger = useTargetRerollToggle.GetComponent<UITooltipAutoTrigger>() ?? useTargetRerollToggle.gameObject.AddComponent<UITooltipAutoTrigger>();
-    trigger.SetData("Lock-On Reroll", "Requires 1 Reroll Scroll. Allows selecting a specific stat type to transform into.");
-}
+        {
+            var trigger = useTargetRerollToggle.GetComponent<UITooltipAutoTrigger>() ?? useTargetRerollToggle.gameObject.AddComponent<UITooltipAutoTrigger>();
+            trigger.SetData("Lock-On Reroll", "Requires 1 Reroll Scroll. Allows selecting a specific stat type to transform into.");
+        }
     }
 
     public bool IsPanelActive()
@@ -262,8 +262,8 @@ public class RuneRerollUI : MonoBehaviour
             RuneStatType randomStat = GetRandomStatPool();
             if (btnText != null)
             {
-                string ModePrefix = isTargetMode ? "LOCKING" : "ROLLING";
-                btnText.SetTextSafe($"<color=#FFD700>{ModePrefix} → </color>{GetStatName(randomStat)}");
+                string modePrefix = isTargetMode ? "LOCKING" : "ROLLING";
+                btnText.SetTextSafe($"<color=#FFD700>{modePrefix}: </color>{GetStatName(randomStat)}");
             }
             yield return new WaitForSeconds(delayTick);
         }

@@ -70,7 +70,6 @@ public class RuneEquipUI : MonoBehaviour
             viewingCharacter = CharacterManager.Instance.GetSelectedCharacter();
         }
 
-        // Bẫy an toàn: Nếu character đang xem rơi vào Coming Soon, tự động trả về Kael
         if (comingSoonCharacters.Contains(viewingCharacter))
         {
             viewingCharacter = CharacterType.Kael;
@@ -91,7 +90,6 @@ public class RuneEquipUI : MonoBehaviour
         CharacterType currentType = viewingCharacter;
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
         
-        // Cập nhật trạng thái Alpha, Lock Coming Soon và tương tác của toàn bộ nút chọn
         UpdateCharacterButtonsState();
 
         TMP_Text[] conditionTexts = new TMP_Text[3] { slot1ConditionText, slot2ConditionText, slot3ConditionText };
@@ -119,7 +117,6 @@ public class RuneEquipUI : MonoBehaviour
 
             string targetID = (i < build.equippedRuneIDs.Length) ? build.equippedRuneIDs[i] : "";
 
-            // 1. Ô TRỐNG
             if (string.IsNullOrEmpty(targetID))
             {
                 targetSlot.sprite = emptySprite;
@@ -130,10 +127,8 @@ public class RuneEquipUI : MonoBehaviour
                 continue;
             }
 
-            // 2. TÌM NGỌC TRONG INVENTORY
             RuneData rune = RuneInventoryManager.Instance.runes.Find(r => r.runeID == targetID);
 
-            // 3. ĐÃ ĐEO NGỌC THẬT
             if (rune != null)
             {
                 Sprite realRuneSprite = GetRuneSprite(rune);
@@ -150,7 +145,7 @@ public class RuneEquipUI : MonoBehaviour
                     {
                         var affix = rune.affixes[a];
                         string sign = affix.value >= 0 ? "+" : "";
-                        details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                        details += $"- {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
                     }
                 }
 
@@ -174,9 +169,6 @@ public class RuneEquipUI : MonoBehaviour
 
     #region Button Alpha, Lock & Coming Soon States
 
-    /// <summary>
-    /// Đồng bộ trạng thái mờ/đậm và khóa hoàn toàn các tướng Coming Soon
-    /// </summary>
     private void UpdateCharacterButtonsState()
     {
         UpdateSingleButtonState(CharacterType.Kael, kaelButtonObj);
@@ -198,13 +190,11 @@ public class RuneEquipUI : MonoBehaviour
         bool isUnlocked = (CharacterManager.Instance != null && CharacterManager.Instance.IsUnlocked(type)) && !isComingSoon;
         bool isSelected = (viewingCharacter == type);
 
-        // Khóa hẳn tương tác nếu là tướng Coming Soon hoặc Chưa Mở Khóa
         if (btn != null)
         {
             btn.interactable = !isComingSoon && isUnlocked;
         }
 
-        // Tự động thêm Tooltip giải thích khi rê chuột vào Nút bị khóa
         var trigger = buttonObj.GetComponent<UITooltipAutoTrigger>() ?? buttonObj.gameObject.AddComponent<UITooltipAutoTrigger>();
         if (isComingSoon)
         {
@@ -216,15 +206,15 @@ public class RuneEquipUI : MonoBehaviour
             Color c = img.color;
             if (isComingSoon || !isUnlocked)
             {
-                c.a = 0.25f; // Khóa / Coming Soon: Mờ hẳn 25% Alpha
+                c.a = 0.25f;
             }
             else if (isSelected)
             {
-                c.a = 0.6f;  // Đang chọn: Đậm vừa
+                c.a = 0.6f;
             }
             else
             {
-                c.a = 1.0f;  // Đã mở khóa: Sáng hoàn toàn
+                c.a = 1.0f;
             }
             img.color = c;
         }
@@ -277,7 +267,7 @@ public class RuneEquipUI : MonoBehaviour
         {
             if (stat.Key == RuneStatType.AllStats)
             {
-                builder.AppendLine("<color=#FFD700>✦ ORIGIN POWER ✦\nAll Stats +" + $"{stat.Value:F0}</color>\n");
+                builder.AppendLine("<color=#FFD700>ORIGIN POWER\nAll Stats +" + $"{stat.Value:F0}</color>\n");
                 continue;
             }
             
@@ -471,9 +461,7 @@ public class RuneEquipUI : MonoBehaviour
     public CharacterType GetViewingCharacter() => viewingCharacter;
 
     #endregion
-    /// <summary>
-    /// Nút Trang bị Nhanh: Tự động quét kho ngọc và lắp 3 viên ngọc hợp lệ tốt nhất cho nhân vật đang chọn
-    /// </summary>
+
     public void AutoEquipBestRunes()
     {
         if (RuneInventoryManager.Instance == null || CharacterManager.Instance == null) return;
@@ -481,7 +469,6 @@ public class RuneEquipUI : MonoBehaviour
         CharacterType currentType = viewingCharacter;
         List<RuneData> availableRunes = new List<RuneData>(RuneInventoryManager.Instance.runes);
 
-        // Lọc bỏ ngọc đang được đeo bởi các nhân vật khác
         CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
         foreach (CharacterType charType in allChars)
         {
@@ -505,7 +492,6 @@ public class RuneEquipUI : MonoBehaviour
         {
             RuneColor reqColor = GetSlotRequiredColor(currentType, slotIndex);
 
-            // Tìm viên ngọc hợp hệ màu có điểm chỉ số cao nhất
             RuneData bestRune = null;
             float maxScore = -1f;
 
@@ -514,7 +500,6 @@ public class RuneEquipUI : MonoBehaviour
                 bool isOrigin = IsUltimateRune(rune);
                 if (!isOrigin && rune.runeColor != reqColor) continue;
 
-                // Tính điểm ngọc dựa trên Rarity & giá trị các Affix
                 float score = ((int)rune.runeRarity * 100);
                 if (rune.affixes != null)
                 {

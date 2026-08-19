@@ -31,7 +31,6 @@ public class PlayFabLoginManager : MonoBehaviour
     [SerializeField] private TMP_InputField confirmPasswordInput;
 
     [Header("Scene Config")]
-    [SerializeField] private string loadingSceneName = "Loading Scene";
 
     private SavedAccountList savedAccounts = new SavedAccountList();
     private bool isLoggingIn = false;

@@ -2,10 +2,21 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using DG.Tweening;
 
 public class LeaderboardUI : MonoBehaviour
 {
+    [System.Serializable]
+    public class LeaderboardTabItem
+    {
+        public LeaderboardTab tab;
+        public Button button;
+        public GameObject selectedLine;
+        public TMP_Text text;
+        [HideInInspector] public EventTrigger trigger;
+    }
+
     [Header("Panel")]
     [SerializeField] private GameObject panel;
 
@@ -20,31 +31,125 @@ public class LeaderboardUI : MonoBehaviour
     [Header("Prefab")]
     [SerializeField] private GameObject leaderboardItemPrefab;
 
-    [Header("Tab Buttons")]
-    [SerializeField] private Button tabPowerBtn;
-    [SerializeField] private Button tabAchievementBtn;
-    [SerializeField] private Button tabHuntBtn;
-    [SerializeField] private Button tabRunBtn;
+    [Header("Tab Items (With Hover/Selected Line)")]
+    [SerializeField] private List<LeaderboardTabItem> tabItems = new List<LeaderboardTabItem>();
 
     [Header("Tab Visual Config")]
-    [SerializeField] private Color selectedColor = new Color(1f, 1f, 1f, 0.4f);
-    [SerializeField] private Color normalColor = Color.white;
+    [SerializeField] private Color normalTextColor = Color.white;
+    [SerializeField] private Color selectedTextColor = new Color(1f, 0.85f, 0.2f);
 
     private List<LeaderboardItemUI> activeItems = new List<LeaderboardItemUI>();
+    private LeaderboardTab currentTab = LeaderboardTab.Power;
+
+    private void Awake()
+    {
+        InitTabHoverTriggers();
+    }
 
     private void Start()
     {
-        if (tabPowerBtn != null) tabPowerBtn.onClick.AddListener(() => OnTabSelected(LeaderboardTab.Power));
-        if (tabAchievementBtn != null) tabAchievementBtn.onClick.AddListener(() => OnTabSelected(LeaderboardTab.Achievement));
-        if (tabHuntBtn != null) tabHuntBtn.onClick.AddListener(() => OnTabSelected(LeaderboardTab.Hunt));
-        if (tabRunBtn != null) tabRunBtn.onClick.AddListener(() => OnTabSelected(LeaderboardTab.Run));
+        for (int i = 0; i < tabItems.Count; i++)
+        {
+            var item = tabItems[i];
+            if (item != null && item.button != null)
+            {
+                LeaderboardTab tabType = item.tab;
+                item.button.onClick.RemoveAllListeners();
+                item.button.onClick.AddListener(() => OnTabSelected(tabType));
+            }
+        }
+    }
+
+    private void InitTabHoverTriggers()
+    {
+        for (int i = 0; i < tabItems.Count; i++)
+        {
+            int index = i;
+            var tab = tabItems[index];
+            if (tab == null || tab.button == null) continue;
+
+            EventTrigger trigger = tab.button.gameObject.GetComponent<EventTrigger>();
+            if (trigger == null) trigger = tab.button.gameObject.AddComponent<EventTrigger>();
+            tab.trigger = trigger;
+
+            trigger.triggers.Clear();
+
+            // Hover chuột vào -> Hiện line nếu tab chưa được chọn
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enterEntry.callback.AddListener((data) => { SetTabHoverVisual(index, true); });
+            trigger.triggers.Add(enterEntry);
+
+            // Rê chuột ra -> Thu line lại nếu tab không active
+            EventTrigger.Entry exitEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            exitEntry.callback.AddListener((data) => { SetTabHoverVisual(index, false); });
+            trigger.triggers.Add(exitEntry);
+
+            if (tab.selectedLine != null)
+            {
+                tab.selectedLine.SetActive(false);
+            }
+        }
+    }
+
+    private void SetTabHoverVisual(int index, bool isHovered)
+    {
+        if (index < 0 || index >= tabItems.Count) return;
+        var tab = tabItems[index];
+        if (tab == null) return;
+
+        if (tab.tab == currentTab) return;
+
+        if (tab.selectedLine != null)
+        {
+            tab.selectedLine.transform.DOKill();
+            if (isHovered)
+            {
+                tab.selectedLine.SetActive(true);
+                tab.selectedLine.transform.localScale = new Vector3(0f, 1f, 1f);
+                tab.selectedLine.transform.DOScaleX(1f, 0.15f).SetUpdate(true);
+            }
+            else
+            {
+                tab.selectedLine.transform.DOScaleX(0f, 0.12f).SetUpdate(true).OnComplete(() =>
+                {
+                    tab.selectedLine.SetActive(false);
+                });
+            }
+        }
+
+        if (tab.text != null)
+        {
+            tab.text.color = isHovered ? selectedTextColor : normalTextColor;
+        }
+    }
+
+    private void Update()
+    {
+        if (panel != null && !panel.activeSelf) return;
+
+        // Phím tắt 1, 2, 3, 4 chuyển nhanh các Tab
+        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
+        {
+            OnTabSelected(LeaderboardTab.Power);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
+        {
+            OnTabSelected(LeaderboardTab.Achievement);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
+        {
+            OnTabSelected(LeaderboardTab.Hunt);
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
+        {
+            OnTabSelected(LeaderboardTab.Run);
+        }
     }
 
     public void OpenPanel()
     {
-        panel.SetActive(true);
+        if (panel != null) panel.SetActive(true);
 
-        // ===== FORCE SYNC ĐIỂM SỐ MỚI NHẤT TRƯỚC KHI TẢI TAB =====
         if (LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.UpdateAllStatistics();
@@ -55,15 +160,16 @@ public class LeaderboardUI : MonoBehaviour
 
     public void ClosePanel()
     {
-        panel.SetActive(false);
+        if (panel != null) panel.SetActive(false);
     }
 
     public void OnTabSelected(LeaderboardTab tab)
     {
+        currentTab = tab;
+
         if (LeaderboardManager.Instance != null)
         {
             LeaderboardManager.Instance.SetCurrentTab(tab);
-            // Ép đồng bộ lại dữ liệu cục bộ lên Server ngay lúc đổi Tab
             LeaderboardManager.Instance.UpdateAllStatistics();
         }
 
@@ -77,37 +183,41 @@ public class LeaderboardUI : MonoBehaviour
 
     private void RefreshTabUIVisual(LeaderboardTab activeTab)
     {
-        UpdateSingleTabState(tabPowerBtn, activeTab == LeaderboardTab.Power);
-        UpdateSingleTabState(tabAchievementBtn, activeTab == LeaderboardTab.Achievement);
-        UpdateSingleTabState(tabHuntBtn, activeTab == LeaderboardTab.Hunt);
-        UpdateSingleTabState(tabRunBtn, activeTab == LeaderboardTab.Run);
-    }
-
-    private void UpdateSingleTabState(Button btn, bool isSelected)
-    {
-        if (btn == null) return;
-
-        btn.interactable = !isSelected;
-
-        Image btnImg = btn.GetComponent<Image>();
-        if (btnImg != null)
+        for (int i = 0; i < tabItems.Count; i++)
         {
-            btnImg.color = isSelected ? selectedColor : normalColor;
-        }
+            var item = tabItems[i];
+            if (item == null) continue;
 
-        TMP_Text btnText = btn.GetComponentInChildren<TMP_Text>();
-        if (btnText != null)
-        {
-            Color c = btnText.color;
-            c.a = isSelected ? 0.4f : 1.0f;
-            btnText.color = c;
+            bool isSelected = (item.tab == activeTab);
+
+            if (item.selectedLine != null)
+            {
+                item.selectedLine.transform.DOKill();
+                if (isSelected)
+                {
+                    item.selectedLine.SetActive(true);
+                    item.selectedLine.transform.DOScaleX(1f, 0.2f).SetUpdate(true);
+                }
+                else
+                {
+                    item.selectedLine.transform.DOScaleX(0f, 0.15f).SetUpdate(true).OnComplete(() =>
+                    {
+                        item.selectedLine.SetActive(false);
+                    });
+                }
+            }
+
+            if (item.text != null)
+            {
+                item.text.color = isSelected ? selectedTextColor : normalTextColor;
+            }
         }
     }
 
     public void SetMyInfo(int rank, int score, string detailInfo = "")
     {
         if (myRankText != null) myRankText.SetTextSafe($"Rank #{rank}");
-        
+
         if (myScoreText != null)
         {
             DOVirtual.Int(0, score, 0.6f, (val) => {
@@ -133,7 +243,6 @@ public class LeaderboardUI : MonoBehaviour
         }
     }
 
-    // ===== BỔ SUNG THAM SỐ `isMe` ĐỂ TRUYỀN VÀO ITEM =====
     public void AddItem(int rank, string playerName, int score, string detailInfo = "", bool isMe = false)
     {
         int index = rank - 1;
@@ -154,8 +263,6 @@ public class LeaderboardUI : MonoBehaviour
         {
             itemUI.gameObject.SetActive(true);
             itemUI.transform.SetSiblingIndex(index);
-
-            // Cập nhật dữ liệu và vẽ Highlight nếu là chính mình
             itemUI.Setup(rank, playerName, score, detailInfo, isMe);
         }
     }
