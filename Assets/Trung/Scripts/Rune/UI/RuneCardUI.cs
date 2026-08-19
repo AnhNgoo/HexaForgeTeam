@@ -189,7 +189,6 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
             RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
         }
 
-        // Tự động đẩy dữ liệu ngọc lên Tooltip khi Hover
         if (UITooltipPanel.Instance != null)
         {
             string title = $"<color={GetRarityHexColor(currentRuneData.runeRarity)}>{currentRuneData.runeName.ToUpper()}</color>";
@@ -199,7 +198,7 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
             {
                 var affix = currentRuneData.affixes[i];
                 string sign = affix.value >= 0 ? "+" : "";
-                details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                details += $"- {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
             }
 
             if (!string.IsNullOrEmpty(currentRuneData.runeLore))

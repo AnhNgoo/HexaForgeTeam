@@ -8,7 +8,6 @@ public class RunSceneContainment : MonoBehaviour
     [Header("Run Scene Container")]
     [Tooltip("Kéo thả Run_Scene_Container trong Scene hầm ngục vào đây.")]
     [SerializeField] private Transform runContainerParent;
-    [SerializeField] private string lobbySceneName = "LobbyMain Scene";
 
     private Scene myRunScene;
 
@@ -74,14 +73,14 @@ public class RunSceneContainment : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Quét LobbyMainScene để giải cứu toàn bộ object thuộc hầm ngục bị Instantiate tràn ra ngoài
-    /// </summary>
     private void ContainExistingLooseObjects()
     {
         if (!myRunScene.isLoaded) return;
 
-        string lobbyName = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
+        string lobbyName = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain) 
+            : "LobbyMain Scene";
+
         Scene lobbyScene = SceneManager.GetSceneByName(lobbyName);
         if (!lobbyScene.isLoaded) return;
 

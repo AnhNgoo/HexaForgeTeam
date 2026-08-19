@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private int slotIndex; // 0 cho Slot 1, 1 cho Slot 2, 2 cho Slot 3
+    [SerializeField] private int slotIndex;
 
     public void OnPointerEnter(PointerEventData eventData)
     {
@@ -20,13 +20,11 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
                 RuneData equippedRune = RuneInventoryManager.Instance.runes.Find(r => r.runeID == equippedID);
                 if (equippedRune != null)
                 {
-                    // 1. Mở Panel Chi tiết
                     if (RuneDetailInfoPanel.Instance != null)
                     {
                         RuneDetailInfoPanel.Instance.DisplayRuneInfo(equippedRune);
                     }
 
-                    // 2. Đẩy thông tin ngọc lên Tooltip Panel bám chuột
                     if (UITooltipPanel.Instance != null)
                     {
                         string title = $"<color={GetRarityHexColor(equippedRune.runeRarity)}>{equippedRune.runeName.ToUpper()}</color>";
@@ -36,7 +34,7 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
                         {
                             var affix = equippedRune.affixes[i];
                             string sign = affix.value >= 0 ? "+" : "";
-                            details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                            details += $"- {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
                         }
 
                         if (!string.IsNullOrEmpty(equippedRune.runeLore))
@@ -50,7 +48,6 @@ public class RuneEquipSlotDropHandler : MonoBehaviour, IDropHandler, IPointerEnt
             }
             else
             {
-                // Nếu ô trống -> Hiện hướng dẫn màu ngọc cần lắp
                 if (UITooltipPanel.Instance != null)
                 {
                     RuneColor reqColor = RuneEquipUI.Instance.GetSlotRequiredColor(currentType, slotIndex);

@@ -17,7 +17,7 @@ public abstract class CharacterSkillBase : ICharacterSkill
     }
     public bool CanUseSkill()
     {
-        if (cooldown.IsOnCooldown || !character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillCost))
+        if (cooldown.IsOnCooldown || !character.ConsumeSkillCost(character.CharacterData.characterTypes, skillData.skillStats.skillCost))
             return false;
         return true;
     }
@@ -32,7 +32,7 @@ public abstract class CharacterSkillBase : ICharacterSkill
             Debug.LogError("Skill data is null!");
             return;
         }
-        cooldown.StartCooldown(skillData.cooldown);
+        cooldown.StartCooldown(skillData.skillStats.cooldown);
         character.StateController.ChangeState(new CombatState(character));
         ExecuteSkill();
     }

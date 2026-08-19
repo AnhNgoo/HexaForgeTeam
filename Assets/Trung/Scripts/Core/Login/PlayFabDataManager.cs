@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using PlayFab;
 using PlayFab.ClientModels;
 using System.Collections.Generic;
@@ -9,7 +8,6 @@ public class PlayFabDataManager : MonoBehaviour
     public static PlayFabDataManager Instance;
     private bool needSaveCloud = false;
     private float saveTimer = 0f;
-    private bool isSwitchingScene = false;
 
     private void Awake()
     {
@@ -24,30 +22,10 @@ public class PlayFabDataManager : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        string activeSceneName = SceneManager.GetActiveScene().name;
-        string loginSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loginScene : "Login Scene";
-
-        if (activeSceneName == loginSceneName)
-        {
-            Debug.Log("[PlayFabDataManager] Loading Scene mở Additive từ Login. Kích hoạt LoadCloud...");
-            LoadCloud();
-        }
-        else
-        {
-            Debug.Log($"[PlayFabDataManager] Loading Scene mở Additive từ [{activeSceneName}]. Hoạt động ở chế độ chuyển cảnh thuần túy.");
-        }
-    }
-
     #region SAVE CLOUD
     public void SaveCloud()
     {
-        if (SaveLoadManager.Instance == null)
-        {
-            Debug.LogError("SaveLoadManager not found");
-            return;
-        }
+        if (SaveLoadManager.Instance == null || SaveLoadManager.Instance.SaveData == null) return;
 
         string json = JsonUtility.ToJson(SaveLoadManager.Instance.SaveData);
 
@@ -61,128 +39,55 @@ public class PlayFabDataManager : MonoBehaviour
 
     private void OnSaveSuccess(UpdateUserDataResult result)
     {
-        Debug.Log("Cloud Save Success");
+        Debug.Log("[PlayFabDataManager] Cloud Save Success!");
     }
     #endregion
 
     #region LOAD CLOUD
-    public void LoadCloud()
+    public void LoadCloud(System.Action<bool> onComplete = null)
     {
-        PlayFabClientAPI.GetUserData(new GetUserDataRequest(), OnLoadSuccess, OnPlayFabError);
-    }
-
-    private void OnLoadSuccess(GetUserDataResult result)
-    {
-        Debug.Log("[PlayFabDataManager] Cloud Load Success!");
-
-        if (SaveLoadManager.Instance == null)
+        PlayFabClientAPI.GetUserData(new GetUserDataRequest(), result =>
         {
-            SaveLoadManager.Instance = FindFirstObjectByType<SaveLoadManager>();
-        }
+            Debug.Log("[PlayFabDataManager] Cloud Load Success!");
 
-        if (SaveLoadManager.Instance == null)
+            if (SaveLoadManager.Instance == null)
+            {
+                SaveLoadManager.Instance = FindFirstObjectByType<SaveLoadManager>();
+            }
+
+            if (SaveLoadManager.Instance == null)
+            {
+                Debug.LogError("[PlayFabDataManager] KHÔNG THỂ tìm thấy SaveLoadManager!");
+                onComplete?.Invoke(false);
+                return;
+            }
+
+            if (result.Data == null || !result.Data.ContainsKey("PlayerData") || string.IsNullOrEmpty(result.Data["PlayerData"].Value))
+            {
+                Debug.Log("[CLOUD] Dữ liệu mới. Khởi tạo dữ liệu mặc định...");
+                SaveLoadManager.Instance.SaveData = new GameSaveData();
+                SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
+                SaveLoadManager.Instance.SaveGame();
+            }
+            else
+            {
+                string json = result.Data["PlayerData"].Value;
+                GameSaveData cloudData = JsonUtility.FromJson<GameSaveData>(json);
+                if (cloudData != null)
+                {
+                    SaveLoadManager.Instance.SaveData = cloudData;
+                    SaveLoadManager.Instance.SaveGame();
+                }
+            }
+
+            onComplete?.Invoke(true);
+        }, error =>
         {
-            Debug.LogError("[PlayFabDataManager] KHÔNG THỂ tìm thấy SaveLoadManager.Instance trong Scene!");
-            return;
-        }
-
-        string uiSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.uiScene : "UIGame";
-
-        if (result.Data == null || !result.Data.ContainsKey("PlayerData"))
-        {
-            Debug.Log("[CLOUD] Tài khoản mới tinh trên Cloud. Thiết lập data mặc định...");
-
-            SaveLoadManager.Instance.SaveData = new GameSaveData();
-            SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
-            SaveLoadManager.Instance.SaveGame();
-
-            StartCoroutine(SwitchSceneRoutine(uiSceneName));
-            return;
-        }
-
-        string json = result.Data["PlayerData"].Value;
-        Debug.Log($"[CLOUD] Dữ liệu JSON tải về từ Cloud: {json}");
-
-        if (string.IsNullOrEmpty(json))
-        {
-            SaveLoadManager.Instance.SaveData = new GameSaveData();
-            SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
-            SaveLoadManager.Instance.SaveGame();
-            StartCoroutine(SwitchSceneRoutine(uiSceneName));
-            return;
-        }
-
-        GameSaveData cloudData = JsonUtility.FromJson<GameSaveData>(json);
-        if (cloudData == null)
-        {
-            Debug.LogError("[CLOUD] Không thể giải mã JSON từ Cloud thành GameSaveData!");
-            return;
-        }
-
-        SaveLoadManager.Instance.SaveData = cloudData;
-        SaveLoadManager.Instance.SaveGame();
-
-        Debug.Log($"[CLOUD] Đồng bộ thành công! Trạng thái isTutorialCompleted hiện tại là: {SaveLoadManager.Instance.SaveData.isTutorialCompleted}");
-
-        StartCoroutine(SwitchSceneRoutine(uiSceneName));
+            OnPlayFabError(error);
+            onComplete?.Invoke(false);
+        });
     }
     #endregion
-
-    private System.Collections.IEnumerator SwitchSceneRoutine(string targetSceneName)
-    {
-        if (isSwitchingScene) yield break;
-        isSwitchingScene = true;
-
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
-        string lobbySceneName = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
-
-        Debug.Log($"[PlayFabDataManager] Bắt đầu luồng chuyển cảnh mượt mà tới: {targetSceneName}");
-
-        Scene existingLoadingScene = SceneManager.GetSceneByName(loadingSceneName);
-        if (!existingLoadingScene.isLoaded)
-        {
-            AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
-            while (!loadLoading.isDone) yield return null;
-        }
-
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        if (LoadingUIManager.Instance != null)
-        {
-            LoadingUIManager.Instance.SetDestinationName(targetSceneName);
-        }
-
-        AsyncOperation loadTarget = SceneManager.LoadSceneAsync(targetSceneName, LoadSceneMode.Single);
-        loadTarget.allowSceneActivation = false;
-
-        if (LoadingUIManager.Instance != null)
-        {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget));
-        }
-        else
-        {
-            while (loadTarget.progress < 0.9f) yield return null;
-        }
-
-        loadTarget.allowSceneActivation = true;
-        while (!loadTarget.isDone) yield return null;
-
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
-        if (loadingScene.isLoaded)
-        {
-            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
-            while (!unloadLoading.isDone) yield return null;
-        }
-
-        if (targetSceneName == lobbySceneName && UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-        }
-
-        isSwitchingScene = false;
-    }
 
     private void OnPlayFabError(PlayFabError error)
     {

@@ -110,6 +110,7 @@ public class Kael : CharacterMelee
         characterAnimation.Init(kaelGiantVisual);
         kaelGiantVisual.SetActive(true);
         characterVisual.SetActive(false);
+        characterStat.SetStatsForSkill(characterSkill.Skill1Data); // Cập nhật chỉ số cho hình dạng khổng lồ
     }
 
     public virtual void NormalForm()
@@ -123,5 +124,40 @@ public class Kael : CharacterMelee
         characterAnimation.Init(characterVisual);
         kaelGiantVisual.SetActive(false);
         characterVisual.SetActive(true);
+        characterStat.ResetStatsAfterSkill(); // Khôi phục chỉ số về giá trị mặc định
+    }
+
+    public override void TakeDamage(DamageInfo damageInfo)
+    {
+        if (!CanBeAttacked) // Nếu nhân vật không thể bị tấn công, bỏ qua
+            return;
+
+        if (characterHealth.CurrentHealth <= 0)
+            return;
+
+        float finalDamage = damageInfo.damageAmount - characterStat.finalStats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
+        finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
+        characterHealth.SubtractHealth(finalDamage);
+
+        if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
+        {
+            if (stateController?.currentState is HealthRecoveryState)
+            {
+                IsHealthRecoveryInterrupted = true;
+            }
+
+            characterMovement.KnockBack(damageInfo.attacker);
+            CameraShake.Instance?.Shake();
+            if (!IsHitStateActive || stateController?.currentState is HealthRecoveryState)
+                stateController.ChangeState(new HitState(this));
+        }
+
+        if (characterHealth.CurrentHealth <= 0)
+        {
+            if (!characterSkill.IsUsingSkill2) // Nếu đang ở dạng khổng lồ thì không cho phép chết, chỉ trở về hình dạng bình thường
+                Die();
+        }
+
+        characterCombat.ResetCombo();
     }
 }

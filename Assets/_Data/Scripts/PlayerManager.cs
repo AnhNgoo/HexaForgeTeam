@@ -29,6 +29,7 @@ public class PlayerManager : Singleton<PlayerManager>
     [Header("Current Character Properties")]
     [SerializeField][FoldoutGroup("Character Spawn")] private Characters currentCharacter;
     [SerializeField][FoldoutGroup("Character Spawn")] private CharacterBase currentCharacterBase;
+    public CharacterBase CurrentCharacterBase => currentCharacterBase;
 
     [Header("Selecting Character Properties")]
     [SerializeField][FoldoutGroup("Character Spawn")] private Characters selectingCharacter;
@@ -210,7 +211,7 @@ public class PlayerManager : Singleton<PlayerManager>
     {
         await UniTask.Delay((int)(delayRespawn * 1000));
         UIManager.Instance?.ChangeMenu(MenuType.YouDiedRespawnMenu, true); // Hiện menu respawn
-        await UniTask.Delay(3000); //NOTE - Delay theo tổng thời gian note bên Menu YouDiedRespawnMenu, chừa 1000ms của tổng để spawn nhân vật
+        await UniTask.Delay(2000);
 
         MapType mapType = GameManager.Instance != null ? GameManager.Instance.MapType : MapType.None;
 
@@ -250,13 +251,9 @@ public class PlayerManager : Singleton<PlayerManager>
                 characterController.enabled = false;
 
             currentCharacterBase.transform.position = reSpawnPoint.position + offsetSpawnPoint;
-            currentCharacterBase.gameObject.SetActive(false);
-
-            await UniTask.Delay(2000); //NOTE - 1000ms còn lại
-
             currentCharacterBase.gameObject.SetActive(true);
             currentCharacterBase.ResetCharacter();
-            ObjectPooling.Instance.SpawnFromPool(PoolType.SpawnCharacterEffect, reSpawnPoint.position + new Vector3(0, -1f, 0), Quaternion.identity);
+            // ObjectPooling.Instance.SpawnFromPool(PoolType.SpawnCharacterEffect, reSpawnPoint.position + new Vector3(0, -1f, 0), Quaternion.identity);
 
             if (characterController != null)
                 characterController.enabled = true;

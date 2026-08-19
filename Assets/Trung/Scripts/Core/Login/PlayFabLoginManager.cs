@@ -1,17 +1,15 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Collections.Generic;
 using PlayFab;
 using PlayFab.ClientModels;
 using DG.Tweening;
 
 public class PlayFabLoginManager : MonoBehaviour
 {
-    [Header("Panels")]
-    [SerializeField] private GameObject loginPanel;
-    [SerializeField] private GameObject registerPanel;
+    public static PlayFabLoginManager Instance;
 
     [Header("Universal Loading UI (Dùng chung)")]
     [SerializeField] private GameObject autoLoginLoadingPanel;
@@ -32,11 +30,7 @@ public class PlayFabLoginManager : MonoBehaviour
     [SerializeField] private TMP_InputField registerPasswordInput;
     [SerializeField] private TMP_InputField confirmPasswordInput;
 
-    [Header("Status Text")]
-    [SerializeField] private TMP_Text statusText;
-    
     [Header("Scene Config")]
-    [SerializeField] private string loadingSceneName = "Loading Scene";
 
     private SavedAccountList savedAccounts = new SavedAccountList();
     private bool isLoggingIn = false;
@@ -45,6 +39,11 @@ public class PlayFabLoginManager : MonoBehaviour
     private const string AutoLoginKey = "IsAutoLoginActive";
     private const string LastAccountKey = "LastAccountUser";
     private const string LastPasswordKey = "LastAccountPass";
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -59,7 +58,10 @@ public class PlayFabLoginManager : MonoBehaviour
             return;
         }
 
-        OpenLoginPanel();
+        if (PlayFabLoginUI.Instance != null)
+        {
+            PlayFabLoginUI.Instance.SwitchTab(true);
+        }
     }
 
     private bool CheckAndTryAutoLogin()
@@ -73,9 +75,6 @@ public class PlayFabLoginManager : MonoBehaviour
             loginAccountInput.text = lastUser;
             loginPasswordInput.text = lastPass;
 
-            if (loginPanel != null) loginPanel.SetActive(false);
-            if (registerPanel != null) registerPanel.SetActive(false);
-
             ShowLoadingOverlay($"Welcome back! Reconnecting as {lastUser}...");
             StartCoroutine(AutoLoginRoutine());
             return true;
@@ -84,7 +83,7 @@ public class PlayFabLoginManager : MonoBehaviour
         return false;
     }
 
-    private void ShowLoadingOverlay(string message)
+    public void ShowLoadingOverlay(string message)
     {
         if (autoLoginLoadingPanel == null) return;
 
@@ -123,7 +122,7 @@ public class PlayFabLoginManager : MonoBehaviour
         }
     }
 
-    private void HideLoadingOverlay(System.Action onComplete = null)
+    public void HideLoadingOverlay(System.Action onComplete = null)
     {
         if (spinnerTween != null) spinnerTween.Kill();
 
@@ -153,11 +152,6 @@ public class PlayFabLoginManager : MonoBehaviour
     {
         Debug.Log($"[PlayFabLogin] Status: {message}");
 
-        if (statusText != null)
-        {
-            statusText.SetTextSafe(message);
-        }
-        
         if (autoLoginStatusText != null && autoLoginLoadingPanel != null && autoLoginLoadingPanel.activeSelf)
         {
             autoLoginStatusText.SetTextSafe(message);
@@ -170,48 +164,33 @@ public class PlayFabLoginManager : MonoBehaviour
         }
     }
 
-    public void OpenRegisterPanel()
-    {
-        HideLoadingOverlay(() =>
-        {
-            if (loginPanel != null) loginPanel.SetActive(false);
-            if (registerPanel != null) registerPanel.SetActive(true);
-            UpdateStatus("");
-        });
-    }
-
-    public void OpenLoginPanel()
-    {
-        HideLoadingOverlay(() =>
-        {
-            if (loginPanel != null) loginPanel.SetActive(true);
-            if (registerPanel != null) registerPanel.SetActive(false);
-            UpdateStatus("");
-        });
-    }
-
     public void Register()
     {
         if (string.IsNullOrWhiteSpace(registerUsernameInput.text))
         {
+            ShakeInputField(registerUsernameInput);
             UpdateStatus("Username required.", Color.yellow);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(registerEmailInput.text))
         {
+            ShakeInputField(registerEmailInput);
             UpdateStatus("Email required.", Color.yellow);
             return;
         }
 
         if (string.IsNullOrWhiteSpace(registerPasswordInput.text))
         {
+            ShakeInputField(registerPasswordInput);
             UpdateStatus("Password required.", Color.yellow);
             return;
         }
 
         if (registerPasswordInput.text != confirmPasswordInput.text)
         {
+            ShakeInputField(registerPasswordInput);
+            ShakeInputField(confirmPasswordInput);
             UpdateStatus("Passwords do not match.", Color.red);
             return;
         }
@@ -221,8 +200,8 @@ public class PlayFabLoginManager : MonoBehaviour
 
         RegisterPlayFabUserRequest request = new RegisterPlayFabUserRequest
         {
-            Username = registerUsernameInput.text,
-            Email = registerEmailInput.text,
+            Username = registerUsernameInput.text.Trim(),
+            Email = registerEmailInput.text.Trim(),
             Password = registerPasswordInput.text,
             RequireBothUsernameAndEmail = true
         };
@@ -233,16 +212,18 @@ public class PlayFabLoginManager : MonoBehaviour
     private void OnRegisterSuccess(RegisterPlayFabUserResult result)
     {
         PlayFabClientAPI.UpdateUserTitleDisplayName(
-            new UpdateUserTitleDisplayNameRequest { DisplayName = registerUsernameInput.text },
-            displayResult => {},
-            error => {});
+            new UpdateUserTitleDisplayNameRequest { DisplayName = registerUsernameInput.text.Trim() },
+            displayResult => { },
+            error => { });
+
+        loginAccountInput.text = registerUsernameInput.text;
+        loginPasswordInput.text = registerPasswordInput.text;
 
         SaveRememberAccount();
 
         HideLoadingOverlay(() =>
         {
-            if (loginPanel != null) loginPanel.SetActive(true);
-            if (registerPanel != null) registerPanel.SetActive(false);
+            if (PlayFabLoginUI.Instance != null) PlayFabLoginUI.Instance.SwitchTab(true);
             UpdateStatus("Account created successfully!", Color.green);
         });
     }
@@ -253,10 +234,14 @@ public class PlayFabLoginManager : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(loginAccountInput.text) || string.IsNullOrWhiteSpace(loginPasswordInput.text))
         {
+            if (string.IsNullOrWhiteSpace(loginAccountInput.text)) ShakeInputField(loginAccountInput);
+            if (string.IsNullOrWhiteSpace(loginPasswordInput.text)) ShakeInputField(loginPasswordInput);
+
             UpdateStatus("Username and Password required.", Color.yellow);
             if (autoLoginLoadingPanel != null && autoLoginLoadingPanel.activeSelf)
             {
-                OpenLoginPanel();
+                if (PlayFabLoginUI.Instance != null) PlayFabLoginUI.Instance.SwitchTab(true);
+                HideLoadingOverlay();
             }
             return;
         }
@@ -287,6 +272,109 @@ public class PlayFabLoginManager : MonoBehaviour
 
             PlayFabClientAPI.LoginWithPlayFab(request, OnLoginSuccess, OnPlayFabError);
         }
+    }
+
+    private void OnLoginSuccess(LoginResult result)
+    {
+        // Hiển thị Overlay Đăng nhập & Báo trạng thái đồng bộ dữ liệu
+        ShowLoadingOverlay("Login successful! Loading Cloud Profile...");
+
+        if (loadingProgressSlider != null)
+        {
+            loadingProgressSlider.DOKill();
+            loadingProgressSlider.DOValue(0.9f, 0.4f).SetEase(Ease.OutQuad).SetUpdate(true);
+        }
+
+        PlayerPrefs.SetString("PlayFabID", result.PlayFabId);
+        PlayerPrefs.SetInt(AutoLoginKey, 1);
+        PlayerPrefs.SetString(LastAccountKey, loginAccountInput.text.Trim());
+        PlayerPrefs.SetString(LastPasswordKey, loginPasswordInput.text);
+
+        SaveRememberAccount();
+        PlayerPrefs.Save();
+
+        if (SaveLoadManager.Instance != null)
+        {
+            SaveLoadManager.Instance.SetSaveFile(result.PlayFabId);
+        }
+
+        CheckAndFixDisplayName();
+
+        System.GC.Collect();
+        Resources.UnloadUnusedAssets();
+
+        // Tải Cloud Data xong mới tiến hành chuyển Scene
+        if (PlayFabDataManager.Instance != null)
+        {
+            PlayFabDataManager.Instance.LoadCloud((success) =>
+            {
+                StartCoroutine(LoadMainGameRoutine());
+            });
+        }
+        else
+        {
+            StartCoroutine(LoadMainGameRoutine());
+        }
+    }
+
+    private System.Collections.IEnumerator LoadMainGameRoutine()
+    {
+        string uiSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.uiScene : "UIGame";
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+
+        ShowLoadingOverlay("Preparing Realm...");
+
+        AsyncOperation loadLoading = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(loadingSceneName, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+        while (!loadLoading.isDone) yield return null;
+
+        if (LoadingUIManager.Instance != null)
+        {
+            LoadingUIManager.Instance.SetDestinationName(uiSceneName);
+        }
+
+        // Tắt Auto Login Panel khi Loading Scene chính thức xuất hiện đè lên
+        HideLoadingOverlay();
+
+        AsyncOperation loadTarget = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(uiSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        loadTarget.allowSceneActivation = false;
+
+        if (LoadingUIManager.Instance != null)
+        {
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget));
+        }
+
+        loadTarget.allowSceneActivation = true;
+        while (!loadTarget.isDone) yield return null;
+    }
+
+    private void CheckAndFixDisplayName()
+    {
+        PlayFabClientAPI.GetAccountInfo(
+            new GetAccountInfoRequest(),
+            result =>
+            {
+                string displayName = result.AccountInfo.TitleInfo.DisplayName;
+
+                if (!string.IsNullOrEmpty(displayName))
+                {
+                    PlayerPrefs.SetString("DisplayName", displayName);
+                    PlayerPrefs.Save();
+                    return;
+                }
+
+                string email = loginAccountInput.text.Trim();
+                if (!email.Contains("@")) return;
+
+                PlayFabClientAPI.UpdateUserTitleDisplayName(
+                    new UpdateUserTitleDisplayNameRequest { DisplayName = email },
+                    updateResult =>
+                    {
+                        PlayerPrefs.SetString("DisplayName", email);
+                        PlayerPrefs.Save();
+                    },
+                    error => { });
+            },
+            error => { });
     }
 
     private void SaveRememberAccount()
@@ -359,85 +447,29 @@ public class PlayFabLoginManager : MonoBehaviour
     private void OnPlayFabError(PlayFabError error)
     {
         isLoggingIn = false;
-        
+
         PlayerPrefs.SetInt(AutoLoginKey, 0);
         PlayerPrefs.Save();
 
         string message = error.ErrorMessage;
-        
-        // Ẩn Overlay Loading trả về màn hình nhập tay để người chơi sửa lại mật khẩu/tài khoản
+
         HideLoadingOverlay(() =>
         {
+            if (PlayFabLoginUI.Instance != null) PlayFabLoginUI.Instance.SwitchTab(true);
             UpdateStatus(message, Color.red);
         });
     }
 
-    private void OnLoginSuccess(LoginResult result)
+    // Hiệu ứng DOTween rung lắc ô nhập liệu khi bị lỗi
+    private void ShakeInputField(TMP_InputField inputField)
     {
-        UpdateStatus("Login successful!", Color.green);
-
-        if (loadingProgressSlider != null)
+        if (inputField == null) return;
+        RectTransform rect = inputField.GetComponent<RectTransform>();
+        if (rect != null)
         {
-            loadingProgressSlider.DOKill();
-            loadingProgressSlider.DOValue(1f, 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+            rect.DOKill(true);
+            rect.DOShakePosition(0.35f, new Vector3(10f, 0f, 0f), 20, 90f).SetUpdate(true);
         }
-
-        PlayerPrefs.SetString("PlayFabID", result.PlayFabId);
-        PlayerPrefs.SetInt(AutoLoginKey, 1);
-        PlayerPrefs.SetString(LastAccountKey, loginAccountInput.text.Trim());
-        PlayerPrefs.SetString(LastPasswordKey, loginPasswordInput.text);
-
-        SaveRememberAccount();
-        PlayerPrefs.Save();
-
-        if (SaveLoadManager.Instance != null)
-        {
-            SaveLoadManager.Instance.SetSaveFile(result.PlayFabId);
-        }
-
-        CheckAndFixDisplayName();
-
-        System.GC.Collect();
-        Resources.UnloadUnusedAssets();
-
-        if (PlayFabDataManager.Instance != null)
-        {
-            PlayFabDataManager.Instance.LoadCloud();
-        }
-        else
-        {
-            UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(loadingSceneName, UnityEngine.SceneManagement.LoadSceneMode.Additive);
-        }
-    }
-
-    private void CheckAndFixDisplayName()
-    {
-        PlayFabClientAPI.GetAccountInfo(
-            new GetAccountInfoRequest(),
-            result =>
-            {
-                string displayName = result.AccountInfo.TitleInfo.DisplayName;
-
-                if (!string.IsNullOrEmpty(displayName))
-                {
-                    PlayerPrefs.SetString("DisplayName", displayName);
-                    PlayerPrefs.Save();
-                    return;
-                }
-
-                string email = loginAccountInput.text.Trim();
-                if (!email.Contains("@")) return;
-
-                PlayFabClientAPI.UpdateUserTitleDisplayName(
-                    new UpdateUserTitleDisplayNameRequest { DisplayName = email },
-                    updateResult =>
-                    {
-                        PlayerPrefs.SetString("DisplayName", email);
-                        PlayerPrefs.Save();
-                    },
-                    error => {});
-            },
-            error => {});
     }
 
     private void OnDestroy()

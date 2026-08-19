@@ -82,7 +82,6 @@ public class LobbyBossSelectMenu : MenuBase
 
         selectedBossIndex = index;
 
-        // Bật/tắt Highlight chuẩn xác kèm hiệu ứng DOTween
         for (int i = 0; i < bossOptions.Count; i++)
         {
             var option = bossOptions[i];
@@ -92,7 +91,6 @@ public class LobbyBossSelectMenu : MenuBase
             {
                 option.highlightObject.SetActive(isSelected);
 
-                // Nảy nhẹ Highlight khi người chơi bấm chọn
                 if (isSelected && !isInitialOpen)
                 {
                     option.highlightObject.transform.DOKill(true);
@@ -101,7 +99,6 @@ public class LobbyBossSelectMenu : MenuBase
                 }
             }
 
-            // Nảy nhẹ nút bấm
             if (isSelected && option.selectButton != null && !isInitialOpen)
             {
                 option.selectButton.transform.DOKill(true);
@@ -112,14 +109,17 @@ public class LobbyBossSelectMenu : MenuBase
 
         var selected = bossOptions[selectedBossIndex];
 
-        // Đẩy thẳng cấu hình Boss đã chọn vào RunManager ngay lập tức
+        // LẤY ĐÚNG TÊN SCENE DỰA TRÊN SCENE CONFIG CÁ NHÂN (VD: RunGameTrung)
+        string targetRunScene = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
+            : "Run Scene";
+
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(GameSceneData.Instance.runGameplayScene, selected.bossPoolType);
-            Debug.Log($"<color=green>[LobbyBossSelectMenu] Đã chọn Boss {selected.bossName} | PoolType: {selected.bossPoolType}</color>");
+            RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
+            Debug.Log($"<color=green>[LobbyBossSelectMenu] Target Scene Configured: {targetRunScene} | Boss: {selected.bossName}</color>");
         }
 
-        // Bắn Notify thông báo khi người chơi tự click
         if (!isInitialOpen && LobbyNotifyManager.Instance != null)
         {
             string notifyText = string.IsNullOrEmpty(selected.bossName) ? $"Selected Boss {index + 1}" : $"Target: {selected.bossName}";
@@ -131,7 +131,6 @@ public class LobbyBossSelectMenu : MenuBase
     {
         if (bossOptions.Count == 0) return;
 
-        // Hiệu ứng nảy nút Confirm Start Run
         if (btnConfirmStartRun != null)
         {
             btnConfirmStartRun.transform.DOKill(true);
@@ -141,12 +140,17 @@ public class LobbyBossSelectMenu : MenuBase
 
         var selected = bossOptions[selectedBossIndex];
 
+        string targetRunScene = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
+            : "Run Scene";
+
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(GameSceneData.Instance.runGameplayScene, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
             RunManager.Instance.StartRun();
         }
     }
+
 
     protected override void LoadComponent() { }
     protected override void LoadComponentRuntime() { }
