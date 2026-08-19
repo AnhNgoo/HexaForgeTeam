@@ -42,19 +42,44 @@ public class TitleMenu : MenuBase
 
     protected override void LoadComponentRuntime()
     {
-
+        EnsureHoverEffects();
     }
 
     public override void Open(object data = null)
     {
         base.Open(data);
+        EnsureHoverEffects();
         btn_Play.onClick.AddListener(OnPlayButtonClicked);
         btn_Credits.onClick.AddListener(OnCreditsButtonClicked);
         btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
         btn_Language.onClick.AddListener(OnLanguageButtonClicked);
-        btn_Help.onClick.AddListener(OnHelpButtonClicked);
+        if (btn_Help != null)
+            btn_Help.onClick.AddListener(OnHelpButtonClicked);
         if (btn_Logout != null)
             btn_Logout.onClick.AddListener(OnLogoutButtonClicked);
+    }
+
+    private void EnsureHoverEffects()
+    {
+        AddHoverEffect(btn_Play);
+        AddHoverEffect(btn_Credits);
+        AddHoverEffect(btn_Settings);
+        AddHoverEffect(btn_Help);
+        AddHoverEffect(btn_Language);
+        AddHoverEffect(btn_Logout);
+    }
+
+    private static void AddHoverEffect(Button button)
+    {
+        if (button == null)
+            return;
+
+        ButtonHoverUnderline hover = button.GetComponent<ButtonHoverUnderline>();
+
+        if (hover == null)
+            hover = button.gameObject.AddComponent<ButtonHoverUnderline>();
+
+        hover.Configure();
     }
 
     public override void Close()
@@ -64,7 +89,8 @@ public class TitleMenu : MenuBase
         btn_Credits.onClick.RemoveListener(OnCreditsButtonClicked);
         btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
         btn_Language.onClick.RemoveListener(OnLanguageButtonClicked);
-        btn_Help.onClick.RemoveListener(OnHelpButtonClicked);
+        if (btn_Help != null)
+            btn_Help.onClick.RemoveListener(OnHelpButtonClicked);
 
         if (btn_Logout != null)
             btn_Logout.onClick.RemoveListener(OnLogoutButtonClicked);
