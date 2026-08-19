@@ -23,6 +23,9 @@ public class GraphicsMenu : MenuBase
 {
     public override MenuType menuType => MenuType.GraphicsMenu;
 
+    [Header("Setting Tabs")]
+    [SerializeField] private SettingsTabUI tabs;
+
     [Header("Dropdown")]
     [SerializeField] private TMP_Dropdown dropdownResolution;
 
@@ -102,6 +105,7 @@ public class GraphicsMenu : MenuBase
         LoadSettings();
         AddEvents();
         ApplyPreviewOnly();
+        tabs?.SetSelected(MenuType.GraphicsMenu);
     }
 
     private void BuildResolutionDropdown()
@@ -187,6 +191,10 @@ public class GraphicsMenu : MenuBase
         AddSlider(sliderSaturation);
         AddSlider(sliderFieldOfView);
 
+        AddButton(tabs?.btnAudio, OpenAudioTab);
+        AddButton(tabs?.btnGraphics, OpenGraphicsTab);
+        AddButton(tabs?.btnController, OpenControllerTab);
+
         AddButton(btnConfirm, Confirm);
         AddButton(btnBack, Back);
 
@@ -218,6 +226,10 @@ public class GraphicsMenu : MenuBase
         RemoveSlider(sliderContrast);
         RemoveSlider(sliderSaturation);
         RemoveSlider(sliderFieldOfView);
+
+        RemoveButton(tabs?.btnAudio, OpenAudioTab);
+        RemoveButton(tabs?.btnGraphics, OpenGraphicsTab);
+        RemoveButton(tabs?.btnController, OpenControllerTab);
 
         RemoveButton(btnConfirm, Confirm);
         RemoveButton(btnBack, Back);
@@ -314,6 +326,47 @@ public class GraphicsMenu : MenuBase
 
         if (sharpeningComponent != null)
             sharpeningComponent.enabled = sharpeningIndex > 0;
+    }
+
+    private void OpenAudioTab()
+    {
+        OpenSettingTab(
+            MenuType.SettingMenu,
+            SystemSettingPage.Audio);
+    }
+
+    private void OpenGraphicsTab()
+    {
+        OpenSettingTab(
+            MenuType.GraphicsMenu,
+            SystemSettingPage.Graphics);
+    }
+
+    private void OpenControllerTab()
+    {
+        OpenSettingTab(
+            MenuType.ControllerMenu,
+            SystemSettingPage.Controller);
+    }
+
+    private void OpenSettingTab(
+        MenuType targetMenu,
+        SystemSettingPage systemPage)
+    {
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowPage(systemPage);
+            return;
+        }
+
+        if (targetMenu == menuType)
+        {
+            tabs?.SetSelected(menuType);
+            return;
+        }
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(targetMenu);
     }
 
     private void Back()

@@ -38,6 +38,7 @@ public class Dusklight : InteractBase
         GoldManager.Instance.RemoveGold(levelUpCostNext); // Trừ vàng
         character.CharacterLevel.LevelUp(); // Lên cấp
         ObjectPooling.Instance.SpawnFromPool(PoolType.LevelUpEffect, transform.position, Quaternion.identity); // Hiệu ứng lên cấp
+        UIManager.Instance.ChangeMenu(MenuType.GameSystemMenu, GameSystemTab.PlayerState);
     }
 
     protected override void OnTriggerEnter(Collider other)

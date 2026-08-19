@@ -239,6 +239,8 @@ public class PlayerManager : Singleton<PlayerManager>
         reSpawnPoint = null;
         if (GameManager.Instance.MapType == MapType.Run) // Nếu map run thì respawn
         {
+
+            // Respawn lúc chạy bo
             reSpawnPoint = FindRespawnPoint();
 
             if (reSpawnPoint == null)
@@ -253,7 +255,7 @@ public class PlayerManager : Singleton<PlayerManager>
             currentCharacterBase.transform.position = reSpawnPoint.position + offsetSpawnPoint;
             currentCharacterBase.gameObject.SetActive(true);
             currentCharacterBase.ResetCharacter();
-            // ObjectPooling.Instance.SpawnFromPool(PoolType.SpawnCharacterEffect, reSpawnPoint.position + new Vector3(0, -1f, 0), Quaternion.identity);
+            currentCharacterBase.CharacterLevel?.DecreaseLevel();
 
             if (characterController != null)
                 characterController.enabled = true;
