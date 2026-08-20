@@ -17,7 +17,7 @@ public class MapGenerator : MonoBehaviour
     // Start is called before the first frame update
     private IEnumerator Start()
     {
-        randomruins.SpawnRuin();
+        randomruins.SpawnRuins();
 
         Debug.Log("Spawn xong");
 

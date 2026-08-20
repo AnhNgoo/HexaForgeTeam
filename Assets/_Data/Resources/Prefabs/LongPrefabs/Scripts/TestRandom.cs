@@ -15,7 +15,7 @@ public class TestRandom : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        randomBonusHealth = Random.Range(0, 3);
+        randomBonusHealth = Random.Range(0 , 3);
         indexes = Enumerable.Range(0, spawnPoint.Length).ToList();
 
         for (int i = 0; i < indexes.Count; i++)
