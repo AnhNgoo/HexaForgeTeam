@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 [Serializable]
@@ -16,6 +19,154 @@ public class ArrowSelectorUI
     {
         if (valueText != null)
             valueText.text = value;
+    }
+}
+
+public static class GraphicsRuntimeSettings
+{
+    private const float DefaultBrightness = 0.5f;
+    private const float DefaultContrast = 0.5f;
+    private const float DefaultSaturation = 0.5f;
+    private const float DefaultFieldOfView = 60f;
+    private const float MotionBlurIntensity = 0.35f;
+    private const float ChromaticAberrationIntensity = 0.25f;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    private static void RegisterSceneCallback()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    private static void ApplyAfterInitialSceneLoad()
+    {
+        ApplySavedSettings();
+    }
+
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        ApplySavedSettings();
+    }
+
+    public static void ApplySavedSettings(Camera preferredCamera = null)
+    {
+        ApplyVisualSettings(
+            PlayerPrefs.GetFloat("Graphics.Brightness", DefaultBrightness),
+            PlayerPrefs.GetFloat("Graphics.Contrast", DefaultContrast),
+            PlayerPrefs.GetFloat("Graphics.Saturation", DefaultSaturation),
+            PlayerPrefs.GetFloat("Graphics.FieldOfView", DefaultFieldOfView),
+            PlayerPrefs.GetInt("Graphics.MotionBlur", 0) == 1,
+            PlayerPrefs.GetInt("Graphics.ChromaticAberration", 0) == 1,
+            PlayerPrefs.GetInt("Graphics.Sharpening", 0) > 0,
+            preferredCamera);
+    }
+
+    public static void ApplyVisualSettings(
+        float brightness,
+        float contrast,
+        float saturation,
+        float fieldOfView,
+        bool enableMotionBlur,
+        bool enableChromaticAberration,
+        bool enableFidelityFx,
+        Camera preferredCamera = null)
+    {
+        ApplyCamera(preferredCamera, fieldOfView);
+        ApplyVolumes(
+            brightness,
+            contrast,
+            saturation,
+            enableMotionBlur,
+            enableChromaticAberration);
+        ApplyUpscaling(enableFidelityFx);
+    }
+
+    private static void ApplyCamera(Camera preferredCamera, float fieldOfView)
+    {
+        Camera camera = preferredCamera != null ? preferredCamera : Camera.main;
+
+        if (camera == null)
+            return;
+
+        camera.fieldOfView = Mathf.Clamp(fieldOfView, 40f, 120f);
+
+        UniversalAdditionalCameraData cameraData =
+            camera.GetUniversalAdditionalCameraData();
+
+        if (cameraData != null)
+            cameraData.renderPostProcessing = true;
+    }
+
+    private static void ApplyVolumes(
+        float brightness,
+        float contrast,
+        float saturation,
+        bool enableMotionBlur,
+        bool enableChromaticAberration)
+    {
+        Volume[] volumes = UnityEngine.Object.FindObjectsOfType<Volume>(true);
+
+        foreach (Volume volume in volumes)
+        {
+            if (volume == null || !volume.isGlobal || volume.sharedProfile == null)
+                continue;
+
+            VolumeProfile profile = volume.profile;
+
+            if (!profile.TryGet(out ColorAdjustments colorAdjustments))
+                colorAdjustments = profile.Add<ColorAdjustments>(true);
+
+            if (!profile.TryGet(out MotionBlur motionBlur))
+                motionBlur = profile.Add<MotionBlur>(true);
+
+            if (!profile.TryGet(out ChromaticAberration chromaticAberration))
+                chromaticAberration = profile.Add<ChromaticAberration>(true);
+
+            colorAdjustments.active = true;
+            colorAdjustments.postExposure.overrideState = true;
+            colorAdjustments.postExposure.value = Mathf.Lerp(
+                -2f,
+                2f,
+                Mathf.Clamp01(brightness));
+
+            colorAdjustments.contrast.overrideState = true;
+            colorAdjustments.contrast.value = Mathf.Lerp(
+                -100f,
+                100f,
+                Mathf.Clamp01(contrast));
+
+            colorAdjustments.saturation.overrideState = true;
+            colorAdjustments.saturation.value = Mathf.Lerp(
+                -100f,
+                100f,
+                Mathf.Clamp01(saturation));
+
+            motionBlur.active = true;
+            motionBlur.intensity.overrideState = true;
+            motionBlur.intensity.value = enableMotionBlur
+                ? MotionBlurIntensity
+                : 0f;
+
+            chromaticAberration.active = true;
+            chromaticAberration.intensity.overrideState = true;
+            chromaticAberration.intensity.value = enableChromaticAberration
+                ? ChromaticAberrationIntensity
+                : 0f;
+        }
+    }
+
+    private static void ApplyUpscaling(bool enableFidelityFx)
+    {
+        UniversalRenderPipelineAsset pipelineAsset =
+            GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+
+        if (pipelineAsset == null)
+            return;
+
+        pipelineAsset.upscalingFilter = enableFidelityFx
+            ? UpscalingFilterSelection.FSR
+            : UpscalingFilterSelection.Linear;
     }
 }
 
@@ -47,9 +198,6 @@ public class GraphicsMenu : MenuBase
 
     [Header("Optional Runtime Targets")]
     [SerializeField] private Camera targetCamera;
-    [SerializeField] private Behaviour motionBlurComponent;
-    [SerializeField] private Behaviour chromaticAberrationComponent;
-    [SerializeField] private Behaviour sharpeningComponent;
 
     [Header("Buttons")]
     [SerializeField] private Button btnConfirm;
@@ -101,6 +249,7 @@ public class GraphicsMenu : MenuBase
             targetCamera = Camera.main;
 
         RemoveEvents();
+        ConfigureSliderRanges();
         BuildResolutionDropdown();
         LoadSettings();
         AddEvents();
@@ -255,9 +404,9 @@ public class GraphicsMenu : MenuBase
         SetToggle(toggleMotionBlur, PlayerPrefs.GetInt("Graphics.MotionBlur", 0) == 1);
         SetToggle(toggleChromaticAberration, PlayerPrefs.GetInt("Graphics.ChromaticAberration", 0) == 1);
 
-        SetSlider(sliderBrightness, PlayerPrefs.GetFloat("Graphics.Brightness", 1f));
-        SetSlider(sliderContrast, PlayerPrefs.GetFloat("Graphics.Contrast", 1f));
-        SetSlider(sliderSaturation, PlayerPrefs.GetFloat("Graphics.Saturation", 1f));
+        SetSlider(sliderBrightness, PlayerPrefs.GetFloat("Graphics.Brightness", 0.5f));
+        SetSlider(sliderContrast, PlayerPrefs.GetFloat("Graphics.Contrast", 0.5f));
+        SetSlider(sliderSaturation, PlayerPrefs.GetFloat("Graphics.Saturation", 0.5f));
         SetSlider(sliderFieldOfView, PlayerPrefs.GetFloat("Graphics.FieldOfView", 60f));
 
         RefreshSelectors();
@@ -315,17 +464,37 @@ public class GraphicsMenu : MenuBase
 
     private void ApplyPreviewOnly()
     {
-        if (targetCamera != null && sliderFieldOfView != null)
-            targetCamera.fieldOfView = sliderFieldOfView.value;
+        GraphicsRuntimeSettings.ApplyVisualSettings(
+            GetSliderValue(sliderBrightness, 0.5f),
+            GetSliderValue(sliderContrast, 0.5f),
+            GetSliderValue(sliderSaturation, 0.5f),
+            GetSliderValue(sliderFieldOfView, 60f),
+            toggleMotionBlur != null && toggleMotionBlur.isOn,
+            toggleChromaticAberration != null && toggleChromaticAberration.isOn,
+            sharpeningIndex > 0,
+            targetCamera);
+    }
 
-        if (motionBlurComponent != null && toggleMotionBlur != null)
-            motionBlurComponent.enabled = toggleMotionBlur.isOn;
+    private void ConfigureSliderRanges()
+    {
+        ConfigureSlider(sliderBrightness, 0f, 1f);
+        ConfigureSlider(sliderContrast, 0f, 1f);
+        ConfigureSlider(sliderSaturation, 0f, 1f);
+        ConfigureSlider(sliderFieldOfView, 40f, 120f);
+    }
 
-        if (chromaticAberrationComponent != null && toggleChromaticAberration != null)
-            chromaticAberrationComponent.enabled = toggleChromaticAberration.isOn;
+    private static void ConfigureSlider(Slider slider, float minValue, float maxValue)
+    {
+        if (slider == null)
+            return;
 
-        if (sharpeningComponent != null)
-            sharpeningComponent.enabled = sharpeningIndex > 0;
+        slider.minValue = minValue;
+        slider.maxValue = maxValue;
+    }
+
+    private static float GetSliderValue(Slider slider, float fallback)
+    {
+        return slider != null ? slider.value : fallback;
     }
 
     private void OpenAudioTab()
@@ -413,12 +582,14 @@ public class GraphicsMenu : MenuBase
     {
         sharpeningIndex = Wrap(sharpeningIndex - 1, sharpeningModes.Length);
         RefreshSelectors();
+        ApplyPreviewOnly();
     }
 
     private void NextSharpening()
     {
         sharpeningIndex = Wrap(sharpeningIndex + 1, sharpeningModes.Length);
         RefreshSelectors();
+        ApplyPreviewOnly();
     }
 
     private void RefreshSelectors()
