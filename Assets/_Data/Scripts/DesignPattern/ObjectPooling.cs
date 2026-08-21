@@ -94,6 +94,12 @@ public enum PoolType
     EarthshakerSandBreath = 1104,
     EarthshakerCrackTelegraph = 1105,
     EarthshakerCrackEruption = 1106,
+    DarkMageBurrowTelegraph = 1107,
+    DarkMageRitualTelegraph = 1108,
+    DarkMageRitualPillar = 1109,
+    DarkMageMeteorTelegraph = 1110,
+    DarkMageMeteorStrike = 1111,
+    DarkMageLaserBeam = 1112,
     TutorialSafeZone = 2001,
 
 }
