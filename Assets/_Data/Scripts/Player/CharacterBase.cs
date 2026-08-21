@@ -28,6 +28,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
     public CharacterData CharacterData => characterData;
+    [SerializeField] protected float minTakeDamage = 30f;
     [Header("Respawn Settings")]
     [SerializeField] protected float respawnDelay = 3f; // Thời gian delay trước khi respawn
     [Header("Dust Effect Settings")]
@@ -188,7 +189,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterInput.Init(this);
             characterRecovery.Init(this);
             characterAnimation.Init(characterVisual);
-            characterWeapon.Init(this, handRight.transform);
+            characterWeapon.Init(this, handRight.transform, characterData.weaponData);
             characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
             characterMeleeHitbox.Init(this);
             characterStat.Init(this, characterData.stats);
@@ -492,7 +493,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             return;
 
         float finalDamage = damageInfo.damageAmount - characterStat.finalStats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
-        finalDamage = Mathf.Max(finalDamage, 0); // Đảm bảo sát thương không bị âm
+        finalDamage = Mathf.Max(finalDamage, minTakeDamage); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
 
         if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn

@@ -7,6 +7,9 @@ public class AudioMenu : MenuBase
 {
     public override MenuType menuType => MenuType.SettingMenu;
 
+    [Header("Setting Tabs")]
+    [SerializeField] private SettingsTabUI tabs;
+
     [Header("Audio Mixer")]
     [SerializeField] private AudioMixer audioMixer;
 
@@ -70,6 +73,8 @@ public class AudioMenu : MenuBase
         LoadSettings();
         AddEvents();
         PreviewSettings();
+        
+        tabs?.SetSelected(MenuType.SettingMenu);
     }
 
     private void AutoFindComponents()
@@ -108,6 +113,15 @@ public class AudioMenu : MenuBase
 
         AddToggle(toggle_BackgroundSound);
 
+        if (tabs?.btnAudio != null)
+            tabs.btnAudio.onClick.AddListener(OpenAudioTab);
+
+        if (tabs?.btnGraphics != null)
+            tabs.btnGraphics.onClick.AddListener(OpenGraphicsTab);
+
+        if (tabs?.btnController != null)
+            tabs.btnController.onClick.AddListener(OpenControllerTab);
+
         if (btn_Confirm != null)
             btn_Confirm.onClick.AddListener(Confirm);
 
@@ -128,6 +142,15 @@ public class AudioMenu : MenuBase
         RemoveSlider(slider_DialogueVolume);
 
         RemoveToggle(toggle_BackgroundSound);
+
+        if (tabs?.btnAudio != null)
+            tabs.btnAudio.onClick.RemoveListener(OpenAudioTab);
+
+        if (tabs?.btnGraphics != null)
+            tabs.btnGraphics.onClick.RemoveListener(OpenGraphicsTab);
+
+        if (tabs?.btnController != null)
+            tabs.btnController.onClick.RemoveListener(OpenControllerTab);
 
         if (btn_Confirm != null)
             btn_Confirm.onClick.RemoveListener(Confirm);
@@ -255,6 +278,48 @@ public class AudioMenu : MenuBase
         PreviewSettings();
     }
 
+    private void OpenAudioTab()
+    {
+        OpenSettingTab(
+            MenuType.SettingMenu,
+            SystemSettingPage.Audio);
+    }
+
+    private void OpenGraphicsTab()
+    {
+        OpenSettingTab(
+            MenuType.GraphicsMenu,
+            SystemSettingPage.Graphics);
+    }
+
+    private void OpenControllerTab()
+    {
+        OpenSettingTab(
+            MenuType.ControllerMenu,
+            SystemSettingPage.Controller);
+    }
+
+    private void OpenSettingTab(
+        MenuType targetMenu,
+        SystemSettingPage systemPage)
+    {
+        // Settings nằm trong game.
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.ShowPage(systemPage);
+            return;
+        }
+
+        // Settings độc lập nằm ngoài Title.
+        if (targetMenu == menuType)
+        {
+            tabs?.SetSelected(menuType);
+            return;
+        }
+
+        if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(targetMenu);
+    }
     private void Back()
     {
         LoadSettings();
