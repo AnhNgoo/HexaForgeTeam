@@ -72,6 +72,7 @@ public enum PoolType
     Lyra = 102,
     SpawnCharacterEffect = 103,
     PickedUpItemEffect = 104,
+    LevelUpEffect = 105,
     EnemyBruteBoss = 1001,
     EnemyVenomousQueenBoss = 1002,
     EnemyNightStalkerBoss = 1003,

@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
+using UnityEngine.Localization.Settings;
 
 public class LanguageMenu : MenuBase
 {
@@ -94,7 +96,24 @@ public class LanguageMenu : MenuBase
 
     private void OnConfirmClicked()
     {
-        LocalizationManager.Instance.SetLanguage(selectedLanguage);
+        string localeCode = selectedLanguage == 0 ? "en" : "vi-VN";
+        StartCoroutine(ApplyLanguageAndClose(localeCode));
+    }
+
+    private IEnumerator ApplyLanguageAndClose(string localeCode)
+    {
+        yield return LocalizationSettings.InitializationOperation;
+
+        var locale =
+            LocalizationSettings.AvailableLocales.GetLocale(localeCode);
+
+        if (locale == null)
+        {
+            Debug.LogError($"Không tìm thấy locale: {localeCode}");
+            yield break;
+        }
+
+        LocalizationSettings.SelectedLocale = locale;
 
         UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }

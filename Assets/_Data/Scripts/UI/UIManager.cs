@@ -30,6 +30,8 @@ public enum MenuType
     ControllerMenu = 17,
     GameSystemMenu = 18,
     AchievementMenu = 19,
+    CreditsMenu = 20,
+    PlayerStateMenu = 21,
 
     LobbyCharacterMenu = 100,
     LobbyRuneInventoryMenu = 101,
@@ -141,7 +143,6 @@ public class UIManager : Singleton<UIManager>
             CurrentMenu.Open(data);
 
         CurrentMenuType = CurrentMenu.menuType;
-        Debug.Log("TAO DAY NE" + CurrentMenuType);
     }
 
     //Đóng tất cả menu

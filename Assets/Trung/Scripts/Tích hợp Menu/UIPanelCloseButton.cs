@@ -48,7 +48,6 @@ public class UIPanelCloseButton : LoadComponents
                 }
             }
 
-            // Bổ sung bắt phím ESC phân tầng riêng cho Shop Menu
             LobbyShopMenu shopMenu = GetComponentInParent<LobbyShopMenu>();
             if (shopMenu == null && LobbyShopMenu.FindFirstObjectByType<LobbyShopMenu>() != null)
             {

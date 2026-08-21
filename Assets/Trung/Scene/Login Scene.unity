@@ -1163,7 +1163,7 @@ MonoBehaviour:
   m_TrackedDeviceOrientationAction: {fileID: 1025543830046995696, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
-  m_CursorLockBehavior: 0
+  m_CursorLockBehavior: 1
   m_ScrollDeltaPerTick: 6
 --- !u!224 &657033205 stripped
 RectTransform:
@@ -1698,6 +1698,7 @@ MonoBehaviour:
   totalDuration: 2
   fadeOutDuration: 0.5
   moveDistance: 60
+  notifyCooldown: 0.8
 --- !u!1001 &958892607
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2996,8 +2997,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fb66a9e4546ed0143b69d68a965e5474, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loginPanel: {fileID: 1748770246}
-  registerPanel: {fileID: 1763307527}
+  autoLoginLoadingPanel: {fileID: 0}
+  autoLoginCanvasGroup: {fileID: 0}
+  loadingSpinnerTransform: {fileID: 0}
+  loadingProgressSlider: {fileID: 0}
+  autoLoginStatusText: {fileID: 0}
   savedAccountDropdown: {fileID: 657033207}
   loginAccountInput: {fileID: 1238266567}
   loginPasswordInput: {fileID: 826688119}
@@ -3006,7 +3010,6 @@ MonoBehaviour:
   registerEmailInput: {fileID: 1615267407}
   registerPasswordInput: {fileID: 691776051}
   confirmPasswordInput: {fileID: 681813430}
-  statusText: {fileID: 0}
   loadingSceneName: Loading Scene
 --- !u!4 &1631594573
 Transform:

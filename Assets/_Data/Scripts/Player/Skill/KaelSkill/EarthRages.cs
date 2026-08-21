@@ -21,7 +21,7 @@ public class EarthRages : CharacterSkillBase
         character.CanBeAttacked = false;
         character.CharacterSkill.CanUseSkill1 = false;
         character.CharacterSkill.CanUseSkill2 = false;
-        EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.cooldown);
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.skillStats.cooldown);
 
         character.CharacterCinematic.PlayCinematic();
 
@@ -64,13 +64,16 @@ public class EarthRages : CharacterSkillBase
     //Hàm đếm ngược thời gian trở lại hình dạng bình thường sau khi dùng skill
     private async void CountdownToNormalForm()
     {
-        float duration = skillData.duration;
+        float duration = skillData.skillStats.duration;
         while (duration > 0)
         {
             duration -= Time.deltaTime;
+            if (character.CharacterHealth.CurrentHealth <= 0)
+                break;
             await UniTask.Yield();
         }
         if (character is not Kael kael) return;
+
 
         character.CanBeAttacked = false;
         character.StateController.ChangeState(new CombatState(character));
@@ -84,6 +87,7 @@ public class EarthRages : CharacterSkillBase
         await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_2_1") > 0.15f &&
                   !character.CharacterAnimation.Animator.IsInTransition(0));
 
+        Debug.Log("Hết thời gian biến hình, trở về hình dạng bình thường");
         kael.NormalForm();
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f, 0, 0.15f);
         ObjectPooling.Instance?.ReturnToPool(kael.kaelGiantAuraEffect_1, kaelGiantAuraEffect_1);
@@ -102,6 +106,7 @@ public class EarthRages : CharacterSkillBase
 
         character.CharacterSkill.CanUseSkill1 = true;
         character.CharacterSkill.CanUseSkill2 = true;
+        character.CharacterSkill.IsUsingSkill2 = false;
         character.StateController.ChangeState(new IdleState(character));
         character.CanBeAttacked = true;
     }

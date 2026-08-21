@@ -27,6 +27,16 @@ namespace DuskBlade.Tests
         public void SCR_007_CanvasHud() { Run("SCR-007", "Scene có Canvas/HUD nếu dùng", "Scene có Canvas/HUD nếu project dùng UI runtime.", "Low", c => { Scene scene = OpenGameplayScene(); int canvas = 0; foreach (GameObject root in scene.GetRootGameObjects()) canvas += root.GetComponentsInChildren<Canvas>(true).Length; c.Actual = $"Scene={scene.path}, Canvas={canvas}."; }); }
         [Test, Description("SCR-008: Kiểm tra scene có Player hoặc spawn point thật nếu project dùng.")]
         public void SCR_008_PlayerHoacSpawnPoint() { Run("SCR-008", "Scene có Player hoặc spawn point", "Scene có Player, SpawnPoint hoặc object liên quan vị trí sinh nhân vật.", "Medium", c => { Scene scene = OpenGameplayScene(); int found = 0; foreach (GameObject root in scene.GetRootGameObjects()) found += CountNamedChildren(root, "Player", "Kael", "Spawn", "StartPoint"); c.Actual = $"Scene={scene.path}, object Player/Spawn khớp={found}."; Assert.Greater(found, 0, "Scene không có Player hoặc spawn point rõ ràng."); }); }
+        [Test, Description("SCR-009: Kiểm tra Addressables và Localization Settings được đăng ký trong Build Settings.")]
+        public void SCR_009_LocalizationConfiguration()
+        {
+            Run("SCR-009", "Localization được đăng ký", "Build Settings tham chiếu đúng Addressables và Localization Settings.", "High", c =>
+            {
+                AssertConfigObject("com.unity.addressableassets", "Assets/AddressableAssetsData/DefaultObject.asset");
+                AssertConfigObject("com.unity.localization.settings", "Assets/_Data/Localization/Localization Settings.asset");
+                c.Actual = "Addressables và Localization Settings đều được đăng ký đúng.";
+            });
+        }
 
         private Scene OpenGameplayScene()
         {
@@ -44,6 +54,14 @@ namespace DuskBlade.Tests
                 }
             }
             return EditorSceneManager.OpenScene(selected, OpenSceneMode.Single);
+        }
+
+        private static void AssertConfigObject(string key, string expectedPath)
+        {
+            bool found = EditorBuildSettings.TryGetConfigObject(key, out Object configObject);
+            Assert.IsTrue(found, $"Build Settings thiếu config object '{key}'.");
+            Assert.IsNotNull(configObject, $"Config object '{key}' đang null.");
+            Assert.AreEqual(expectedPath, AssetDatabase.GetAssetPath(configObject), $"Config object '{key}' trỏ sai asset.");
         }
 
         private int CountNamedChildren(GameObject root, params string[] tokens) { int count = 0; foreach (Transform t in root.GetComponentsInChildren<Transform>(true)) foreach (string token in tokens) if (t.name.IndexOf(token, System.StringComparison.OrdinalIgnoreCase) >= 0) { count++; break; } return count; }

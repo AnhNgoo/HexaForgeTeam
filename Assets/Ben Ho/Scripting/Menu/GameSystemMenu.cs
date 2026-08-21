@@ -65,7 +65,7 @@ public class GameSystemMenu : MenuBase
     public override void Open(object data = null)
     {
         base.Open(data);
-
+        MouseManager.Instance?.ShowMouse();
         transform.SetAsLastSibling();
 
         if (mainTabMenu != null)
@@ -81,6 +81,7 @@ public class GameSystemMenu : MenuBase
             : defaultTab;
 
         SelectTab(tab);
+        Debug.Log($"GameSystemMenu opened. Current tab: {currentTab}");
     }
 
     public override void Close()

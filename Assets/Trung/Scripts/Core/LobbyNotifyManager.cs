@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using DG.Tweening;
 
 public class LobbyNotifyManager : MonoBehaviour
@@ -40,6 +41,27 @@ public class LobbyNotifyManager : MonoBehaviour
             return;
         }
 
+        InitComponents();
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Khi chuyển Scene, ép dọn sạch thông báo cũ để không bị dính lơ lửng ở Sảnh
+        ClearNotify();
+    }
+
+    private void InitComponents()
+    {
         if (notifyPanelRoot != null)
         {
             canvasGroup = notifyPanelRoot.GetComponent<CanvasGroup>();
@@ -49,7 +71,7 @@ public class LobbyNotifyManager : MonoBehaviour
             }
 
             rectTransform = notifyPanelRoot.GetComponent<RectTransform>();
-            if (rectTransform != null)
+            if (rectTransform != null && originalAnchoredPosition == Vector2.zero)
             {
                 originalAnchoredPosition = rectTransform.anchoredPosition;
             }
@@ -58,11 +80,28 @@ public class LobbyNotifyManager : MonoBehaviour
         }
     }
 
+    public void ClearNotify()
+    {
+        if (activeNotifySequence != null)
+        {
+            activeNotifySequence.Kill(true);
+            activeNotifySequence = null;
+        }
+
+        if (rectTransform != null) rectTransform.anchoredPosition = originalAnchoredPosition;
+        if (canvasGroup != null) canvasGroup.alpha = 1f;
+
+        if (notifyPanelRoot != null) notifyPanelRoot.SetActive(false);
+        lastMessage = "";
+    }
+
     public void ShowNotify(string message, Color textColor)
     {
+        InitComponents();
+
         if (notifyPanelRoot == null || notifyText == null) return;
 
-        // Chặn hiển thị dồn dập cùng 1 thông báo khi bị giật lag khung hình
+        // Chặn hiển thị dồn dập cùng 1 thông báo
         if (message == lastMessage && Time.unscaledTime - lastNotifyTime < notifyCooldown)
         {
             return;

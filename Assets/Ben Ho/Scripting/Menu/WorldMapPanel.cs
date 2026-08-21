@@ -88,12 +88,18 @@ public class WorldMapPanel : MonoBehaviour,
     private readonly Dictionary<RuntimeMapStructure, MapLocationMarkerUI>
     runtimeMarkers = new Dictionary<RuntimeMapStructure, MapLocationMarkerUI>();
 
+    private readonly Dictionary<RectTransform, Vector3> markerBaseScales =
+        new Dictionary<RectTransform, Vector3>();
+
     private void Awake()
     {
         FindPlayerIfMissing();
 
         if (markerRoot == null)
             markerRoot = mapContent;
+
+        CacheMarkerBaseScale(playerMarker);
+        CacheMarkerBaseScale(pingMarker);
     }
 
     public void Open()
@@ -114,6 +120,7 @@ public class WorldMapPanel : MonoBehaviour,
         }
 
         BuildMarkers();
+        UpdateMarkerScales();
         UpdatePlayerMarker();
         UpdateCurrentArea();
         RefreshPingMarker();
@@ -193,6 +200,7 @@ public class WorldMapPanel : MonoBehaviour,
         );
 
         mapContent.localScale = Vector3.one * currentZoom;
+        UpdateMarkerScales();
         ClampMapPosition();
     }
 
@@ -248,6 +256,8 @@ public class WorldMapPanel : MonoBehaviour,
             {
                 markerRect.anchoredPosition =
                     WorldToMapPosition(location.worldPosition);
+
+                CacheMarkerBaseScale(markerRect);
             }
 
             spawnedMarkers.Add(marker);
@@ -263,8 +273,15 @@ public class WorldMapPanel : MonoBehaviour,
     {
         foreach (MapLocationMarkerUI marker in spawnedMarkers)
         {
-            if (marker != null)
-                Destroy(marker.gameObject);
+            if (marker == null)
+                continue;
+
+            RectTransform markerRect = marker.transform as RectTransform;
+
+            if (markerRect != null)
+                markerBaseScales.Remove(markerRect);
+
+            Destroy(marker.gameObject);
         }
 
         spawnedMarkers.Clear();
@@ -281,6 +298,49 @@ public class WorldMapPanel : MonoBehaviour,
 
         playerMarker.localEulerAngles =
             new Vector3(0f, 0f, -player.eulerAngles.y);
+    }
+
+    private void UpdateMarkerScales()
+    {
+        ApplyInverseZoomScale(playerMarker);
+        ApplyInverseZoomScale(pingMarker);
+
+        foreach (MapLocationMarkerUI marker in spawnedMarkers)
+        {
+            if (marker != null)
+                ApplyInverseZoomScale(marker.transform as RectTransform);
+        }
+    }
+
+    private void CacheMarkerBaseScale(RectTransform marker)
+    {
+        if (marker != null && !markerBaseScales.ContainsKey(marker))
+            markerBaseScales.Add(marker, marker.localScale);
+    }
+
+    private void ApplyInverseZoomScale(RectTransform marker)
+    {
+        if (marker == null)
+            return;
+
+        CacheMarkerBaseScale(marker);
+
+        if (!markerBaseScales.TryGetValue(marker, out Vector3 baseScale))
+            return;
+
+        bool inheritsMapScale =
+            mapContent != null && marker.IsChildOf(mapContent);
+
+        float safeZoom = Mathf.Max(currentZoom, Mathf.Epsilon);
+
+        // The marker already inherits one zoom factor from MapContent. Dividing
+        // its local scale by zoom squared makes its final on-screen size change
+        // inversely: zooming the map in shrinks the marker, and vice versa.
+        float scaleDivisor = inheritsMapScale
+            ? safeZoom * safeZoom
+            : 1f;
+
+        marker.localScale = baseScale / scaleDivisor;
     }
 
     private void UpdateCurrentArea()
@@ -541,6 +601,9 @@ public class WorldMapPanel : MonoBehaviour,
         {
             markerRect.anchoredPosition =
                 WorldToMapPosition(location.worldPosition);
+
+            CacheMarkerBaseScale(markerRect);
+            ApplyInverseZoomScale(markerRect);
         }
 
         runtimeMarkers.Add(structure, marker);
@@ -565,6 +628,13 @@ public class WorldMapPanel : MonoBehaviour,
         spawnedMarkers.Remove(marker);
 
         if (marker != null)
+        {
+            RectTransform markerRect = marker.transform as RectTransform;
+
+            if (markerRect != null)
+                markerBaseScales.Remove(markerRect);
+
             Destroy(marker.gameObject);
+        }
     }
 }
