@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class AudioMenu : MenuBase
 {
@@ -366,5 +367,31 @@ public class AudioMenu : MenuBase
         }
 
         return null;
+    }
+    private void Update()
+    {
+        if (Keyboard.current == null) return;
+
+        // Ấn F: Lưu setting và thoát về Title Menu
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            ConfirmAndBack();
+        }
+        // Ấn ESC: Hủy thay đổi và thoát về Title Menu
+        else if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Back();
+        }
+    }
+
+    private void ConfirmAndBack()
+    {
+        Confirm(); // Gọi hàm lưu setting hiện tại
+        
+        // Logic thoát về Title Menu (giống hàm Back nhưng không gọi LoadSettings để hủy)
+        if (systemSettingsPanel != null)
+            systemSettingsPanel.CloseGameSystemMenu();
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
     }
 }
