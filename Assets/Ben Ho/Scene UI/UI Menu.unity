@@ -2554,6 +2554,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!224 &1600459616 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3564940470679309396, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+  m_PrefabInstance: {fileID: 4836909529548811268}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &1729584259 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 396855472298746786, guid: d1e0b4507722d1e4eb93c1281cc6182a, type: 3}
@@ -2629,6 +2634,11 @@ MonoBehaviour:
   - target: {fileID: 4867089926821595682}
     itemName: Sneak / Crouch
     description: Sets the key used to crouch or move quietly.
+--- !u!224 &1778622981 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 761494184099844922, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+  m_PrefabInstance: {fileID: 4836909529548811268}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1791176800
 GameObject:
   m_ObjectHideFlags: 0
@@ -5346,6 +5356,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1647125229940477061, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 1691460977732074871, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_Layer
       value: 5
@@ -6014,6 +6028,14 @@ PrefabInstance:
       propertyPath: m_SizeDelta.x
       value: -17
       objectReference: {fileID: 0}
+    - target: {fileID: 2981988347019736728, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: markerRoot
+      value: 
+      objectReference: {fileID: 1778622981}
+    - target: {fileID: 2981988347019736728, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: playerMarker
+      value: 
+      objectReference: {fileID: 1600459616}
     - target: {fileID: 2985302581537740462, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_Layer
       value: 5
@@ -6642,6 +6664,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 5108471904618184196, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5109582995422449903, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_AnchorMax.x
       value: 0.254
@@ -6785,6 +6811,14 @@ PrefabInstance:
     - target: {fileID: 5472582459646106137, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5476431224273964908, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: m_Softness.x
+      value: 400
+      objectReference: {fileID: 0}
+    - target: {fileID: 5476431224273964908, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: m_Softness.y
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 5480064954505813404, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_Layer
@@ -7181,6 +7215,14 @@ PrefabInstance:
     - target: {fileID: 6299273286645513102, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -70
+      objectReference: {fileID: 0}
+    - target: {fileID: 6302345242099968141, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: e3def8102deb38f44afd8e78ed20b01b, type: 3}
+    - target: {fileID: 6302345242099968141, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
+      propertyPath: m_Color.a
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6306223878024520906, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
       propertyPath: m_AnchorMax.y
@@ -8415,7 +8457,8 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 2170122679331476131, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 4eef5dd0a6fe2094792d133c5fcb55d4, type: 3}
