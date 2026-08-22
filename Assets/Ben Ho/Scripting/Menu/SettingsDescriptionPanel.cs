@@ -30,16 +30,64 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
         ResolveTextReferences();
     }
 
+    private void OnValidate()
+    {
+        NormalizeEntryTargets();
+    }
+
     private void Awake()
     {
         ResolveTextReferences();
+        NormalizeEntryTargets();
     }
 
     private void OnEnable()
     {
         ResolveTextReferences();
+        NormalizeEntryTargets();
         BindEntries();
         ShowDefaultEntry();
+    }
+
+    private void NormalizeEntryTargets()
+    {
+        if (!UsesContentSliderTargets() || entries == null)
+            return;
+
+        foreach (SettingsDescriptionEntry entry in entries)
+        {
+            if (entry == null || entry.target == null)
+                continue;
+
+            Transform contentTarget = FindContentTarget(entry.target.transform);
+
+            if (contentTarget != null)
+                entry.target = contentTarget.gameObject;
+        }
+    }
+
+    private bool UsesContentSliderTargets()
+    {
+        return gameObject.name.StartsWith("SettingMenu") ||
+               gameObject.name.StartsWith("GraphicsMenu") ||
+               gameObject.name.StartsWith("ControllerMenu");
+    }
+
+    private static Transform FindContentTarget(Transform target)
+    {
+        Transform current = target;
+
+        while (current != null)
+        {
+            if (current.name == "Content-Slider" ||
+                current.name == "Content-Selection" ||
+                current.name == "Content-Checkbox")
+                return current;
+
+            current = current.parent;
+        }
+
+        return null;
     }
 
     private void ResolveTextReferences()

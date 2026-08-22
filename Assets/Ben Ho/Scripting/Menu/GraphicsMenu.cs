@@ -7,6 +7,7 @@ using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 [Serializable]
 public class ArrowSelectorUI
@@ -702,5 +703,32 @@ public class GraphicsMenu : MenuBase
     {
         if (slider != null)
             PlayerPrefs.SetFloat(key, slider.value);
+    }
+
+    private void Update()
+    {
+        if (Keyboard.current == null) return;
+
+        // Ấn F: Lưu setting và thoát về Title Menu
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            ConfirmAndBack();
+        }
+        // Ấn ESC: Hủy thay đổi và thoát về Title Menu
+        else if (Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            Back();
+        }
+    }
+
+    private void ConfirmAndBack()
+    {
+        Confirm(); // Gọi hàm lưu và apply setting hiện tại
+        
+        // Logic thoát về Title Menu
+        if (systemSettingsPanel != null)
+            systemSettingsPanel.CloseGameSystemMenu();
+        else if (UIManager.Instance != null)
+            UIManager.Instance.ChangeMenu(SettingMenuData.BackMenu);
     }
 }
