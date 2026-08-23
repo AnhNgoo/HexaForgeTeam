@@ -51,7 +51,6 @@ public class InteractManagerV2 : MonoBehaviour
             return;
         }
 
-        EventManager.Subscribe(GameEvent.OnLoadingComplete, OnLoadingCompleteEvent);
     }
 
     private void OnEnable()
@@ -66,7 +65,7 @@ public class InteractManagerV2 : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventManager.Unsubscribe(GameEvent.OnLoadingComplete, OnLoadingCompleteEvent);
+
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)

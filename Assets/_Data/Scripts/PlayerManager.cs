@@ -169,6 +169,7 @@ public class PlayerManager : Singleton<PlayerManager>
 
         SpawnCharacter(character, spawnPointInLobby);
         SaveCharacterSelected();
+        Debug.Log($"Spawn Character {character.character} in Lobby at {spawnPointInLobby.position}");
     }
 
     private void SpawnCharacter(Characters character, Transform spawnPoint)
@@ -195,7 +196,7 @@ public class PlayerManager : Singleton<PlayerManager>
 
     #endregion
 
-    #region Find Spawn Position 
+    #region Find Spawn Position In Lobby
 
     public void FindSpawnPointInLobby()
     {

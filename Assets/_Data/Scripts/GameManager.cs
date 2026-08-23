@@ -9,12 +9,11 @@ public enum MapType
     Lobby = 1,
     Run = 2,
     Boss = 3,
-    Tutorial = 4
+    Tutorial = 4,
 }
 
 public class GameManager : Singleton<GameManager>
 {
-    [SerializeField] private MenuType startingMenu = MenuType.GameplayMenu;
     [SerializeField] private MapType currentMapType = MapType.None;
     public MapType MapType => currentMapType;
 
@@ -36,21 +35,36 @@ public class GameManager : Singleton<GameManager>
 
     private void OpenMenuAfterLoadingComplete()
     {
+
         if (UIManager.Instance == null) return;
 
         if (currentMapType == MapType.Lobby)
         {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+            InitInLobby();
         }
         else if (currentMapType == MapType.Run || currentMapType == MapType.Boss || currentMapType == MapType.Tutorial)
         {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+            InitInRun();
         }
         else
         {
             // Fallback an toàn: Nếu là màn chơi bất kỳ khác ngoài Lobby thì luôn bật GameplayMenu
             UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
         }
+    }
+
+    private void InitInLobby()
+    {
+        UIManager.Instance.InitUI();
+        UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+        PlayerManager.Instance.SpawnCharacterInLobby();
+        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(true, true);
+    }
+
+    private void InitInRun()
+    {
+        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
     }
 
     public void SetMapType(MapType mapType)
@@ -92,6 +106,7 @@ public class GameManager : Singleton<GameManager>
         {
             currentMapType = MapType.Tutorial;
         }
+
         // 2. Fallback đối chiếu từ khóa an toàn nếu cấu hình override bị lệch
         else if (sceneName.IndexOf("Lobby", StringComparison.OrdinalIgnoreCase) >= 0)
         {
@@ -113,7 +128,7 @@ public class GameManager : Singleton<GameManager>
         {
             currentMapType = MapType.None;
         }
-            
+
         Debug.Log($"<color=#00FFCC>[GameManager] Active Scene Name: '{sceneName}' -> Target MapType evaluated: {currentMapType}</color>");
     }
 

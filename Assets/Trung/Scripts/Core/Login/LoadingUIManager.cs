@@ -93,7 +93,7 @@ public class LoadingUIManager : MonoBehaviour
     /// <summary>
     /// Coroutine running smooth slider simulation and forcing a minimum load time of 5-7 seconds
     /// </summary>
-    public IEnumerator TrackProgressRoutine(AsyncOperation targetSceneLoad)
+    public IEnumerator TrackProgressRoutine(AsyncOperation targetSceneLoad, bool hasEventNotify = true)
     {
         if (progressSlider == null || targetSceneLoad == null) yield break;
 
@@ -132,5 +132,8 @@ public class LoadingUIManager : MonoBehaviour
         }
 
         yield return new WaitForSecondsRealtime(0.2f); // Chờ thêm một chút ngắn để người chơi cảm nhận sự hoàn tất mượt mà
+
+        if (hasEventNotify)
+            EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 }

@@ -15,7 +15,7 @@ public class CharacterWeapon : MonoBehaviour
     protected GameObject currentWeaponObject;
     protected CharacterBase character;
 
-    public void Init(CharacterBase character, Transform weaponHoldPoint, WeaponData weaponData)
+    public void Init(CharacterBase character, Transform weaponHoldPoint)
     {
         this.character = character;
         if (weaponHoldPoint == null)
@@ -24,7 +24,6 @@ public class CharacterWeapon : MonoBehaviour
             return;
         }
         this.weaponHoldPoint = weaponHoldPoint;
-        EquipWeapon(weaponData);
     }
 
     [Button("Equip Weapon")]
