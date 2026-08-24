@@ -193,6 +193,24 @@ public class RunResultSummary : MonoBehaviour
             data.totalRuns += 1;
             data.totalKills += killsInThisRun;
 
+            if (RunGameplayController.Instance != null && RunGameplayController.Instance.IsFinalBossDefeated)
+            {
+                if (RunManager.Instance != null && RunManager.Instance.SelectedFinalBossPool == PoolType.EnemyEarthshakerBoss)
+                {
+                    bool isUnlocked = PlayerPrefs.GetInt("UNLOCKED_BOSS_DARKMAGE", 0) == 1;
+                    if (!isUnlocked)
+                    {
+                        PlayerPrefs.SetInt("UNLOCKED_BOSS_DARKMAGE", 1);
+                        PlayerPrefs.Save();
+
+                        if (LobbyNotifyManager.Instance != null)
+                        {
+                            LobbyNotifyManager.Instance.ShowNotify("Unlocked New Boss: The DarkMage!", Color.yellow);
+                        }
+                    }
+                }
+            }
+
             SaveLoadManager.Instance.SaveGame();
 
             if (LeaderboardManager.Instance != null)
