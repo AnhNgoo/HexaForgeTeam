@@ -36,7 +36,8 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
 
     private void Update()
     {
-        if (InputManager.InputActions.Keyboard.Discard.triggered && UIManager.Instance.CurrentMenuType == MenuType.InventoryMenu)
+        if (InputManager.InputActions.Keyboard.Discard.triggered &&
+         (UIManager.Instance.CurrentMenuType == MenuType.InventoryMenu || UIManager.Instance.CurrentMenuType == MenuType.GameSystemMenu))
         {
             if (indexWeaponSelectedInInventory != -1)
             {

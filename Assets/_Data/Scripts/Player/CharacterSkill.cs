@@ -55,4 +55,10 @@ public class CharacterSkill : MonoBehaviour
         IsUsingSkill2 = true;
         skill2?.UseSkill();
     }
+
+    public void LockUseSkill(bool lockSkill1 = false, bool lockSkill2 = false)
+    {
+        CanUseSkill1 = !lockSkill1;
+        CanUseSkill2 = !lockSkill2;
+    }
 }

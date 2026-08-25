@@ -8,14 +8,6 @@ public class LobbyBossSelectMenu : MenuBase
 {
     public override MenuType menuType => MenuType.LobbyBossSelectMenu;
 
-    [Header("Boss Config List")]
-    [SerializeField] private List<BossSelectOption> bossOptions = new List<BossSelectOption>();
-
-    [Header("UI Action Buttons")]
-    [SerializeField] private Button btnConfirmStartRun;
-
-    private int selectedBossIndex = 0;
-
     [System.Serializable]
     public class BossSelectOption
     {
@@ -23,7 +15,19 @@ public class LobbyBossSelectMenu : MenuBase
         public PoolType bossPoolType;
         public Button selectButton;
         public GameObject highlightObject;
+
+        [Header("Lock State")]
+        public GameObject lockOverlay;
+        public TMP_Text lockMessageText;
     }
+
+    [Header("Boss Config List")]
+    [SerializeField] private List<BossSelectOption> bossOptions = new List<BossSelectOption>();
+
+    [Header("UI Action Buttons")]
+    [SerializeField] private Button btnConfirmStartRun;
+
+    private int selectedBossIndex = 0;
 
     private void Start()
     {
@@ -38,24 +42,58 @@ public class LobbyBossSelectMenu : MenuBase
 
     public override void Open(object data = null)
     {
-        base.Open(data); // Tween mở UI
+        base.Open(data);
 
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowCurrencyOnly();
         }
 
-        SetupBossButtons(); // Re-bind sự kiện click để đảm bảo không bị rụng listener
-        SelectBoss(0, isInitialOpen: true); // Mặc định chọn Boss 1 khi mở Menu (không bắn Notify)
+        SetupBossButtons();
+        RefreshBossLockStates();
+        SelectBoss(0, isInitialOpen: true);
     }
 
     public override void Close()
     {
-        base.Close(); // Tween đóng UI
+        base.Close();
 
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.ShowFullHUD();
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.IsBusy = false;
+        }
+    }
+
+    public void RefreshBossLockStates()
+    {
+        bool isBoss2Unlocked = PlayerPrefs.GetInt("UNLOCKED_BOSS_DARKMAGE", 0) == 1;
+
+        for (int i = 0; i < bossOptions.Count; i++)
+        {
+            var option = bossOptions[i];
+            if (option == null) continue;
+
+            bool isLocked = (option.bossPoolType == PoolType.EnemyDarkMageBoss) && !isBoss2Unlocked;
+
+            if (option.lockOverlay != null)
+            {
+                option.lockOverlay.SetActive(isLocked);
+            }
+
+            if (option.selectButton != null)
+            {
+                option.selectButton.interactable = !isLocked;
+            }
+
+            if (option.lockMessageText != null)
+            {
+                option.lockMessageText.gameObject.SetActive(isLocked);
+            }
         }
     }
 
@@ -79,6 +117,17 @@ public class LobbyBossSelectMenu : MenuBase
     {
         if (bossOptions == null || bossOptions.Count == 0) return;
         if (index < 0 || index >= bossOptions.Count) return;
+
+        var targetOption = bossOptions[index];
+        bool isBoss2Unlocked = PlayerPrefs.GetInt("UNLOCKED_BOSS_DARKMAGE", 0) == 1;
+        if (targetOption.bossPoolType == PoolType.EnemyDarkMageBoss && !isBoss2Unlocked)
+        {
+            if (LobbyNotifyManager.Instance != null && !isInitialOpen)
+            {
+                LobbyNotifyManager.Instance.ShowNotify("Defeat The Earthshaker first to unlock!", Color.red);
+            }
+            return;
+        }
 
         selectedBossIndex = index;
 
@@ -108,8 +157,6 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         var selected = bossOptions[selectedBossIndex];
-
-        // LẤY ĐÚNG TÊN SCENE DỰA TRÊN SCENE CONFIG CÁ NHÂN (VD: RunGameTrung)
         string targetRunScene = GameSceneData.Instance != null 
             ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
             : "Run Scene";
@@ -117,7 +164,6 @@ public class LobbyBossSelectMenu : MenuBase
         if (RunManager.Instance != null)
         {
             RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
-            Debug.Log($"<color=green>[LobbyBossSelectMenu] Target Scene Configured: {targetRunScene} | Boss: {selected.bossName}</color>");
         }
 
         if (!isInitialOpen && LobbyNotifyManager.Instance != null)
@@ -139,7 +185,6 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         var selected = bossOptions[selectedBossIndex];
-
         string targetRunScene = GameSceneData.Instance != null 
             ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
             : "Run Scene";
@@ -150,7 +195,6 @@ public class LobbyBossSelectMenu : MenuBase
             RunManager.Instance.StartRun();
         }
     }
-
 
     protected override void LoadComponent() { }
     protected override void LoadComponentRuntime() { }
