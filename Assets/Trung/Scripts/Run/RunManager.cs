@@ -74,13 +74,13 @@ public class RunManager : MonoBehaviour
         if (string.IsNullOrEmpty(gameplaySceneName))
         {
             gameplaySceneName = GameSceneData.Instance != null 
-                ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
+                ? GameSceneData.Instance.GetRandomRunSceneName() 
                 : "Run Scene";
         }
 
-        ResetDamageData();
+        Debug.Log($"<color=#33FF33><b>[RunManager]</b> Bắt đầu tải Scene: <b>{gameplaySceneName}</b> | Boss Pool: <b>{selectedFinalBossPool}</b></color>");
 
-        // ẨN TRIỆT ĐỂ LOBBY TOPBAR VÀ CHUYỂN MENU
+        ResetDamageData();
         HideLobbyHUD();
 
         if (UIManager.Instance != null)

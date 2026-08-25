@@ -12,6 +12,8 @@ public class LobbyBossSelectMenu : MenuBase
     public class BossSelectOption
     {
         public string bossName;
+        [TextArea(2, 4)] public string bossDescription;
+        public Sprite bossIcon;
         public PoolType bossPoolType;
         public Button selectButton;
         public GameObject highlightObject;
@@ -27,7 +29,11 @@ public class LobbyBossSelectMenu : MenuBase
     [Header("UI Action Buttons")]
     [SerializeField] private Button btnConfirmStartRun;
 
+    [Header("Map Debug Preview (Optional Text in Scene)")]
+    [SerializeField] private TMP_Text txtSelectedMapDebug;
+
     private int selectedBossIndex = 0;
+    private string previewedRunMapName = "";
 
     private void Start()
     {
@@ -38,6 +44,14 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         SetupBossButtons();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            ToggleForceMap();
+        }
     }
 
     public override void Open(object data = null)
@@ -51,6 +65,9 @@ public class LobbyBossSelectMenu : MenuBase
 
         SetupBossButtons();
         RefreshBossLockStates();
+
+        RerollPreviewMap();
+
         SelectBoss(0, isInitialOpen: true);
     }
 
@@ -66,6 +83,11 @@ public class LobbyBossSelectMenu : MenuBase
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.IsBusy = false;
+        }
+
+        if (UITooltipPanel.Instance != null)
+        {
+            UITooltipPanel.Instance.HideTooltip();
         }
     }
 
@@ -102,15 +124,52 @@ public class LobbyBossSelectMenu : MenuBase
         for (int i = 0; i < bossOptions.Count; i++)
         {
             int index = i;
-            if (bossOptions[i].selectButton != null)
+            var option = bossOptions[index];
+            if (option == null || option.selectButton == null) continue;
+
+            option.selectButton.onClick.RemoveAllListeners();
+            option.selectButton.onClick.AddListener(() =>
             {
-                bossOptions[i].selectButton.onClick.RemoveAllListeners();
-                bossOptions[i].selectButton.onClick.AddListener(() =>
-                {
-                    SelectBoss(index, isInitialOpen: false);
-                });
+                SelectBoss(index, isInitialOpen: false);
+            });
+
+            UITooltipAutoTrigger tooltipTrigger = option.selectButton.GetComponent<UITooltipAutoTrigger>();
+            if (tooltipTrigger == null)
+            {
+                tooltipTrigger = option.selectButton.gameObject.AddComponent<UITooltipAutoTrigger>();
             }
+
+            tooltipTrigger.SetData(option.bossName, option.bossDescription, option.bossIcon);
         }
+    }
+
+    public void RerollPreviewMap()
+    {
+        previewedRunMapName = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetRandomRunSceneName() 
+            : "Run Scene";
+
+        UpdateMapDebugUI();
+    }
+
+    private void ToggleForceMap()
+    {
+        if (GameSceneData.Instance == null) return;
+
+        string map1 = GameSceneData.Instance.GetSceneName(SceneType.RunGameplay);
+        string map2 = GameSceneData.Instance.GetSceneName(SceneType.RunGameplay2);
+
+        previewedRunMapName = (previewedRunMapName == map1) ? map2 : map1;
+        UpdateMapDebugUI();
+    }
+
+    private void UpdateMapDebugUI()
+    {
+        if (txtSelectedMapDebug != null)
+        {
+            txtSelectedMapDebug.text = $"Map Target: <color=#00FFFF>{previewedRunMapName}</color>";
+        }
+        Debug.Log($"<color=#FF7700><b>[LobbyBossSelectMenu]</b> Map Previewed: <b>{previewedRunMapName}</b> (Nhấn 'M' để đổi Map thủ công)</color>");
     }
 
     public void SelectBoss(int index, bool isInitialOpen = false)
@@ -130,6 +189,11 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         selectedBossIndex = index;
+
+        if (!isInitialOpen)
+        {
+            RerollPreviewMap();
+        }
 
         for (int i = 0; i < bossOptions.Count; i++)
         {
@@ -157,13 +221,10 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         var selected = bossOptions[selectedBossIndex];
-        string targetRunScene = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
-            : "Run Scene";
 
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
         }
 
         if (!isInitialOpen && LobbyNotifyManager.Instance != null)
@@ -185,13 +246,19 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         var selected = bossOptions[selectedBossIndex];
-        string targetRunScene = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
-            : "Run Scene";
+
+        if (string.IsNullOrEmpty(previewedRunMapName))
+        {
+            previewedRunMapName = GameSceneData.Instance != null 
+                ? GameSceneData.Instance.GetRandomRunSceneName() 
+                : "Run Scene";
+        }
+
+        Debug.Log($"<color=#00FF00><b>[START RUN]</b> Map: <b>{previewedRunMapName}</b> | Boss: <b>{selected.bossName}</b></color>");
 
         if (RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
             RunManager.Instance.StartRun();
         }
     }
