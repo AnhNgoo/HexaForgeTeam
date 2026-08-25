@@ -1,19 +1,8 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-
-[Serializable]
-public class SettingsDescriptionEntry
-{
-    [Tooltip("Kéo GameObject của một dòng setting vào đây.")]
-    public GameObject target;
-
-    public string itemName;
-
-    [TextArea(2, 5)]
-    public string description;
-}
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 
 public sealed class SettingsDescriptionPanel : MonoBehaviour
 {
@@ -25,15 +14,11 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
     [SerializeField] private int defaultEntryIndex;
     [SerializeField] private SettingsDescriptionEntry[] entries;
 
-    private void Reset()
-    {
-        ResolveTextReferences();
-    }
+    private SettingsDescriptionEntry lastEntry;
 
-    private void OnValidate()
-    {
-        NormalizeEntryTargets();
-    }
+    private void Reset() => ResolveTextReferences();
+
+    private void OnValidate() => NormalizeEntryTargets();
 
     private void Awake()
     {
@@ -47,6 +32,22 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
         NormalizeEntryTargets();
         BindEntries();
         ShowDefaultEntry();
+
+        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
+    }
+
+    private void OnDisable()
+    {
+        LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+    }
+
+    private void OnLocaleChanged(Locale locale)
+    {
+        // Đổi ngôn ngữ → tự dịch lại dòng đang hiển thị
+        if (lastEntry != null)
+            ShowEntry(lastEntry);
+        else
+            ShowDefaultEntry();
     }
 
     private void NormalizeEntryTargets()
@@ -129,10 +130,8 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
             if (entry == null || entry.target == null)
                 continue;
 
-            // Bắt sự kiện khi người chơi bấm vào cả dòng.
             ConfigureTarget(entry.target, entry);
 
-            // Đồng thời bắt Slider, Toggle, Button, Dropdown nằm trong dòng.
             Selectable[] selectables =
                 entry.target.GetComponentsInChildren<Selectable>(true);
 
@@ -144,9 +143,7 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
         }
     }
 
-    private void ConfigureTarget(
-        GameObject target,
-        SettingsDescriptionEntry entry)
+    private void ConfigureTarget(GameObject target, SettingsDescriptionEntry entry)
     {
         SettingDescriptionTarget listener =
             target.GetComponent<SettingDescriptionTarget>();
@@ -154,10 +151,7 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
         if (listener == null)
             listener = target.AddComponent<SettingDescriptionTarget>();
 
-        listener.Configure(
-            this,
-            entry.itemName,
-            entry.description);
+        listener.Configure(this, entry);
     }
 
     private void ShowDefaultEntry()
@@ -165,23 +159,33 @@ public sealed class SettingsDescriptionPanel : MonoBehaviour
         if (entries == null || entries.Length == 0)
             return;
 
-        int index = Mathf.Clamp(
-            defaultEntryIndex,
-            0,
-            entries.Length - 1);
+        int index = Mathf.Clamp(defaultEntryIndex, 0, entries.Length - 1);
 
-        SettingsDescriptionEntry entry = entries[index];
+        if (entries[index] != null)
+            ShowEntry(entries[index]);
+    }
 
-        if (entry != null)
-            Show(entry.itemName, entry.description);
+    public void ShowEntry(SettingsDescriptionEntry entry)
+    {
+        if (entry == null)
+            return;
+
+        lastEntry = entry;
+
+        // ✅ TỰ ĐỘNG DỊCH theo ngôn ngữ hiện tại
+        if (itemNameText != null)
+            itemNameText.text = SettingsLocalizationData.Translate(entry.itemName);
+
+        if (descriptionText != null)
+            descriptionText.text = SettingsLocalizationData.Translate(entry.description);
     }
 
     public void Show(string itemName, string description)
     {
         if (itemNameText != null)
-            itemNameText.text = itemName;
+            itemNameText.text = SettingsLocalizationData.Translate(itemName);
 
         if (descriptionText != null)
-            descriptionText.text = description;
+            descriptionText.text = SettingsLocalizationData.Translate(description);
     }
 }
