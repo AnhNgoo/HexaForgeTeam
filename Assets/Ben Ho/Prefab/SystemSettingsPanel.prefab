@@ -221,6 +221,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 898a2e24cf367534e93ead9f7f1180f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabs:
+    btnAudio: {fileID: 0}
+    btnGraphics: {fileID: 0}
+    btnController: {fileID: 0}
+    txtAudio: {fileID: 0}
+    txtGraphics: {fileID: 0}
+    txtController: {fileID: 0}
+    lineAudio: {fileID: 0}
+    lineGraphics: {fileID: 0}
+    lineController: {fileID: 0}
   dropdownResolution: {fileID: 5168258901098666446}
   frameRateSelector:
     leftButton: {fileID: 8511962355134381776}
@@ -242,9 +252,6 @@ MonoBehaviour:
   sliderSaturation: {fileID: 2149195335473754807}
   sliderFieldOfView: {fileID: 3805675310714727060}
   targetCamera: {fileID: 0}
-  motionBlurComponent: {fileID: 0}
-  chromaticAberrationComponent: {fileID: 0}
-  sharpeningComponent: {fileID: 0}
   btnConfirm: {fileID: 8172216046960584973}
   btnBack: {fileID: 9064022029282607167}
   systemSettingsPanel: {fileID: 6439644624924969559}
@@ -1092,7 +1099,7 @@ GameObject:
   - component: {fileID: 7009546105042512616}
   - component: {fileID: 4846352077413786264}
   m_Layer: 5
-  m_Name: Selected_line
+  m_Name: line_Controller
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1442,10 +1449,10 @@ RectTransform:
   - {fileID: 36129279830861168}
   m_Father: {fileID: 4925673028688426188}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 120}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 450, y: -60}
+  m_SizeDelta: {x: 450, y: 120}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &5939921495935126472
 MonoBehaviour:
@@ -2853,9 +2860,9 @@ RectTransform:
   - {fileID: 6217741671469646933}
   m_Father: {fileID: 3132976618894722714}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 278.10614, y: -850.6321}
   m_SizeDelta: {x: 361.25397, y: 65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &61171972109439309
@@ -3777,7 +3784,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &662367174326609980
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3840,20 +3847,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d4dc25f03f683a468e5912384af5ba5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabs:
+    btnAudio: {fileID: 0}
+    btnGraphics: {fileID: 0}
+    btnController: {fileID: 0}
+    txtAudio: {fileID: 0}
+    txtGraphics: {fileID: 0}
+    txtController: {fileID: 0}
+    lineAudio: {fileID: 0}
+    lineGraphics: {fileID: 0}
+    lineController: {fileID: 0}
   audioMixer: {fileID: 24100000, guid: 0522805a1b39f6848825196157db24d1, type: 2}
   slider_MasterVolume: {fileID: 7382946624690354807}
   slider_MusicVolume: {fileID: 5250023074896333152}
   slider_SFXVolume: {fileID: 2585511787844748910}
   slider_DialogueVolume: {fileID: 7537629652974434560}
   toggle_BackgroundSound: {fileID: 816623663967073537}
-  toggle_CollisionSound: {fileID: 2255160248681319689}
   btn_Confirm: {fileID: 8172216046960584973}
   btn_Back: {fileID: 9064022029282607167}
   masterVolumeParam: MasterVolume
   musicVolumeParam: MusicVolume
   sfxVolumeParam: SoundEffectsVolume
   dialogueVolumeParam: DialogueVolume
-  collisionVolumeParam: CollisionVolume
   systemSettingsPanel: {fileID: 6439644624924969559}
 --- !u!1 &3078652943669562097
 GameObject:
@@ -5198,10 +5213,10 @@ RectTransform:
   - {fileID: 6725784330480131792}
   m_Father: {fileID: 1688672154942374634}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 230, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 340, y: -60}
+  m_SizeDelta: {x: 230, y: 120}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &7285045929439060793
 CanvasRenderer:
@@ -6092,9 +6107,9 @@ RectTransform:
   - {fileID: 4082698814167084456}
   m_Father: {fileID: 3132976618894722714}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 278.10614, y: -510.37927}
   m_SizeDelta: {x: 345.58398, y: 65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6683410524808417681
@@ -7278,7 +7293,7 @@ GameObject:
   - component: {fileID: 9158865780914340982}
   - component: {fileID: 3602692392309032574}
   m_Layer: 5
-  m_Name: Selected_line
+  m_Name: line_Audio
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7525,9 +7540,9 @@ RectTransform:
   - {fileID: 169838835789357293}
   m_Father: {fileID: 3132976618894722714}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 278.10614, y: -170.12642}
   m_SizeDelta: {x: 410.554, y: 65}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &916409881630701489
@@ -9018,9 +9033,9 @@ RectTransform:
   - {fileID: 8000919896766391442}
   m_Father: {fileID: 4928872237995144533}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 335, y: -575}
   m_SizeDelta: {x: 556.2123, y: 1020.7585}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4133323357209986785
@@ -9129,6 +9144,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a3dca0d54b80c2418faefadb199d445, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  tabs:
+    btnAudio: {fileID: 0}
+    btnGraphics: {fileID: 0}
+    btnController: {fileID: 0}
+    txtAudio: {fileID: 0}
+    txtGraphics: {fileID: 0}
+    txtController: {fileID: 0}
+    lineAudio: {fileID: 0}
+    lineGraphics: {fileID: 0}
+    lineController: {fileID: 0}
   sliderHorizontalSensitivity: {fileID: 1068994410976067439}
   sliderVerticalSensitivity: {fileID: 0}
   toggleVibration: {fileID: 9120411072471655354}
@@ -9574,10 +9599,10 @@ RectTransform:
   - {fileID: 2604639643439677495}
   m_Father: {fileID: 389689769103198851}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 230, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 340, y: -60}
+  m_SizeDelta: {x: 230, y: 120}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!222 &159974931353652417
 CanvasRenderer:
@@ -9842,10 +9867,10 @@ RectTransform:
   - {fileID: 450923284139076917}
   m_Father: {fileID: 4925673028688426188}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 120}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -60}
+  m_SizeDelta: {x: 450, y: 120}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &8092760135763776113
 MonoBehaviour:
@@ -10509,7 +10534,7 @@ GameObject:
   - component: {fileID: 1204366935588011333}
   - component: {fileID: 3701997667578487722}
   m_Layer: 5
-  m_Name: Selected_line
+  m_Name: line_Graphics
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11328,7 +11353,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &4293946071296868170
 RectTransform:
   m_ObjectHideFlags: 0
@@ -11372,7 +11397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -11405,19 +11430,23 @@ MonoBehaviour:
   btnGraphics: {fileID: 9177763490634100810}
   btnController: {fileID: 6603687868862610823}
   btnExit: {fileID: 3116777952254515023}
+  btnLogout: {fileID: 0}
   audioPage: {fileID: 8357998029784400259}
   graphicsPage: {fileID: 3473242693504278712}
   controllerPage: {fileID: 56986561833217220}
   exitPage: {fileID: 2855456644967303591}
+  logoutPage: {fileID: 0}
   gameSystemMenu: {fileID: 0}
   audioLine: {fileID: 5577926274804403335}
   graphicsLine: {fileID: 7658548093786257579}
   controllerLine: {fileID: 1068428839755578288}
   exitLine: {fileID: 1365288750436778720}
+  logoutLine: {fileID: 0}
   audioLabel: {fileID: 3687328340949159127}
   graphicsLabel: {fileID: 6825463391657004022}
   controllerLabel: {fileID: 8118430109135565995}
   exitLabel: {fileID: 1524208792014687440}
+  logoutLabel: {fileID: 0}
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   selectedColor: {r: 0.925, g: 0.804, b: 0.624, a: 1}
   defaultPage: 0
