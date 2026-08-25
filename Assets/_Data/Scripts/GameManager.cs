@@ -1,7 +1,9 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector;
+#endif
 
 public enum MapType
 {
@@ -14,8 +16,17 @@ public enum MapType
 
 public class GameManager : Singleton<GameManager>
 {
+    [Header("Current Map Status")]
     [SerializeField] private MapType currentMapType = MapType.None;
     public MapType MapType => currentMapType;
+
+    [Header("Runtime Resolved Scene Names")]
+    [SerializeField] private string currentActiveSceneName = "";
+    [SerializeField] private string resolvedLobbyScene = "";
+    [SerializeField] private string resolvedRunScene1 = "";
+    [SerializeField] private string resolvedRunScene2 = "";
+    [SerializeField] private string resolvedBossScene = "";
+    [SerializeField] private string resolvedTutorialScene = "";
 
     protected override void Awake()
     {
@@ -59,8 +70,14 @@ public class GameManager : Singleton<GameManager>
 
     private void InitInLobby()
     {
-        UIManager.Instance.InitUI();
-        UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+        UIManager.Instance?.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.ShowFullHUD();
+        }
+
         PlayerManager.Instance.SpawnCharacterInLobby();
         PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(true, true);
     }
@@ -68,6 +85,12 @@ public class GameManager : Singleton<GameManager>
     private void InitInRun()
     {
         UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(false);
+        }
+
         PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
         PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false); // Khi mới vào run không giới hạn số lần respawn
     }
@@ -91,63 +114,87 @@ public class GameManager : Singleton<GameManager>
 
     public void GetMapType()
     {
-        string sceneName = SceneManager.GetActiveScene().name;
         GameSceneData sceneData = GameSceneData.Instance;
 
-        if (sceneData == null)
+        if (sceneData != null)
         {
-            currentMapType = MapType.None;
-            return;
+            resolvedLobbyScene = sceneData.GetSceneName(SceneType.LobbyMain);
+            resolvedRunScene1 = sceneData.GetSceneName(SceneType.RunGameplay);
+            resolvedRunScene2 = sceneData.GetSceneName(SceneType.RunGameplay2);
+            resolvedBossScene = sceneData.GetSceneName(SceneType.FinalBoss);
+            resolvedTutorialScene = sceneData.GetSceneName(SceneType.Tutorial);
         }
 
-        // Lấy tên scene cá nhân đã override qua GetSceneName(...)
-        string expectedLobbyScene = sceneData.GetSceneName(SceneType.LobbyMain);
-        string expectedRunScene = sceneData.GetSceneName(SceneType.RunGameplay);
-        string expectedBossScene = sceneData.GetSceneName(SceneType.FinalBoss);
-        string expectedTutorialScene = sceneData.GetSceneName(SceneType.Tutorial);
+        // 1. Kiểm tra trạng thái nạp của các Scene trong SceneManager
+        bool isBossLoaded = IsSceneLoaded(resolvedBossScene);
+        bool isRun1Loaded = IsSceneLoaded(resolvedRunScene1);
+        bool isRun2Loaded = !string.IsNullOrEmpty(resolvedRunScene2) && IsSceneLoaded(resolvedRunScene2);
+        bool isTutorialLoaded = IsSceneLoaded(resolvedTutorialScene);
+        bool isLobbyLoaded = IsSceneLoaded(resolvedLobbyScene);
 
-        // 1. So khớp chính xác tên Scene đã cấu hình
-        if (sceneName == expectedLobbyScene)
-        {
-            currentMapType = MapType.Lobby;
-        }
-        else if (sceneName == expectedRunScene)
-        {
-            currentMapType = MapType.Run;
-        }
-        else if (sceneName == expectedBossScene)
+        // 2. Phân định MapType: Nếu có bất kỳ scene Run/Boss/Tutorial nào đang nạp -> Run/Boss/Tutorial
+        if (isBossLoaded)
         {
             currentMapType = MapType.Boss;
         }
-        else if (sceneName == expectedTutorialScene)
-        {
-            currentMapType = MapType.Tutorial;
-        }
-
-        // 2. Fallback đối chiếu từ khóa an toàn nếu cấu hình override bị lệch
-        else if (sceneName.IndexOf("Lobby", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            currentMapType = MapType.Lobby;
-        }
-        else if (sceneName.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 || sceneName.IndexOf("Final", StringComparison.OrdinalIgnoreCase) >= 0)
-        {
-            currentMapType = MapType.Boss;
-        }
-        else if (sceneName.IndexOf("Run", StringComparison.OrdinalIgnoreCase) >= 0 || sceneName.IndexOf("Gameplay", StringComparison.OrdinalIgnoreCase) >= 0)
+        else if (isRun1Loaded || isRun2Loaded)
         {
             currentMapType = MapType.Run;
         }
-        else if (sceneName.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0)
+        else if (isTutorialLoaded)
         {
             currentMapType = MapType.Tutorial;
+        }
+        else if (isLobbyLoaded)
+        {
+            currentMapType = MapType.Lobby;
+            Scene lobbyScene = SceneManager.GetSceneByName(resolvedLobbyScene);
+            if (lobbyScene.IsValid() && lobbyScene.isLoaded && SceneManager.GetActiveScene() != lobbyScene)
+            {
+                SceneManager.SetActiveScene(lobbyScene);
+            }
         }
         else
         {
-            currentMapType = MapType.None;
+            // Fallback dựa trên Active Scene Name
+            string activeName = SceneManager.GetActiveScene().name;
+            if (activeName.Equals(resolvedLobbyScene, StringComparison.OrdinalIgnoreCase) || activeName.IndexOf("Lobby", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                currentMapType = MapType.Lobby;
+            }
+            else if (activeName.Equals(resolvedBossScene, StringComparison.OrdinalIgnoreCase) || activeName.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 || activeName.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                currentMapType = MapType.Boss;
+            }
+            else if (activeName.Equals(resolvedTutorialScene, StringComparison.OrdinalIgnoreCase) || activeName.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                currentMapType = MapType.Tutorial;
+            }
+            else
+            {
+                currentMapType = MapType.Run;
+            }
         }
 
-        Debug.Log($"<color=#00FFCC>[GameManager] Active Scene Name: '{sceneName}' -> Target MapType evaluated: {currentMapType}</color>");
+        currentActiveSceneName = SceneManager.GetActiveScene().name;
+        Debug.Log($"<color=#00FFCC><b>[GameManager]</b> Active Scene: '{currentActiveSceneName}' | Current MapType: <b>[{currentMapType}]</b></color>");
     }
+
+    private bool IsSceneLoaded(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName)) return false;
+
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene s = SceneManager.GetSceneAt(i);
+            if (s.isLoaded && s.name.Equals(sceneName, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void OnLoadingComplete(object obj)
     {
@@ -159,6 +206,5 @@ public class GameManager : Singleton<GameManager>
         }
 
         OpenMenuAfterLoadingComplete();
-        Debug.Log($"[GameManager] OnLoadingComplete: Current MapType is {currentMapType}");
     }
 }

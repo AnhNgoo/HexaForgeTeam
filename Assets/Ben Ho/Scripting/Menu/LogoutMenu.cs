@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class LogoutMenu : MonoBehaviour
 {
@@ -12,19 +13,25 @@ public class LogoutMenu : MonoBehaviour
     [SerializeField] private GameObject confirmationRoot;
     [SerializeField] private TMP_Text descriptionText;
     [SerializeField] private Button btnLogout;
+    [SerializeField] private TMP_Text btnLogoutText;
     [SerializeField] private Button btnCancel;
 
-    [Header("Content")]
+    [Header("Content Messages")]
     [SerializeField, TextArea]
-    private string confirmationMessage = "Are you sure you want to log out?";
+    private string logoutConfirmationMessage = "Are you sure you want to log out?";
+
+    [SerializeField, TextArea]
+    private string returnLobbyConfirmationMessage = "Are you sure you want to abandon this battle and return to the Lobby?";
 
     [SerializeField]
     private SystemSettingPage cancelReturnPage = SystemSettingPage.Audio;
 
     private bool eventsAdded;
+    private bool isInLobby = true;
 
     private void OnEnable()
     {
+        CheckContextState();
         AddEvents();
         ShowConfirmation();
     }
@@ -34,13 +41,31 @@ public class LogoutMenu : MonoBehaviour
         RemoveEvents();
     }
 
+    private void CheckContextState()
+    {
+        if (GameManager.Instance != null)
+        {
+            isInLobby = (GameManager.Instance.MapType == MapType.Lobby);
+        }
+        else
+        {
+            string activeScene = SceneManager.GetActiveScene().name;
+            isInLobby = activeScene.IndexOf("Lobby", System.StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        if (btnLogoutText != null)
+        {
+            btnLogoutText.text = isInLobby ? "Confirm" : "Return Lobby";
+        }
+    }
+
     private void AddEvents()
     {
         if (eventsAdded)
             return;
 
         if (btnLogout != null)
-            btnLogout.onClick.AddListener(Logout);
+            btnLogout.onClick.AddListener(OnConfirmAction);
 
         if (btnCancel != null)
             btnCancel.onClick.AddListener(Cancel);
@@ -54,7 +79,7 @@ public class LogoutMenu : MonoBehaviour
             return;
 
         if (btnLogout != null)
-            btnLogout.onClick.RemoveListener(Logout);
+            btnLogout.onClick.RemoveListener(OnConfirmAction);
 
         if (btnCancel != null)
             btnCancel.onClick.RemoveListener(Cancel);
@@ -64,8 +89,12 @@ public class LogoutMenu : MonoBehaviour
 
     public void ShowConfirmation()
     {
+        CheckContextState();
+
         if (descriptionText != null)
-            descriptionText.text = confirmationMessage;
+        {
+            descriptionText.text = isInLobby ? logoutConfirmationMessage : returnLobbyConfirmationMessage;
+        }
 
         if (confirmationRoot != null)
             confirmationRoot.SetActive(true);
@@ -80,14 +109,40 @@ public class LogoutMenu : MonoBehaviour
             systemSettingsPanel.ShowPage(cancelReturnPage);
     }
 
-    public void Logout()
+    public void OnConfirmAction()
+    {
+        if (isInLobby)
+        {
+            ExecuteLogout();
+        }
+        else
+        {
+            ExecuteReturnToLobby();
+        }
+    }
+
+    private void ExecuteReturnToLobby()
+    {
+        Time.timeScale = 1f;
+
+        if (systemSettingsPanel != null)
+        {
+            systemSettingsPanel.Close();
+        }
+
+        if (RunManager.Instance != null)
+        {
+            RunManager.Instance.ReturnToLobby();
+        }
+    }
+
+    private void ExecuteLogout()
     {
         if (PlayFabDataManager.Instance != null)
         {
             PlayFabDataManager.Instance.SaveCloud();
         }
 
-        // Xóa cờ phiên làm việc tự động đăng nhập
         PlayerPrefs.DeleteKey("IsAutoLoginActive");
         PlayerPrefs.DeleteKey("LastAccountUser");
         PlayerPrefs.DeleteKey("LastAccountPass");
@@ -101,41 +156,43 @@ public class LogoutMenu : MonoBehaviour
 
         Time.timeScale = 1f;
 
-        // Bắt đầu luồng nạp Loading Scene Additive mượt mà chuyển về Login Scene
         StartCoroutine(LogoutTransitionRoutine());
     }
 
-    private System.Collections.IEnumerator LogoutTransitionRoutine()
+    private IEnumerator LogoutTransitionRoutine()
     {
-        string loginSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loginScene : "Login Scene";
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        GameSceneData sceneData = GameSceneData.Instance;
 
-        // 1. Nạp Loading Scene dạng Additive
+        string loginSceneName = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.Login) 
+            : "Login Scene";
+
+        string loadingSceneName = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.Loading) 
+            : "Loading Scene";
+
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
-        yield return new WaitForSecondsRealtime(0.1f);
+        yield return new WaitForSecondsRealtime(0.05f);
 
-        // 2. Cập nhật tên điểm đến trên LoadingUIManager
         if (LoadingUIManager.Instance != null)
         {
             LoadingUIManager.Instance.SetDestinationName(loginSceneName);
         }
 
-        // 3. Nạp Login Scene ngầm
         AsyncOperation loadLogin = SceneManager.LoadSceneAsync(loginSceneName, LoadSceneMode.Single);
         loadLogin.allowSceneActivation = false;
 
+        float duration = Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
         {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLogin));
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLogin, false, duration));
         }
 
-        // 4. Kích hoạt chuyển sang Login Scene
         loadLogin.allowSceneActivation = true;
         while (!loadLogin.isDone) yield return null;
 
-        // 5. Giải phóng Loading Scene
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
         if (loadingScene.isLoaded)
         {
