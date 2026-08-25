@@ -104,8 +104,8 @@ public class RunManager : MonoBehaviour
 
         if (string.IsNullOrWhiteSpace(targetBossScene))
         {
-            targetBossScene = GameSceneData.Instance != null 
-                ? GameSceneData.Instance.GetSceneName(SceneType.FinalBoss) 
+            targetBossScene = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetSceneName(SceneType.FinalBoss)
                 : "FinalBoss Scene";
         }
 
@@ -189,15 +189,15 @@ public class RunManager : MonoBehaviour
             UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
         }
 
-        EventManager.Notify(GameEvent.OnLoadingComplete);
+
 
         if (InteractManagerV2.Instance != null) InteractManagerV2.Instance.IsBusy = false;
     }
 
     private IEnumerator LoadSceneCoroutine()
     {
-        string loadingSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.Loading) 
+        string loadingSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
             : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
@@ -215,7 +215,7 @@ public class RunManager : MonoBehaviour
 
         if (LoadingUIManager.Instance != null)
         {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(load));
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(load, false));
         }
 
         load.allowSceneActivation = true;
@@ -225,6 +225,7 @@ public class RunManager : MonoBehaviour
         if (runScene.IsValid())
         {
             SceneManager.SetActiveScene(runScene);
+            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
         if (lobbyVisuals != null)
@@ -273,7 +274,6 @@ public class RunManager : MonoBehaviour
         if (playerController != null) playerController.enabled = true;
 
         Physics.SyncTransforms();
-        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 
     public void ReturnToLobby()
@@ -286,12 +286,12 @@ public class RunManager : MonoBehaviour
         isRunActive = false;
         Time.timeScale = 1f;
 
-        string loadingSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.Loading) 
+        string loadingSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
             : "Loading Scene";
-            
-        string targetLobbyScene = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain) 
+
+        string targetLobbyScene = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain)
             : "LobbyMain Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
@@ -354,7 +354,7 @@ public class RunManager : MonoBehaviour
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
         pendingGem = 0; pendingExp = 0; pendingShards = 0;
-        
+
         if (LeaderboardManager.Instance != null) LeaderboardManager.Instance.UpdateAllStatistics();
 
         if (UIManager.Instance != null) UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
@@ -376,6 +376,5 @@ public class RunManager : MonoBehaviour
             while (!unloadLoading.isDone) yield return null;
         }
 
-        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 }

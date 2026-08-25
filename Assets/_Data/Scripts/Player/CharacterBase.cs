@@ -189,7 +189,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterInput.Init(this);
             characterRecovery.Init(this);
             characterAnimation.Init(characterVisual);
-            characterWeapon.Init(this, handRight.transform, characterData.weaponData);
+            characterWeapon.Init(this, handRight.transform);
             characterCombat.Init(this, InitAttackCombos(), InitPunchCombos());
             characterMeleeHitbox.Init(this);
             characterStat.Init(this, characterData.stats);
@@ -207,6 +207,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
             GoldManager.Instance?.ResetGold();
             WeaponInventorySystem.Instance?.Init(characterWeapon);
+            WeaponInventorySystem.Instance.AddWeapon(characterData.weaponData);
             InteractionManager.Instance?.Init(this.transform);
             CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
             EventManager.Notify(GameEvent.OnPlayerSpawned, transform);

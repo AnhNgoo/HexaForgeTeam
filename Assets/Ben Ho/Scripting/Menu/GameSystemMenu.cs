@@ -58,6 +58,7 @@ public class GameSystemMenu : MenuBase
     private bool cursorCaptured;
     private CursorLockMode previousCursorLock;
     private bool previousCursorVisible;
+    private bool tabInitialized;
 
     protected override void LoadComponent() { }
     protected override void LoadComponentRuntime() { }
@@ -65,6 +66,8 @@ public class GameSystemMenu : MenuBase
     public override void Open(object data = null)
     {
         base.Open(data);
+        Debug.Log($"[GameSystemMenu] Opened with data: {data}");
+        InitTab();
         MouseManager.Instance?.ShowMouse();
         transform.SetAsLastSibling();
 
@@ -81,7 +84,7 @@ public class GameSystemMenu : MenuBase
             : defaultTab;
 
         SelectTab(tab);
-        Debug.Log($"GameSystemMenu opened. Current tab: {currentTab}");
+
     }
 
     public override void Close()
@@ -109,6 +112,27 @@ public class GameSystemMenu : MenuBase
         }
     }
 
+    /// <summary>
+    /// Mở tất cả cả các tab lần đầu để khởi tạo các component bên trong, sau đó đóng lại và chỉ mở tab mặc định.
+    /// </summary>
+    private void InitTab()
+    {
+        if (tabInitialized)
+            return;
+
+        if (tabItems == null || tabItems.Length == 0)
+            return;
+
+        foreach (GameSystemTabItem item in tabItems)
+        {
+            if (item == null || item.toggle == null)
+                continue;
+
+            item.toggle.isOn = true;
+            item.toggle.isOn = false;
+        }
+        tabInitialized = true;
+    }
     public void SelectTab(GameSystemTab tab)
     {
         currentTab = tab;
