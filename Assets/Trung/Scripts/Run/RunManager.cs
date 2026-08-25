@@ -82,8 +82,8 @@ public class RunManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(gameplaySceneName))
         {
-            gameplaySceneName = GameSceneData.Instance != null 
-                ? GameSceneData.Instance.GetRandomRunSceneName() 
+            gameplaySceneName = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetRandomRunSceneName()
                 : "Run Scene";
         }
 
@@ -173,6 +173,7 @@ public class RunManager : MonoBehaviour
         }
 
         SceneManager.SetActiveScene(finalBossScene);
+        EventManager.Notify(GameEvent.OnLoadingComplete);
         HideLobbyHUD();
 
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
@@ -367,6 +368,7 @@ public class RunManager : MonoBehaviour
         if (lobbyScene.IsValid())
         {
             SceneManager.SetActiveScene(lobbyScene);
+            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
         // CỐ ĐỊNH LẠI MAP TYPE LÀ LOBBY
@@ -380,10 +382,10 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        if (PlayerManager.Instance != null)
-        {
-            PlayerManager.Instance.SpawnCharacterInLobby();
-        }
+        // if (PlayerManager.Instance != null)
+        // {
+        //     PlayerManager.Instance.SpawnCharacterInLobby();
+        // }
 
         if (GoldManager.Instance != null) GoldManager.Instance.ResetGold();
 

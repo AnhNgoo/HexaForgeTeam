@@ -23,6 +23,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterStamina))]
 [RequireComponent(typeof(CharacterMP))]
 [RequireComponent(typeof(CharacterLevel))]
+[RequireComponent(typeof(CharacterGoldFalling))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage
 {
     [Header("Character Data")]
@@ -82,7 +83,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public CharacterMP CharacterMP => characterMP;
     [SerializeField] protected CharacterLevel characterLevel;
     public CharacterLevel CharacterLevel => characterLevel;
-
+    [SerializeField] protected CharacterGoldFalling characterGoldFalling;
+    public CharacterGoldFalling CharacterGoldFalling => characterGoldFalling;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
@@ -147,6 +149,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterMP = GetComponent<CharacterMP>();
         if (characterLevel == null)
             characterLevel = GetComponent<CharacterLevel>();
+        if (characterGoldFalling == null)
+            characterGoldFalling = GetComponent<CharacterGoldFalling>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -196,6 +200,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterStamina.Init(this);
             characterMP.Init(this);
             characterLevel.Init(this);
+            characterGoldFalling.Init(this);
             stateController = new StateController();
             stateController.ChangeState(new IdleState(this));
 
@@ -230,6 +235,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         CanBeAttacked = true;
         IsHitStateActive = false;
         characterLockTarget?.ForceUnlockTarget();
+        GoldManager.Instance?.ResetGold();
     }
     #endregion
 
@@ -557,7 +563,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
-        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu)
+        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
             return;
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;

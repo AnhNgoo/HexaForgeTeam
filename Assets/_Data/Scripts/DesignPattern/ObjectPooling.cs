@@ -73,6 +73,7 @@ public enum PoolType
     SpawnCharacterEffect = 103,
     PickedUpItemEffect = 104,
     LevelUpEffect = 105,
+    GoldFalling = 106,
     EnemyBruteBoss = 1001,
     EnemyVenomousQueenBoss = 1002,
     EnemyNightStalkerBoss = 1003,

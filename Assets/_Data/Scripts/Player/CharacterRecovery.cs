@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class CharacterRecovery : MonoBehaviour
 {
-    [SerializeField] private int maxRecoveryBottle = 3;
+    [SerializeField] private int maxRecoveryBottle = 7;
     [SerializeField] private int recoveryBottle = 0;
     public int RecoveryBottle => recoveryBottle;
     [SerializeField] private float healPercent = 36;

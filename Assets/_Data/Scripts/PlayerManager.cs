@@ -39,22 +39,35 @@ public class PlayerManager : Singleton<PlayerManager>
     [SerializeField][FoldoutGroup("Character Spawn")] private Vector3 offsetSpawnPoint = new Vector3(0, 0f, 0);
     [SerializeField][FoldoutGroup("Character Spawn")] private Transform spawnPointInLobby;
 
+    //SECTION - Respawn --------------------------------------------------------------
     [SerializeField][FoldoutGroup("Character ReSpawn")] private Transform reSpawnPoint;
-    [SerializeField][FoldoutGroup("Character ReSpawn")] private float radiusFindRespawnPoint = 500f;
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private float radiusFindRespawnPoint = 1000f;
     [SerializeField][FoldoutGroup("Character ReSpawn")] private float distanceRespawnPointToSafeZoneEdge = 10f;   //Khoảng cách của điểm respawn đến rìa bo 
     [SerializeField][FoldoutGroup("Character ReSpawn")] private LayerMask respawnPointLayerMask;
     [SerializeField][FoldoutGroup("Character ReSpawn")] private float delayRespawn = 3f;
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private bool isLimitRespawnAttempts = true; // Giới hạn số lần respawn
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private int currentRespawnAttempts = 0;  // Số lần được respawn hiện tại
+    public int CurrentRespawnAttempts => currentRespawnAttempts;
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private int maxRespawnAttemptsInFinalSafeZone = 2; // Số lần respawn tối đa
+    public int MaxRespawnAttemptsInFinalSafeZone => maxRespawnAttemptsInFinalSafeZone;
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private int maxRespawnAttemptsInBoss = 1; // Số lần respawn tối đa khi map boss
+
+    public int MaxRespawnAttemptsInBoss => maxRespawnAttemptsInBoss;
 
     #region Init 
 
     private void Start()
     {
         EventManager.Subscribe(GameEvent.OnPlayerDeath, CheckRespawnCharacter);
+        EventManager.Subscribe(GameEvent.OnFinalSafeZoneCompleted, SetRespawnAttemptsInFinalSafeZone);
+        EventManager.Subscribe(GameEvent.OnStartSafeZone, SetRespawnAttemptsInRun);
     }
 
     private void OnDestroy()
     {
         EventManager.Unsubscribe(GameEvent.OnPlayerDeath, CheckRespawnCharacter);
+        EventManager.Unsubscribe(GameEvent.OnFinalSafeZoneCompleted, SetRespawnAttemptsInFinalSafeZone);
+        EventManager.Unsubscribe(GameEvent.OnStartSafeZone, SetRespawnAttemptsInRun);
     }
 
     private Characters LoadCharacterSelected()
@@ -208,8 +221,54 @@ public class PlayerManager : Singleton<PlayerManager>
 
     #region Respawn
 
+    public void SetMaxRespawnAttempts(int maxAttempts, bool limitRespawnAttempts = true)
+    {
+        currentRespawnAttempts = maxAttempts;
+        isLimitRespawnAttempts = limitRespawnAttempts;
+    }
+
+    /// <summary>
+    /// Giảm số lần respawn còn lại khi nhân vật chết
+    /// </summary>
+    private void DecreaseRespawnAttempts()
+    {
+        if (isLimitRespawnAttempts && currentRespawnAttempts > 0)
+        {
+            currentRespawnAttempts--;
+        }
+    }
+
+    /// <summary>
+    /// Đặt số lần respawn còn lại khi vào vòng bo cuối cùng (Final Safe Zone)
+    /// </summary>
+    private void SetRespawnAttemptsInFinalSafeZone(object data = null)
+    {
+        if (SafeZoneManager.Instance.CurrentPhaseIndex >= SafeZoneManager.Instance.SafeZoneData.safeZoneStats.Count)
+        {
+            SetMaxRespawnAttempts(maxRespawnAttemptsInFinalSafeZone, false);
+            Debug.Log($"<color=yellow>[PlayerManager] Đặt số lần respawn còn lại khi vào vòng bo cuối cùng: {currentRespawnAttempts}</color>");
+        }
+    }
+
+    /// <summary>
+    /// Đặt respawn vô hạn khi đang chạy bo
+    /// </summary>
+    /// <param name="data"></param>
+    private void SetRespawnAttemptsInRun(object data = null)
+    {
+        SetMaxRespawnAttempts(0, false);
+    }
+
     public async void CheckRespawnCharacter(object data = null)
     {
+        DecreaseRespawnAttempts();
+
+        if (isLimitRespawnAttempts && currentRespawnAttempts <= 0)
+        {
+            RunGameplayController.Instance?.TriggerEndRun(false);
+            return;
+        }
+
         await UniTask.Delay((int)(delayRespawn * 1000));
         UIManager.Instance?.ChangeMenu(MenuType.YouDiedRespawnMenu, true); // Hiện menu respawn
         await UniTask.Delay(2000);
@@ -225,12 +284,6 @@ public class PlayerManager : Singleton<PlayerManager>
             return;
         }
 
-        if (mapType == MapType.Boss)
-        {
-            RunGameplayController.Instance?.TriggerEndRun(false);
-            return;
-        }
-
         if (currentCharacterBase == null)
         {
             Debug.LogError("Chưa spawn nhân vật hiện tại");
@@ -240,42 +293,57 @@ public class PlayerManager : Singleton<PlayerManager>
         reSpawnPoint = null;
         if (GameManager.Instance.MapType == MapType.Run) // Nếu map run thì respawn
         {
-
             // Respawn lúc chạy bo
-            reSpawnPoint = FindRespawnPoint();
-
-            if (reSpawnPoint == null)
-                return;
-
-            CharacterController characterController = currentCharacterBase.CharacterMovement?.CC;
-            currentCharacterBase.CharacterMovement?.Stop();
-
-            if (characterController != null)
-                characterController.enabled = false;
-
-            currentCharacterBase.transform.position = reSpawnPoint.position + offsetSpawnPoint;
-            currentCharacterBase.gameObject.SetActive(true);
-            currentCharacterBase.ResetCharacter();
-            currentCharacterBase.CharacterLevel?.DecreaseLevel();
-
-            if (characterController != null)
-                characterController.enabled = true;
-
-            Physics.SyncTransforms();
+            reSpawnPoint = FindRespawnPointInRun();
+            RespawnCharacter(reSpawnPoint);
+        }
+        else if (mapType == MapType.Boss)
+        {
+            // Respawn lúc map boss
+            reSpawnPoint = FindRespawnPointInBoss();
+            RespawnCharacter(reSpawnPoint);
         }
     }
 
+    private void RespawnCharacter(Transform reSpawnPoint)
+    {
+        this.reSpawnPoint = reSpawnPoint;
+
+        if (this.reSpawnPoint == null)
+            return;
+
+        CharacterController characterController = currentCharacterBase.CharacterMovement?.CC;
+        currentCharacterBase.CharacterMovement?.Stop();
+
+        if (characterController != null)
+            characterController.enabled = false;
+
+        currentCharacterBase.CharacterGoldFalling.CreateGoldFalling();
+        currentCharacterBase.transform.position = this.reSpawnPoint.position + offsetSpawnPoint;
+        currentCharacterBase.gameObject.SetActive(true);
+        currentCharacterBase.CharacterLevel?.DecreaseLevel();
+        currentCharacterBase.ResetCharacter();
+
+        if (characterController != null)
+            characterController.enabled = true;
+
+        Physics.SyncTransforms();
+    }
+
     /// <summary>
-    /// Tìm vị trí respawn gần nhất dựa trên currentMapType
+    /// Tìm vị trí respawn theo 3 trường hợp 
+    /// TH1: Tìm điểm respawn gần nhất trong vòng bo và có cách rìa bo khoảng cách distanceRespawnPointToSafeZoneEdge 
+    /// TH2: Nếu không tìm thấy điểm respawn trong vòng bo, có cách rìa 1 khoảng, thì tìm điểm gần nhất trong bo trong danh sách tạm thời
+    /// TH3: Nếu vẫn không tìm thấy điểm respawn trong vòng bo, thì tìm
     /// </summary>
-    private Transform FindRespawnPoint()
+    private Transform FindRespawnPointInRun()
     {
         Collider[] colliders = Physics.OverlapSphere(currentCharacterBase.transform.position, radiusFindRespawnPoint, respawnPointLayerMask);
 
         //Tìm điểm respawn gần nhất dựa trên khoảng cách từ vị trí hiện tại của nhân vật
         Transform nearestRespawnPoint = null;
         float nearestDistance = Mathf.Infinity;
-        List<Transform> validRespawnPoints = new List<Transform>();
+        List<Transform> validRespawnPoints = new List<Transform>(); // Danh sách tạm thời để lưu các điểm respawn hợp lệ trong vòng bo
 
         //SECTION - TH1: Ưu tiên: Tìm điểm respawn gần nhất trong vòng bo và có cách rìa bo khoảng cách distanceRespawnPointToSafeZoneEdge
         foreach (Collider collider in colliders)
@@ -336,6 +404,35 @@ public class PlayerManager : Singleton<PlayerManager>
         if (nearestRespawnPoint == null)
         {
             Debug.LogWarning("Không tìm thấy điểm respawn gần nhân vật");
+        }
+        return nearestRespawnPoint;
+    }
+
+    /// <summary>
+    /// Tìm điểm respawn gần nhất trong map boss
+    /// </summary>
+    /// <returns></returns>
+    private Transform FindRespawnPointInBoss()
+    {
+        // Tìm điểm respawn gần nhất trong map boss
+        Collider[] colliders = Physics.OverlapSphere(currentCharacterBase.transform.position, radiusFindRespawnPoint, respawnPointLayerMask);
+
+        Transform nearestRespawnPoint = null;
+        float nearestDistance = Mathf.Infinity;
+
+        foreach (Collider collider in colliders)
+        {
+            float distance = Vector3.Distance(currentCharacterBase.transform.position, collider.transform.position);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestRespawnPoint = collider.transform;
+            }
+        }
+
+        if (nearestRespawnPoint == null)
+        {
+            Debug.LogWarning("Không tìm thấy điểm respawn gần nhân vật trong map boss");
         }
         return nearestRespawnPoint;
     }

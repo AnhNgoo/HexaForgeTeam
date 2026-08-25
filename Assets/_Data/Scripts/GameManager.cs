@@ -36,7 +36,7 @@ public class GameManager : Singleton<GameManager>
 
     private void Start()
     {
-        RefreshMapContext();
+        OnLoadingComplete(null);
     }
 
     protected virtual void OnDestroy()
@@ -44,20 +44,67 @@ public class GameManager : Singleton<GameManager>
         EventManager.Unsubscribe(GameEvent.OnLoadingComplete, OnLoadingComplete);
     }
 
-#if UNITY_EDITOR
-    [Button("🔄 FORCE REFRESH SCENE CONTEXT", ButtonSizes.Medium)]
-    [GUIColor(0f, 1f, 0.8f)]
-#endif
-    public void RefreshMapContext()
+    private void OpenMenuAfterLoadingComplete()
     {
-        GetMapType();
 
-        if (UIManager.Instance != null)
+        if (UIManager.Instance == null) return;
+
+        if (currentMapType == MapType.Lobby)
         {
-            UIManager.Instance.InitUI();
+            InitInLobby();
+        }
+        else if (currentMapType == MapType.Run || currentMapType == MapType.Tutorial)
+        {
+            InitInRun();
+        }
+        else if (currentMapType == MapType.Boss)
+        {
+            InitInBoss();
+        }
+        else
+        {
+            // Fallback an toàn: Nếu là màn chơi bất kỳ khác ngoài Lobby thì luôn bật GameplayMenu
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        }
+    }
+
+    private void InitInLobby()
+    {
+        UIManager.Instance?.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.ShowFullHUD();
         }
 
-        OpenMenuAfterLoadingComplete();
+        PlayerManager.Instance.SpawnCharacterInLobby();
+        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(true, true);
+    }
+
+    private void InitInRun()
+    {
+        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(false);
+        }
+
+        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
+        PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false); // Khi mới vào run không giới hạn số lần respawn
+    }
+
+    private void InitInBoss()
+    {
+        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
+
+        // Nếu ở map run nhân vật chưa chết lần nào khi bo cuối thì nhân vật sẽ được respawn ở map boss + thêm 1 lần
+        if (PlayerManager.Instance.CurrentRespawnAttempts == PlayerManager.Instance.MaxRespawnAttemptsInFinalSafeZone)
+            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss + 1, limitRespawnAttempts: true);
+        else
+            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss, limitRespawnAttempts: true);
     }
 
     public void SetMapType(MapType mapType)
@@ -148,63 +195,16 @@ public class GameManager : Singleton<GameManager>
         return false;
     }
 
-    private void OpenMenuAfterLoadingComplete()
-    {
-        if (UIManager.Instance == null) return;
-
-        if (currentMapType == MapType.Lobby)
-        {
-            InitInLobby();
-        }
-        else
-        {
-            InitInRun();
-        }
-    }
-
-    public void InitInLobby()
-    {
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-        }
-
-        if (LobbyHUDTopBar.Instance != null)
-        {
-            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
-            LobbyHUDTopBar.Instance.ShowFullHUD();
-        }
-
-        if (PlayerManager.Instance != null)
-        {
-            PlayerManager.Instance.SpawnCharacterInLobby();
-            if (PlayerManager.Instance.CurrentCharacterBase != null && PlayerManager.Instance.CurrentCharacterBase.CharacterSkill != null)
-            {
-                PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(true, true);
-            }
-        }
-    }
-
-    public void InitInRun()
-    {
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-        }
-
-        if (LobbyHUDTopBar.Instance != null)
-        {
-            LobbyHUDTopBar.Instance.gameObject.SetActive(false);
-        }
-
-        if (PlayerManager.Instance != null && PlayerManager.Instance.CurrentCharacterBase != null && PlayerManager.Instance.CurrentCharacterBase.CharacterSkill != null)
-        {
-            PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
-        }
-    }
 
     private void OnLoadingComplete(object obj)
     {
-        RefreshMapContext();
+        GetMapType();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.InitUI();
+        }
+
+        OpenMenuAfterLoadingComplete();
     }
 }
