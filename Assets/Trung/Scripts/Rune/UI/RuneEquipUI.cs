@@ -3,9 +3,34 @@ using UnityEngine.UI;
 using TMPro;
 using System.Text;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class RuneEquipUI : MonoBehaviour
 {
+    public static RuneEquipUI Instance;
+
+    [Header("Main Big Character Button & Display")]
+    [Tooltip("Nút Avatar Lớn hiển thị nhân vật hiện tại")]
+    [SerializeField] private Button mainCharacterButton;
+    [SerializeField] private Image mainCharacterAvatarImage;
+    [SerializeField] private TMP_Text mainCharacterNameText;
+
+    [Header("Character Selection Popup")]
+    [Tooltip("Kéo GameObject SelectCharBuild vào đây")]
+    [SerializeField] private GameObject characterSelectPopup;
+
+    [Header("Character Selection Sub-Buttons (Bên trong Popup)")]
+    [SerializeField] private GameObject kaelButtonObj;
+    [SerializeField] private GameObject lyraButtonObj;
+    [SerializeField] private GameObject aresButtonObj;
+    [SerializeField] private GameObject elaraButtonObj;
+
+    [Header("Character Avatars Mapping")]
+    [SerializeField] private Sprite kaelAvatar;
+    [SerializeField] private Sprite lyraAvatar;
+    [SerializeField] private Sprite aresAvatar;
+    [SerializeField] private Sprite elaraAvatar;
+
     [Header("Equip Slots")]
     [SerializeField] private Image slot1Image;
     [SerializeField] private Image slot2Image;
@@ -13,12 +38,6 @@ public class RuneEquipUI : MonoBehaviour
     [SerializeField] private TMP_Text slot1ConditionText;
     [SerializeField] private TMP_Text slot2ConditionText;
     [SerializeField] private TMP_Text slot3ConditionText;
-
-    [Header("Character Buttons")]
-    [SerializeField] private GameObject kaelButtonObj;
-    [SerializeField] private GameObject lyraButtonObj;
-    [SerializeField] private GameObject aresButtonObj;
-    [SerializeField] private GameObject elaraButtonObj;
 
     [Header("Coming Soon Config")]
     [SerializeField] private List<CharacterType> comingSoonCharacters = new List<CharacterType>()
@@ -56,11 +75,80 @@ public class RuneEquipUI : MonoBehaviour
     [Header("Origin Rune")]
     [SerializeField] private Sprite originRuneSprite;
 
-    public static RuneEquipUI Instance;
+    private RectTransform popupRectTransform;
+    private RectTransform mainButtonRectTransform;
 
     private void Awake()
     {
         Instance = this;
+        InitMainButtonEvents();
+
+        if (characterSelectPopup != null)
+        {
+            popupRectTransform = characterSelectPopup.GetComponent<RectTransform>();
+        }
+        if (mainCharacterButton != null)
+        {
+            mainButtonRectTransform = mainCharacterButton.GetComponent<RectTransform>();
+        }
+    }
+
+    private void Update()
+    {
+        if (characterSelectPopup == null || !characterSelectPopup.activeSelf) return;
+
+        // 1. Phím ESC -> Tắt Popup
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HideCharacterSelectPopup();
+            return;
+        }
+
+        // 2. Click chuột trái ngoài vùng Popup và Nút Avatar -> Tự động tắt Popup
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector2 mousePos = Input.mousePosition;
+
+            bool isClickInsidePopup = popupRectTransform != null &&
+                RectTransformUtility.RectangleContainsScreenPoint(popupRectTransform, mousePos);
+
+            bool isClickInsideMainBtn = mainButtonRectTransform != null &&
+                RectTransformUtility.RectangleContainsScreenPoint(mainButtonRectTransform, mousePos);
+
+            if (!isClickInsidePopup && !isClickInsideMainBtn)
+            {
+                HideCharacterSelectPopup();
+            }
+        }
+    }
+
+    private void InitMainButtonEvents()
+    {
+        if (mainCharacterButton != null)
+        {
+            mainCharacterButton.onClick.RemoveAllListeners();
+            mainCharacterButton.onClick.AddListener(ToggleCharacterSelectPopup);
+        }
+
+        BindPopupSubButton(kaelButtonObj, CharacterType.Kael);
+        BindPopupSubButton(lyraButtonObj, CharacterType.Lyra);
+        BindPopupSubButton(aresButtonObj, CharacterType.Ares);
+        BindPopupSubButton(elaraButtonObj, CharacterType.Elara);
+    }
+
+    private void BindPopupSubButton(GameObject obj, CharacterType type)
+    {
+        if (obj == null) return;
+        Button btn = obj.GetComponent<Button>();
+        if (btn != null)
+        {
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() =>
+            {
+                SwitchBuildToCharacter(type);
+                HideCharacterSelectPopup();
+            });
+        }
     }
 
     private void OnEnable()
@@ -75,12 +163,39 @@ public class RuneEquipUI : MonoBehaviour
             viewingCharacter = CharacterType.Kael;
         }
 
+        HideCharacterSelectPopup();
         RefreshEquipUI();
+    }
+
+    public void ToggleCharacterSelectPopup()
+    {
+        if (characterSelectPopup == null) return;
+
+        bool isOpening = !characterSelectPopup.activeSelf;
+        characterSelectPopup.SetActive(isOpening);
+
+        if (isOpening)
+        {
+            characterSelectPopup.transform.SetAsLastSibling();
+            characterSelectPopup.transform.DOKill(true);
+            characterSelectPopup.transform.localScale = Vector3.one * 0.85f;
+            characterSelectPopup.transform.DOScale(Vector3.one, 0.18f).SetEase(Ease.OutBack).SetUpdate(true);
+            UpdateCharacterButtonsState();
+        }
+    }
+
+    public void HideCharacterSelectPopup()
+    {
+        if (characterSelectPopup != null && characterSelectPopup.activeSelf)
+        {
+            characterSelectPopup.SetActive(false);
+        }
     }
 
     public void RefreshEquipUI()
     {
         ResetSlots();
+        UpdateMainBigButtonDisplay();
 
         if (RuneInventoryManager.Instance == null)
         {
@@ -89,7 +204,7 @@ public class RuneEquipUI : MonoBehaviour
 
         CharacterType currentType = viewingCharacter;
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
-        
+
         UpdateCharacterButtonsState();
 
         TMP_Text[] conditionTexts = new TMP_Text[3] { slot1ConditionText, slot2ConditionText, slot3ConditionText };
@@ -167,6 +282,33 @@ public class RuneEquipUI : MonoBehaviour
         RefreshTotalStatText();
     }
 
+    private void UpdateMainBigButtonDisplay()
+    {
+        if (mainCharacterAvatarImage != null)
+        {
+            Sprite targetSprite = GetAvatarSprite(viewingCharacter);
+            mainCharacterAvatarImage.sprite = targetSprite;
+            mainCharacterAvatarImage.gameObject.SetActive(targetSprite != null);
+        }
+
+        if (mainCharacterNameText != null)
+        {
+            mainCharacterNameText.text = viewingCharacter.ToString().ToUpper();
+        }
+    }
+
+    private Sprite GetAvatarSprite(CharacterType type)
+    {
+        switch (type)
+        {
+            case CharacterType.Kael: return kaelAvatar;
+            case CharacterType.Lyra: return lyraAvatar;
+            case CharacterType.Ares: return aresAvatar;
+            case CharacterType.Elara: return elaraAvatar;
+        }
+        return null;
+    }
+
     #region Button Alpha, Lock & Coming Soon States
 
     private void UpdateCharacterButtonsState()
@@ -229,7 +371,7 @@ public class RuneEquipUI : MonoBehaviour
     public void SwitchBuildToAres() => SwitchBuildToCharacter(CharacterType.Ares);
     public void SwitchBuildToElara() => SwitchBuildToCharacter(CharacterType.Elara);
 
-    private void SwitchBuildToCharacter(CharacterType type)
+    public void SwitchBuildToCharacter(CharacterType type)
     {
         if (comingSoonCharacters.Contains(type))
         {
@@ -270,7 +412,7 @@ public class RuneEquipUI : MonoBehaviour
                 builder.AppendLine("<color=#FFD700>ORIGIN POWER\nAll Stats +" + $"{stat.Value:F0}</color>\n");
                 continue;
             }
-            
+
             bool isPercent = IsPercentStat(stat.Key);
             float rawValue = stat.Value;
             float cap = RuneInventoryManager.Instance.GetHardCap(stat.Key);
@@ -322,7 +464,7 @@ public class RuneEquipUI : MonoBehaviour
     {
         if (RuneInventoryManager.Instance == null) return;
 
-        CharacterType currentType = viewingCharacter; 
+        CharacterType currentType = viewingCharacter;
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
 
         if (build == null || slotIndex < 0 || slotIndex >= build.equippedRuneIDs.Length) return;

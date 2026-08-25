@@ -15,6 +15,7 @@ public class SceneConfigSO : ScriptableObject
     public string customLoadingScene;
     public string customLobbyScene;
     public string customRunGameplayScene;
+    public string customRunGameplayScene2;
     public string customTutorialScene;
     public string customFinalBossScene;
 }
