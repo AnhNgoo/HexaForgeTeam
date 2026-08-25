@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using PlayFab;
 using PlayFab.ClientModels;
 using DG.Tweening;
@@ -11,7 +12,7 @@ public class PlayFabLoginManager : MonoBehaviour
 {
     public static PlayFabLoginManager Instance;
 
-    [Header("Universal Loading UI (Dùng chung)")]
+    [Header("Universal Loading UI")]
     [SerializeField] private GameObject autoLoginLoadingPanel;
     [SerializeField] private CanvasGroup autoLoginCanvasGroup;
     [SerializeField] private Transform loadingSpinnerTransform;
@@ -30,8 +31,6 @@ public class PlayFabLoginManager : MonoBehaviour
     [SerializeField] private TMP_InputField registerPasswordInput;
     [SerializeField] private TMP_InputField confirmPasswordInput;
 
-    [Header("Scene Config")]
-
     private SavedAccountList savedAccounts = new SavedAccountList();
     private bool isLoggingIn = false;
     private Tween spinnerTween;
@@ -42,7 +41,14 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Start()
@@ -72,8 +78,8 @@ public class PlayFabLoginManager : MonoBehaviour
 
         if (isAutoLoginActive && !string.IsNullOrEmpty(lastUser) && !string.IsNullOrEmpty(lastPass))
         {
-            loginAccountInput.text = lastUser;
-            loginPasswordInput.text = lastPass;
+            if (loginAccountInput != null) loginAccountInput.text = lastUser;
+            if (loginPasswordInput != null) loginPasswordInput.text = lastPass;
 
             ShowLoadingOverlay($"Welcome back! Reconnecting as {lastUser}...");
             StartCoroutine(AutoLoginRoutine());
@@ -276,7 +282,6 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void OnLoginSuccess(LoginResult result)
     {
-        // Hiển thị Overlay Đăng nhập & Báo trạng thái đồng bộ dữ liệu
         ShowLoadingOverlay("Login successful! Loading Cloud Profile...");
 
         if (loadingProgressSlider != null)
@@ -303,7 +308,6 @@ public class PlayFabLoginManager : MonoBehaviour
         System.GC.Collect();
         Resources.UnloadUnusedAssets();
 
-        // Tải Cloud Data xong mới tiến hành chuyển Scene
         if (PlayFabDataManager.Instance != null)
         {
             PlayFabDataManager.Instance.LoadCloud((success) =>
@@ -317,34 +321,50 @@ public class PlayFabLoginManager : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator LoadMainGameRoutine()
+    private IEnumerator LoadMainGameRoutine()
     {
-        string uiSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.uiScene : "UIGame";
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        GameSceneData sceneData = GameSceneData.Instance;
+
+        string targetUiScene = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.UIGame) 
+            : "UIGame";
+
+        string targetLoadingScene = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.Loading) 
+            : "Loading Scene";
 
         ShowLoadingOverlay("Preparing Realm...");
 
-        AsyncOperation loadLoading = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(loadingSceneName, UnityEngine.SceneManagement.LoadSceneMode.Additive);
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(targetLoadingScene, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
+        yield return new WaitForSecondsRealtime(0.05f);
+
         if (LoadingUIManager.Instance != null)
         {
-            LoadingUIManager.Instance.SetDestinationName(uiSceneName);
+            LoadingUIManager.Instance.SetDestinationName(targetUiScene);
         }
 
-        // Tắt Auto Login Panel khi Loading Scene chính thức xuất hiện đè lên
         HideLoadingOverlay();
 
-        AsyncOperation loadTarget = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(uiSceneName, UnityEngine.SceneManagement.LoadSceneMode.Single);
+        AsyncOperation loadTarget = SceneManager.LoadSceneAsync(targetUiScene, LoadSceneMode.Single);
         loadTarget.allowSceneActivation = false;
 
+        float duration = Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
         {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget));
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget, false, duration));
         }
 
         loadTarget.allowSceneActivation = true;
         while (!loadTarget.isDone) yield return null;
+
+        Scene loadingScene = SceneManager.GetSceneByName(targetLoadingScene);
+        if (loadingScene.isLoaded)
+        {
+            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
+            while (!unloadLoading.isDone) yield return null;
+        }
     }
 
     private void CheckAndFixDisplayName()
@@ -460,7 +480,6 @@ public class PlayFabLoginManager : MonoBehaviour
         });
     }
 
-    // Hiệu ứng DOTween rung lắc ô nhập liệu khi bị lỗi
     private void ShakeInputField(TMP_InputField inputField)
     {
         if (inputField == null) return;

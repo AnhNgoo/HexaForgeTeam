@@ -23,6 +23,8 @@ public class RunManager : MonoBehaviour
     private int pendingShards;
     private bool isRunActive = false;
 
+    public bool IsRunActive => isRunActive;
+
     [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
 
     public PoolType SelectedFinalBossPool => selectedFinalBossPool;
@@ -202,6 +204,11 @@ public class RunManager : MonoBehaviour
             UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetMapType(MapType.Boss);
+        }
+
         yield return new WaitForSecondsRealtime(0.2f);
 
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
@@ -295,6 +302,11 @@ public class RunManager : MonoBehaviour
             UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
         }
 
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetMapType(MapType.Run);
+        }
+
         yield return new WaitForSecondsRealtime(0.2f);
 
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
@@ -342,6 +354,7 @@ public class RunManager : MonoBehaviour
             LoadingUIManager.Instance.SetDestinationName(targetLobbyScene);
         }
 
+        // Dỡ sạch sẽ tất cả Scene Gameplay (kể cả Map 2: RunGameTrung(1) và Boss)
         yield return StartCoroutine(UnloadAllOldGameplayScenes());
 
         float duration = Random.Range(5.0f, 7.0f);
@@ -354,6 +367,12 @@ public class RunManager : MonoBehaviour
         if (lobbyScene.IsValid())
         {
             SceneManager.SetActiveScene(lobbyScene);
+        }
+
+        // CỐ ĐỊNH LẠI MAP TYPE LÀ LOBBY
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetMapType(MapType.Lobby);
         }
 
         if (lobbyVisuals != null)
@@ -386,7 +405,11 @@ public class RunManager : MonoBehaviour
 
         if (LeaderboardManager.Instance != null) LeaderboardManager.Instance.UpdateAllStatistics();
 
-        if (UIManager.Instance != null) UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+        // CHUYỂN MENU VỀ LOBBY CHUẨN
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+        }
 
         gameplaySceneName = "";
 
@@ -424,6 +447,7 @@ public class RunManager : MonoBehaviour
         {
             if (s.IsValid() && s.isLoaded)
             {
+                Debug.Log($"<color=orange>[RunManager] Unloading Residual Scene: {s.name}</color>");
                 AsyncOperation un = SceneManager.UnloadSceneAsync(s);
                 while (un != null && !un.isDone) yield return null;
             }
