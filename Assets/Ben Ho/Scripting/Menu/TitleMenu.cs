@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -6,40 +7,16 @@ using UnityEngine.UI;
 public class TitleMenu : MenuBase
 {
     public override MenuType menuType => MenuType.TitleMenu;
-
     [SerializeField] private Button btn_Play;
     [SerializeField] private Button btn_Credits;
     [SerializeField] private Button btn_Settings;
+    [SerializeField] private Button btn_Help;
+    [SerializeField] private Button btn_Language;
     [SerializeField] private Button btn_Logout;
 
     private void Start()
     {
         EventManager.Subscribe(GameEvent.OnTestEventFromOtherToMenu, OnTestEventFromOtherToMenu);
-
-        // Đăng ký sự kiện Nút bấm 1 lần duy nhất ở Start để tránh trùng lặp Event
-        if (btn_Play != null)
-        {
-            btn_Play.onClick.RemoveAllListeners();
-            btn_Play.onClick.AddListener(OnPlayButtonClicked);
-        }
-
-        if (btn_Credits != null)
-        {
-            btn_Credits.onClick.RemoveAllListeners();
-            btn_Credits.onClick.AddListener(OnCreditsButtonClicked);
-        }
-
-        if (btn_Settings != null)
-        {
-            btn_Settings.onClick.RemoveAllListeners();
-            btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
-        }
-
-        if (btn_Logout != null)
-        {
-            btn_Logout.onClick.RemoveAllListeners();
-            btn_Logout.onClick.AddListener(OnLogoutButtonClicked);
-        }
     }
 
     private void OnDestroy()
@@ -55,70 +32,92 @@ public class TitleMenu : MenuBase
             btn_Credits = transform.Find("Btn_Credits")?.GetComponent<Button>();
         if (btn_Settings == null)
             btn_Settings = transform.Find("Btn_Settings")?.GetComponent<Button>();
+        if (btn_Language == null)
+            btn_Language = transform.Find("Btn_Language")?.GetComponent<Button>();
+        if (btn_Help == null)
+            btn_Help = transform.Find("Btn_Help")?.GetComponent<Button>();
         if (btn_Logout == null)
             btn_Logout = transform.Find("Btn_Logout")?.GetComponent<Button>();
     }
 
     protected override void LoadComponentRuntime()
     {
+        EnsureHoverEffects();
     }
 
     public override void Open(object data = null)
     {
         base.Open(data);
+        EnsureHoverEffects();
+        btn_Play.onClick.AddListener(OnPlayButtonClicked);
+        btn_Credits.onClick.AddListener(OnCreditsButtonClicked);
+        btn_Settings.onClick.AddListener(OnSettingsButtonClicked);
+        btn_Language.onClick.AddListener(OnLanguageButtonClicked);
+        if (btn_Help != null)
+            btn_Help.onClick.AddListener(OnHelpButtonClicked);
+        if (btn_Logout != null)
+            btn_Logout.onClick.AddListener(OnLogoutButtonClicked);
+    }
+
+    private void EnsureHoverEffects()
+    {
+        AddHoverEffect(btn_Play);
+        AddHoverEffect(btn_Credits);
+        AddHoverEffect(btn_Settings);
+        AddHoverEffect(btn_Help);
+        AddHoverEffect(btn_Language);
+        AddHoverEffect(btn_Logout);
+    }
+
+    private static void AddHoverEffect(Button button)
+    {
+        if (button == null)
+            return;
+
+        ButtonHoverUnderline hover = button.GetComponent<ButtonHoverUnderline>();
+
+        if (hover == null)
+            hover = button.gameObject.AddComponent<ButtonHoverUnderline>();
+
+        hover.Configure();
     }
 
     public override void Close()
     {
         base.Close();
+        btn_Play.onClick.RemoveListener(OnPlayButtonClicked);
+        btn_Credits.onClick.RemoveListener(OnCreditsButtonClicked);
+        btn_Settings.onClick.RemoveListener(OnSettingsButtonClicked);
+        btn_Language.onClick.RemoveListener(OnLanguageButtonClicked);
+        if (btn_Help != null)
+            btn_Help.onClick.RemoveListener(OnHelpButtonClicked);
+
+        if (btn_Logout != null)
+            btn_Logout.onClick.RemoveListener(OnLogoutButtonClicked);
     }
 
-    // Button callback stubs
     private void OnPlayButtonClicked()
     {
         Time.timeScale = 1f;
 
         GameSaveData saveData = SaveLoadManager.Instance?.SaveData;
+        GameSceneData sceneData = GameSceneData.Instance;
 
-        // BẮT BỘC DÙNG GetSceneName(...) ĐỂ LẤY ĐÚNG CONFIG OVERRIDE CÁ NHÂN (VD: LobbyMainGameTrung)
-        string targetScene = (saveData != null && saveData.isTutorialCompleted)
-            ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain)
-            : GameSceneData.Instance.GetSceneName(SceneType.Tutorial);
+        string targetLobbyScene = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.LobbyMain) 
+            : "LobbyMain Scene";
 
-        Debug.Log($"<color=#00FFCC>[TitleMenu Play] Đang chuyển hướng tới Scene: {targetScene}</color>");
+        string targetTutorialScene = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.Tutorial) 
+            : "Tutorial Scene";
 
-        StartCoroutine(PlayTransitionRoutine(targetScene));
-    }
+        // Gán chính xác tên Scene đã override
+        LoadingData.TargetSceneName =
+            saveData?.isTutorialCompleted == true
+                ? targetLobbyScene
+                : targetTutorialScene;
 
-    private IEnumerator PlayTransitionRoutine(string targetSceneName)
-    {
-        string loadingSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.Loading) 
-            : "Loading Scene";
-
-        // 1. Load Additive Loading Scene
-        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
-        while (!loadLoading.isDone) yield return null;
-
-        yield return new WaitForSecondsRealtime(0.1f);
-
-        if (LoadingUIManager.Instance != null)
-        {
-            LoadingUIManager.Instance.SetDestinationName(targetSceneName);
-        }
-
-        // 2. Load Scene mục tiêu ngầm
-        AsyncOperation loadTarget = SceneManager.LoadSceneAsync(targetSceneName, LoadSceneMode.Single);
-        loadTarget.allowSceneActivation = false;
-
-        if (LoadingUIManager.Instance != null)
-        {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget));
-        }
-
-        // 3. Kích hoạt Scene mục tiêu
-        loadTarget.allowSceneActivation = true;
-        while (!loadTarget.isDone) yield return null;
+        UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }
 
     private void OnLogoutButtonClicked()
@@ -146,12 +145,14 @@ public class TitleMenu : MenuBase
 
     private IEnumerator LogoutTransitionRoutine()
     {
-        string loginSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.Login) 
+        GameSceneData sceneData = GameSceneData.Instance;
+
+        string loginSceneName = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.Login) 
             : "Login Scene";
-            
-        string loadingSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.Loading) 
+
+        string loadingSceneName = sceneData != null 
+            ? sceneData.GetSceneName(SceneType.Loading) 
             : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
@@ -174,6 +175,13 @@ public class TitleMenu : MenuBase
 
         loadLogin.allowSceneActivation = true;
         while (!loadLogin.isDone) yield return null;
+
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
+        if (loadingScene.isLoaded)
+        {
+            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
+            while (!unloadLoading.isDone) yield return null;
+        }
     }
 
     private void OnHelpButtonClicked()
@@ -184,6 +192,7 @@ public class TitleMenu : MenuBase
 
     private void OnCreditsButtonClicked()
     {
+        UIManager.Instance.ChangeMenu(MenuType.CreditsMenu);
     }
 
     private void OnSettingsButtonClicked()

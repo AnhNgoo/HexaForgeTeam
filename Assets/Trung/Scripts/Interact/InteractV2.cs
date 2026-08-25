@@ -47,6 +47,20 @@ public class InteractV2 : MonoBehaviour
         }
     }
 
+    private void OnTriggerStay(Collider other)
+    {
+        if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
+
+        if (!playerInside)
+        {
+            playerInside = true;
+            if (InteractManagerV2.Instance != null)
+            {
+                InteractManagerV2.Instance.Register(this);
+            }
+        }
+    }
+
     private void OnTriggerExit(Collider other)
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
@@ -61,48 +75,44 @@ public class InteractV2 : MonoBehaviour
 
     #region Execute
     public virtual void Execute()
-{
-    if (!playerInside || (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy))
     {
-        return;
-    }
-
-    NPCDialogue dialogue = GetComponent<NPCDialogue>();
-    if (dialogue != null)
-    {
-        if (DialogueUI.Instance != null)
+        if (!playerInside || (InteractManagerV2.Instance != null && InteractManagerV2.Instance.IsBusy))
         {
-            DialogueUI.Instance.Show(dialogue.GetDialogue());
+            return;
         }
-        return;
-    }
 
-    if (openPanel)
-    {
-        if (InteractManagerV2.Instance != null)
+        NPCDialogue dialogue = GetComponent<NPCDialogue>();
+        if (dialogue != null)
         {
-            InteractManagerV2.Instance.IsBusy = true;
-            if (InteractUIV2.Instance != null)
+            if (DialogueUI.Instance != null)
             {
-                InteractUIV2.Instance.Hide();
+                DialogueUI.Instance.Show(dialogue.GetDialogue());
             }
+            return;
         }
 
-        if (InteractManagerV2.Instance != null)
+        if (openPanel)
         {
-            InteractManagerV2.Instance.Unregister(this);
+            if (InteractManagerV2.Instance != null)
+            {
+                InteractManagerV2.Instance.IsBusy = true;
+                if (InteractUIV2.Instance != null)
+                {
+                    InteractUIV2.Instance.Hide();
+                }
+                InteractManagerV2.Instance.Unregister(this);
+            }
+
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ChangeMenu(menuType);
+            }
+
+            return;
         }
 
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(menuType);
-        }
-
-        return;
+        SendMessage("OnInteract", SendMessageOptions.DontRequireReceiver);
     }
-
-    SendMessage("OnInteract", SendMessageOptions.DontRequireReceiver);
-}
     #endregion
 
     #region Selected
@@ -135,6 +145,7 @@ public class InteractV2 : MonoBehaviour
 
     private void OnDisable()
     {
+        playerInside = false;
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.Unregister(this);
@@ -143,6 +154,7 @@ public class InteractV2 : MonoBehaviour
 
     private void OnDestroy()
     {
+        playerInside = false;
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.Unregister(this);

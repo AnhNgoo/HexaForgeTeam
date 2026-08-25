@@ -7407,12 +7407,9 @@ MonoBehaviour:
   myDetailText: {fileID: 1957112104}
   content: {fileID: 1827062629}
   leaderboardItemPrefab: {fileID: 738889021910609643, guid: 57f3656a9226b0d4089e9d70fddd5c76, type: 3}
-  tabPowerBtn: {fileID: 1941761510}
-  tabAchievementBtn: {fileID: 1788856124}
-  tabHuntBtn: {fileID: 92445052}
-  tabRunBtn: {fileID: 26590174}
-  selectedColor: {r: 1, g: 1, b: 1, a: 0.5}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  tabItems: []
+  normalTextColor: {r: 1, g: 1, b: 1, a: 1}
+  selectedTextColor: {r: 1, g: 0.85, b: 0.2, a: 1}
 --- !u!1 &162671617
 GameObject:
   m_ObjectHideFlags: 0
@@ -10451,11 +10448,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 379216288200376991, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 379216288200376991, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 379216288200376991, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -10491,7 +10488,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1633557721039443798, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1645662340139031533, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMax.x
@@ -10703,11 +10700,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5718991577480250557, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5718991577480250557, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5718991577480250557, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -10747,11 +10744,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6768940312490534938, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6768940312490534938, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6768940312490534938, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -10783,11 +10780,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8132240942561197094, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8132240942561197094, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8132240942561197094, guid: 55a66a2517c886944afc6854c0577c1f, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -58921,12 +58918,21 @@ MonoBehaviour:
   root: {fileID: 75712718}
   npcNameText: {fileID: 2040793876}
   dialogueText: {fileID: 1606441692}
-  choice1Button: {fileID: 1271907126}
-  choice2Button: {fileID: 939771962}
-  choice3Button: {fileID: 546508394}
-  choice1Text: {fileID: 1930912626}
-  choice2Text: {fileID: 734522270}
-  choice3Text: {fileID: 1510091709}
+  choice1Tab:
+    button: {fileID: 0}
+    selectedLine: {fileID: 0}
+    text: {fileID: 0}
+    trigger: {fileID: 0}
+  choice2Tab:
+    button: {fileID: 0}
+    selectedLine: {fileID: 0}
+    text: {fileID: 0}
+    trigger: {fileID: 0}
+  choice3Tab:
+    button: {fileID: 0}
+    selectedLine: {fileID: 0}
+    text: {fileID: 0}
+    trigger: {fileID: 0}
   textSpeedPerChar: 0.03
 --- !u!114 &1497945105
 MonoBehaviour:
@@ -96361,6 +96367,16 @@ MonoBehaviour:
       CritDamage: 0
       ArmorPenetration: 0
       StaminaRegen: 0
+  currentRuneAndAccountStats:
+    maxHealth: 0
+    speed: 0
+    damage: 0
+    defense: 0
+    poisonDamage: 0
+    stamina: 0
+    staminaRegen: 0
+    mp: 0
+    mpRegen: 0
 --- !u!224 &6348816553655716049
 RectTransform:
   m_ObjectHideFlags: 0
