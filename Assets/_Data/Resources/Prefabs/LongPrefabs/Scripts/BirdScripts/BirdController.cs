@@ -29,17 +29,17 @@ public class BirdController : MonoBehaviour
         if (isFlying || isDropping || player != null)
             return;
 
-        if (character == null ||
-            grabPoint == null ||
-            destination == null)
-        {
-            Debug.LogError(
-                "BirdController đang thiếu Player, GrabPoint hoặc Destination!",
-                this
-            );
+        // if (character == null ||
+        //     grabPoint == null ||
+        //     destination == null)
+        // {
+        //     Debug.LogError(
+        //         "BirdController đang thiếu Player, GrabPoint hoặc Destination!",
+        //         this
+        //     );
 
-            return;
-        }
+        //     return;
+        // }
 
         player = character;
         playerReleased = false;

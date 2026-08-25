@@ -72,6 +72,10 @@ public class WorldMapPanel : MonoBehaviour,
     [SerializeField] private bool rightClickToClearPing = true;
 
     [Header("Pan")]
+    // IMPORTANT:
+    // The parent of mapContent must be the fixed square viewport.
+    // Add a RectMask2D component to that parent so zoomed map content
+    // is visually clipped inside the square instead of overflowing.
     [SerializeField] private bool allowLeftMousePan = true;
     [SerializeField] private bool allowMiddleMousePan = true;
     [SerializeField] private bool clampMapInsideView = true;
@@ -98,6 +102,9 @@ public class WorldMapPanel : MonoBehaviour,
         if (markerRoot == null)
             markerRoot = mapContent;
 
+        // The zoom/pan math assumes the map is centered in its viewport.
+        // Set MapContent pivot/anchors to the center in the Inspector:
+        // Pivot = (0.5, 0.5), Anchors = center, Position = (0, 0).
         CacheMarkerBaseScale(playerMarker);
         CacheMarkerBaseScale(pingMarker);
     }
@@ -333,11 +340,10 @@ public class WorldMapPanel : MonoBehaviour,
 
         float safeZoom = Mathf.Max(currentZoom, Mathf.Epsilon);
 
-        // The marker already inherits one zoom factor from MapContent. Dividing
-        // its local scale by zoom squared makes its final on-screen size change
-        // inversely: zooming the map in shrinks the marker, and vice versa.
+        // Marker inherits the map zoom, so divide by ONE zoom factor
+        // to keep the marker at a constant on-screen size.
         float scaleDivisor = inheritsMapScale
-            ? safeZoom * safeZoom
+            ? safeZoom
             : 1f;
 
         marker.localScale = baseScale / scaleDivisor;
@@ -489,30 +495,35 @@ public class WorldMapPanel : MonoBehaviour,
         if (!clampMapInsideView || mapContent == null)
             return;
 
-        RectTransform viewport =
-            mapContent.parent as RectTransform;
+        RectTransform viewport = mapContent.parent as RectTransform;
 
         if (viewport == null)
             return;
 
-        Vector2 contentSize =
-            mapContent.rect.size * currentZoom;
+        // MapContent is expected to be centered in the viewport:
+        // anchors = center, pivot = (0.5, 0.5), anchoredPosition = map offset.
+        Vector2 viewportSize = viewport.rect.size;
+        Vector2 mapSize = Vector2.Scale(mapContent.rect.size, Vector2.one * currentZoom);
 
-        Vector2 viewportSize =
-            viewport.rect.size;
-
-        Vector2 maxOffset = new Vector2(
-            Mathf.Max(0f, (contentSize.x - viewportSize.x) * 0.5f),
-            Mathf.Max(0f, (contentSize.y - viewportSize.y) * 0.5f)
+        // If the map is smaller than the viewport, keep it centered.
+        // If it is larger, allow panning but never reveal empty space.
+        Vector2 halfExcess = new Vector2(
+            Mathf.Max(0f, (mapSize.x - viewportSize.x) * 0.5f),
+            Mathf.Max(0f, (mapSize.y - viewportSize.y) * 0.5f)
         );
 
         Vector2 position = mapContent.anchoredPosition;
 
-        position.x =
-            Mathf.Clamp(position.x, -maxOffset.x, maxOffset.x);
+        position.x = Mathf.Clamp(position.x, -halfExcess.x, halfExcess.x);
+        position.y = Mathf.Clamp(position.y, -halfExcess.y, halfExcess.y);
 
-        position.y =
-            Mathf.Clamp(position.y, -maxOffset.y, maxOffset.y);
+        // At small zoom levels the map is smaller than the viewport,
+        // so prevent it from drifting away from the center.
+        if (mapSize.x <= viewportSize.x)
+            position.x = 0f;
+
+        if (mapSize.y <= viewportSize.y)
+            position.y = 0f;
 
         mapContent.anchoredPosition = position;
     }
