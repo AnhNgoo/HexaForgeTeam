@@ -18,13 +18,18 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
     [SerializeField] private SafeZone safeZone;
     public SafeZone SafeZone => safeZone;
     [SerializeField][InlineEditor()] private SafeZoneData safeZoneData;
+    public SafeZoneData SafeZoneData => safeZoneData;
     [SerializeField] private List<Transform> targetCenterPoints = new List<Transform>();
     [SerializeField] private bool autoStartOnPlay = true;
     [SerializeField] private float resetAfterBossDelay = 1f;
-    public bool IsSafeZoneCompleted { get; private set; } = false;
+    public bool IsSafeZoneCompleted { get; private set; } = false; // Khi vòng bo đã hoàn tất tất cả các phase, không còn phase nào nữa
     public bool IsActiveSafeZone { get; private set; } = false; //Khi kích hoạt vật thể mới bị bo đốt
+    public bool IsFinalSafeZone =>
+        safeZoneData?.safeZoneStats != null &&
+        safeZoneData.safeZoneStats.Count > 0 &&
+        CurrentPhaseIndex >= safeZoneData.safeZoneStats.Count;
 
-    public int CurrentPhaseIndex { get; private set; }
+    public int CurrentPhaseIndex { get; private set; } // Khi vòng bo đang ở phase nào, bắt đầu từ 0, khi hoàn tất phase cuối cùng thì CurrentPhaseIndex = safeZoneData.safeZoneStats.Count
     private Transform currentTargetCenterPoint;
     private readonly System.Random pointRandom = new System.Random(Guid.NewGuid().GetHashCode());
     [ReadOnly, SerializeField] private List<Transform> usedTargetCenterPoints = new();
@@ -46,6 +51,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
     public async UniTaskVoid StartSafeZoneFlow(bool skipDelay = false)
     {
+        EventManager.Notify(GameEvent.OnStartSafeZone);
         CreateSafeZone();
 
         if (safeZoneData == null || safeZoneData.safeZoneStats == null)
@@ -66,6 +72,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
         IsSafeZoneCompleted = true;
         OnSafeZonePhaseCompleted?.Invoke(CurrentPhaseIndex, currentTargetCenterPoint);
+        EventManager.Notify(GameEvent.OnFinalSafeZoneCompleted);
     }
 
     [Button("Step 1: Create Safe Zone")]

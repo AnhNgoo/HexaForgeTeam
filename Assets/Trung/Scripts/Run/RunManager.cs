@@ -331,10 +331,10 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        if (PlayerManager.Instance != null)
-        {
-            PlayerManager.Instance.SpawnCharacterInLobby();
-        }
+        // if (PlayerManager.Instance != null)
+        // {
+        //     PlayerManager.Instance.SpawnCharacterInLobby();
+        // }
 
         if (GoldManager.Instance != null) GoldManager.Instance.ResetGold();
 

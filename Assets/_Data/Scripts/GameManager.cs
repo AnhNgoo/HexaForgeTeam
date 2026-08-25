@@ -42,9 +42,13 @@ public class GameManager : Singleton<GameManager>
         {
             InitInLobby();
         }
-        else if (currentMapType == MapType.Run || currentMapType == MapType.Boss || currentMapType == MapType.Tutorial)
+        else if (currentMapType == MapType.Run || currentMapType == MapType.Tutorial)
         {
             InitInRun();
+        }
+        else if (currentMapType == MapType.Boss)
+        {
+            InitInBoss();
         }
         else
         {
@@ -65,6 +69,19 @@ public class GameManager : Singleton<GameManager>
     {
         UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
         PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
+        PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false); // Khi mới vào run không giới hạn số lần respawn
+    }
+
+    private void InitInBoss()
+    {
+        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
+
+        // Nếu ở map run nhân vật chưa chết lần nào khi bo cuối thì nhân vật sẽ được respawn ở map boss + thêm 1 lần
+        if (PlayerManager.Instance.CurrentRespawnAttempts == PlayerManager.Instance.MaxRespawnAttemptsInFinalSafeZone)
+            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss + 1, limitRespawnAttempts: true);
+        else
+            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss, limitRespawnAttempts: true);
     }
 
     public void SetMapType(MapType mapType)
