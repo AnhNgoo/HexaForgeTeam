@@ -21,7 +21,6 @@ public class PickUpWeapon : InteractBase, IPoolable
         if (weaponData != null)
         {
             WeaponInventorySystem.Instance.AddWeapon(weaponData);
-            EventManager.Notify(GameEvent.OnHidePickUpItemPanel);
             InteractionManager.Instance?.UnregisterInteractable(this);
             ObjectPooling.Instance.ReturnToPool(PoolType, gameObject);
             ObjectPooling.Instance.SpawnFromPool(PoolType.PickedUpItemEffect, transform.position + new Vector3(0, -0.5f, 0), Quaternion.identity);
