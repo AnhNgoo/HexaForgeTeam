@@ -23,12 +23,15 @@ public class RunGameplayController : MonoBehaviour
 
     private void Awake()
     {
-        Instance = this;
-    }
-
-    private void OnEnable()
-    {
-        ResetStats();
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
     }
 
     private void OnDisable()
@@ -50,12 +53,10 @@ public class RunGameplayController : MonoBehaviour
         TimeElapsed += Time.deltaTime;
         ScanAndRegisterEnemies();
 
-        // Phím = test nhanh Win
         if (Input.GetKeyDown(KeyCode.Equals))
         {
             OnSkipRunPressed(true);
         }
-        // Phím - test nhanh Loss
         if (Input.GetKeyDown(KeyCode.Minus))
         {
             OnSkipRunPressed(false);
@@ -120,6 +121,7 @@ public class RunGameplayController : MonoBehaviour
         if (!enemy.Data.isBoss)
         {
             NormalKilled++;
+            if (RunManager.Instance != null) RunManager.Instance.AddKillCount(1, 0, 0, 0);
         }
         else
         {
@@ -127,15 +129,17 @@ public class RunGameplayController : MonoBehaviour
             {
                 case EnemyBossCategory.Miniboss:
                     EliteKilled++;
+                    if (RunManager.Instance != null) RunManager.Instance.AddKillCount(0, 1, 0, 0);
                     break;
 
                 case EnemyBossCategory.TwilightTerror:
                     BossKilled++;
+                    if (RunManager.Instance != null) RunManager.Instance.AddKillCount(0, 0, 1, 0);
                     break;
 
                 case EnemyBossCategory.FinalBoss:
                     FinalBossKilled++;
-                    Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED! KÍCH HOẠT PANEL WIN!</color>");
+                    if (RunManager.Instance != null) RunManager.Instance.AddKillCount(0, 0, 0, 1);
                     TriggerEndRun(true);
                     break;
             }
@@ -161,11 +165,22 @@ public class RunGameplayController : MonoBehaviour
         if (this == null) return;
         StopAllCoroutines();
 
-        MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
+        int normal = NormalKilled;
+        int elite = EliteKilled;
+        int boss = BossKilled;
+        int finalBoss = FinalBossKilled;
+
+        if (RunManager.Instance != null)
+        {
+            normal = Mathf.Max(normal, RunManager.Instance.TotalNormalKilled);
+            elite = Mathf.Max(elite, RunManager.Instance.TotalEliteKilled);
+            boss = Mathf.Max(boss, RunManager.Instance.TotalBossKilled);
+            finalBoss = Mathf.Max(finalBoss, RunManager.Instance.TotalFinalBossKilled);
+        }
 
         if (RunResultSummary.Instance != null)
         {
-            RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);
+            RunResultSummary.Instance.DisplaySummary(normal, elite, boss, finalBoss, isVictory);
         }
     }
 
@@ -182,12 +197,7 @@ public class RunGameplayController : MonoBehaviour
     {
         if (Application.isPlaying && RunManager.Instance != null)
         {
-            Debug.Log("<color=yellow>[Cheat/Skip] Chuyển thẳng vào Final Boss Map!</color>");
             RunManager.Instance.EnterFinalBoss();
-        }
-        else
-        {
-            Debug.LogWarning("Chỉ có thể bấm Skip khi đang chạy game (Play Mode)!");
         }
     }
 }
