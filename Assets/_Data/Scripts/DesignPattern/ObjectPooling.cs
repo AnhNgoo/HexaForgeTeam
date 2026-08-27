@@ -73,6 +73,7 @@ public enum PoolType
     SpawnCharacterEffect = 103,
     PickedUpItemEffect = 104,
     LevelUpEffect = 105,
+    GoldFalling = 106,
     EnemyBruteBoss = 1001,
     EnemyVenomousQueenBoss = 1002,
     EnemyNightStalkerBoss = 1003,
@@ -95,7 +96,17 @@ public enum PoolType
     EarthshakerSandBreath = 1104,
     EarthshakerCrackTelegraph = 1105,
     EarthshakerCrackEruption = 1106,
+    DarkMageBurrowTelegraph = 1107,
+    DarkMageRitualTelegraph = 1108,
+    DarkMageRitualPillar = 1109,
+    DarkMageMeteorTelegraph = 1110,
+    DarkMageMeteorStrike = 1111,
+    DarkMageLaserBeam = 1112,
     TutorialSafeZone = 2001,
+    DormantPowerDropVFX = 3101,
+    DormantPowerFlickerVFX = 3102,
+    DormantPowerPickupVFX = 3103,
+
 
 }
 
