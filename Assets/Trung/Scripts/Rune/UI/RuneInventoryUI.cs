@@ -504,6 +504,7 @@ public class RuneInventoryUI : MonoBehaviour
 
         card.gameObject.SetActive(true);
         card.Setup(runeData, false);
+        card.SetDisableTooltip(true);
 
         bool isSel = isSelectModeActive ? selectedRuneIDs.Contains(runeData.runeID) : (lockedSelectedRuneData != null && lockedSelectedRuneData.runeID == runeData.runeID);
         card.SetSelectedDirect(isSel);

@@ -26,11 +26,6 @@ public class CharacterManager : MonoBehaviour
 
     private void Start()
     {
-        if (PlayerManager.Instance != null)
-        {
-            PlayerManager.Instance.SpawnCharacterInLobby();
-        }
-
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.ForceUnlockState();

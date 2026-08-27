@@ -32,6 +32,7 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
     public void Init(CharacterWeapon characterWeapon)
     {
         this.characterWeapon = characterWeapon;
+        DiscardAllWeapons();
         EventManager.Notify(GameEvent.OnUpdateDisplayWeapon, null);
     }
 
@@ -40,7 +41,7 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         if (isSelectingRewardReplacement)
             return;
 
-        if (InputManager.InputActions.Keyboard.Discard.triggered && UIManager.Instance.CurrentMenuType == MenuType.InventoryMenu)
+        if (InputManager.InputActions.Keyboard.Discard.triggered && (UIManager.Instance.CurrentMenuType == MenuType.InventoryMenu || UIManager.Instance.CurrentMenuType == MenuType.GameSystemMenu))
         {
             if (indexWeaponSelectedInInventory != -1)
             {
@@ -234,6 +235,16 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         EventManager.Notify(GameEvent.OnDiscardItemInInventory, index);
     }
 
+    private void DiscardAllWeapons()
+    {
+        for (int i = 0; i < weaponSlots.Count; i++)
+        {
+            if (weaponSlots[i] != null)
+            {
+                DiscardWeapon(i);
+            }
+        }
+    }
     // Đặt vũ khí được chọn trong menu Inventory, có thể khác với vũ khí đang được trang bị
     private void SetWeaponSelectedInInventory(object obj)
     {

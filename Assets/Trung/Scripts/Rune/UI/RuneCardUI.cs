@@ -56,6 +56,7 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     [SerializeField] private Sprite blueRareSprite;
     [SerializeField] private Sprite blueEpicSprite;
     [SerializeField] private Sprite blueLegendarySprite;
+    [SerializeField] private bool disableTooltip = false;
 
     private RuneData currentRuneData;
 
@@ -188,6 +189,8 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
         {
             RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
         }
+
+        if (disableTooltip) return;
 
         if (UITooltipPanel.Instance != null)
         {
@@ -599,5 +602,9 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     public void StartInternalReveal()
     {
         if (!isRevealed && !isAnimating) StartDOTweenRevealAnimation();
+    }
+    public void SetDisableTooltip(bool disable)
+    {
+        disableTooltip = disable;
     }
 }

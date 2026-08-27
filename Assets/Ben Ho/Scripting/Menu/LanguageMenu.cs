@@ -19,50 +19,37 @@ public class LanguageMenu : MenuBase
     [SerializeField] private TMP_Text txt_Vietnamese;
 
     private int selectedLanguage = 0;
-    // 0 = English
-    // 1 = Vietnamese
     
     [SerializeField] private Image englishFrame;
     [SerializeField] private Image vietnameseFrame;
 
-    private readonly Color selectedColor =
-        new Color32(255, 210, 80, 255);
+    private readonly Color selectedColor = new Color32(255, 210, 80, 255);
+    private readonly Color normalColor = Color.white;
 
-    private readonly Color normalColor =
-        Color.white;
-
-    protected override void LoadComponent()
-    {
-
-    }
-
-    protected override void LoadComponentRuntime()
-    {
-
-    }
+    protected override void LoadComponent() { }
+    protected override void LoadComponentRuntime() { }
 
     public override void Open(object data = null)
     {
         base.Open(data);
 
         selectedLanguage = PlayerPrefs.GetInt("LANGUAGE", 0);
+        
+        // Cập nhật UI ngay khi mở
+        UpdateButtonState();
+        RefreshUI();
 
         btn_English.onClick.AddListener(SelectEnglish);
         btn_Vietnamese.onClick.AddListener(SelectVietnamese);
-
         btn_Confirm.onClick.AddListener(OnConfirmClicked);
         btn_Cancel.onClick.AddListener(OnCancelClicked);
-
-        UpdateButtonState();
     }
 
     public override void Close()
     {
         base.Close();
-
         btn_English.onClick.RemoveAllListeners();
         btn_Vietnamese.onClick.RemoveAllListeners();
-
         btn_Confirm.onClick.RemoveAllListeners();
         btn_Cancel.onClick.RemoveAllListeners();
     }
@@ -71,31 +58,31 @@ public class LanguageMenu : MenuBase
     {
         selectedLanguage = 0;
         UpdateButtonState();
+        RefreshUI();
     }
 
     private void SelectVietnamese()
     {
         selectedLanguage = 1;
         UpdateButtonState();
+        RefreshUI();
     }
 
     private void RefreshUI()
     {
         if (txt_English != null)
-            txt_English.color =
-                selectedLanguage == 0
-                ? selectedColor
-                : normalColor;
+            txt_English.color = selectedLanguage == 0 ? selectedColor : normalColor;
 
         if (txt_Vietnamese != null)
-            txt_Vietnamese.color =
-                selectedLanguage == 1
-                ? selectedColor
-                : normalColor;
+            txt_Vietnamese.color = selectedLanguage == 1 ? selectedColor : normalColor;
     }
 
     private void OnConfirmClicked()
     {
+        // QUAN TRỌNG: Lưu ngôn ngữ
+        PlayerPrefs.SetInt("LANGUAGE", selectedLanguage);
+        PlayerPrefs.Save();
+        
         string localeCode = selectedLanguage == 0 ? "en" : "vi-VN";
         StartCoroutine(ApplyLanguageAndClose(localeCode));
     }
@@ -104,8 +91,7 @@ public class LanguageMenu : MenuBase
     {
         yield return LocalizationSettings.InitializationOperation;
 
-        var locale =
-            LocalizationSettings.AvailableLocales.GetLocale(localeCode);
+        var locale = LocalizationSettings.AvailableLocales.GetLocale(localeCode);
 
         if (locale == null)
         {
@@ -114,7 +100,6 @@ public class LanguageMenu : MenuBase
         }
 
         LocalizationSettings.SelectedLocale = locale;
-
         UIManager.Instance.ChangeMenu(MenuType.TitleMenu);
     }
 
@@ -125,7 +110,10 @@ public class LanguageMenu : MenuBase
 
     private void UpdateButtonState()
     {
-        englishFrame.enabled = selectedLanguage == 0;
-        vietnameseFrame.enabled = selectedLanguage == 1;
+        if (englishFrame != null)
+            englishFrame.enabled = selectedLanguage == 0;
+            
+        if (vietnameseFrame != null)
+            vietnameseFrame.enabled = selectedLanguage == 1;
     }
 }
