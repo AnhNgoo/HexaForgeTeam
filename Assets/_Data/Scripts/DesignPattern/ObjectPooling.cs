@@ -102,6 +102,10 @@ public enum PoolType
     DarkMageMeteorStrike = 1111,
     DarkMageLaserBeam = 1112,
     TutorialSafeZone = 2001,
+    DormantPowerDropVFX = 3101,
+    DormantPowerFlickerVFX = 3102,
+    DormantPowerPickupVFX = 3103,
+
 
 }
 

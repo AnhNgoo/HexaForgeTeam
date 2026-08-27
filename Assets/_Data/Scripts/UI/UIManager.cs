@@ -32,6 +32,7 @@ public enum MenuType
     AchievementMenu = 19,
     CreditsMenu = 20,
     PlayerStateMenu = 21,
+    DormantPowerMenu = 48,
 
     LobbyCharacterMenu = 100,
     LobbyRuneInventoryMenu = 101,

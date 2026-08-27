@@ -15,6 +15,7 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
     public int CurrentWeaponIndex => currentWeaponIndex;
     [SerializeField] private int indexWeaponSelectedInInventory; // Vũ khí đang được chọn trong menu Inventory, có thể khác với vũ khí đang được trang bị
     [SerializeField] private Vector2 forceDropItem = new Vector2(1f, 2f);
+    private bool isSelectingRewardReplacement;
 
     protected override void Awake()
     {
@@ -36,6 +37,9 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
 
     private void Update()
     {
+        if (isSelectingRewardReplacement)
+            return;
+
         if (InputManager.InputActions.Keyboard.Discard.triggered && UIManager.Instance.CurrentMenuType == MenuType.InventoryMenu)
         {
             if (indexWeaponSelectedInInventory != -1)
@@ -45,10 +49,24 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
             }
         }
     }
+
+    public void SetRewardReplacementMode(bool active)
+    {
+        isSelectingRewardReplacement = active;
+        indexWeaponSelectedInInventory = -1;
+    }
+
     [Button("Add Weapon")]
     public void AddWeapon(WeaponData weaponData)
     {
         int emptySlotIndex = GetFirstEmptySlotIndex();
+
+        if (weaponData == null || emptySlotIndex < 0)
+        {
+            Debug.LogWarning("Weapon inventory đã đầy hoặc reward không hợp lệ.");
+            return;
+        }
+
 
         // Kiểm tra nếu đang dùng vũ khí, thì chỉ thêm vào danh sách mà không trang bị
         if (currentWeaponIndex != -1)
@@ -79,16 +97,130 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         Debug.Log($"Added and equipped {weaponData.name} to inventory at slot {emptySlotIndex}.");
     }
 
+    public bool TryAddWeapon(WeaponData weaponData)
+    {
+        if (weaponData == null || !CheckEmptyWeaponSlots())
+            return false;
+
+        AddWeapon(weaponData);
+        return true;
+    }
+
+    public bool TryReplaceWeapon(int slotIndex, WeaponData rewardWeapon)
+    {
+        if (rewardWeapon == null || characterWeapon == null || slotIndex < 0 || slotIndex >= weaponSlots.Count)
+        {
+            return false;
+        }
+
+        WeaponData oldWeapon = weaponSlots[slotIndex];
+
+        if (oldWeapon == null)
+            return TryAddWeapon(rewardWeapon);
+
+        // Spawn thành công rồi mới xóa weapon cũ.
+        if (!TrySpawnWeaponPickup(oldWeapon))
+            return false;
+
+        bool wasEquipped = currentWeaponIndex == slotIndex || characterWeapon.CurrentWeapon == oldWeapon;
+
+        if (wasEquipped) characterWeapon.UnequipWeapon();
+
+        weaponSlots[slotIndex] = rewardWeapon;
+
+        EventManager.Notify(GameEvent.OnDiscardItemInInventory, slotIndex);
+        EventManager.Notify(GameEvent.OnAddWeaponToInventory, new ItemSLotData
+        {
+            itemData = rewardWeapon,
+            index = slotIndex
+        });
+
+        if (wasEquipped)
+        {
+            characterWeapon.EquipWeapon(rewardWeapon);
+            currentWeaponIndex = slotIndex;
+            EventManager.Notify(GameEvent.OnUpdateDisplayWeapon, rewardWeapon);
+        }
+
+        return true;
+    }
+
+    private bool TrySpawnWeaponPickup(WeaponData weaponData)
+    {
+        if (weaponData == null ||
+            weaponData.pickUpItem == PoolType.None ||
+            characterWeapon == null ||
+            ObjectPooling.Instance == null)
+        {
+            return false;
+        }
+
+        Vector3 position =
+            characterWeapon.transform.position + Vector3.up;
+
+        GameObject pickup = ObjectPooling.Instance.SpawnFromPool(
+            weaponData.pickUpItem,
+            position,
+            Quaternion.identity);
+
+        if (pickup == null)
+            return false;
+
+        if (!pickup.TryGetComponent(out PickUpWeapon pickupWeapon))
+        {
+            ObjectPooling.Instance.ReturnToPool(
+                weaponData.pickUpItem,
+                pickup);
+
+            Debug.LogError(
+                $"{weaponData.name}: pickup prefab thiếu PickUpWeapon.");
+
+            return false;
+        }
+
+        pickupWeapon.Initialize(weaponData);
+
+        if (pickup.TryGetComponent(out Rigidbody rb))
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+
+            float horizontal = Random.Range(-1f, 1f);
+            Vector3 direction =
+                characterWeapon.transform.forward +
+                characterWeapon.transform.right * horizontal +
+                Vector3.up;
+
+            rb.AddForce(
+                direction.normalized *
+                Random.Range(forceDropItem.x, forceDropItem.y),
+                ForceMode.Impulse);
+        }
+
+        return true;
+    }
+
     [Button("Discard Weapon")]
     public void DiscardWeapon(int index)
     {
-        if (index < 0)
+        if (index < 0 || index >= weaponSlots.Count)
         {
             Debug.LogWarning("Invalid weapon index.");
             return;
         }
 
         WeaponData weaponToRemove = weaponSlots[index];
+
+        if (weaponToRemove == null)
+            return;
+
+        if (!TrySpawnWeaponPickup(weaponToRemove))
+        {
+            Debug.LogWarning(
+                $"Không thể drop {weaponToRemove.name}. Weapon được giữ lại.");
+
+            return;
+        }
 
         // Nếu vũ khí đang được trang bị, hãy bỏ trang bị trước khi xóa
         if (characterWeapon.CurrentWeapon == weaponToRemove)
@@ -99,7 +231,6 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         }
 
         weaponSlots[index] = null; // Đặt slot thành null thay vì xóa khỏi danh sách
-        SpawnPickUpItems(weaponToRemove);
         EventManager.Notify(GameEvent.OnDiscardItemInInventory, index);
     }
 

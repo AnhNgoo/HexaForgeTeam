@@ -11,16 +11,16 @@ public class DormantPowerCardUI : LoadComponents
     [SerializeField] private Image rewardIcon;
     [SerializeField] private TMP_Text rewardTypeText;
     [SerializeField] private TMP_Text rewardNameText;
-    [SerializeField] private TMP_Text descriptionText;
     [SerializeField] private TMP_Text rarityText;
-    [SerializeField] private Button selectButton;
+    [SerializeField] private Button cardButton;
+    [SerializeField] private GameObject selectedHighlight;
+
+    public BossRewardDataSO Reward => reward;
 
     private BossRewardDataSO reward;
     private UnityAction selectAction;
 
-    public void Setup(
-        BossRewardDataSO data,
-        Action<BossRewardDataSO> onSelected)
+    public void Setup(BossRewardDataSO data, Action<BossRewardDataSO> onSelected)
     {
         reward = data;
         gameObject.SetActive(reward != null);
@@ -32,19 +32,30 @@ public class DormantPowerCardUI : LoadComponents
         rewardIcon.enabled = reward.DisplayIcon != null;
         rewardTypeText.text = reward.TypeLabel;
         rewardNameText.text = reward.DisplayName;
-        descriptionText.text = reward.DisplayDescription;
         rarityText.text = reward.DisplayRarity.ToString();
 
         Color rarityColor = GetRarityColor(reward.DisplayRarity);
         rarityBorder.color = rarityColor;
-        background.color = new Color(rarityColor.r * 0.28f, rarityColor.g * 0.28f, rarityColor.b * 0.28f, 0.95f);
+        background.color = new Color(
+            rarityColor.r * 0.28f,
+            rarityColor.g * 0.28f,
+            rarityColor.b * 0.28f,
+            0.95f);
 
         if (selectAction != null)
-            selectButton.onClick.RemoveListener(selectAction);
+            cardButton.onClick.RemoveListener(selectAction);
 
         selectAction = () => onSelected?.Invoke(reward);
-        selectButton.onClick.AddListener(selectAction);
-        selectButton.interactable = true;
+        cardButton.onClick.AddListener(selectAction);
+        cardButton.interactable = true;
+
+        SetSelected(false);
+    }
+
+    public void SetSelected(bool value)
+    {
+        if (selectedHighlight != null)
+            selectedHighlight.SetActive(value);
     }
 
     public void Hide()
@@ -54,16 +65,17 @@ public class DormantPowerCardUI : LoadComponents
 
     public void SetInteractable(bool value)
     {
-        if (selectButton != null)
-            selectButton.interactable = value;
+        if (cardButton != null)
+            cardButton.interactable = value;
     }
-
     protected override void LoadComponent()
     {
         if (background == null)
             background = GetComponent<Image>();
-        if (selectButton == null)
-            selectButton = GetComponent<Button>();
+        if (cardButton == null)
+            cardButton = GetComponent<Button>();
+        if (selectedHighlight == null)
+            selectedHighlight = transform.Find("SelectedHighlight")?.gameObject;
         if (rarityBorder == null)
             rarityBorder = transform.Find("Border")?.GetComponent<Image>();
         if (rewardIcon == null)
@@ -72,8 +84,6 @@ public class DormantPowerCardUI : LoadComponents
             rewardTypeText = transform.Find("RewardType")?.GetComponent<TMP_Text>();
         if (rewardNameText == null)
             rewardNameText = transform.Find("RewardName")?.GetComponent<TMP_Text>();
-        if (descriptionText == null)
-            descriptionText = transform.Find("Description")?.GetComponent<TMP_Text>();
         if (rarityText == null)
             rarityText = transform.Find("RarityText")?.GetComponent<TMP_Text>();
     }
@@ -83,7 +93,7 @@ public class DormantPowerCardUI : LoadComponents
         LoadComponent();
     }
 
-    private Color GetRarityColor(ItemRarity rarity)
+    private static Color GetRarityColor(ItemRarity rarity)
     {
         return rarity switch
         {
