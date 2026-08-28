@@ -60,6 +60,7 @@ public class CharacterMovement : LoadComponents
     private Vector3 CurrentMove; // Hướng di chuyển cuối cùng sau khi áp dụng tất cả các hiệu ứng (dodge, lunge, jump, v.v.)
 
     private float verticalVelocity;
+    public float VerticalVelocity => verticalVelocity;
 
     private float _movementLockedUntil;
 

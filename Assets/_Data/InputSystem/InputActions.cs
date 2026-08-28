@@ -234,6 +234,15 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""UseRelic"",
+                    ""type"": ""Button"",
+                    ""id"": ""50ea4004-1858-4abc-a3e2-fa97a3da4c72"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -456,6 +465,17 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
                     ""action"": ""Discard"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ab492c01-89d2-45e6-9d2f-9524314d19af"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""UseRelic"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -480,6 +500,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         m_Keyboard_Interact = m_Keyboard.FindAction("Interact", throwIfNotFound: true);
         m_Keyboard_ChangeWeapon = m_Keyboard.FindAction("ChangeWeapon", throwIfNotFound: true);
         m_Keyboard_Discard = m_Keyboard.FindAction("Discard", throwIfNotFound: true);
+        m_Keyboard_UseRelic = m_Keyboard.FindAction("UseRelic", throwIfNotFound: true);
     }
 
     ~@InputActions()
@@ -576,6 +597,7 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Keyboard_Interact;
     private readonly InputAction m_Keyboard_ChangeWeapon;
     private readonly InputAction m_Keyboard_Discard;
+    private readonly InputAction m_Keyboard_UseRelic;
     /// <summary>
     /// Provides access to input actions defined in input action map "Keyboard".
     /// </summary>
@@ -652,6 +674,10 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Discard => m_Wrapper.m_Keyboard_Discard;
         /// <summary>
+        /// Provides access to the underlying input action "Keyboard/UseRelic".
+        /// </summary>
+        public InputAction @UseRelic => m_Wrapper.m_Keyboard_UseRelic;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Keyboard; }
@@ -725,6 +751,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Discard.started += instance.OnDiscard;
             @Discard.performed += instance.OnDiscard;
             @Discard.canceled += instance.OnDiscard;
+            @UseRelic.started += instance.OnUseRelic;
+            @UseRelic.performed += instance.OnUseRelic;
+            @UseRelic.canceled += instance.OnUseRelic;
         }
 
         /// <summary>
@@ -784,6 +813,9 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
             @Discard.started -= instance.OnDiscard;
             @Discard.performed -= instance.OnDiscard;
             @Discard.canceled -= instance.OnDiscard;
+            @UseRelic.started -= instance.OnUseRelic;
+            @UseRelic.performed -= instance.OnUseRelic;
+            @UseRelic.canceled -= instance.OnUseRelic;
         }
 
         /// <summary>
@@ -936,5 +968,12 @@ public partial class @InputActions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnDiscard(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "UseRelic" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnUseRelic(InputAction.CallbackContext context);
     }
 }
