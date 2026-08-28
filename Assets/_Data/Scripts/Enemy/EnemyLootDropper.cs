@@ -1,88 +1,91 @@
-using System;
 using UnityEngine;
-
-[Serializable]
-public class EnemyBossLootEntry
-{
-    public EnemyBossCategory category;
-    public GameObject prefab;
-    [Min(1)] public int count = 1;
-}
 
 public class EnemyLootDropper : MonoBehaviour
 {
+    [Header("Boss Reward")]
     [SerializeField] private GameObject _lootPrefab;
-    [SerializeField]
-    private EnemyBossLootEntry[] bossLoot = Array.Empty<EnemyBossLootEntry>();
+    [SerializeField] private LayerMask groundMask;
+    [Min(0f)]
+    [SerializeField] private float groundOffset = 0.2f;
 
-    private EnemyBase _enemyBase;
-    private bool _isSubscribed;
+    private EnemyBase enemyBase;
+    private bool isSubscribed;
 
-    public void Initialize(EnemyBase enemyBase)
+    // Gọi phương thức này để khởi tạo EnemyLootDropper với EnemyBase cụ thể.
+    public void Initialize(EnemyBase owner)
     {
         Unsubscribe();
-        _enemyBase = enemyBase;
+        enemyBase = owner;
         Subscribe();
     }
 
-    private void OnEnable() => Subscribe();
-    private void OnDisable() => Unsubscribe();
+    // Đăng ký sự kiện khi đối tượng được kích hoạt và hủy đăng ký khi bị vô hiệu hóa để tránh rò rỉ bộ nhớ hoặc gọi lại không mong muốn.
+    private void OnEnable()
+    {
+        Subscribe();
+    }
 
-    // Đăng ký sự kiện khi Enemy bị tiêu diệt để trao thưởng cho player và thả vật phẩm nếu là boss
+    // Hủy đăng ký sự kiện khi đối tượng bị vô hiệu hóa để tránh rò rỉ bộ nhớ hoặc gọi lại không mong muốn.
+    private void OnDisable()
+    {
+        Unsubscribe();
+    }
+
     private void Subscribe()
     {
-        if (_isSubscribed || _enemyBase?.EventManager == null) return;
-        _enemyBase.EventManager.OnDead += AwardEnemy;
-        _isSubscribed = true;
+        if (isSubscribed || enemyBase?.EventManager == null)
+            return;
+
+        enemyBase.EventManager.OnDead += AwardEnemy;
+        isSubscribed = true;
     }
 
-    // Hủy đăng ký sự kiện khi Enemy bị tiêu diệt để tránh việc gọi lại nhiều lần hoặc gây lỗi khi Enemy bị hủy
     private void Unsubscribe()
     {
-        if (!_isSubscribed || _enemyBase?.EventManager == null) return;
-        _enemyBase.EventManager.OnDead -= AwardEnemy;
-        _isSubscribed = false;
+        if (!isSubscribed || enemyBase?.EventManager == null)
+            return;
+
+        enemyBase.EventManager.OnDead -= AwardEnemy;
+        isSubscribed = false;
     }
 
-    // Gọi khi Enemy bị tiêu diệt, để trao thưởng cho player và thả vật phẩm nếu là boss
+    // Phương thức này được gọi khi kẻ thù chết để trao phần thưởng.
     private void AwardEnemy()
     {
-        int min = _enemyBase.Data.minGoldReward;
-        int max = Mathf.Max(min, _enemyBase.Data.maxGoldReward);
-        GoldManager.Instance?.AddGold(UnityEngine.Random.Range(min, max + 1));
+        int min = enemyBase.Data.minGoldReward;
+        int max = Mathf.Max(min, enemyBase.Data.maxGoldReward);
 
-        if (!_enemyBase.Data.isBoss) return;
+        GoldManager.Instance?.AddGold(Random.Range(min, max + 1));
 
-        bool matched = false;
-        int dropIndex = 0;
-        foreach (EnemyBossLootEntry entry in bossLoot)
+        if (!enemyBase.Data.isBoss || _lootPrefab == null || enemyBase.Data.bossRewardTable == null)
         {
-            if (entry == null || entry.prefab == null ||
-                entry.category != _enemyBase.Data.bossCategory)
-                continue;
-
-            matched = true;
-            for (int i = 0; i < entry.count; i++)
-                DropItem(entry.prefab, dropIndex++);
+            return;
         }
 
-        if (!matched && _lootPrefab != null)
-            DropItem(_lootPrefab, 0);
+        GameObject loot = Instantiate(_lootPrefab, FindGroundPosition(), Quaternion.identity);
+
+        if (!loot.TryGetComponent(out DormantPowerInteractable dormantPower))
+        {
+            Debug.LogError("Boss loot prefab thiếu DormantPowerInteractable.");
+            Destroy(loot);
+            return;
+        }
+
+        dormantPower.Initialize(enemyBase.Data.bossRewardTable);
     }
 
-    // Thả vật phẩm tại vị trí của Enemy khi bị tiêu diệt, với một số offset để tránh chồng lên nhau
-    private void DropItem(GameObject prefab, int index)
+    // Tìm vị trí mặt đất gần nhất để đặt phần thưởng, sử dụng raycast từ trên xuống.
+    private Vector3 FindGroundPosition()
     {
-        float angle = index * 137.5f * Mathf.Deg2Rad;
-        Vector3 offset = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * 0.6f;
-        GameObject item = Instantiate(
-            prefab,
-            _enemyBase.MyTransform.position + Vector3.up * 0.5f + offset,
-            Quaternion.identity
-        );
+        Vector3 origin = enemyBase.MyTransform.position + Vector3.up * 5f;
 
-        if (!item.TryGetComponent(out Rigidbody body)) return;
-        body.AddForce((offset.normalized + Vector3.up * 1.5f) * 5f, ForceMode.Impulse);
-        body.AddTorque(UnityEngine.Random.insideUnitSphere * 5f, ForceMode.Impulse);
+        if (Physics.Raycast(origin, Vector3.down, out RaycastHit hit, 50f, groundMask, QueryTriggerInteraction.Ignore))
+        {
+            return hit.point + Vector3.up * groundOffset;
+        }
+
+        Debug.LogWarning($"{enemyBase.name}: Không raycast được mặt đất cho boss loot.");
+
+        return enemyBase.MyTransform.position + Vector3.up * groundOffset;
     }
 }

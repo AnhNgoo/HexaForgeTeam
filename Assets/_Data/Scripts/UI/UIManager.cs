@@ -32,6 +32,7 @@ public enum MenuType
     AchievementMenu = 19,
     CreditsMenu = 20,
     PlayerStateMenu = 21,
+    DormantPowerMenu = 48,
 
     LobbyCharacterMenu = 100,
     LobbyRuneInventoryMenu = 101,
@@ -174,21 +175,22 @@ public class UIManager : Singleton<UIManager>
 
     public void InitUI()
     {
-        menus.RemoveAll(m => m == null || m.menuBase == null);
+        menus.RemoveAll(
+            menu => menu == null || menu.menuBase == null
+        );
 
-        foreach (var menu in menus)
+        foreach (MenuData menu in menus)
         {
+            if (menu?.menuBase == null)
+                continue;
 
-            if (menu?.menuBase != null)
-            {
-                menu.menuBase.Open();
-                menu.menuBase.Close();
-            }
+            menu.menuBase.gameObject.SetActive(false);
         }
 
         CurrentMenu = null;
         CurrentMenuType = MenuType.None;
         PreviousMenuType = MenuType.None;
+
         Debug.Log("UIManager initialized. All menus are closed.");
     }
 }

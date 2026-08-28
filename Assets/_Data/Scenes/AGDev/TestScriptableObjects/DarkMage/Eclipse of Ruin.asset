@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd8b432fed3034043805786f10c2fe4d, type: 3}
+  m_Name: Eclipse of Ruin
+  m_EditorClassIdentifier: 
+  burrowDownState: Idle To Underground
+  undergroundState: Underground
+  emergeState: Underground To Idle
+  biteState: Bite Attack
+  darkOrbSkill: {fileID: 11400000, guid: 86a495a70b48200419e0c07840ca85a1, type: 2}
+  meteorRainSkill: {fileID: 11400000, guid: 1dc821495868e7f429f2745692588217, type: 2}
+  bulletHellWaves: 4
+  projectilesPerWave: 14
+  bulletWaveInterval: 0.2
+  meteorWaves: 4
+  meteorWaveInterval: 0.25
+  hazardDamageScale: 0.3
+  burrowDownDuration: 0.7
+  hiddenHazardDuration: 3.5
+  emergeWarningDuration: 0.65
+  emergeDuration: 0.55
+  biteImpactDelay: 0.3
+  biteHitboxDuration: 0.22
+  emergeTelegraphPool: 1107
+  emergeDistanceBehind: 1.8
+  navMeshSampleRadius: 2
+  maxVerticalDifference: 1.5
+  minimumEdgeDistance: 0.75

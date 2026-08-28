@@ -1,0 +1,34 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d00604dc8553906438887170b4fd4e9d, type: 3}
+  m_Name: DarkMageBurrow
+  m_EditorClassIdentifier: 
+  emergeTelegraphPool: 1107
+  burrowDownState: Idle To Underground
+  undergroundState: Underground
+  emergeState: Underground To Idle
+  biteState: Bite Attack
+  headEmergeState: Underground To Head Only
+  headIdleState: Head Only Idle
+  headBurrowState: Head Only To Underground
+  burrowDownDuration: 0.67
+  emergeWarningDuration: 0.45
+  emergeDuration: 0.83
+  biteImpactDelay: 0.33
+  biteHitboxDuration: 0.16
+  fakeHeadDuration: 0.4
+  fakeBurrowDuration: 0.5
+  emergeBehindDistance: 2
+  repositionDistance: 8
+  navMeshSampleRadius: 2
+  maxVerticalDifference: 1.5
+  minimumEdgeDistance: 0.8

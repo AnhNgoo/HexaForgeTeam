@@ -36,6 +36,10 @@ public class EnemyData : ScriptableObject
     [ShowIf(nameof(isBoss))]
     public EnemyBossCategory bossCategory = EnemyBossCategory.Miniboss;
     [ShowIf(nameof(isBoss))]
+    [InlineEditor]
+    public BossRewardTableSO bossRewardTable;
+
+    [ShowIf(nameof(isBoss))]
     [BoxGroup("UI")]
     public string bossDisplayName;
     [Header("Territory Settings")]

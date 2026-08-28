@@ -252,6 +252,7 @@ public class PlayFabLoginManager : MonoBehaviour
             return;
         }
 
+        LoadTrace.Begin("LoginGame -> UIGame");
         isLoggingIn = true;
         ShowLoadingOverlay("Connecting to server...");
         UpdateStatus("Connecting...", Color.cyan);
@@ -266,6 +267,7 @@ public class PlayFabLoginManager : MonoBehaviour
                 Password = loginPasswordInput.text
             };
 
+            LoadTrace.Mark("Sending LoginWithEmailAddress request");
             PlayFabClientAPI.LoginWithEmailAddress(request, OnLoginSuccess, OnPlayFabError);
         }
         else
@@ -275,13 +277,14 @@ public class PlayFabLoginManager : MonoBehaviour
                 Username = account,
                 Password = loginPasswordInput.text
             };
-
+            LoadTrace.Mark("Sending LoginWithPlayFab request");
             PlayFabClientAPI.LoginWithPlayFab(request, OnLoginSuccess, OnPlayFabError);
         }
     }
 
     private void OnLoginSuccess(LoginResult result)
     {
+        LoadTrace.Mark("PlayFab Login success");
         ShowLoadingOverlay("Login successful! Loading Cloud Profile...");
 
         if (loadingProgressSlider != null)
@@ -305,18 +308,25 @@ public class PlayFabLoginManager : MonoBehaviour
 
         CheckAndFixDisplayName();
 
-        // System.GC.Collect();
-        // Resources.UnloadUnusedAssets();
+        LoadTrace.Mark("GC.Collect begin");
+        System.GC.Collect();
+        LoadTrace.Mark("GC.Collect completed");
+        LoadTrace.Mark("UnloadUnusedAssets requested");
+        AsyncOperation unloadUnused = Resources.UnloadUnusedAssets();
+        unloadUnused.completed += _ => LoadTrace.Mark("UnloadUnusedAssets completed");
+        LoadTrace.Mark("Starting cloud load");
 
         if (PlayFabDataManager.Instance != null)
         {
             PlayFabDataManager.Instance.LoadCloud((success) =>
             {
+                LoadTrace.Mark($"Cloud Load callback: success={success}");
                 StartCoroutine(LoadMainGameRoutine());
             });
         }
         else
         {
+            LoadTrace.Mark("PlayFabDataManager missing, using local data");
             StartCoroutine(LoadMainGameRoutine());
         }
     }
@@ -325,28 +335,31 @@ public class PlayFabLoginManager : MonoBehaviour
     {
         GameSceneData sceneData = GameSceneData.Instance;
 
-        string targetUiScene = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.UIGame) 
+        LoadTrace.Mark("LoadMainGameRoutine started");
+        string targetUiScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.UIGame)
             : "UIGame";
 
-        string targetLoadingScene = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Loading) 
+        string targetLoadingScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Loading)
             : "Loading Scene";
-
+        LoadTrace.Mark($"Loading LoadingScene: {targetLoadingScene}");
         ShowLoadingOverlay("Preparing Realm...");
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(targetLoadingScene, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
+        LoadTrace.Mark("LoadingScene ready");
 
         yield return new WaitForSecondsRealtime(0.05f);
 
         if (LoadingUIManager.Instance != null)
         {
             LoadingUIManager.Instance.SetDestinationName(targetUiScene);
+            LoadTrace.Mark($"Loading destination configured: {targetUiScene}");
         }
 
         HideLoadingOverlay();
-
+        LoadTrace.Mark($"Starting target scene: {targetUiScene}");
         AsyncOperation loadTarget = SceneManager.LoadSceneAsync(targetUiScene, LoadSceneMode.Single);
         loadTarget.allowSceneActivation = false;
 
@@ -356,8 +369,10 @@ public class PlayFabLoginManager : MonoBehaviour
             yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadTarget, false, duration));
         }
 
+        LoadTrace.Mark($"Activating target scene, progress={loadTarget.progress:F2}");
         loadTarget.allowSceneActivation = true;
         while (!loadTarget.isDone) yield return null;
+        LoadTrace.Mark("Target scene activation completed");
 
         Scene loadingScene = SceneManager.GetSceneByName(targetLoadingScene);
         if (loadingScene.isLoaded)
@@ -365,6 +380,7 @@ public class PlayFabLoginManager : MonoBehaviour
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
             while (!unloadLoading.isDone) yield return null;
         }
+        LoadTrace.End("LoginGame -> UIGame completed");
     }
 
     private void CheckAndFixDisplayName()
@@ -466,6 +482,7 @@ public class PlayFabLoginManager : MonoBehaviour
 
     private void OnPlayFabError(PlayFabError error)
     {
+        LoadTrace.End($"Login failed: {error.Error}");
         isLoggingIn = false;
 
         PlayerPrefs.SetInt(AutoLoginKey, 0);

@@ -53,7 +53,7 @@ public class GameSceneData : ScriptableObject
     public string loadingScene = "Loading Scene";
     public string lobbyMainScene = "LobbyMain Scene";
     public string runGameplayScene = "Run Scene";
-    public string runGameplayScene2 = "Run Scene 2"; 
+    public string runGameplayScene2 = "Run Scene 2";
     public string tutorialScene = "Tutorial Scene";
     public string finalBossScene = "FinalBoss Scene";
 
@@ -61,30 +61,36 @@ public class GameSceneData : ScriptableObject
     [SerializeField] private List<SceneEntry> customScenes = new List<SceneEntry>();
 
     private SceneConfigSO activePersonalConfig;
-    private bool hasCached = false;
+    private bool personalConfigCached;
 
     public void CheckAndCacheActivePersonalConfig()
     {
-        if (hasCached && activePersonalConfig != null) return;
+#if UNITY_EDITOR
+        if (personalConfigCached)
+            return;
 
-        #if UNITY_EDITOR
-        SceneConfigSO[] allConfigs = Resources.LoadAll<SceneConfigSO>("");
+        personalConfigCached = true;
+        activePersonalConfig = null;
 
-        if (allConfigs != null)
+        SceneConfigSO[] allConfigs =
+            Resources.LoadAll<SceneConfigSO>("SceneConfigs");
+
+        foreach (SceneConfigSO config in allConfigs)
         {
-            foreach (var config in allConfigs)
-            {
-                if (config != null && config.isOverrideMyLocalScene)
-                {
-                    activePersonalConfig = config;
-                    Debug.Log($"<color=#00FFCC><b>[Scene System]</b> Đã kích hoạt Override Scene Cá Nhân của Dev: <b>[{config.devName}]</b></color>");
-                    break;
-                }
-            }
-        }
-        #endif
+            if (config == null || !config.isOverrideMyLocalScene)
+                continue;
 
-        hasCached = true;
+            activePersonalConfig = config;
+
+            Debug.Log(
+                $"<color=#00FFCC><b>[Scene System]</b> " +
+                $"Đã kích hoạt Override Scene Cá Nhân của Dev: " +
+                $"<b>[{config.devName}]</b></color>"
+            );
+
+            break;
+        }
+#endif
     }
 
     public string GetSceneName(SceneType type)
@@ -97,35 +103,35 @@ public class GameSceneData : ScriptableObject
         switch (type)
         {
             case SceneType.Login:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoginScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoginScene))
                     ? activePersonalConfig.customLoginScene : loginScene;
 
             case SceneType.UIGame:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customUiScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customUiScene))
                     ? activePersonalConfig.customUiScene : uiScene;
 
             case SceneType.Loading:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoadingScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoadingScene))
                     ? activePersonalConfig.customLoadingScene : loadingScene;
 
             case SceneType.LobbyMain:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLobbyScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLobbyScene))
                     ? activePersonalConfig.customLobbyScene : lobbyMainScene;
 
             case SceneType.RunGameplay:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene))
                     ? activePersonalConfig.customRunGameplayScene : runGameplayScene;
 
             case SceneType.RunGameplay2:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene2)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene2))
                     ? activePersonalConfig.customRunGameplayScene2 : runGameplayScene2;
 
             case SceneType.Tutorial:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customTutorialScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customTutorialScene))
                     ? activePersonalConfig.customTutorialScene : tutorialScene;
 
             case SceneType.FinalBoss:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customFinalBossScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customFinalBossScene))
                     ? activePersonalConfig.customFinalBossScene : finalBossScene;
 
             case SceneType.CustomRun:
