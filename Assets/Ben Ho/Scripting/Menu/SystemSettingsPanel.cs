@@ -7,8 +7,9 @@ public enum SystemSettingPage
     Audio = 0,
     Graphics = 1,
     Controller = 2,
-    Exit = 3,
-    Logout = 4
+    Language = 3,
+    Exit = 4,
+    Logout = 5
 }
 
 public class SystemSettingsPanel : MonoBehaviour
@@ -17,6 +18,7 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private Button btnAudio;
     [SerializeField] private Button btnGraphics;
     [SerializeField] private Button btnController;
+    [SerializeField] private Button btnLanguage;
     [SerializeField] private Button btnExit;
     [SerializeField] private Button btnLogout;
 
@@ -24,6 +26,7 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private ScrollRect audioPage;
     [SerializeField] private ScrollRect graphicsPage;
     [SerializeField] private ScrollRect controllerPage;
+    [SerializeField] private ScrollRect languagePage;
     [SerializeField] private ScrollRect exitPage;
     [SerializeField] private ScrollRect logoutPage;
 
@@ -34,6 +37,7 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private GameObject audioLine;
     [SerializeField] private GameObject graphicsLine;
     [SerializeField] private GameObject controllerLine;
+    [SerializeField] private GameObject languageLine;
     [SerializeField] private GameObject exitLine;
     [SerializeField] private GameObject logoutLine;
 
@@ -41,6 +45,7 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private TMP_Text audioLabel;
     [SerializeField] private TMP_Text graphicsLabel;
     [SerializeField] private TMP_Text controllerLabel;
+    [SerializeField] private TMP_Text languageLabel;
     [SerializeField] private TMP_Text exitLabel;
     [SerializeField] private TMP_Text logoutLabel;
 
@@ -82,65 +87,49 @@ public class SystemSettingsPanel : MonoBehaviour
 
     private void AddEvents()
     {
-        if (eventsAdded)
-            return;
+        if (eventsAdded) return;
 
-        if (btnAudio != null)
-            btnAudio.onClick.AddListener(ShowAudio);
-
-        if (btnGraphics != null)
-            btnGraphics.onClick.AddListener(ShowGraphics);
-
-        if (btnController != null)
-            btnController.onClick.AddListener(ShowController);
-
-        if (btnExit != null)
-            btnExit.onClick.AddListener(ShowExit);
-
-        if (btnLogout != null)
-            btnLogout.onClick.AddListener(ShowLogout);
+        if (btnAudio != null)      btnAudio.onClick.AddListener(ShowAudio);
+        if (btnGraphics != null)   btnGraphics.onClick.AddListener(ShowGraphics);
+        if (btnController != null) btnController.onClick.AddListener(ShowController);
+        if (btnLanguage != null)   btnLanguage.onClick.AddListener(ShowLanguage);
+        if (btnExit != null)       btnExit.onClick.AddListener(ShowExit);
+        if (btnLogout != null)     btnLogout.onClick.AddListener(ShowLogout);
 
         eventsAdded = true;
     }
 
     private void RemoveEvents()
     {
-        if (!eventsAdded)
-            return;
+        if (!eventsAdded) return;
 
-        if (btnAudio != null)
-            btnAudio.onClick.RemoveListener(ShowAudio);
-
-        if (btnGraphics != null)
-            btnGraphics.onClick.RemoveListener(ShowGraphics);
-
-        if (btnController != null)
-            btnController.onClick.RemoveListener(ShowController);
-
-        if (btnExit != null)
-            btnExit.onClick.RemoveListener(ShowExit);
-
-        if (btnLogout != null)
-            btnLogout.onClick.RemoveListener(ShowLogout);
+        if (btnAudio != null)      btnAudio.onClick.RemoveListener(ShowAudio);
+        if (btnGraphics != null)   btnGraphics.onClick.RemoveListener(ShowGraphics);
+        if (btnController != null) btnController.onClick.RemoveListener(ShowController);
+        if (btnLanguage != null)   btnLanguage.onClick.RemoveListener(ShowLanguage);
+        if (btnExit != null)       btnExit.onClick.RemoveListener(ShowExit);
+        if (btnLogout != null)     btnLogout.onClick.RemoveListener(ShowLogout);
 
         eventsAdded = false;
     }
 
-    public void ShowAudio() => ShowPage(SystemSettingPage.Audio);
-    public void ShowGraphics() => ShowPage(SystemSettingPage.Graphics);
+    public void ShowAudio()      => ShowPage(SystemSettingPage.Audio);
+    public void ShowGraphics()   => ShowPage(SystemSettingPage.Graphics);
     public void ShowController() => ShowPage(SystemSettingPage.Controller);
-    public void ShowExit() => ShowPage(SystemSettingPage.Exit);
-    public void ShowLogout() => ShowPage(SystemSettingPage.Logout);
+    public void ShowLanguage()   => ShowPage(SystemSettingPage.Language);
+    public void ShowExit()       => ShowPage(SystemSettingPage.Exit);
+    public void ShowLogout()     => ShowPage(SystemSettingPage.Logout);
 
     public void ShowPage(SystemSettingPage page)
     {
         currentPage = page;
 
-        SetPage(audioPage, page == SystemSettingPage.Audio);
-        SetPage(graphicsPage, page == SystemSettingPage.Graphics);
+        SetPage(audioPage,      page == SystemSettingPage.Audio);
+        SetPage(graphicsPage,   page == SystemSettingPage.Graphics);
         SetPage(controllerPage, page == SystemSettingPage.Controller);
-        SetPage(exitPage, page == SystemSettingPage.Exit);
-        SetPage(logoutPage, page == SystemSettingPage.Logout);
+        SetPage(languagePage,   page == SystemSettingPage.Language);
+        SetPage(exitPage,       page == SystemSettingPage.Exit);
+        SetPage(logoutPage,     page == SystemSettingPage.Logout);
 
         UpdateVisual(page);
     }
@@ -150,14 +139,14 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(audioPage, false);
         SetPage(graphicsPage, false);
         SetPage(controllerPage, false);
+        SetPage(languagePage, false);
         SetPage(exitPage, false);
         SetPage(logoutPage, false);
     }
 
     private void SetPage(ScrollRect page, bool active)
     {
-        if (page == null)
-            return;
+        if (page == null) return;
 
         page.gameObject.SetActive(active);
 
@@ -171,23 +160,26 @@ public class SystemSettingsPanel : MonoBehaviour
 
     private void UpdateVisual(SystemSettingPage page)
     {
-        bool audioSelected = page == SystemSettingPage.Audio;
-        bool graphicsSelected = page == SystemSettingPage.Graphics;
+        bool audioSelected      = page == SystemSettingPage.Audio;
+        bool graphicsSelected   = page == SystemSettingPage.Graphics;
         bool controllerSelected = page == SystemSettingPage.Controller;
-        bool exitSelected = page == SystemSettingPage.Exit;
-        bool logoutSelected = page == SystemSettingPage.Logout;
+        bool languageSelected   = page == SystemSettingPage.Language;
+        bool exitSelected       = page == SystemSettingPage.Exit;
+        bool logoutSelected     = page == SystemSettingPage.Logout;
 
-        SetActive(audioLine, audioSelected);
-        SetActive(graphicsLine, graphicsSelected);
+        SetActive(audioLine,      audioSelected);
+        SetActive(graphicsLine,   graphicsSelected);
         SetActive(controllerLine, controllerSelected);
-        SetActive(exitLine, exitSelected);
-        SetActive(logoutLine, logoutSelected);
+        SetActive(languageLine,   languageSelected);
+        SetActive(exitLine,       exitSelected);
+        SetActive(logoutLine,     logoutSelected);
 
-        SetLabel(audioLabel, audioSelected);
-        SetLabel(graphicsLabel, graphicsSelected);
+        SetLabel(audioLabel,      audioSelected);
+        SetLabel(graphicsLabel,   graphicsSelected);
         SetLabel(controllerLabel, controllerSelected);
-        SetLabel(exitLabel, exitSelected);
-        SetLabel(logoutLabel, logoutSelected);
+        SetLabel(languageLabel,   languageSelected);
+        SetLabel(exitLabel,       exitSelected);
+        SetLabel(logoutLabel,     logoutSelected);
     }
 
     private void SetActive(GameObject target, bool value)

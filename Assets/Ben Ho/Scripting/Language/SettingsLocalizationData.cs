@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using UnityEngine.Localization.Settings;
 
 public static class SettingsLocalizationData
@@ -84,9 +85,76 @@ public static class SettingsLocalizationData
         ("Audio", "Âm thanh"),
         ("Confirm", "Xác nhận"),
         ("Back", "Quay lại"),
+
+                // ========== NPC: SHOP ==========
+        ("Hey there! What brings you here?", "Chào bạn! Gì đưa bạn đến đây thế?"),
+        ("I've got plenty of items available if you're looking to upgrade your gear.", "Tôi có rất nhiều món đồ nếu bạn muốn nâng cấp trang bị của mình."),
+        ("And if you're feeling lucky, you can always try your chances with the gacha.", "Còn nếu thấy may mắn, bạn luôn có thể thử vận may với gacha."),
+        ("Shop", "Cửa hàng"),
+        ("Gacha", "Gacha"),
+        ("Bye", "Tạm biệt"),
+
+        // ========== NPC: ARCHIE ==========
+        ("Hey there! Looking to see how you're doing?", "Chào bạn! Đến xem tình hình của bạn dạo này chứ?"),
+        ("You can check the leaderboard and see how you rank against other players.", "Bạn có thể xem bảng xếp hạng để biết thứ hạng của mình so với người chơi khác."),
+        ("Or, if you want to see what you've accomplished, take a look at your achievements.", "Hoặc nếu muốn xem những gì mình đã đạt được, hãy ngắm qua thành tích của bạn."),
+        ("Achievement", "Thành tích"),
+        ("Leaderboard", "Bảng xếp hạng"),
+
+        // ========== TUTORIAL ==========
+        ("Skip Tutorial", "Bỏ qua hướng dẫn"),
+        ("Move Forward", "Tiến về trước"),
+        ("Move Left", "Sang trái"),
+        ("Move Right", "Sang phải"),
+        ("Move Back", "Lùi về sau"),
+        ("Lock Target", "Khóa mục tiêu"),
+        ("Battle", "Chiến đấu"),
+        ("Dodge", "Né đòn"),
+        ("Receive Recovery Bottle", "Nhận bình hồi phục"),
+        ("Use Skill", "Sử dụng kỹ năng"),
+        ("Use Skill Ultimate", "Sử dụng kỹ năng cuối"),
+        ("Tutorial", "Hướng dẫn"),
+
+        // ========== STATS / LEVEL UP ==========
+        ("Stats", "Chỉ số"),
+        ("Level", "Cấp độ"),
+        ("Level:", "Cấp độ:"),
+        ("Health", "Máu"),
+        ("Speed", "Tốc độ"),
+        ("Damage", "Sát thương"),
+        ("Defense", "Giáp"),
+        ("Poison Damage", "Sát thương độc"),
+        ("Stamina", "Thể lực"),
+        ("Stamina Regen", "Hồi thể lực"),
+        ("MP", "Năng lượng"),
+        ("MP Regen", "Hồi năng lượng"),
+        ("Gold", "Vàng"),
+        ("Need", "Cần"),
+
+        // ========== EXIT / PAUSE MENU ==========
+        ("Exit", "Thoát"),
+        ("Are you sure you want to quit the game?", "Bạn có chắc muốn thoát trò chơi không?"),
+
+         // ========== TUTORIAL: TÊN PHÍM ==========
+        ("Left Button", "Chuột trái"),
+        ("Right Button", "Chuột phải"),
+        ("Middle Button", "Chuột giữa"),
+        ("Left Shift", "Shift trái"),
+        ("Right Shift", "Shift phải"),
+        ("Space", "Phím cách"),
     };
 
-    private static Dictionary<string, string> mapVI;
+        // ✅ TEXT ĐỘNG (có số thay đổi) - dùng Regex
+    private static readonly (Regex regex, string replacement)[] RegexEntries = new (Regex, string)[]
+    {
+        // "Level: 11 -> 12" → "Cấp độ: 11 -> 12"
+        (new Regex(@"^Level:\s*(\d+)\s*->\s*(\d+)$", RegexOptions.IgnoreCase), "Cấp độ: $1 -> $2"),
+
+        // "Need 211/7111 Gold" → "Cần 211/7111 Vàng"
+        (new Regex(@"^Need\s+(\S+)\s+Gold$", RegexOptions.IgnoreCase), "Cần $1 Vàng"),
+    };
+
+        private static Dictionary<string, string> mapVI;
 
     private static void EnsureMap()
     {
@@ -97,39 +165,71 @@ public static class SettingsLocalizationData
                 mapVI.Add(e.en, e.vi);
     }
 
-    /// <summary>
-    /// Tự động dịch: nếu ngôn ngữ hiện tại là Tiếng Việt → trả về tiếng Việt,
-    /// ngược lại giữ nguyên tiếng Anh.
-    /// </summary>
+    // ✅ Gộp khoảng trắng / xuống dòng / tab thành 1 khoảng trắng
+    private static string Normalize(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        return Regex.Replace(text.Trim(), @"\s+", " ");
+    }
+
+    private static bool IsVietnamese()
+    {
+        try
+        {
+            return LocalizationSettings.SelectedLocale != null &&
+                   LocalizationSettings.SelectedLocale.Identifier.Code
+                       .ToLower().StartsWith("vi");
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     public static string Translate(string englishText)
     {
         if (string.IsNullOrEmpty(englishText))
             return englishText;
 
-        bool isVietnamese = false;
-        try
-        {
-            isVietnamese = LocalizationSettings.SelectedLocale != null &&
-                           LocalizationSettings.SelectedLocale.Identifier.Code
-                               .ToLower().StartsWith("vi");
-        }
-        catch
-        {
-            isVietnamese = false;
-        }
-
-        if (!isVietnamese)
+        if (!IsVietnamese())
             return englishText;
 
         EnsureMap();
-        return mapVI.TryGetValue(englishText.Trim(), out string vi) ? vi : englishText;
+        string normalized = Normalize(englishText);
+
+        // 1. Khớp chính xác trong dictionary
+        if (mapVI.TryGetValue(normalized, out string vi))
+            return vi;
+
+        // 2. Khớp Regex (text động có số)
+        foreach (var entry in RegexEntries)
+            if (entry.regex.IsMatch(normalized))
+                return entry.regex.Replace(normalized, entry.replacement);
+
+        return englishText;
     }
-        public static bool HasTranslation(string englishText)
+
+    public static bool HasTranslation(string englishText)
     {
         if (string.IsNullOrEmpty(englishText))
             return false;
 
         EnsureMap();
-        return mapVI.ContainsKey(englishText.Trim());
+        string normalized = Normalize(englishText);
+
+        if (mapVI.ContainsKey(normalized))
+            return true;
+
+        foreach (var entry in RegexEntries)
+            if (entry.regex.IsMatch(normalized))
+                return true;
+
+        return false;
+    }
+
+    public static void Refresh()
+    {
+        mapVI = null;
+        EnsureMap();
     }
 }
