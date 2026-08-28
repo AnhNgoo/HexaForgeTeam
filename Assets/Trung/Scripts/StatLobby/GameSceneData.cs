@@ -95,7 +95,7 @@ public class GameSceneData : ScriptableObject
 
     public string GetSceneName(SceneType type)
     {
-        if (!hasCached)
+        if (!personalConfigCached)
         {
             CheckAndCacheActivePersonalConfig();
         }
