@@ -1,6 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
+
 #if UNITY_EDITOR
 using Sirenix.OdinInspector;
 #endif

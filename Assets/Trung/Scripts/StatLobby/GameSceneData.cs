@@ -66,14 +66,15 @@ public class GameSceneData : ScriptableObject
     public void CheckAndCacheActivePersonalConfig()
     {
 #if UNITY_EDITOR
-        if (personalConfigCached)
-            return;
-
-        personalConfigCached = true;
         activePersonalConfig = null;
 
-        SceneConfigSO[] allConfigs =
-            Resources.LoadAll<SceneConfigSO>("SceneConfigs");
+        SceneConfigSO[] allConfigs = Resources.LoadAll<SceneConfigSO>("SceneConfigs");
+
+        if (allConfigs == null || allConfigs.Length == 0)
+        {
+            // Quét dự phòng toàn bộ thư mục Resources nếu chưa tạo subfolder SceneConfigs
+            allConfigs = Resources.LoadAll<SceneConfigSO>("");
+        }
 
         foreach (SceneConfigSO config in allConfigs)
         {
@@ -90,12 +91,17 @@ public class GameSceneData : ScriptableObject
 
             break;
         }
+
+        personalConfigCached = true;
 #endif
     }
 
     public string GetSceneName(SceneType type)
     {
-        CheckAndCacheActivePersonalConfig();
+        if (!personalConfigCached)
+        {
+            CheckAndCacheActivePersonalConfig();
+        }
 
         switch (type)
         {
@@ -152,7 +158,6 @@ public class GameSceneData : ScriptableObject
 
         int rand = Random.Range(0, 2);
         string selectedMap = (rand == 0) ? map1 : map2;
-        Debug.Log($"<color=#FFCC00><b>[Run Random Map]</b> Đã bốc ngẫu nhiên: <b>{selectedMap}</b> (Map index: {rand + 1})</color>");
         return selectedMap;
     }
 

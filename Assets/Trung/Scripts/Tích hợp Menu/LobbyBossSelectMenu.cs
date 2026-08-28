@@ -256,6 +256,9 @@ public class LobbyBossSelectMenu : MenuBase
 
         Debug.Log($"<color=#00FF00><b>[START RUN]</b> Map: <b>{previewedRunMapName}</b> | Boss: <b>{selected.bossName}</b></color>");
 
+        // Đóng Menu chọn Boss hiện tại
+        Close();
+
         if (RunManager.Instance != null)
         {
             RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);

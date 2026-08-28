@@ -51,17 +51,20 @@ public class IdleState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.RecoveryBottle > 0 && !character.CharacterInput.IsHealthRecovering && !character.IsHealthRecoveryInterrupted)
+        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.CurrentRecoveryBottle > 0 && !character.CharacterInput.IsHealthRecovering && !character.IsHealthRecoveryInterrupted)
         {
             character.StateController.ChangeState(new HealthRecoveryState(character));
             return;
         }
 
-        if (character.CharacterInput.Dodge)
+        if (character.CharacterInput.Dodge &&
+            character.CharacterStamina.HasEnoughStamina(character.CharacterData.staminaCost.dodgeCost))
         {
+            character.CharacterStamina.SubtractStamina(character.CharacterData.staminaCost.dodgeCost);
             character.Dodge();
             return;
         }
+
         if (character.CharacterInput.Jump &&
         character.CharacterMovement.IsGrounded &&
         character.CharacterStamina.HasEnoughStamina(character.CharacterData.staminaCost.jumpCost))
