@@ -72,13 +72,60 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private Characters LoadCharacterSelected()
     {
-        string selectedCharacter = PlayerPrefs.GetString("SelectedCharacter");
-        Character characterEnum = (Character)System.Enum.Parse(typeof(Character), selectedCharacter);
-        Characters character = characterList.Find(c => c.character == characterEnum);
-        if (character != null)
-            return character;
-        else
-            return characterList[0];
+        const string key = "SelectedCharacter";
+
+        string savedValue = PlayerPrefs.GetString(
+            key,
+            Character.Kael.ToString()
+        );
+
+        if (!System.Enum.TryParse(
+                savedValue,
+                true,
+                out Character selectedCharacter) ||
+            selectedCharacter == Character.None)
+        {
+            selectedCharacter = Character.Kael;
+        }
+
+        Characters result = characterList.Find(character =>
+            character != null &&
+            character.character == selectedCharacter &&
+            character.characterData != null
+        );
+
+        if (result == null)
+        {
+            result = characterList.Find(character =>
+                character != null &&
+                character.character == Character.Kael &&
+                character.characterData != null
+            );
+        }
+
+        if (result == null)
+        {
+            result = characterList.Find(character =>
+                character != null &&
+                character.characterData != null
+            );
+        }
+
+        if (result == null)
+        {
+            Debug.LogError(
+                "[PlayerManager] Character List không có CharacterData hợp lệ."
+            );
+            return null;
+        }
+
+        if (savedValue != result.character.ToString())
+        {
+            PlayerPrefs.SetString(key, result.character.ToString());
+            PlayerPrefs.Save();
+        }
+
+        return result;
     }
 
     private void SaveCharacterSelected()
@@ -163,6 +210,11 @@ public class PlayerManager : Singleton<PlayerManager>
 
         if (spawnPointInLobby == null)
             FindSpawnPointInLobby();
+        if (spawnPointInLobby == null)
+        {
+            Debug.LogError("[PlayerManager] Không thể spawn vì thiếu SpawnPointCharacterInLobby.");
+            return;
+        }
 
         if (character == null)
         {
@@ -205,9 +257,23 @@ public class PlayerManager : Singleton<PlayerManager>
 
     public void FindSpawnPointInLobby()
     {
-        spawnPointInLobby = GameObject.FindGameObjectWithTag("SpawnPointCharacterInLobby").transform;
-        if (spawnPointInLobby == null)
-            Debug.LogError("Không tìm thấy SpawnPointCharacterInLobby trong scene");
+        GameObject spawnPointObject =
+            GameObject.FindGameObjectWithTag(
+                "SpawnPointCharacterInLobby"
+            );
+
+        if (spawnPointObject == null)
+        {
+            spawnPointInLobby = null;
+
+            Debug.LogError(
+                "[PlayerManager] Không tìm thấy object có tag " +
+                "'SpawnPointCharacterInLobby'."
+            );
+            return;
+        }
+
+        spawnPointInLobby = spawnPointObject.transform;
     }
     #endregion
 
