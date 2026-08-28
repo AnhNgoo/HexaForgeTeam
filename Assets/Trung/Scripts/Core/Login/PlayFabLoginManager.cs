@@ -371,7 +371,6 @@ public class PlayFabLoginManager : MonoBehaviour
 
         LoadTrace.Mark($"Activating target scene, progress={loadTarget.progress:F2}");
         loadTarget.allowSceneActivation = true;
-        LoadTrace.Mark($"Activating target scene, progress={loadTarget.progress:F2}");
         while (!loadTarget.isDone) yield return null;
         LoadTrace.Mark("Target scene activation completed");
 
