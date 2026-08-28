@@ -16,6 +16,7 @@ public class BirdRideState : ICharacterState
 
     public void Update()
     {
+        Debug.Log("BirdRideState Update");
         // Không cho điều khiển
     }
 
