@@ -46,9 +46,11 @@ public class PlayFabDataManager : MonoBehaviour
     #region LOAD CLOUD
     public void LoadCloud(System.Action<bool> onComplete = null)
     {
+        LoadTrace.Mark("Sending PlayFab GetUserData");
         PlayFabClientAPI.GetUserData(new GetUserDataRequest(), result =>
         {
             Debug.Log("[PlayFabDataManager] Cloud Load Success!");
+            LoadTrace.Mark("GetUserData response received");
 
             if (SaveLoadManager.Instance == null)
             {
@@ -67,16 +69,22 @@ public class PlayFabDataManager : MonoBehaviour
                 Debug.Log("[CLOUD] Dữ liệu mới. Khởi tạo dữ liệu mặc định...");
                 SaveLoadManager.Instance.SaveData = new GameSaveData();
                 SaveLoadManager.Instance.SaveData.isTutorialCompleted = false;
+                LoadTrace.Mark("Writing local save");
                 SaveLoadManager.Instance.SaveGame();
+                LoadTrace.Mark("Local save completed");
             }
             else
             {
                 string json = result.Data["PlayerData"].Value;
+                LoadTrace.Mark("Parsing cloud JSON");
                 GameSaveData cloudData = JsonUtility.FromJson<GameSaveData>(json);
+                LoadTrace.Mark("Cloud JSON parsed");
                 if (cloudData != null)
                 {
                     SaveLoadManager.Instance.SaveData = cloudData;
+                    LoadTrace.Mark("Writing local save");
                     SaveLoadManager.Instance.SaveGame();
+                    LoadTrace.Mark("Local save completed");
                 }
             }
 
