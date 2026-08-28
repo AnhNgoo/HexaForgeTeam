@@ -69,19 +69,18 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void RefreshLayoutByScene()
     {
-        bool isRunLoaded = GameSceneData.Instance != null && GameSceneData.Instance.IsSceneLoaded(SceneType.RunGameplay);
+        MapType mapType = GameManager.Instance != null ? GameManager.Instance.MapType : MapType.None;
 
-        if (isRunLoaded)
-        {
-            if (levelGroup != null) levelGroup.SetActive(false);
-            if (currencyGroup != null) currencyGroup.SetActive(false);
-        }
-        else
-        {
-            if (levelGroup != null) levelGroup.SetActive(true);
-            if (currencyGroup != null) currencyGroup.SetActive(true);
+        bool hideLobbyHud = mapType == MapType.Run || mapType == MapType.Boss || mapType == MapType.Tutorial;
+
+        if (levelGroup != null)
+            levelGroup.SetActive(!hideLobbyHud);
+
+        if (currencyGroup != null)
+            currencyGroup.SetActive(!hideLobbyHud);
+
+        if (!hideLobbyHud)
             RefreshCurrencyUI();
-        }
     }
 
     public void RefreshCurrencyUI()
@@ -143,8 +142,8 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void ShowCurrencyOnly()
     {
-        string runSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
+        string runSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay)
             : sceneRunName;
 
         Scene runScene = SceneManager.GetSceneByName(runSceneName);

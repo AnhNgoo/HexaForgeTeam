@@ -32,6 +32,7 @@ public class GameManager : Singleton<GameManager>
     {
         base.Awake();
         EventManager.Subscribe(GameEvent.OnLoadingComplete, OnLoadingComplete);
+        EventManager.Subscribe(GameEvent.OnPlayerSpawned, HandlePlayerSpawned);
     }
 
     private void Start()
@@ -42,6 +43,7 @@ public class GameManager : Singleton<GameManager>
     protected virtual void OnDestroy()
     {
         EventManager.Unsubscribe(GameEvent.OnLoadingComplete, OnLoadingComplete);
+        EventManager.Unsubscribe(GameEvent.OnPlayerSpawned, HandlePlayerSpawned);
     }
 
     private void OpenMenuAfterLoadingComplete()
@@ -70,7 +72,16 @@ public class GameManager : Singleton<GameManager>
 
     private void InitInLobby()
     {
-        UIManager.Instance?.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+        Time.timeScale = 1f;
+
+        UIManager.Instance?.ChangeMenu(
+            MenuType.DefaultLobbyInputMenu
+        );
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.ForceUnlockState();
+        }
 
         if (LobbyHUDTopBar.Instance != null)
         {
@@ -78,33 +89,58 @@ public class GameManager : Singleton<GameManager>
             LobbyHUDTopBar.Instance.ShowFullHUD();
         }
 
-        PlayerManager.Instance.SpawnCharacterInLobby();
-        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(true, true);
+        PlayerManager.Instance?.SpawnCharacterInLobby();
     }
 
     private void InitInRun()
     {
-        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        Time.timeScale = 1f;
+
+        UIManager.Instance?.ChangeMenu(MenuType.GameplayMenu);
 
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.gameObject.SetActive(false);
         }
 
-        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
-        PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false); // Khi mới vào run không giới hạn số lần respawn
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.ForceUnlockState();
+        }
+
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false);
+        }
     }
 
     private void InitInBoss()
     {
         UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-        PlayerManager.Instance.CurrentCharacterBase.CharacterSkill.LockUseSkill(false, false);
 
         // Nếu ở map run nhân vật chưa chết lần nào khi bo cuối thì nhân vật sẽ được respawn ở map boss + thêm 1 lần
         if (PlayerManager.Instance.CurrentRespawnAttempts == PlayerManager.Instance.MaxRespawnAttemptsInFinalSafeZone)
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss + 1, limitRespawnAttempts: true);
         else
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss, limitRespawnAttempts: true);
+    }
+
+    private void HandlePlayerSpawned(object data)
+    {
+        if (data is not Transform playerTransform ||
+            !playerTransform.TryGetComponent(
+                out CharacterBase character))
+        {
+            return;
+        }
+
+        bool lockSkills =
+            currentMapType == MapType.Lobby;
+
+        character.CharacterSkill?.LockUseSkill(
+            lockSkills,
+            lockSkills
+        );
     }
 
     public void SetMapType(MapType mapType)
