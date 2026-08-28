@@ -23,11 +23,15 @@ public class RuneDetailInfoPanel : MonoBehaviour
     [SerializeField] private Button deleteButton;
     [SerializeField] private Button rerollPanelButton;
 
-    [Header("Rune Visuals (12 Images Ngọc)")]
-    [SerializeField] private List<GameObject> runeImages = new List<GameObject>();
+    [Header("Rune Visual Target (1 Image Duy Nhất)")]
+    [SerializeField] private Image targetRuneImage;
+
+    [Header("Rune Sprites (12 Sprites Ngọc Thường)")]
+    [Tooltip("Thứ tự sắp xếp: Common(Red, Green, Blue) -> Rare(Red, Green, Blue) -> Epic(Red, Green, Blue) -> Legendary(Red, Green, Blue)")]
+    [SerializeField] private List<Sprite> runeSprites = new List<Sprite>();
     
-    [Header("Special Asset (Ngọc Cổ Tự Ultimate)")]
-    [SerializeField] private GameObject ultimateRuneImage;
+    [Header("Special Sprite (Ngọc Cổ Tự Ultimate)")]
+    [SerializeField] private Sprite ultimateRuneSprite;
 
     private RuneData currentData;
 
@@ -388,22 +392,27 @@ public class RuneDetailInfoPanel : MonoBehaviour
 
     private void UpdateRuneImageVisual(RuneData runeData)
     {
-        for (int i = 0; i < runeImages.Count; i++)
-        {
-            if (runeImages[i] != null) runeImages[i].SetActive(false);
-        }
-        if (ultimateRuneImage != null) ultimateRuneImage.SetActive(false);
+        if (targetRuneImage == null) return;
 
         if (IsUltimateRune(runeData))
         {
-            if (ultimateRuneImage != null) ultimateRuneImage.SetActive(true);
+            if (ultimateRuneSprite != null)
+            {
+                targetRuneImage.gameObject.SetActive(true);
+                targetRuneImage.sprite = ultimateRuneSprite;
+            }
             return;
         }
 
         int targetIndex = ((int)runeData.runeRarity * 3) + (int)runeData.runeColor;
-        if (targetIndex >= 0 && targetIndex < runeImages.Count && runeImages[targetIndex] != null)
+        if (targetIndex >= 0 && targetIndex < runeSprites.Count && runeSprites[targetIndex] != null)
         {
-            runeImages[targetIndex].SetActive(true);
+            targetRuneImage.gameObject.SetActive(true);
+            targetRuneImage.sprite = runeSprites[targetIndex];
+        }
+        else
+        {
+            targetRuneImage.gameObject.SetActive(false);
         }
     }
 

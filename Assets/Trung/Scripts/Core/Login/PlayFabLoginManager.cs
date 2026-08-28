@@ -305,8 +305,8 @@ public class PlayFabLoginManager : MonoBehaviour
 
         CheckAndFixDisplayName();
 
-        System.GC.Collect();
-        Resources.UnloadUnusedAssets();
+        // System.GC.Collect();
+        // Resources.UnloadUnusedAssets();
 
         if (PlayFabDataManager.Instance != null)
         {

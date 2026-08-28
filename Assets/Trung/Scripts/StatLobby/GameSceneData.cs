@@ -61,33 +61,38 @@ public class GameSceneData : ScriptableObject
     [SerializeField] private List<SceneEntry> customScenes = new List<SceneEntry>();
 
     private SceneConfigSO activePersonalConfig;
+    private bool hasCached = false;
 
     public void CheckAndCacheActivePersonalConfig()
     {
-        activePersonalConfig = null;
+        if (hasCached && activePersonalConfig != null) return;
 
         #if UNITY_EDITOR
-        SceneConfigSO[] allConfigs = Resources.FindObjectsOfTypeAll<SceneConfigSO>();
-        if (allConfigs == null || allConfigs.Length == 0)
-        {
-            allConfigs = Resources.LoadAll<SceneConfigSO>("");
-        }
+        SceneConfigSO[] allConfigs = Resources.LoadAll<SceneConfigSO>("");
 
-        foreach (var config in allConfigs)
+        if (allConfigs != null)
         {
-            if (config != null && config.isOverrideMyLocalScene)
+            foreach (var config in allConfigs)
             {
-                activePersonalConfig = config;
-                Debug.Log($"<color=#00FFCC><b>[Scene System]</b> Đã kích hoạt Override Scene Cá Nhân của Dev: <b>[{config.devName}]</b></color>");
-                break;
+                if (config != null && config.isOverrideMyLocalScene)
+                {
+                    activePersonalConfig = config;
+                    Debug.Log($"<color=#00FFCC><b>[Scene System]</b> Đã kích hoạt Override Scene Cá Nhân của Dev: <b>[{config.devName}]</b></color>");
+                    break;
+                }
             }
         }
         #endif
+
+        hasCached = true;
     }
 
     public string GetSceneName(SceneType type)
     {
-        CheckAndCacheActivePersonalConfig();
+        if (!hasCached)
+        {
+            CheckAndCacheActivePersonalConfig();
+        }
 
         switch (type)
         {
@@ -144,7 +149,6 @@ public class GameSceneData : ScriptableObject
 
         int rand = Random.Range(0, 2);
         string selectedMap = (rand == 0) ? map1 : map2;
-        Debug.Log($"<color=#FFCC00><b>[Run Random Map]</b> Đã bốc ngẫu nhiên: <b>{selectedMap}</b> (Map index: {rand + 1})</color>");
         return selectedMap;
     }
 

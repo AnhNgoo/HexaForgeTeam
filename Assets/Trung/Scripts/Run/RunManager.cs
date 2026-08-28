@@ -18,16 +18,6 @@ public class RunManager : MonoBehaviour
     [SerializeField] private GameObject lobbyHUDMainObject;
 
     private float totalDamageDealt;
-    private int totalNormalKilled;
-    private int totalEliteKilled;
-    private int totalBossKilled;
-    private int totalFinalBossKilled;
-
-    public int TotalNormalKilled => totalNormalKilled;
-    public int TotalEliteKilled => totalEliteKilled;
-    public int TotalBossKilled => totalBossKilled;
-    public int TotalFinalBossKilled => totalFinalBossKilled;
-
     private int pendingGem;
     private int pendingExp;
     private int pendingShards;
@@ -72,23 +62,11 @@ public class RunManager : MonoBehaviour
         totalDamageDealt += amount;
     }
 
-    public void AddKillCount(int normal, int elite, int boss, int finalBoss)
-    {
-        totalNormalKilled += normal;
-        totalEliteKilled += elite;
-        totalBossKilled += boss;
-        totalFinalBossKilled += finalBoss;
-    }
-
     public float GetTotalDamage() => totalDamageDealt;
 
-    public void ResetRunData()
+    public void ResetDamageData()
     {
         totalDamageDealt = 0f;
-        totalNormalKilled = 0;
-        totalEliteKilled = 0;
-        totalBossKilled = 0;
-        totalFinalBossKilled = 0;
     }
 
     public void SetPendingRewards(int gem, int exp, int shards)
@@ -109,7 +87,12 @@ public class RunManager : MonoBehaviour
                 : "Run Scene";
         }
 
-        ResetRunData();
+        ResetDamageData();
+        if (RunGameplayController.Instance != null)
+        {
+            RunGameplayController.Instance.ResetStats();
+        }
+
         HideLobbyHUD();
 
         if (InteractManagerV2.Instance != null)
@@ -307,11 +290,6 @@ public class RunManager : MonoBehaviour
             if (playerController != null) playerController.enabled = false;
         }
 
-        if (RunGameplayController.Instance != null)
-        {
-            RunGameplayController.Instance.ResetStats();
-        }
-
         isRunActive = true;
 
         if (UIManager.Instance != null)
@@ -373,6 +351,11 @@ public class RunManager : MonoBehaviour
 
         yield return StartCoroutine(UnloadAllOldGameplayScenes());
 
+        if (RunGameplayController.Instance != null)
+        {
+            Destroy(RunGameplayController.Instance.gameObject);
+        }
+
         float duration = Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
         {
@@ -417,7 +400,6 @@ public class RunManager : MonoBehaviour
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
         pendingGem = 0; pendingExp = 0; pendingShards = 0;
-        ResetRunData();
 
         if (LeaderboardManager.Instance != null) LeaderboardManager.Instance.UpdateAllStatistics();
 

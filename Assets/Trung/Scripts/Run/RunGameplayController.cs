@@ -20,12 +20,15 @@ public class RunGameplayController : MonoBehaviour
     public bool IsFinalBossDefeated => FinalBossKilled > 0;
 
     private readonly HashSet<EnemyBase> trackedEnemies = new HashSet<EnemyBase>();
+    private float scanTimer = 0f;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null);
+            DontDestroyOnLoad(gameObject);
         }
         else if (Instance != this)
         {
@@ -51,7 +54,13 @@ public class RunGameplayController : MonoBehaviour
     private void Update()
     {
         TimeElapsed += Time.deltaTime;
-        ScanAndRegisterEnemies();
+
+        scanTimer += Time.deltaTime;
+        if (scanTimer >= 0.5f)
+        {
+            scanTimer = 0f;
+            ScanAndRegisterEnemies();
+        }
 
         if (Input.GetKeyDown(KeyCode.Equals))
         {
@@ -121,7 +130,6 @@ public class RunGameplayController : MonoBehaviour
         if (!enemy.Data.isBoss)
         {
             NormalKilled++;
-            if (RunManager.Instance != null) RunManager.Instance.AddKillCount(1, 0, 0, 0);
         }
         else
         {
@@ -129,17 +137,14 @@ public class RunGameplayController : MonoBehaviour
             {
                 case EnemyBossCategory.Miniboss:
                     EliteKilled++;
-                    if (RunManager.Instance != null) RunManager.Instance.AddKillCount(0, 1, 0, 0);
                     break;
 
                 case EnemyBossCategory.TwilightTerror:
                     BossKilled++;
-                    if (RunManager.Instance != null) RunManager.Instance.AddKillCount(0, 0, 1, 0);
                     break;
 
                 case EnemyBossCategory.FinalBoss:
                     FinalBossKilled++;
-                    if (RunManager.Instance != null) RunManager.Instance.AddKillCount(0, 0, 0, 1);
                     TriggerEndRun(true);
                     break;
             }
@@ -165,22 +170,11 @@ public class RunGameplayController : MonoBehaviour
         if (this == null) return;
         StopAllCoroutines();
 
-        int normal = NormalKilled;
-        int elite = EliteKilled;
-        int boss = BossKilled;
-        int finalBoss = FinalBossKilled;
-
-        if (RunManager.Instance != null)
-        {
-            normal = Mathf.Max(normal, RunManager.Instance.TotalNormalKilled);
-            elite = Mathf.Max(elite, RunManager.Instance.TotalEliteKilled);
-            boss = Mathf.Max(boss, RunManager.Instance.TotalBossKilled);
-            finalBoss = Mathf.Max(finalBoss, RunManager.Instance.TotalFinalBossKilled);
-        }
+        MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 
         if (RunResultSummary.Instance != null)
         {
-            RunResultSummary.Instance.DisplaySummary(normal, elite, boss, finalBoss, isVictory);
+            RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);
         }
     }
 

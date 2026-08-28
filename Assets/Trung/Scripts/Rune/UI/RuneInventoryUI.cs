@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;    
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class RuneInventoryUI : MonoBehaviour
 {
@@ -23,11 +24,21 @@ public class RuneInventoryUI : MonoBehaviour
     [SerializeField] private TMP_Text selectModeToggleButtonText;    
     private bool isSelectModeActive = false;                         
 
-    [Header("Fusion Layout Button Config")]
+    [Header("Fusion Tab Header System")]
     [SerializeField] private GameObject runeEquipPanelObj;  
     [SerializeField] private GameObject runeFusionPanelObj; 
-    [SerializeField] private Button fusionModeButton;          
-    [SerializeField] private TMP_Text fusionModeButtonText;      
+    [SerializeField] private Button btnEquipRuneTab;        
+    [SerializeField] private Button btnFusionRuneTab;       
+    [SerializeField] private TMP_Text txtEquipRuneTab;      
+    [SerializeField] private TMP_Text txtFusionRuneTab;     
+    [SerializeField] private GameObject underlineEquipRune; 
+    [SerializeField] private GameObject underlineFusionRune;
+    
+    [Header("Fusion Tab Visual Config")]
+    [SerializeField] private Color activeTabColor = new Color(1f, 0.85f, 0.3f, 1f);
+    [SerializeField] private Color inactiveTabColor = new Color(0.65f, 0.65f, 0.65f, 1f);
+    [SerializeField] private float activeTabScale = 1.12f;
+    [SerializeField] private float inactiveTabScale = 1.0f;
     private bool isFusionActive = false;                         
 
     [Header("Inventory Capacity Settings")]
@@ -39,12 +50,12 @@ public class RuneInventoryUI : MonoBehaviour
     [SerializeField] private GameObject itemMainPanelGroup; 
     [SerializeField] private Button tabRuneButton;          
     [SerializeField] private Button tabItemButton;
+    [SerializeField] private Button filterButton;
 
     private RuneCardUI lockedSelectedCardUI = null;
     private RuneData lockedSelectedRuneData = null;
 
     private HashSet<string> selectedRuneIDs = new HashSet<string>();
-
     private List<RuneCardUI> pooledCards = new List<RuneCardUI>();    
 
     private void Awake()
@@ -66,23 +77,56 @@ public class RuneInventoryUI : MonoBehaviour
             tabItemButton.onClick.AddListener(SwitchToItemTab);
         }
 
-        if (fusionModeButton != null)
+        if (btnEquipRuneTab != null)
         {
-            fusionModeButton.onClick.RemoveAllListeners();
-            fusionModeButton.onClick.AddListener(ToggleFusionMode);
+            btnEquipRuneTab.onClick.RemoveAllListeners();
+            btnEquipRuneTab.onClick.AddListener(() =>
+            {
+                AnimateButtonPunch(btnEquipRuneTab.transform);
+                SwitchFusionModeTab(false);
+            });
         }
 
+        if (btnFusionRuneTab != null)
+        {
+            btnFusionRuneTab.onClick.RemoveAllListeners();
+            btnFusionRuneTab.onClick.AddListener(() =>
+            {
+                AnimateButtonPunch(btnFusionRuneTab.transform);
+                SwitchFusionModeTab(true);
+            });
+        }
+
+        SetupTooltips();
         SwitchToRuneTab();
     }
 
     private void OnEnable()
     {
         DeselectLockedRune();
-        ResetFusionState();
+        SwitchFusionModeTab(false);
         if (RuneFilterPanel.Instance != null) RuneFilterPanel.Instance.ResetFilterToDefault();
 
         DisableSelectMode();
         RefreshInventory();
+    }
+
+    private void SetupTooltips()
+    {
+        AddTooltip(tabRuneButton != null ? tabRuneButton.gameObject : null, "Rune Vault", "View, equip, and manage all your collected elemental runes.");
+        AddTooltip(tabItemButton != null ? tabItemButton.gameObject : null, "Item Inventory", "Browse consumable items, materials, and treasure chests.");
+        AddTooltip(btnEquipRuneTab != null ? btnEquipRuneTab.gameObject : null, "Equip Runes", "Slot elemental runes into your heroes to boost stats.");
+        AddTooltip(btnFusionRuneTab != null ? btnFusionRuneTab.gameObject : null, "Rune Fusion", "Fuse lower tier runes into higher rarities or reroll bonus affixes.");
+        AddTooltip(filterButton != null ? filterButton.gameObject : null, "Filter Runes", "Filter your runes by Element, Rarity, and specific Stat attributes.");
+        AddTooltip(selectAllButtonObj, "Select All", "Quickly select all currently visible runes matching your filter.");
+        AddTooltip(bulkDeleteButtonObj, "Dismantle Selected", "Break down all selected runes to recover Gems and Rune Shards.");
+    }
+
+    private void AddTooltip(GameObject targetObj, string title, string description, Sprite icon = null)
+    {
+        if (targetObj == null) return;
+        var trigger = targetObj.GetComponent<UITooltipAutoTrigger>() ?? targetObj.AddComponent<UITooltipAutoTrigger>();
+        trigger.SetData(title, description, icon);
     }
 
     public RuneData GetSelectedRuneData() => lockedSelectedRuneData;
@@ -159,20 +203,71 @@ public class RuneInventoryUI : MonoBehaviour
 
     public void ResetFusionState()
     {
-        isFusionActive = false;
-        if (runeEquipPanelObj != null) runeEquipPanelObj.SetActive(true);
-        if (runeFusionPanelObj != null) runeFusionPanelObj.SetActive(false);
-        
-        if (fusionModeButtonText != null)
+        SwitchFusionModeTab(false);
+    }
+
+    public void SwitchFusionModeTab(bool isFusion)
+    {
+        isFusionActive = isFusion;
+
+        if (btnEquipRuneTab != null)
         {
-            fusionModeButtonText.SetTextSafe("Fusion Mode");
-            fusionModeButtonText.color = Color.white;
+            btnEquipRuneTab.transform.DOKill(true);
+            btnEquipRuneTab.transform.localScale = Vector3.one;
         }
 
-        if (RuneFusionUI.Instance != null)
+        if (btnFusionRuneTab != null)
         {
-            RuneFusionUI.Instance.ClearFusionSlots();
+            btnFusionRuneTab.transform.DOKill(true);
+            btnFusionRuneTab.transform.localScale = Vector3.one;
         }
+
+        if (runeEquipPanelObj != null) runeEquipPanelObj.SetActive(!isFusion);
+        if (runeFusionPanelObj != null) runeFusionPanelObj.SetActive(isFusion);
+
+        if (underlineEquipRune != null) underlineEquipRune.SetActive(!isFusion);
+        if (underlineFusionRune != null) underlineFusionRune.SetActive(isFusion);
+
+        if (txtEquipRuneTab != null)
+        {
+            txtEquipRuneTab.DOKill();
+            txtEquipRuneTab.color = !isFusion ? activeTabColor : inactiveTabColor;
+            float targetScale = !isFusion ? activeTabScale : inactiveTabScale;
+            txtEquipRuneTab.transform.DOScale(Vector3.one * targetScale, 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        }
+
+        if (txtFusionRuneTab != null)
+        {
+            txtFusionRuneTab.DOKill();
+            txtFusionRuneTab.color = isFusion ? activeTabColor : inactiveTabColor;
+            float targetScale = isFusion ? activeTabScale : inactiveTabScale;
+            txtFusionRuneTab.transform.DOScale(Vector3.one * targetScale, 0.2f).SetEase(Ease.OutQuad).SetUpdate(true);
+        }
+
+        GameObject activeLine = isFusion ? underlineFusionRune : underlineEquipRune;
+        if (activeLine != null)
+        {
+            activeLine.transform.DOKill(true);
+            activeLine.transform.localScale = new Vector3(0f, 1f, 1f);
+            activeLine.transform.DOScaleX(1f, 0.22f).SetEase(Ease.OutCubic).SetUpdate(true);
+        }
+
+        if (isFusion)
+        {
+            if (RuneFusionUI.Instance != null) RuneFusionUI.Instance.ClearFusionSlots();
+        }
+        else
+        {
+            if (RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
+        }
+    }
+
+    private void AnimateButtonPunch(Transform btnTransform)
+    {
+        if (btnTransform == null) return;
+        btnTransform.DOKill(true);
+        btnTransform.localScale = Vector3.one;
+        btnTransform.DOPunchScale(new Vector3(0.08f, 0.08f, 0f), 0.2f, 5, 0.5f).SetUpdate(true);
     }
 
     public void OpenInventory()
@@ -184,7 +279,7 @@ public class RuneInventoryUI : MonoBehaviour
     public void CloseInventory()
     {
         DeselectLockedRune();
-        ResetFusionState();
+        SwitchFusionModeTab(false);
         
         if (RuneFusionUI.Instance != null) RuneFusionUI.Instance.ClearFusionSlots();
         
@@ -197,33 +292,6 @@ public class RuneInventoryUI : MonoBehaviour
         DisableSelectMode();
 
         if (inventoryPanel != null) inventoryPanel.SetActive(false);
-    }
-
-    public void ToggleFusionMode()
-    {
-        if (runeEquipPanelObj == null || runeFusionPanelObj == null) return;
-
-        isFusionActive = !isFusionActive;
-
-        runeEquipPanelObj.SetActive(!isFusionActive);
-        runeFusionPanelObj.SetActive(isFusionActive);
-
-        if (fusionModeButtonText != null)
-        {
-            if (isFusionActive)
-            {
-                fusionModeButtonText.SetTextSafe("Cancel Fusion Mode");
-                fusionModeButtonText.color = new Color(1f, 0.4f, 0.4f);
-            }
-            else
-            {
-                fusionModeButtonText.SetTextSafe("Fusion Mode");
-                fusionModeButtonText.color = Color.white;
-            }
-        }
-
-        if (RuneFusionUI.Instance != null) RuneFusionUI.Instance.ClearFusionSlots();
-        if (!isFusionActive && RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
     }
 
     public void ToggleSelectMode()
