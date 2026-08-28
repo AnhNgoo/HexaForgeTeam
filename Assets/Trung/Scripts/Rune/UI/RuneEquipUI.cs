@@ -3,9 +3,34 @@ using UnityEngine.UI;
 using TMPro;
 using System.Text;
 using System.Collections.Generic;
+using DG.Tweening;
 
 public class RuneEquipUI : MonoBehaviour
 {
+    public static RuneEquipUI Instance;
+
+    [Header("Main Big Character Button & Display")]
+    [Tooltip("Nút Avatar Lớn hiển thị nhân vật hiện tại")]
+    [SerializeField] private Button mainCharacterButton;
+    [SerializeField] private Image mainCharacterAvatarImage;
+    [SerializeField] private TMP_Text mainCharacterNameText;
+
+    [Header("Character Selection Popup")]
+    [Tooltip("Kéo GameObject SelectCharBuild vào đây")]
+    [SerializeField] private GameObject characterSelectPopup;
+
+    [Header("Character Selection Sub-Buttons (Bên trong Popup)")]
+    [SerializeField] private GameObject kaelButtonObj;
+    [SerializeField] private GameObject lyraButtonObj;
+    [SerializeField] private GameObject aresButtonObj;
+    [SerializeField] private GameObject elaraButtonObj;
+
+    [Header("Character Avatars Mapping")]
+    [SerializeField] private Sprite kaelAvatar;
+    [SerializeField] private Sprite lyraAvatar;
+    [SerializeField] private Sprite aresAvatar;
+    [SerializeField] private Sprite elaraAvatar;
+
     [Header("Equip Slots")]
     [SerializeField] private Image slot1Image;
     [SerializeField] private Image slot2Image;
@@ -13,12 +38,6 @@ public class RuneEquipUI : MonoBehaviour
     [SerializeField] private TMP_Text slot1ConditionText;
     [SerializeField] private TMP_Text slot2ConditionText;
     [SerializeField] private TMP_Text slot3ConditionText;
-
-    [Header("Character Buttons")]
-    [SerializeField] private GameObject kaelButtonObj;
-    [SerializeField] private GameObject lyraButtonObj;
-    [SerializeField] private GameObject aresButtonObj;
-    [SerializeField] private GameObject elaraButtonObj;
 
     [Header("Coming Soon Config")]
     [SerializeField] private List<CharacterType> comingSoonCharacters = new List<CharacterType>()
@@ -56,11 +75,80 @@ public class RuneEquipUI : MonoBehaviour
     [Header("Origin Rune")]
     [SerializeField] private Sprite originRuneSprite;
 
-    public static RuneEquipUI Instance;
+    private RectTransform popupRectTransform;
+    private RectTransform mainButtonRectTransform;
 
     private void Awake()
     {
         Instance = this;
+        InitMainButtonEvents();
+
+        if (characterSelectPopup != null)
+        {
+            popupRectTransform = characterSelectPopup.GetComponent<RectTransform>();
+        }
+        if (mainCharacterButton != null)
+        {
+            mainButtonRectTransform = mainCharacterButton.GetComponent<RectTransform>();
+        }
+    }
+
+    private void Update()
+    {
+        if (characterSelectPopup == null || !characterSelectPopup.activeSelf) return;
+
+        // 1. Phím ESC -> Tắt Popup
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            HideCharacterSelectPopup();
+            return;
+        }
+
+        // 2. Click chuột trái ngoài vùng Popup và Nút Avatar -> Tự động tắt Popup
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector2 mousePos = Input.mousePosition;
+
+            bool isClickInsidePopup = popupRectTransform != null &&
+                RectTransformUtility.RectangleContainsScreenPoint(popupRectTransform, mousePos);
+
+            bool isClickInsideMainBtn = mainButtonRectTransform != null &&
+                RectTransformUtility.RectangleContainsScreenPoint(mainButtonRectTransform, mousePos);
+
+            if (!isClickInsidePopup && !isClickInsideMainBtn)
+            {
+                HideCharacterSelectPopup();
+            }
+        }
+    }
+
+    private void InitMainButtonEvents()
+    {
+        if (mainCharacterButton != null)
+        {
+            mainCharacterButton.onClick.RemoveAllListeners();
+            mainCharacterButton.onClick.AddListener(ToggleCharacterSelectPopup);
+        }
+
+        BindPopupSubButton(kaelButtonObj, CharacterType.Kael);
+        BindPopupSubButton(lyraButtonObj, CharacterType.Lyra);
+        BindPopupSubButton(aresButtonObj, CharacterType.Ares);
+        BindPopupSubButton(elaraButtonObj, CharacterType.Elara);
+    }
+
+    private void BindPopupSubButton(GameObject obj, CharacterType type)
+    {
+        if (obj == null) return;
+        Button btn = obj.GetComponent<Button>();
+        if (btn != null)
+        {
+            btn.onClick.RemoveAllListeners();
+            btn.onClick.AddListener(() =>
+            {
+                SwitchBuildToCharacter(type);
+                HideCharacterSelectPopup();
+            });
+        }
     }
 
     private void OnEnable()
@@ -70,18 +158,44 @@ public class RuneEquipUI : MonoBehaviour
             viewingCharacter = CharacterManager.Instance.GetSelectedCharacter();
         }
 
-        // Bẫy an toàn: Nếu character đang xem rơi vào Coming Soon, tự động trả về Kael
         if (comingSoonCharacters.Contains(viewingCharacter))
         {
             viewingCharacter = CharacterType.Kael;
         }
 
+        HideCharacterSelectPopup();
         RefreshEquipUI();
+    }
+
+    public void ToggleCharacterSelectPopup()
+    {
+        if (characterSelectPopup == null) return;
+
+        bool isOpening = !characterSelectPopup.activeSelf;
+        characterSelectPopup.SetActive(isOpening);
+
+        if (isOpening)
+        {
+            characterSelectPopup.transform.SetAsLastSibling();
+            characterSelectPopup.transform.DOKill(true);
+            characterSelectPopup.transform.localScale = Vector3.one * 0.85f;
+            characterSelectPopup.transform.DOScale(Vector3.one, 0.18f).SetEase(Ease.OutBack).SetUpdate(true);
+            UpdateCharacterButtonsState();
+        }
+    }
+
+    public void HideCharacterSelectPopup()
+    {
+        if (characterSelectPopup != null && characterSelectPopup.activeSelf)
+        {
+            characterSelectPopup.SetActive(false);
+        }
     }
 
     public void RefreshEquipUI()
     {
         ResetSlots();
+        UpdateMainBigButtonDisplay();
 
         if (RuneInventoryManager.Instance == null)
         {
@@ -90,8 +204,7 @@ public class RuneEquipUI : MonoBehaviour
 
         CharacterType currentType = viewingCharacter;
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
-        
-        // Cập nhật trạng thái Alpha, Lock Coming Soon và tương tác của toàn bộ nút chọn
+
         UpdateCharacterButtonsState();
 
         TMP_Text[] conditionTexts = new TMP_Text[3] { slot1ConditionText, slot2ConditionText, slot3ConditionText };
@@ -119,7 +232,6 @@ public class RuneEquipUI : MonoBehaviour
 
             string targetID = (i < build.equippedRuneIDs.Length) ? build.equippedRuneIDs[i] : "";
 
-            // 1. Ô TRỐNG
             if (string.IsNullOrEmpty(targetID))
             {
                 targetSlot.sprite = emptySprite;
@@ -130,10 +242,8 @@ public class RuneEquipUI : MonoBehaviour
                 continue;
             }
 
-            // 2. TÌM NGỌC TRONG INVENTORY
             RuneData rune = RuneInventoryManager.Instance.runes.Find(r => r.runeID == targetID);
 
-            // 3. ĐÃ ĐEO NGỌC THẬT
             if (rune != null)
             {
                 Sprite realRuneSprite = GetRuneSprite(rune);
@@ -150,7 +260,7 @@ public class RuneEquipUI : MonoBehaviour
                     {
                         var affix = rune.affixes[a];
                         string sign = affix.value >= 0 ? "+" : "";
-                        details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                        details += $"- {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
                     }
                 }
 
@@ -172,11 +282,35 @@ public class RuneEquipUI : MonoBehaviour
         RefreshTotalStatText();
     }
 
+    private void UpdateMainBigButtonDisplay()
+    {
+        if (mainCharacterAvatarImage != null)
+        {
+            Sprite targetSprite = GetAvatarSprite(viewingCharacter);
+            mainCharacterAvatarImage.sprite = targetSprite;
+            mainCharacterAvatarImage.gameObject.SetActive(targetSprite != null);
+        }
+
+        if (mainCharacterNameText != null)
+        {
+            mainCharacterNameText.text = viewingCharacter.ToString().ToUpper();
+        }
+    }
+
+    private Sprite GetAvatarSprite(CharacterType type)
+    {
+        switch (type)
+        {
+            case CharacterType.Kael: return kaelAvatar;
+            case CharacterType.Lyra: return lyraAvatar;
+            case CharacterType.Ares: return aresAvatar;
+            case CharacterType.Elara: return elaraAvatar;
+        }
+        return null;
+    }
+
     #region Button Alpha, Lock & Coming Soon States
 
-    /// <summary>
-    /// Đồng bộ trạng thái mờ/đậm và khóa hoàn toàn các tướng Coming Soon
-    /// </summary>
     private void UpdateCharacterButtonsState()
     {
         UpdateSingleButtonState(CharacterType.Kael, kaelButtonObj);
@@ -198,13 +332,11 @@ public class RuneEquipUI : MonoBehaviour
         bool isUnlocked = (CharacterManager.Instance != null && CharacterManager.Instance.IsUnlocked(type)) && !isComingSoon;
         bool isSelected = (viewingCharacter == type);
 
-        // Khóa hẳn tương tác nếu là tướng Coming Soon hoặc Chưa Mở Khóa
         if (btn != null)
         {
             btn.interactable = !isComingSoon && isUnlocked;
         }
 
-        // Tự động thêm Tooltip giải thích khi rê chuột vào Nút bị khóa
         var trigger = buttonObj.GetComponent<UITooltipAutoTrigger>() ?? buttonObj.gameObject.AddComponent<UITooltipAutoTrigger>();
         if (isComingSoon)
         {
@@ -216,15 +348,15 @@ public class RuneEquipUI : MonoBehaviour
             Color c = img.color;
             if (isComingSoon || !isUnlocked)
             {
-                c.a = 0.25f; // Khóa / Coming Soon: Mờ hẳn 25% Alpha
+                c.a = 0.25f;
             }
             else if (isSelected)
             {
-                c.a = 0.6f;  // Đang chọn: Đậm vừa
+                c.a = 0.6f;
             }
             else
             {
-                c.a = 1.0f;  // Đã mở khóa: Sáng hoàn toàn
+                c.a = 1.0f;
             }
             img.color = c;
         }
@@ -239,7 +371,7 @@ public class RuneEquipUI : MonoBehaviour
     public void SwitchBuildToAres() => SwitchBuildToCharacter(CharacterType.Ares);
     public void SwitchBuildToElara() => SwitchBuildToCharacter(CharacterType.Elara);
 
-    private void SwitchBuildToCharacter(CharacterType type)
+    public void SwitchBuildToCharacter(CharacterType type)
     {
         if (comingSoonCharacters.Contains(type))
         {
@@ -277,10 +409,10 @@ public class RuneEquipUI : MonoBehaviour
         {
             if (stat.Key == RuneStatType.AllStats)
             {
-                builder.AppendLine("<color=#FFD700>✦ ORIGIN POWER ✦\nAll Stats +" + $"{stat.Value:F0}</color>\n");
+                builder.AppendLine("<color=#FFD700>ORIGIN POWER\nAll Stats +" + $"{stat.Value:F0}</color>\n");
                 continue;
             }
-            
+
             bool isPercent = IsPercentStat(stat.Key);
             float rawValue = stat.Value;
             float cap = RuneInventoryManager.Instance.GetHardCap(stat.Key);
@@ -332,7 +464,7 @@ public class RuneEquipUI : MonoBehaviour
     {
         if (RuneInventoryManager.Instance == null) return;
 
-        CharacterType currentType = viewingCharacter; 
+        CharacterType currentType = viewingCharacter;
         CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(currentType);
 
         if (build == null || slotIndex < 0 || slotIndex >= build.equippedRuneIDs.Length) return;
@@ -471,9 +603,7 @@ public class RuneEquipUI : MonoBehaviour
     public CharacterType GetViewingCharacter() => viewingCharacter;
 
     #endregion
-    /// <summary>
-    /// Nút Trang bị Nhanh: Tự động quét kho ngọc và lắp 3 viên ngọc hợp lệ tốt nhất cho nhân vật đang chọn
-    /// </summary>
+
     public void AutoEquipBestRunes()
     {
         if (RuneInventoryManager.Instance == null || CharacterManager.Instance == null) return;
@@ -481,7 +611,6 @@ public class RuneEquipUI : MonoBehaviour
         CharacterType currentType = viewingCharacter;
         List<RuneData> availableRunes = new List<RuneData>(RuneInventoryManager.Instance.runes);
 
-        // Lọc bỏ ngọc đang được đeo bởi các nhân vật khác
         CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
         foreach (CharacterType charType in allChars)
         {
@@ -505,7 +634,6 @@ public class RuneEquipUI : MonoBehaviour
         {
             RuneColor reqColor = GetSlotRequiredColor(currentType, slotIndex);
 
-            // Tìm viên ngọc hợp hệ màu có điểm chỉ số cao nhất
             RuneData bestRune = null;
             float maxScore = -1f;
 
@@ -514,7 +642,6 @@ public class RuneEquipUI : MonoBehaviour
                 bool isOrigin = IsUltimateRune(rune);
                 if (!isOrigin && rune.runeColor != reqColor) continue;
 
-                // Tính điểm ngọc dựa trên Rarity & giá trị các Affix
                 float score = ((int)rune.runeRarity * 100);
                 if (rune.affixes != null)
                 {

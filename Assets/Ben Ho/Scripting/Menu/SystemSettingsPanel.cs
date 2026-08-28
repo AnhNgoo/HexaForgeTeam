@@ -1,13 +1,16 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public enum SystemSettingPage
 {
     Audio = 0,
     Graphics = 1,
     Controller = 2,
-    Exit = 3
+    Exit = 3,
+    Logout = 4
 }
 
 public class SystemSettingsPanel : MonoBehaviour
@@ -17,11 +20,14 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private Button btnGraphics;
     [SerializeField] private Button btnController;
     [SerializeField] private Button btnExit;
+    [SerializeField] private Button btnLogout;
+
     [Header("Setting Pages")]
     [SerializeField] private ScrollRect audioPage;
     [SerializeField] private ScrollRect graphicsPage;
     [SerializeField] private ScrollRect controllerPage;
     [SerializeField] private ScrollRect exitPage;
+    [SerializeField] private ScrollRect logoutPage;
 
     [Header("Parent Menu")]
     [SerializeField] private GameSystemMenu gameSystemMenu;
@@ -31,12 +37,14 @@ public class SystemSettingsPanel : MonoBehaviour
     [SerializeField] private GameObject graphicsLine;
     [SerializeField] private GameObject controllerLine;
     [SerializeField] private GameObject exitLine;
+    [SerializeField] private GameObject logoutLine;
 
     [Header("Tab Labels")]
     [SerializeField] private TMP_Text audioLabel;
     [SerializeField] private TMP_Text graphicsLabel;
     [SerializeField] private TMP_Text controllerLabel;
     [SerializeField] private TMP_Text exitLabel;
+    [SerializeField] private TMP_Text logoutLabel;
 
     [Header("Colors")]
     [SerializeField] private Color normalColor = Color.white;
@@ -53,6 +61,7 @@ public class SystemSettingsPanel : MonoBehaviour
     {
         gameObject.SetActive(true);
         AddEvents();
+        UpdateDynamicTabLabels();
         ShowPage(defaultPage);
     }
 
@@ -66,12 +75,68 @@ public class SystemSettingsPanel : MonoBehaviour
     private void OnEnable()
     {
         AddEvents();
+        UpdateDynamicTabLabels();
         ShowPage(defaultPage);
     }
 
     private void OnDisable()
     {
         RemoveEvents();
+    }
+
+    private void UpdateDynamicTabLabels()
+    {
+        bool isInLobby = CheckIsInLobby();
+
+        if (logoutLabel != null)
+        {
+            logoutLabel.text = isInLobby ? "Logout" : "Return Lobby";
+        }
+    }
+
+    private bool CheckIsInLobby()
+    {
+        if (GameManager.Instance != null)
+        {
+            if (GameManager.Instance.MapType == MapType.Boss || GameManager.Instance.MapType == MapType.Run)
+                return false;
+            if (GameManager.Instance.MapType == MapType.Lobby)
+                return true;
+        }
+
+        GameSceneData sceneData = GameSceneData.Instance;
+        if (sceneData != null)
+        {
+            string bossName = sceneData.GetSceneName(SceneType.FinalBoss);
+            string run1Name = sceneData.GetSceneName(SceneType.RunGameplay);
+            string run2Name = sceneData.GetSceneName(SceneType.RunGameplay2);
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene s = SceneManager.GetSceneAt(i);
+                if (s.isLoaded)
+                {
+                    if (s.name.Equals(bossName, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(run1Name, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(run2Name) && s.name.Equals(run2Name, StringComparison.OrdinalIgnoreCase)) ||
+                        s.name.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        s.name.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        string activeScene = SceneManager.GetActiveScene().name;
+        if (activeScene.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            activeScene.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            activeScene.IndexOf("Run", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void AddEvents()
@@ -90,6 +155,9 @@ public class SystemSettingsPanel : MonoBehaviour
 
         if (btnExit != null)
             btnExit.onClick.AddListener(ShowExit);
+
+        if (btnLogout != null)
+            btnLogout.onClick.AddListener(ShowLogout);
 
         eventsAdded = true;
     }
@@ -111,28 +179,17 @@ public class SystemSettingsPanel : MonoBehaviour
         if (btnExit != null)
             btnExit.onClick.RemoveListener(ShowExit);
 
+        if (btnLogout != null)
+            btnLogout.onClick.RemoveListener(ShowLogout);
+
         eventsAdded = false;
     }
 
-    public void ShowAudio()
-    {
-        ShowPage(SystemSettingPage.Audio);
-    }
-
-    public void ShowGraphics()
-    {
-        ShowPage(SystemSettingPage.Graphics);
-    }
-
-    public void ShowController()
-    {
-        ShowPage(SystemSettingPage.Controller);
-    }
-
-    public void ShowExit()
-    {
-        ShowPage(SystemSettingPage.Exit);
-    }
+    public void ShowAudio() => ShowPage(SystemSettingPage.Audio);
+    public void ShowGraphics() => ShowPage(SystemSettingPage.Graphics);
+    public void ShowController() => ShowPage(SystemSettingPage.Controller);
+    public void ShowExit() => ShowPage(SystemSettingPage.Exit);
+    public void ShowLogout() => ShowPage(SystemSettingPage.Logout);
 
     public void ShowPage(SystemSettingPage page)
     {
@@ -142,6 +199,8 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(graphicsPage, page == SystemSettingPage.Graphics);
         SetPage(controllerPage, page == SystemSettingPage.Controller);
         SetPage(exitPage, page == SystemSettingPage.Exit);
+        SetPage(logoutPage, page == SystemSettingPage.Logout);
+
         UpdateVisual(page);
     }
 
@@ -151,6 +210,7 @@ public class SystemSettingsPanel : MonoBehaviour
         SetPage(graphicsPage, false);
         SetPage(controllerPage, false);
         SetPage(exitPage, false);
+        SetPage(logoutPage, false);
     }
 
     private void SetPage(ScrollRect page, bool active)
@@ -174,15 +234,19 @@ public class SystemSettingsPanel : MonoBehaviour
         bool graphicsSelected = page == SystemSettingPage.Graphics;
         bool controllerSelected = page == SystemSettingPage.Controller;
         bool exitSelected = page == SystemSettingPage.Exit;
+        bool logoutSelected = page == SystemSettingPage.Logout;
+
         SetActive(audioLine, audioSelected);
         SetActive(graphicsLine, graphicsSelected);
         SetActive(controllerLine, controllerSelected);
         SetActive(exitLine, exitSelected);
+        SetActive(logoutLine, logoutSelected);
 
         SetLabel(audioLabel, audioSelected);
         SetLabel(graphicsLabel, graphicsSelected);
         SetLabel(controllerLabel, controllerSelected);
         SetLabel(exitLabel, exitSelected);
+        SetLabel(logoutLabel, logoutSelected);
     }
 
     private void SetActive(GameObject target, bool value)
@@ -200,8 +264,25 @@ public class SystemSettingsPanel : MonoBehaviour
     public void CloseGameSystemMenu()
     {
         if (gameSystemMenu != null)
-            gameSystemMenu.CloseToGameplay();
-        else if (UIManager.Instance != null)
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        {
+            gameSystemMenu.CloseToProperMenu();
+        }
+        else
+        {
+            bool isInLobby = CheckIsInLobby();
+
+            if (UIManager.Instance != null)
+            {
+                if (isInLobby)
+                {
+                    UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+                    LobbyHUDTopBar.Instance?.ShowFullHUD();
+                }
+                else
+                {
+                    UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+                }
+            }
+        }
     }
 }

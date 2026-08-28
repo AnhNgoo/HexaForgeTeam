@@ -15,9 +15,50 @@ public class EnemyDetection : MonoBehaviour
     [SerializeField] private LayerMask enemyLayerMask; //Lớp của các Enemy khác để tìm kiếm đồng bọn trong bán kính cảnh báo, có thể dùng để tìm các Enemy khác trong bán kính này và truyền thông tin về mục tiêu cho chúng
     private float _lastTimeTargetVisible;
     private EnemyBase _enemyBase;
+    private Transform _cachedCharacterBaseTarget;
+    private CharacterBase _cachedCharacterBase; // Cache Cb để không gọi getcomponent liên tục
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase;
+    }
+
+    // Lấy CharacterBase từ Transform mục tiêu, nếu đã cache thì trả về cache, nếu chưa thì tìm kiếm và cache lại
+    private CharacterBase GetCharacterBase(Transform target)
+    {
+        if (target == null) return null;
+
+        if (_cachedCharacterBaseTarget == target)
+        {
+            return _cachedCharacterBase;
+        }
+
+        _cachedCharacterBaseTarget = target;
+        _cachedCharacterBase = target.GetComponentInParent<CharacterBase>();
+        return _cachedCharacterBase;
+    }
+
+    // Kiểm tra mục tiêu có thể bị tấn công hay không (có thể dùng để kiểm tra nếu mục tiêu đã chết hoặc không thể bị tấn công)
+    private bool CanEngageTarget(Transform target)
+    {
+        CharacterBase characterBase = GetCharacterBase(target);
+        if (characterBase == null) return true;
+
+        if (characterBase.CharacterHealth == null) return false;
+
+        return characterBase.CanBeAttacked && !characterBase.CharacterHealth.IsDead;
+    }
+
+    // Khi mất mục tiêu, reset lại trạng thái của Enemy về trạng thái mặc định (Idle hoặc Patrol) nếu không đang ở trạng thái Stagger hoặc Dead
+    private void LoseTargetAndResetToDefaultState()
+    {
+        currentTarget = null;
+        _lastTimeTargetVisible = 0f;
+
+        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyStaggerState &&
+            _enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyDeadState)
+        {
+            _enemyBase.StateMachine.ResetToDefaultState();
+        }
     }
 
     public void SetPlayerReference(Transform playerTransform)
@@ -26,6 +67,8 @@ public class EnemyDetection : MonoBehaviour
             return;
 
         Player = playerTransform;
+        _cachedCharacterBaseTarget = null;
+        _cachedCharacterBase = null;
 
         // Không cho enemy tiếp tục giữ mục tiêu thuộc Player cũ.
         currentTarget = null;
@@ -67,6 +110,12 @@ public class EnemyDetection : MonoBehaviour
             return;
         }
 
+        if (currentTarget != null && !CanEngageTarget(currentTarget))
+        {
+            LoseTargetAndResetToDefaultState();
+            return;
+        }
+
         if (_enemyBase.Combat.IsPerformingAttack)
         {
             if (currentTarget != null) lastKnownTargetPosition = currentTarget.position;
@@ -86,6 +135,12 @@ public class EnemyDetection : MonoBehaviour
         }
 
         if (Player == null) return;
+
+        if (!CanEngageTarget(Player))
+        {
+            LoseTargetAndResetToDefaultState();
+            return;
+        }
 
         //Liên tục tìm mục tiêu mới nếu chưa có mục tiêu hiện tại, có thể điều chỉnh tần suất gọi hàm này nếu cần để tối ưu hiệu suất (ví dụ: chỉ tìm mục tiêu mỗi 0.5 giây thay vì mỗi frame)
         Transform potentialTarget = Player; //Trỏ thẳng đến Player, có thể mở rộng sau này để tìm nhiều loại mục tiêu khác nhau (nên gọi thẳng từ PlayerManager)
@@ -151,6 +206,12 @@ public class EnemyDetection : MonoBehaviour
     {
         if (attacker == null) return;
 
+        if (!CanEngageTarget(attacker))
+        {
+            LoseTargetAndResetToDefaultState();
+            return;
+        }
+
         bool attackerInsideLeash = IsPointInLeash(attacker.position);
 
         if (attackerInsideLeash)
@@ -195,6 +256,12 @@ public class EnemyDetection : MonoBehaviour
 
         if (target == null) return;
 
+        if (!CanEngageTarget(target))
+        {
+            LoseTargetAndResetToDefaultState();
+            return;
+        }
+
         if (!IsPointInLeash(target.position))
         {
             SetSuspiciousPosition(target.position); //Cập nhật vị trí cuối cùng của mục tiêu để có thể di chuyển đến đó khi mất mục tiêu
@@ -224,6 +291,12 @@ public class EnemyDetection : MonoBehaviour
     public void ForceDetectTarget(Transform target)
     {
         if (target == null) return;
+
+        if (!CanEngageTarget(target))
+        {
+            LoseTargetAndResetToDefaultState();
+            return;
+        }
 
         if (!IsPointInLeash(target.position))
         {
@@ -311,6 +384,8 @@ public class EnemyDetection : MonoBehaviour
     public void ResetDetection()
     {
         currentTarget = null;
+        _cachedCharacterBaseTarget = null;
+        _cachedCharacterBase = null;
     }
 
     #region Debug Visualization

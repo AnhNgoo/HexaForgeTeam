@@ -211,6 +211,7 @@ public class GameplayMenu : MenuBase
         EventManager.Subscribe(GameEvent.OnSetImageSkill2, SetImageSkill2);
         EventManager.Subscribe(GameEvent.OnUpdateCooldownSkill1, UpdateCooldownSkill1);
         EventManager.Subscribe(GameEvent.OnUpdateCooldownSkill2, UpdateCooldownSkill2);
+        EventManager.Subscribe(GameEvent.OnUpdateLevel, UpdateLevel);
     }
 
     private void OnDestroy()
@@ -233,16 +234,13 @@ public class GameplayMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnSetImageSkill2, SetImageSkill2);
         EventManager.Unsubscribe(GameEvent.OnUpdateCooldownSkill1, UpdateCooldownSkill1);
         EventManager.Unsubscribe(GameEvent.OnUpdateCooldownSkill2, UpdateCooldownSkill2);
+        EventManager.Unsubscribe(GameEvent.OnUpdateLevel, UpdateLevel);
     }
 
     public override void Open(object data = null)
     {
         base.Open(data);
-
         LoadComponentRuntime();
-
-        // Souls-like: gameplay continues while menus are open.
-        // Do not modify Time.timeScale here.
     }
 
     public override void Close()
@@ -355,6 +353,24 @@ public class GameplayMenu : MenuBase
     #endregion
 
     #region Stats
+
+    //SECTION Level
+    private void UpdateLevel(object obj)
+    {
+        if (obj is not int level)
+            return;
+
+        if (txt_Level != null)
+        {
+            txt_Level.text = level.ToString();
+            txt_Level.transform.DOPunchScale(Vector3.one * 0.5f, 0.5f, 10, 1f).SetEase(Ease.OutElastic);
+            txt_Level.DOBlendableColor(Color.yellow, 0.5f)
+                .OnComplete(() =>
+                {
+                    txt_Level.DOBlendableColor(Color.white, 0.5f);
+                });
+        }
+    }
 
     //SECTION - Health
     private void UpdateMaxHealth(object data)
@@ -625,17 +641,4 @@ public class GameplayMenu : MenuBase
     }
 
     #endregion
-    private Transform FindDeepChild(string childName)
-    {
-        Transform[] children =
-            GetComponentsInChildren<Transform>(true);
-
-        foreach (Transform child in children)
-        {
-            if (child.name == childName)
-                return child;
-        }
-
-        return null;
-    }
 }

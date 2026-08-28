@@ -81,7 +81,7 @@ public class CharacterMP : MonoBehaviour
 
         if (currentMP < maxMP)
         {
-            currentMP += characterBase.CharacterStat.Stats.mpRegen * Time.deltaTime;
+            currentMP += characterBase.CharacterStat.finalStats.mpRegen * Time.deltaTime;
             currentMP = Mathf.Clamp(currentMP, 0, maxMP);
 
             mpData.MaxMP = maxMP;

@@ -69,9 +69,9 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void RefreshLayoutByScene()
     {
-        Scene runScene = SceneManager.GetSceneByName(sceneRunName);
+        bool isRunLoaded = GameSceneData.Instance != null && GameSceneData.Instance.IsSceneLoaded(SceneType.RunGameplay);
 
-        if (runScene.isLoaded)
+        if (isRunLoaded)
         {
             if (levelGroup != null) levelGroup.SetActive(false);
             if (currencyGroup != null) currencyGroup.SetActive(false);
@@ -143,7 +143,11 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void ShowCurrencyOnly()
     {
-        Scene runScene = SceneManager.GetSceneByName(sceneRunName);
+        string runSceneName = GameSceneData.Instance != null 
+            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
+            : sceneRunName;
+
+        Scene runScene = SceneManager.GetSceneByName(runSceneName);
         if (!runScene.isLoaded)
         {
             if (levelGroup != null) levelGroup.SetActive(false);

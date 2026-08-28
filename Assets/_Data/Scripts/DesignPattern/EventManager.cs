@@ -46,6 +46,9 @@ public enum GameEvent
     OnPlayerSpawned = 38,
     OnPlayerDeath = 39,
     OnLoadingComplete = 40,
+    OnUpdateLevel = 41,
+    OnFinalSafeZoneCompleted = 42,
+    OnStartSafeZone = 43,
 }
 public static class EventManager
 {

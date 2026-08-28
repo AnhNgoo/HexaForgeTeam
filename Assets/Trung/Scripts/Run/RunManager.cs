@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System.Collections.Generic;
 
 public class RunManager : MonoBehaviour
 {
@@ -16,14 +17,13 @@ public class RunManager : MonoBehaviour
     [Header("HUD Controller")]
     [SerializeField] private GameObject lobbyHUDMainObject;
 
-    [Header("Run Damage Statistics")]
     private float totalDamageDealt;
-
     private int pendingGem;
     private int pendingExp;
     private int pendingShards;
-
     private bool isRunActive = false;
+
+    public bool IsRunActive => isRunActive;
 
     [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
 
@@ -31,8 +31,14 @@ public class RunManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else Destroy(gameObject);
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     public void ConfigureRun(string sceneName, PoolType finalBossPool)
@@ -40,7 +46,6 @@ public class RunManager : MonoBehaviour
         if (!string.IsNullOrWhiteSpace(sceneName))
         {
             gameplaySceneName = sceneName;
-            Debug.Log($"<color=yellow>[RunManager] Cấu hình Scene mục tiêu thành: {gameplaySceneName}</color>");
         }
 
         if (finalBossPool != PoolType.None)
@@ -77,15 +82,13 @@ public class RunManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(gameplaySceneName))
         {
-            gameplaySceneName = GameSceneData.Instance != null ? GameSceneData.Instance.runGameplayScene : "Run Scene";
+            gameplaySceneName = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetRandomRunSceneName()
+                : "Run Scene";
         }
 
         ResetDamageData();
-
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-        }
+        HideLobbyHUD();
 
         if (InteractManagerV2.Instance != null)
         {
@@ -95,127 +98,147 @@ public class RunManager : MonoBehaviour
         StartCoroutine(LoadSceneCoroutine());
     }
 
-    /// <summary>
-    /// Chuyển từ Map Run hiện tại sang Map Final Boss.
-    /// Nếu không truyền tham số `sceneName`, tự động lấy Scene Final Boss từ GameSceneData.
-    /// </summary>
-    public void EnterFinalBoss(string sceneName = "")
+    public void EnterFinalBoss(string overrideSceneName = "")
     {
         if (!isRunActive) return;
 
-        // Bẫy an toàn: Nếu truyền rỗng, lấy Scene Final Boss từ Database ScriptableObject
-        if (string.IsNullOrWhiteSpace(sceneName))
+        string targetBossScene = overrideSceneName;
+
+        if (string.IsNullOrWhiteSpace(targetBossScene))
         {
-            sceneName = GameSceneData.Instance != null ? GameSceneData.Instance.finalBossScene : "FinalBoss Scene";
+            targetBossScene = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetSceneName(SceneType.FinalBoss)
+                : "FinalBoss Scene";
         }
 
-        StartCoroutine(EnterFinalBossCoroutine(sceneName));
+        HideLobbyHUD();
+        StartCoroutine(EnterFinalBossCoroutine(targetBossScene));
     }
 
-    private IEnumerator EnterFinalBossCoroutine(string sceneName)
+    private void HideLobbyHUD()
+    {
+        if (lobbyHUDMainObject != null)
+        {
+            lobbyHUDMainObject.SetActive(false);
+        }
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(false);
+        }
+    }
+
+    private IEnumerator EnterFinalBossCoroutine(string bossSceneName)
     {
         if (InteractManagerV2.Instance != null)
             InteractManagerV2.Instance.IsBusy = true;
 
-        SafeZoneManager.Instance?.StopForFinalBoss();
-
-        Scene previousRunScene =
-            SceneManager.GetSceneByName(gameplaySceneName);
-
-        AsyncOperation load =
-            SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
-
-        while (!load.isDone)
-            yield return null;
-
-        Scene finalBossScene =
-            SceneManager.GetSceneByName(sceneName);
-
-        if (!finalBossScene.IsValid() || !finalBossScene.isLoaded)
+        if (SafeZoneManager.Instance != null)
         {
-            Debug.LogError(
-                $"[RunManager] Không load được Final Boss scene: {sceneName}"
-            );
-
-            if (InteractManagerV2.Instance != null)
-                InteractManagerV2.Instance.IsBusy = false;
-
-            yield break;
+            SafeZoneManager.Instance.StopAllCoroutines();
+            SafeZoneManager.Instance.StopForFinalBoss();
         }
 
-        SceneManager.SetActiveScene(finalBossScene);
-
-        GameObject playerObject =
-            GameObject.FindGameObjectWithTag("Player");
-
-        if (playerObject == null)
-        {
-            Debug.LogError(
-                "[RunManager] Không tìm thấy Player trước khi unload RunGame."
-            );
-
-            if (InteractManagerV2.Instance != null)
-                InteractManagerV2.Instance.IsBusy = false;
-
-            yield break;
-        }
-
-        // MoveGameObjectToScene chỉ nhận root GameObject.
-        playerObject.transform.SetParent(null, true);
-        SceneManager.MoveGameObjectToScene(
-            playerObject,
-            finalBossScene
-        );
-
-        if (RunGameplayController.Instance != null)
-        {
-            GameObject runController =
-                RunGameplayController.Instance.gameObject;
-
-            runController.transform.SetParent(null, true);
-
-            if (runController.scene != finalBossScene)
-            {
-                SceneManager.MoveGameObjectToScene(
-                    runController,
-                    finalBossScene
-                );
-            }
-        }
-
-        gameplaySceneName = sceneName;
-
-        if (previousRunScene.IsValid() && previousRunScene.isLoaded)
-        {
-            AsyncOperation unload =
-                SceneManager.UnloadSceneAsync(previousRunScene);
-
-            while (unload != null && !unload.isDone)
-                yield return null;
-        }
-
-        FinalBossEncounterDirector director =
-            FindObjectOfType<FinalBossEncounterDirector>();
-
-        if (director != null)
-            director.StartEncounter();
-        else
-            Debug.LogError("[RunManager] Không tìm thấy FinalBossEncounterDirector.");
-
-        EventManager.Notify(GameEvent.OnLoadingComplete);
-
-        if (InteractManagerV2.Instance != null)
-            InteractManagerV2.Instance.IsBusy = false;
-    }
-
-    private IEnumerator LoadSceneCoroutine()
-    {
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        string loadingSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
+            : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSecondsRealtime(0.05f);
+
+        if (LoadingUIManager.Instance != null)
+        {
+            LoadingUIManager.Instance.SetDestinationName(bossSceneName);
+        }
+
+        AsyncOperation loadBoss = SceneManager.LoadSceneAsync(bossSceneName, LoadSceneMode.Additive);
+        loadBoss.allowSceneActivation = false;
+
+        float duration = Random.Range(5.0f, 7.0f);
+        if (LoadingUIManager.Instance != null)
+        {
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadBoss, false, duration));
+        }
+
+        loadBoss.allowSceneActivation = true;
+        while (!loadBoss.isDone) yield return null;
+
+        Scene finalBossScene = SceneManager.GetSceneByName(bossSceneName);
+        if (!finalBossScene.IsValid() || !finalBossScene.isLoaded)
+        {
+            if (InteractManagerV2.Instance != null) InteractManagerV2.Instance.IsBusy = false;
+            yield break;
+        }
+
+        SceneManager.SetActiveScene(finalBossScene);
+        EventManager.Notify(GameEvent.OnLoadingComplete);
+        HideLobbyHUD();
+
+        GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
+        if (playerObject != null)
+        {
+            playerObject.transform.SetParent(null, true);
+            SceneManager.MoveGameObjectToScene(playerObject, finalBossScene);
+        }
+
+        if (RunGameplayController.Instance != null)
+        {
+            GameObject runController = RunGameplayController.Instance.gameObject;
+            runController.transform.SetParent(null, true);
+            if (runController.scene != finalBossScene)
+            {
+                SceneManager.MoveGameObjectToScene(runController, finalBossScene);
+            }
+        }
+
+        yield return StartCoroutine(UnloadAllOldGameplayScenes(bossSceneName));
+
+        gameplaySceneName = bossSceneName;
+
+        FinalBossEncounterDirector director = FindFirstObjectByType<FinalBossEncounterDirector>();
+        if (director != null) director.StartEncounter();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetMapType(MapType.Boss);
+        }
+
+        yield return new WaitForSecondsRealtime(0.2f);
+
+        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
+        if (loadingScene.isLoaded)
+        {
+            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
+            while (!unloadLoading.isDone) yield return null;
+        }
+
+        if (InteractManagerV2.Instance != null) InteractManagerV2.Instance.IsBusy = false;
+    }
+
+    private IEnumerator LoadSceneCoroutine()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
+        }
+
+        yield return StartCoroutine(UnloadAllOldGameplayScenes());
+
+        string loadingSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
+            : "Loading Scene";
+
+        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
+        while (!loadLoading.isDone) yield return null;
+
+        yield return new WaitForSecondsRealtime(0.05f);
 
         if (LoadingUIManager.Instance != null)
         {
@@ -225,9 +248,10 @@ public class RunManager : MonoBehaviour
         AsyncOperation load = SceneManager.LoadSceneAsync(gameplaySceneName, LoadSceneMode.Additive);
         load.allowSceneActivation = false;
 
+        float duration = Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
         {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(load));
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(load, false, duration));
         }
 
         load.allowSceneActivation = true;
@@ -237,13 +261,15 @@ public class RunManager : MonoBehaviour
         if (runScene.IsValid())
         {
             SceneManager.SetActiveScene(runScene);
-            Debug.Log($"<color=cyan>[RunManager] Active Scene đã gán chính xác: {runScene.name}</color>");
+            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
         if (lobbyVisuals != null)
         {
             lobbyVisuals.SetActive(false);
         }
+
+        HideLobbyHUD();
 
         yield return new WaitForFixedUpdate();
 
@@ -263,38 +289,37 @@ public class RunManager : MonoBehaviour
 
             if (!charBase.gameObject.CompareTag("Player"))
             {
-                try
-                {
-                    charBase.gameObject.tag = "Player";
-                }
-                catch (UnityException)
-                {
-                    Debug.LogWarning("[RunManager] Hãy tạo Tag 'Player' trong Unity Editor!");
-                }
+                charBase.gameObject.tag = "Player";
             }
 
             playerController = charBase.CharacterMovement?.CC ?? charBase.GetComponent<CharacterController>();
-
             if (playerController != null) playerController.enabled = false;
         }
 
         isRunActive = true;
 
-        yield return new WaitForSeconds(0.4f);
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        }
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetMapType(MapType.Run);
+        }
+
+        yield return new WaitForSecondsRealtime(0.2f);
 
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
-
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
-            while (!unloadLoading.isDone)
-                yield return null;
+            while (!unloadLoading.isDone) yield return null;
         }
 
         if (playerController != null) playerController.enabled = true;
 
         Physics.SyncTransforms();
-        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 
     public void ReturnToLobby()
@@ -307,52 +332,49 @@ public class RunManager : MonoBehaviour
         isRunActive = false;
         Time.timeScale = 1f;
 
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
-        string targetLobbyScene = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
+        }
+
+        string loadingSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
+            : "Loading Scene";
+
+        string targetLobbyScene = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain)
+            : "LobbyMain Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
 
-        yield return new WaitForSecondsRealtime(0.1f);
+        yield return new WaitForSecondsRealtime(0.05f);
 
         if (LoadingUIManager.Instance != null)
         {
             LoadingUIManager.Instance.SetDestinationName(targetLobbyScene);
         }
 
-        Scene runScene = SceneManager.GetSceneByName(gameplaySceneName);
-        AsyncOperation unloadRun = null;
-        if (runScene.isLoaded)
-        {
-            unloadRun = SceneManager.UnloadSceneAsync(gameplaySceneName);
-        }
+        // Dỡ sạch sẽ tất cả Scene Gameplay (kể cả Map 2: RunGameTrung(1) và Boss)
+        yield return StartCoroutine(UnloadAllOldGameplayScenes());
 
+        float duration = Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
         {
-            if (unloadRun != null)
-            {
-                yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(unloadRun));
-            }
-            else
-            {
-                float dummyDuration = Random.Range(2f, 3f);
-                float dummyElapsed = 0f;
-                while (dummyElapsed < dummyDuration)
-                {
-                    dummyElapsed += Time.unscaledDeltaTime;
-                    yield return null;
-                }
-            }
-        }
-        else if (unloadRun != null)
-        {
-            while (!unloadRun.isDone) yield return null;
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(null, false, duration));
         }
 
         Scene lobbyScene = SceneManager.GetSceneByName(targetLobbyScene);
         if (lobbyScene.IsValid())
         {
             SceneManager.SetActiveScene(lobbyScene);
+            EventManager.Notify(GameEvent.OnLoadingComplete);
+        }
+
+        // CỐ ĐỊNH LẠI MAP TYPE LÀ LOBBY
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.SetMapType(MapType.Lobby);
         }
 
         if (lobbyVisuals != null)
@@ -360,24 +382,21 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        if (PlayerManager.Instance != null)
-        {
-            PlayerManager.Instance.SpawnCharacterInLobby();
-            EventManager.Notify(GameEvent.OnLoadingComplete);
-        }
+        // if (PlayerManager.Instance != null)
+        // {
+        //     PlayerManager.Instance.SpawnCharacterInLobby();
+        // }
 
-        if (GoldManager.Instance != null)
-        {
-            GoldManager.Instance.ResetGold();
-        }
+        if (GoldManager.Instance != null) GoldManager.Instance.ResetGold();
 
         if (lobbyHUDMainObject != null)
         {
             lobbyHUDMainObject.SetActive(true);
-            if (LobbyHUDTopBar.Instance != null)
-            {
-                LobbyHUDTopBar.Instance.ShowFullHUD();
-            }
+        }
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.ShowFullHUD();
         }
 
         if (GemManager.Instance != null && pendingGem > 0) GemManager.Instance.AddGem(pendingGem);
@@ -385,35 +404,55 @@ public class RunManager : MonoBehaviour
         if (RuneShardManager.Instance != null && pendingShards > 0) RuneShardManager.Instance.AddShards(pendingShards);
 
         pendingGem = 0; pendingExp = 0; pendingShards = 0;
-        if (LeaderboardManager.Instance != null)
-        {
-            LeaderboardManager.Instance.UpdateAllStatistics();
-        }
 
+        if (LeaderboardManager.Instance != null) LeaderboardManager.Instance.UpdateAllStatistics();
+
+        // CHUYỂN MENU VỀ LOBBY CHUẨN
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
         }
 
-        if (InteractManagerV2.Instance != null)
-        {
-            InteractManagerV2.Instance.IsBusy = false;
-            InteractManagerV2.Instance.ForceRefresh();
-        }
-
-        if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();
-        if (RuneEquipUI.Instance != null) RuneEquipUI.Instance.RefreshEquipUI();
-        if (LobbyStatManager.Instance != null) LobbyStatManager.Instance.RecalculateStats();
-
         gameplaySceneName = "";
 
-        yield return new WaitForSecondsRealtime(0.2f);
+        yield return new WaitForSecondsRealtime(0.15f);
 
         Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
         if (loadingScene.isLoaded)
         {
             AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
             while (!unloadLoading.isDone) yield return null;
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.ForceUnlockState();
+        }
+    }
+
+    private IEnumerator UnloadAllOldGameplayScenes(string keepSceneName = "")
+    {
+        string lobbySceneName = GameSceneData.Instance != null ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain) : "LobbyMain Scene";
+        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.GetSceneName(SceneType.Loading) : "Loading Scene";
+
+        List<Scene> scenesToClean = new List<Scene>();
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene s = SceneManager.GetSceneAt(i);
+            if (s.isLoaded && s.name != lobbySceneName && s.name != loadingSceneName && s.name != keepSceneName)
+            {
+                scenesToClean.Add(s);
+            }
+        }
+
+        foreach (Scene s in scenesToClean)
+        {
+            if (s.IsValid() && s.isLoaded)
+            {
+                Debug.Log($"<color=orange>[RunManager] Unloading Residual Scene: {s.name}</color>");
+                AsyncOperation un = SceneManager.UnloadSceneAsync(s);
+                while (un != null && !un.isDone) yield return null;
+            }
         }
     }
 }

@@ -17,11 +17,6 @@ public class CharacterHealth : MonoBehaviour
     public bool IsDead => currentHealth <= 0;
     private HealthData healthData = new HealthData();
 
-    public void Init(float maxHealth)
-    {
-        SetMaxHealth(maxHealth, true);
-    }
-
     public void ResetHealth()
     {
         SetMaxHealth(maxHealth, true);

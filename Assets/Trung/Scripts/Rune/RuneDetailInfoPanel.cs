@@ -142,7 +142,7 @@ public class RuneDetailInfoPanel : MonoBehaviour
                 bool isPercent = IsPercentStat(affix.statType);
                 string valueSign = affix.value >= 0 ? "+" : "";
                 string valueFormat = isPercent ? $"{affix.value:F1}%" : $"{affix.value:F0}";
-                affixListText.text += $"✦ {GetFullStatName(affix.statType)} : <color=#00FFCC>{valueSign}{valueFormat}</color>\n\n";
+                affixListText.text += $"- {GetFullStatName(affix.statType)} : <color=#00FFCC>{valueSign}{valueFormat}</color>\n\n";
             }
         }
 

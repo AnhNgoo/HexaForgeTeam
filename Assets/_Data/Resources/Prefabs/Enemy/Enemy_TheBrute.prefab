@@ -127,22 +127,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bc5965c80737b6447975931218da1a72, type: 2}
   - {fileID: 11400000, guid: fa68f9bfa3280a14eb38844ca85fa020, type: 2}
   - {fileID: 11400000, guid: 1f8ae00cc0d451d4db8b4d2a8ec885c7, type: 2}
-  attackVFXSpawnPoints:
-  - attackData: {fileID: 11400000, guid: 68f0349a3154336488bcd14d362fcbb1, type: 2}
-    spawnPoints:
-    - {fileID: 5956835499839497210}
-  - attackData: {fileID: 11400000, guid: bc5965c80737b6447975931218da1a72, type: 2}
-    spawnPoints:
-    - {fileID: 5956835499839497210}
-  - attackData: {fileID: 11400000, guid: fa68f9bfa3280a14eb38844ca85fa020, type: 2}
-    spawnPoints:
-    - {fileID: 5956835499839497210}
-  - attackData: {fileID: 11400000, guid: 1f8ae00cc0d451d4db8b4d2a8ec885c7, type: 2}
-    spawnPoints:
-    - {fileID: 5956835499839497210}
-  - attackData: {fileID: 11400000, guid: 8497ce4d07c4e50438eb34f1bf0b0b11, type: 2}
-    spawnPoints:
-    - {fileID: 5956835499839497210}
   selectionMode: 1
 --- !u!114 &209795745010273448
 MonoBehaviour:
@@ -251,8 +235,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lootPrefab: {fileID: 0}
-  bossLoot: []
+  _lootPrefab: {fileID: 7851882727209530665, guid: e0a365fc82430244a9f5333ade386b98, type: 3}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4223552
+  groundOffset: 0.2
 --- !u!114 &5962139387835862620
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -305,11 +292,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rootAnchor: {fileID: 2827561294470064402}
-  _mouthAnchor: {fileID: 7695375951019893024}
-  _chestAnchor: {fileID: 2714191736178306895}
-  _headAnchor: {fileID: 857172164626743470}
+  _mouthAnchor: {fileID: 0}
+  _chestAnchor: {fileID: 0}
+  _headAnchor: {fileID: 0}
   _legAnchor: {fileID: 0}
-  _handAnchor: {fileID: 8481545757589149037}
+  _handAnchor: {fileID: 0}
   _weaponAnchor: {fileID: 0}
   _projectileSpawnAnchor: {fileID: 583001333672465961}
 --- !u!114 &6413248742621840555

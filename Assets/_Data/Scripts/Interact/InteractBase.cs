@@ -39,7 +39,7 @@ public abstract class InteractBase : LoadComponents
         if (!playerInRange || !InteractionManager.Instance.IsCurrentInteraction(this)) return;
 
         if (InputManager.InputActions.Keyboard.Interact.triggered &&
-            UIManager.Instance.CurrentMenuType == MenuType.GameplayMenu)
+            (UIManager.Instance.CurrentMenuType == MenuType.GameplayMenu || UIManager.Instance.CurrentMenuType == MenuType.DefaultLobbyInputMenu))
         {
             InteractAction();
         }
@@ -58,10 +58,7 @@ public abstract class InteractBase : LoadComponents
         {
             if (character == null)
             {
-                if (other.TryGetComponent(out CharacterBase characterBase))
-                {
-                    character = characterBase;
-                }
+                character = PlayerManager.Instance.CurrentCharacterBase;
             }
             playerInRange = true;
             InteractionManager.Instance?.RegisterInteractable(this);
@@ -73,7 +70,7 @@ public abstract class InteractBase : LoadComponents
         if (other.CompareTag("Player"))
         {
             if (character != null &&
-                other.TryGetComponent(out CharacterBase characterBase) && characterBase == character)
+                PlayerManager.Instance.CurrentCharacterBase == character)
             {
                 character = null;
             }

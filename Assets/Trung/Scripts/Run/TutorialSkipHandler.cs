@@ -14,7 +14,6 @@ public class TutorialSkipHandler : MonoBehaviour
         }
 
         PlayerManager.Instance.SpawnCharacterInLobby();
-        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 
     public void SkipOrCompleteTutorial()
@@ -36,8 +35,13 @@ public class TutorialSkipHandler : MonoBehaviour
 
     private IEnumerator TransitionWithLoadingRoutine()
     {
-        string targetLobbyScene = GameSceneData.Instance != null ? GameSceneData.Instance.lobbyMainScene : "LobbyMain Scene";
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        string targetLobbyScene = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain)
+            : "LobbyMain Scene";
+
+        string loadingSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
+            : "Loading Scene";
 
         Debug.Log($"[Tutorial] Đang nạp Additive {loadingSceneName}...");
 

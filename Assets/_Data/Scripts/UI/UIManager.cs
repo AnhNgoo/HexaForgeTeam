@@ -30,6 +30,9 @@ public enum MenuType
     ControllerMenu = 17,
     GameSystemMenu = 18,
     AchievementMenu = 19,
+    CreditsMenu = 20,
+    PlayerStateMenu = 21,
+    DormantPowerMenu = 48,
 
     LobbyCharacterMenu = 100,
     LobbyRuneInventoryMenu = 101,
@@ -48,6 +51,8 @@ public enum MenuType
 
 public class UIManager : Singleton<UIManager>
 {
+    [SerializeField] private bool autoOpenFirstMenu = false;
+    [SerializeField] private MenuType firstMenuToOpen = MenuType.TitleMenu;
     [SerializeField] GameObject canvas;
     [SerializeField] string canvasPath = "Canvas";
     [ShowInInspector] public MenuType CurrentMenuType { get; private set; }
@@ -71,6 +76,19 @@ public class UIManager : Singleton<UIManager>
         LoadMenus();
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+        AutoOpenFirstMenu();
+    }
+    private void AutoOpenFirstMenu()
+    {
+        if (autoOpenFirstMenu)
+        {
+            InitUI();
+            ChangeMenu(firstMenuToOpen);
+        }
+    }
     private void LoadMenus()
     {
         if (canvas == null)
@@ -141,7 +159,6 @@ public class UIManager : Singleton<UIManager>
             CurrentMenu.Open(data);
 
         CurrentMenuType = CurrentMenu.menuType;
-        Debug.Log("TAO DAY NE" + CurrentMenuType);
     }
 
     //Đóng tất cả menu
@@ -162,11 +179,17 @@ public class UIManager : Singleton<UIManager>
 
         foreach (var menu in menus)
         {
-            if (menu?.menuBase != null) menu.menuBase.gameObject.SetActive(false);
+
+            if (menu?.menuBase != null)
+            {
+                menu.menuBase.Open();
+                menu.menuBase.Close();
+            }
         }
 
         CurrentMenu = null;
         CurrentMenuType = MenuType.None;
         PreviousMenuType = MenuType.None;
+        Debug.Log("UIManager initialized. All menus are closed.");
     }
 }

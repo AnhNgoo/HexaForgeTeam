@@ -1,306 +1,146 @@
 using System;
+using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayerStatePanel : MonoBehaviour
+public class PlayerStatePanel : MenuBase
 {
-    [Serializable]
-    public class StatRow
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_Level;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_NextCostLevel;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_HealthStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_SpeedStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_DamageStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_DefenseStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_PoisonDamageStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_StaminaStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_StaminaRegenStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_MpStat;
+    [SerializeField][FoldoutGroup("Stats")] private TextMeshProUGUI txt_MpRegenStat;
+
+    public override MenuType menuType => MenuType.PlayerStateMenu;
+
+    protected override void LoadComponent()
     {
-        [Header("UI")]
-        public GameObject root;
-        public TMP_Text txtValue;
-        public TMP_Text txtLabel;
-        public Slider slider;
+        if (txt_Level == null)
+            txt_Level = FindDeepChild("Txt_Level")?.GetComponent<TextMeshProUGUI>();
+        if (txt_NextCostLevel == null)
+            txt_NextCostLevel = FindDeepChild("Txt_NextCostLevel")?.GetComponent<TextMeshProUGUI>();
+        if (txt_HealthStat == null)
+            txt_HealthStat = FindDeepChild("Txt_HealthStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_SpeedStat == null)
+            txt_SpeedStat = FindDeepChild("Txt_SpeedStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_DamageStat == null)
+            txt_DamageStat = FindDeepChild("Txt_DamageStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_DefenseStat == null)
+            txt_DefenseStat = FindDeepChild("Txt_DefenseStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_PoisonDamageStat == null)
+            txt_PoisonDamageStat = FindDeepChild("Txt_PoisonDamageStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_StaminaStat == null)
+            txt_StaminaStat = FindDeepChild("Txt_StaminaStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_StaminaRegenStat == null)
+            txt_StaminaRegenStat = FindDeepChild("Txt_StaminaRegenStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_MpStat == null)
+            txt_MpStat = FindDeepChild("Txt_MpStat")?.GetComponent<TextMeshProUGUI>();
+        if (txt_MpRegenStat == null)
+            txt_MpRegenStat = FindDeepChild("Txt_MpRegenStat")?.GetComponent<TextMeshProUGUI>();
+    }
 
-        [Header("Display")]
-        public string label = "";
-        public float sliderMax = 2000f;
+    protected override void LoadComponentRuntime()
+    {
 
-        public void Set(float value, string overrideLabel = null)
+    }
+
+    public override void Open(object data = null)
+    {
+        base.Open(data);
+        DisplayLevel();
+        DisplayNextLevelCost();
+        DisplayPlayerStats();
+    }
+
+    private void DisplayLevel()
+    {
+        if (PlayerManager.Instance == null)
+            return;
+
+        CharacterLevel characterLevel = PlayerManager.Instance.CurrentCharacterBase?.CharacterLevel;
+
+        if (characterLevel == null)
+            return;
+
+        if (GameManager.Instance?.MapType == MapType.Lobby) // Nếu ở lobby thì chỉ hiển thị level hiện tại, không hiển thị level tiếp theo
         {
-            if (root != null)
-                root.SetActive(true);
-
-            if (txtValue != null)
-                txtValue.text = FormatNumber(value);
-
-            if (txtLabel != null)
-                txtLabel.text = string.IsNullOrEmpty(overrideLabel) ? label : overrideLabel;
-
-            if (slider != null)
+            txt_Level.text = "Level: " + characterLevel.CurrentLevel.ToString();
+        }
+        else // Nếu ở trong game thì hiển thị level hiện tại và level tiếp theo
+        {
+            if (characterLevel.CurrentLevel < characterLevel.MaxLevel) // Nếu chưa đạt cấp tối đa thì hiển thị level tiếp theo
             {
-                slider.minValue = 0f;
-                slider.maxValue = Mathf.Max(1f, sliderMax, value);
-                slider.value = Mathf.Clamp(value, 0f, slider.maxValue);
+                txt_Level.text = "Level: " + characterLevel.CurrentLevel.ToString() + " -> " + (characterLevel.CurrentLevel + 1).ToString();
+            }
+            else // Nếu đã đạt cấp tối đa thì chỉ hiển thị level hiện tại và thông báo đã đạt cấp tối đa
+            {
+                txt_Level.text = "Level: " + characterLevel.CurrentLevel.ToString() + " (Max)";
             }
         }
+    }
 
-        private static string FormatNumber(float value)
+    private void DisplayNextLevelCost()
+    {
+        if (PlayerManager.Instance == null)
+            return;
+
+        CharacterLevel characterLevel = PlayerManager.Instance.CurrentCharacterBase?.CharacterLevel;
+
+        if (characterLevel == null)
+            return;
+
+        if (GameManager.Instance?.MapType == MapType.Lobby) // Nếu ở lobby thì không hiển thị chi phí lên cấp
         {
-            return Mathf.RoundToInt(value).ToString();
+            txt_NextCostLevel.text = "";
         }
-    }
-
-    [Serializable]
-    public class EffectRow
-    {
-        public GameObject root;
-        public TMP_Text txtName;
-        public TMP_Text txtDescription;
-
-        public string effectName = "";
-        [TextArea]
-        public string description = "";
-
-        public void Refresh()
+        else // Nếu ở trong game thì hiển thị chi phí lên cấp
         {
-            if (root != null)
-                root.SetActive(!string.IsNullOrEmpty(effectName));
-
-            if (txtName != null)
-                txtName.text = effectName;
-
-            if (txtDescription != null)
-                txtDescription.text = description;
-        }
-    }
-
-    [Header("Runtime Sources")]
-    [SerializeField] private PlayerStats playerStats;
-    [SerializeField] private CharacterBase characterSource;
-    [SerializeField] private bool autoFindPlayer = true;
-
-    [Header("Stats")]
-    [SerializeField] private StatRow healthRow;
-    [SerializeField] private StatRow manaRow;
-    [SerializeField] private StatRow staminaRow;
-
-    [Header("Armaments - Equipped Weapons")]
-    [SerializeField] private WeaponStatRow[] weaponDamageRows = new WeaponStatRow[4];
-
-    [Header("Temporary Weapon Damage Values")]
-    [SerializeField] private float[] weaponDamages = new float[4];
-
-    [Header("Special Effects")]
-    [SerializeField] private EffectRow[] specialEffects = new EffectRow[4];
-
-    [Header("Refresh")]
-    [SerializeField] private bool refreshWhileOpen = true;
-    [SerializeField] private float refreshInterval = 0.15f;
-
-    private float refreshTimer;
-
-    public void Open()
-    {
-        gameObject.SetActive(true);
-        ResolveRuntimeSources();
-        Refresh();
-    }
-
-    public void Close()
-    {
-        gameObject.SetActive(false);
-    }
-
-    private void OnEnable()
-    {
-        ResolveRuntimeSources();
-        Refresh();
-    }
-
-    private void Update()
-    {
-        if (!refreshWhileOpen)
-            return;
-
-        refreshTimer += Time.unscaledDeltaTime;
-        if (refreshTimer < refreshInterval)
-            return;
-
-        refreshTimer = 0f;
-        Refresh();
-    }
-
-    public void Refresh()
-    {
-        ResolveRuntimeSources();
-
-        CharacterStats characterStats = GetCharacterStats();
-
-        float maxHP = GetMaxHP(characterStats);
-        float currentHP = GetCurrentHP(maxHP);
-
-        float maxMP = GetMaxMP();
-        float currentMP = GetCurrentMP(maxMP);
-
-        float maxStamina = GetMaxStamina(characterStats);
-        float currentStamina = GetCurrentStamina(maxStamina);
-
-        if (healthRow != null)
-            healthRow.Set(currentHP, "Health");
-
-        if (manaRow != null)
-            manaRow.Set(currentMP, "Mana");
-
-        if (staminaRow != null)
-            staminaRow.Set(currentStamina, "Stamina");
-
-        RefreshWeaponDamages();
-
-        RefreshSpecialEffects();
-    }
-
-    private void ResolveRuntimeSources()
-    {
-        if (!autoFindPlayer)
-            return;
-
-        if (playerStats == null)
-            playerStats = FindObjectOfType<PlayerStats>();
-
-        if (characterSource == null)
-            characterSource = FindObjectOfType<CharacterBase>();
-    }
-
-    private CharacterStats GetCharacterStats()
-    {
-        if (characterSource == null)
-            return null;
-
-        if (characterSource.CharacterData == null)
-            return null;
-
-        return characterSource.CharacterData.stats;
-    }
-
-    private float GetMaxHP(CharacterStats characterStats)
-    {
-        if (playerStats != null && playerStats.maxHP > 0f)
-            return playerStats.maxHP;
-
-        if (characterStats != null && characterStats.maxHealth > 0f)
-            return characterStats.maxHealth;
-
-        return 1f;
-    }
-
-    private float GetCurrentHP(float maxHP)
-    {
-        if (playerStats != null)
-            return Mathf.Clamp(playerStats.currentHP, 0f, maxHP);
-
-        return maxHP;
-    }
-
-    private float GetMaxMP()
-    {
-        if (playerStats != null && playerStats.maxMP > 0f)
-            return playerStats.maxMP;
-
-        return 1f;
-    }
-
-    private float GetCurrentMP(float maxMP)
-    {
-        if (playerStats != null)
-            return Mathf.Clamp(playerStats.currentMP, 0f, maxMP);
-
-        return maxMP;
-    }
-
-    private float GetMaxStamina(CharacterStats characterStats)
-    {
-        if (playerStats != null && playerStats.maxStamina > 0f)
-            return playerStats.maxStamina;
-
-        if (characterStats != null && characterStats.stamina > 0f)
-            return characterStats.stamina;
-
-        return 1f;
-    }
-
-    private float GetCurrentStamina(float maxStamina)
-    {
-        if (playerStats != null)
-            return Mathf.Clamp(playerStats.currentStamina, 0f, maxStamina);
-
-        return maxStamina;
-    }
-
-    [Serializable]
-    public class WeaponStatRow
-    {
-        public GameObject root;
-        public TMP_Text txtValue;
-        public TMP_Text txtLabel;
-        public Slider slider;
-
-        public string emptyText = "-";
-        public float sliderMax = 2000f;
-
-        public void SetWeapon(float damage, string label = "Damage")
-        {
-            if (root != null)
-                root.SetActive(true);
-
-            if (txtValue != null)
-                txtValue.text = Mathf.RoundToInt(damage).ToString();
-
-            if (txtLabel != null)
-                txtLabel.text = label;
-
-            if (slider != null)
+            if (characterLevel.CurrentLevel < characterLevel.MaxLevel) // Nếu chưa đạt cấp tối đa thì hiển thị chi phí lên cấp tiếp theo
             {
-                slider.minValue = 0f;
-                slider.maxValue = Mathf.Max(1f, sliderMax, damage);
-                slider.value = Mathf.Clamp(damage, 0f, slider.maxValue);
+                int nextLevelCost = characterLevel.StatGainedLevelUp.GetLevelUpCost(characterLevel.CurrentLevel + 1);
+                int currentGold = GoldManager.Instance.CurrentGold;
+                if (currentGold < nextLevelCost) // Nếu chưa đủ vàng thì hiển thị chi phí lên cấp tiếp theo và số vàng hiện tại, hiển thị màu đỏ để cảnh báo người chơi
+                {
+                    txt_NextCostLevel.text = "<color=red>Need " + currentGold.ToString() + "/" + nextLevelCost.ToString() + " Gold</color>";
+                }
+                else // Nếu đã đủ vàng thì hiển thị chi phí lên cấp tiếp theo và số vàng hiện tại, hiển thị màu xanh để thông báo người chơi có thể lên cấp
+                {
+                    txt_NextCostLevel.text = "<color=green>Need " + currentGold.ToString() + "/" + nextLevelCost.ToString() + " Gold</color>";
+                }
+            }
+            else // Nếu đã đạt cấp tối đa thì thông báo đã đạt cấp tối đa
+            {
+                txt_NextCostLevel.text = "<color=yellow>Max Level</color>";
             }
         }
-
-        public void SetEmpty()
-        {
-            if (root != null)
-                root.SetActive(true);
-
-            if (txtValue != null)
-                txtValue.text = emptyText;
-
-            if (txtLabel != null)
-                txtLabel.text = "Damage";
-
-            if (slider != null)
-                slider.value = 0f;
-        }
     }
-
-    private void RefreshSpecialEffects()
+    private void DisplayPlayerStats()
     {
-        if (specialEffects == null)
+        if (PlayerManager.Instance == null)
             return;
 
-        for (int i = 0; i < specialEffects.Length; i++)
-        {
-            if (specialEffects[i] != null)
-                specialEffects[i].Refresh();
-        }
-    }
+        CharacterStats stat = PlayerManager.Instance.CurrentCharacterBase?.CharacterStat.finalStats;
 
-    private void RefreshWeaponDamages()
-    {
-        if (weaponDamageRows == null)
+        if (stat == null)
             return;
 
-        for (int i = 0; i < weaponDamageRows.Length; i++)
-        {
-            if (weaponDamageRows[i] == null)
-                continue;
-
-            if (weaponDamages != null && i < weaponDamages.Length && weaponDamages[i] > 0f)
-                weaponDamageRows[i].SetWeapon(weaponDamages[i]);
-            else
-                weaponDamageRows[i].SetEmpty();
-        }
+        txt_HealthStat.text = $"<color=green>{stat.maxHealth}</color>";
+        txt_SpeedStat.text = $"<color=green>{stat.speed}</color>";
+        txt_DamageStat.text = $"<color=green>{stat.damage}</color>";
+        txt_DefenseStat.text = $"<color=green>{stat.defense}</color>";
+        txt_PoisonDamageStat.text = $"<color=green>{stat.poisonDamage}</color>";
+        txt_StaminaStat.text = $"<color=green>{stat.stamina}</color>";
+        txt_StaminaRegenStat.text = $"<color=green>{stat.staminaRegen}</color>";
+        txt_MpStat.text = $"<color=green>{stat.mp}</color>";
+        txt_MpRegenStat.text = $"<color=green>{stat.mpRegen}</color>";
     }
+
+
 }

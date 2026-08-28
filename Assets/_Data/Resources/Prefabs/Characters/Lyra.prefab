@@ -119,6 +119,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: -7855983501107701153, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+      propertyPath: statGainedLevelUp
+      value: 
+      objectReference: {fileID: 11400000, guid: ff9f7c6f6705a7641a699bbc74146c49, type: 2}
     - target: {fileID: 34115255236702020, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: skillData1
       value: 
@@ -140,8 +144,12 @@ PrefabInstance:
       value: 0.8
       objectReference: {fileID: 0}
     - target: {fileID: 1334382458029455690, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+      propertyPath: recoveryBottle
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1334382458029455690, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: maxRecoveryBottle
-      value: 3
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3748905085893932200, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
       propertyPath: m_LocalPosition.x
@@ -222,6 +230,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterData: {fileID: 0}
+  minTakeDamage: 30
+  respawnDelay: 3
   dustEffect: {fileID: 6527448705214093827}
   enemyLayer:
     serializedVersion: 2
@@ -248,6 +258,7 @@ MonoBehaviour:
   characterStat: {fileID: 2330882421333957940}
   characterStamina: {fileID: 5038620735770419372}
   characterMP: {fileID: 4850372831514373884}
+  characterLevel: {fileID: 7971813432282247176}
   effectPoints: {fileID: 6976594298739711142}
   middleEffectPoint: {fileID: 7464771951311961177}
   bottomEffectPoint: {fileID: 6052880652090603874}
@@ -529,6 +540,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1999686462957950478, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 8960019985531120215}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7971813432282247176 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: -7855983501107701153, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 8960019985531120215}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552299898475163021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93bfcf68bd67504428cdd6b13b8fa1d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7988487931685770013 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 1334382458029455690, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}

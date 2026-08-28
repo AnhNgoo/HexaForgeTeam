@@ -25,8 +25,8 @@ public class EarthBreaker : CharacterSkillBase
         character.CharacterSkill.CanUseSkill1 = false;
         character.CharacterSkill.CanUseSkill2 = false;
         character.CanBeAttacked = false;
-        character.CharacterCinematic.PlayCinematic();
-        EventManager.Notify(GameEvent.OnUpdateCooldownSkill1, skillData.cooldown);
+
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill1, skillData.skillStats.cooldown);
 
         character.CharacterAnimation.CrossFade("Skill_1_1", 0.1f);
 
@@ -57,20 +57,23 @@ public class EarthBreaker : CharacterSkillBase
         EarthBreakerSkill earthBreakerSkill = earthBreakerEffect?.GetComponent<EarthBreakerSkill>();
         if (earthBreakerSkill != null)
         {
-            earthBreakerSkill.Init(character.CharacterData.stats.damage, character.CharacterData.stats.poisonDamage);
+            float damageSkill = character.CharacterStat.GetSkillDamage(skillData);
+            float poisonDamage = skillData.skillStats.poisonDamage;
+            earthBreakerSkill.Init(damageSkill, poisonDamage);
         }
 
         CameraShake.Instance.Shake();
 
-        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.6f);
+        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.6f); // Đợi animation đập đất hoàn thành
 
-        hitPauseEffect.PlayHitPause(1.3f, 0.1f); // Tạm dừng thời gian khi đòn tấn công trúng mục tiêu
+        // hitPauseEffect.PlayHitPause(1.3f, 0.1f); // Tạm dừng thời gian khi đòn tấn công trúng mục tiêu
 
-        await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.9f);
+        // await UniTask.WaitUntil(() => character.CharacterAnimation.GetAnimationTime("Skill_1_2") > 0.9f);
         character.StateController.ChangeState(new IdleState(character));
-        character.CharacterCinematic.StopCinematic();
+
         character.CanBeAttacked = true;
         character.CharacterSkill.CanUseSkill1 = true;
         character.CharacterSkill.CanUseSkill2 = true;
+        character.CharacterSkill.IsUsingSkill1 = false;
     }
 }

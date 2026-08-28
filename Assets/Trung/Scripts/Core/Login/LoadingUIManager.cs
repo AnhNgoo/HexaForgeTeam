@@ -14,24 +14,20 @@ public class LoadingUIManager : MonoBehaviour
     [SerializeField] private TMP_Text loadingTipText;
 
     [Header("Config")]
-    [SerializeField][Range(0.1f, 2f)] private float fillSpeed = 1.5f; // Tốc độ trượt Slider giả lập
+    [SerializeField][Range(0.1f, 3f)] private float fillSpeed = 0.8f;
 
-    [Header("Loading Tips (English - No Font Errors)")]
+    [Header("Loading Tips")]
     [SerializeField]
     private List<string> loadingTips = new List<string>()
     {
-        "Sharpening Ares's axe... Hopefully it does not break this time.",
-        "Lyra is memorizing three more ancient spells.",
+        "Sharpening weapons... Ready for the next battle.",
+        "Lyra is memorizing ancient spells.",
         "Kael claims that dodging is easier than blocking. Do not trust him.",
-        "The ultimate relic contains +99,999 to all stats... Have you found it yet?",
-        "Transmuting rune affixes (Reroll) costs a lot of Shards. Think twice!",
-        "If you lose the battle, it is definitely your keyboard's fault.",
-        "Every rune dropped from the dungeon has a soul. Do not dismantle them recklessly.",
+        "Transmuting rune affixes costs a lot of Shards. Think twice!",
+        "Every rune dropped from the dungeon has unique powers.",
         "Cleaning up previous monsters' debris to make room for you...",
-        "Did you know? Equipping matching elemental runes unlocks powerful bonuses.",
-        "Origin of Creation is the legendary rune that proves your absolute conquest.",
-        "The dungeon portals are unstable. Enter at your own risk!",
-        "Dismantling high-rarity runes refunds both Gems and Rune Shards."
+        "Equipping matching elemental runes unlocks powerful bonuses.",
+        "Prepare yourself! The Nightmare Lord awaits ahead!"
     };
 
     private void Awake()
@@ -56,22 +52,32 @@ public class LoadingUIManager : MonoBehaviour
         if (destinationText == null) return;
 
         string formattedName = "Unknown Zone";
+        GameSceneData data = GameSceneData.Instance;
 
-        if (sceneName == "LobbyMain Scene")
+        string lobbySceneName = data != null ? data.GetSceneName(SceneType.LobbyMain) : "LobbyMain Scene";
+        string runSceneName = data != null ? data.GetSceneName(SceneType.RunGameplay) : "Run Scene";
+        string bossSceneName = data != null ? data.GetSceneName(SceneType.FinalBoss) : "FinalBoss Scene";
+        string tutorialSceneName = data != null ? data.GetSceneName(SceneType.Tutorial) : "Tutorial Scene";
+
+        if (sceneName == lobbySceneName)
         {
             formattedName = "TRAVELING TO: HEROES' LOBBY";
         }
-        else if (sceneName == "Run Scene")
+        else if (sceneName == runSceneName || sceneName.Contains("Run"))
         {
             formattedName = "ENTERING: THE DEEP DUNGEON";
         }
-        else if (sceneName == "Tutorial Scene")
+        else if (sceneName == bossSceneName || sceneName.Contains("Boss") || sceneName.Contains("Arena"))
+        {
+            formattedName = "APPROACHING: NIGHTMARE LORD'S ARENA";
+        }
+        else if (sceneName == tutorialSceneName)
         {
             formattedName = "ENTERING: TRIAL GROUNDS";
         }
         else
         {
-            formattedName = $"TRAVELING TO: {sceneName.Replace(" Scene", "").ToUpper()}";
+            formattedName = $"TRAVELING TO: {sceneName.Replace(" Scene", "").Replace("Game", "").ToUpper()}";
         }
 
         destinationText.SetTextSafe(formattedName);
@@ -86,46 +92,44 @@ public class LoadingUIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Coroutine running smooth slider simulation and forcing a minimum load time of 5-7 seconds
+    /// Giữ màn hình loading trong khoảng 5-7 giây mượt mà
     /// </summary>
-    public IEnumerator TrackProgressRoutine(AsyncOperation targetSceneLoad)
+    public IEnumerator TrackProgressRoutine(AsyncOperation targetSceneLoad, bool hasEventNotify = true, float minDuration = 6.0f)
     {
-        if (progressSlider == null || targetSceneLoad == null) yield break;
+        if (progressSlider == null) yield break;
 
-        // Ép buộc thời gian chờ ngẫu nhiên từ 5 đến 7 giây thực tế
-        float minLoadingDuration = Random.Range(5f, 7f);
+        float targetDuration = (minDuration <= 0f) ? Random.Range(5.0f, 7.0f) : minDuration;
         float elapsedTime = 0f;
-
         progressSlider.value = 0f;
 
-        // Sử dụng thang thời gian Unscaled (bất chấp Time.timeScale = 0 khi Pause game)
-        while (elapsedTime < minLoadingDuration)
+        while (elapsedTime < targetDuration)
         {
             elapsedTime += Time.unscaledDeltaTime;
+            float timeRatio = Mathf.Clamp01(elapsedTime / targetDuration);
 
-            // Tính toán % tiến trình dựa trên thời gian trôi qua thực tế so với mốc thời gian tối thiểu
-            float timeRatio = Mathf.Clamp01(elapsedTime / minLoadingDuration);
+            float targetProgress = 1f;
+            if (targetSceneLoad != null)
+            {
+                targetProgress = Mathf.Clamp01(targetSceneLoad.progress / 0.9f);
+            }
 
-            // Tiến trình thực tế của Unity (nạp ngầm đạt tối đa 0.9f trước khi kích hoạt scene)
-            float unityProgress = Mathf.Clamp01(targetSceneLoad.progress / 0.9f);
-
-            // Giá trị hiển thị lên Slider sẽ là giá trị nhỏ nhất giữa Tiến trình thời gian và Tiến trình nạp của Unity.
-            // Điều này đảm bảo: Slider chỉ đạt 100% khi CẢ HAI điều kiện (Đủ 5-7s VÀ Unity nạp xong) đều thỏa mãn!
-            float finalVisualProgress = Mathf.Min(timeRatio, unityProgress);
-
-            // Nội suy tuyến tính để Slider trượt êm mượt nhất có thể
-            progressSlider.value = Mathf.MoveTowards(progressSlider.value, finalVisualProgress, Time.unscaledDeltaTime * fillSpeed);
+            float visualProgress = Mathf.Min(timeRatio, targetProgress);
+            progressSlider.value = Mathf.MoveTowards(progressSlider.value, visualProgress, Time.unscaledDeltaTime * fillSpeed);
 
             yield return null;
         }
 
-        // Đảm bảo slider chạm mốc 100% hoàn hảo ở cuối hành trình
         while (progressSlider.value < 1f)
         {
             progressSlider.value = Mathf.MoveTowards(progressSlider.value, 1f, Time.unscaledDeltaTime * fillSpeed);
             yield return null;
         }
 
-        yield return new WaitForSecondsRealtime(0.2f); // Chờ thêm một chút ngắn để người chơi cảm nhận sự hoàn tất mượt mà
+        yield return new WaitForSecondsRealtime(0.3f);
+
+        if (hasEventNotify)
+        {
+            EventManager.Notify(GameEvent.OnLoadingComplete);
+        }
     }
 }

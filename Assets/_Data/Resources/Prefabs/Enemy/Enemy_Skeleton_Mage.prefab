@@ -2022,13 +2022,6 @@ MonoBehaviour:
   attackArsenal:
   - {fileID: 11400000, guid: 698f0148d2bdedc46bd8ee028524e73f, type: 2}
   - {fileID: 11400000, guid: 051fe74c6ac2271429e059588b469b05, type: 2}
-  attackVFXSpawnPoints:
-  - attackData: {fileID: 11400000, guid: 698f0148d2bdedc46bd8ee028524e73f, type: 2}
-    spawnPoints:
-    - {fileID: 7856456636716434005}
-  - attackData: {fileID: 11400000, guid: 051fe74c6ac2271429e059588b469b05, type: 2}
-    spawnPoints:
-    - {fileID: 7856456636716434005}
   selectionMode: 1
 --- !u!114 &1386320707628959659
 MonoBehaviour:
@@ -2137,8 +2130,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f5b57bd5f7819044b02f344da095fec, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _lootPrefab: {fileID: 0}
-  bossLoot: []
+  _lootPrefab: {fileID: 7851882727209530665, guid: e0a365fc82430244a9f5333ade386b98, type: 3}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4223552
+  groundOffset: 0.2
 --- !u!114 &2584051363637652808
 MonoBehaviour:
   m_ObjectHideFlags: 0

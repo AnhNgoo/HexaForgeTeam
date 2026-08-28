@@ -1,0 +1,281 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1401653970698480678
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 218831146311868624}
+  - component: {fileID: 3147644463722019385}
+  m_Layer: 0
+  m_Name: SaveLoadManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &218831146311868624
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1401653970698480678}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -649.62915, y: -156.90501, z: -25.271606}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6421826088221375486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3147644463722019385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1401653970698480678}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b3942b95e1745244b469ee1afd09886, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SaveData:
+    gem: 3000
+    accountLevel: 1
+    accountExp: 0
+    lifetimeGemEarned: 0
+    runeShards: 0
+    characterData:
+      kaelUnlocked: 1
+      lyraUnlocked: 0
+      aresUnlocked: 0
+      elaraUnlocked: 0
+      selectedCharacter: 0
+      characterRuneBuilds: []
+    achievements: []
+    runes: []
+    isTutorialCompleted: 0
+    inventoryItems: []
+    totalKills: 0
+    totalRuns: 0
+--- !u!1 &3724445831589672453
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7424726923772867302}
+  - component: {fileID: 5854665760295702849}
+  m_Layer: 0
+  m_Name: LobbystatManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7424726923772867302
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3724445831589672453}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -923.8215, y: 453.70105, z: -41.809677}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6421826088221375486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5854665760295702849
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3724445831589672453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 461b9662c7a215645bba31dc68b1bcd6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentCombinedStats:
+    targetCharacter: 0
+    levelBonusStats:
+      HP: 0
+      HPPercent: 0
+      MP: 0
+      MPPercent: 0
+      Stamina: 0
+      StaminaPercent: 0
+      ATK: 0
+      ATKPercent: 0
+      DEF: 0
+      DEFPercent: 0
+      CritChance: 0
+      CritDamage: 0
+      ArmorPenetration: 0
+      StaminaRegen: 0
+    runeBonusStats:
+      HP: 0
+      HPPercent: 0
+      MP: 0
+      MPPercent: 0
+      Stamina: 0
+      StaminaPercent: 0
+      ATK: 0
+      ATKPercent: 0
+      DEF: 0
+      DEFPercent: 0
+      CritChance: 0
+      CritDamage: 0
+      ArmorPenetration: 0
+      StaminaRegen: 0
+  currentRuneAndAccountStats:
+    maxHealth: 0
+    speed: 0
+    damage: 0
+    defense: 0
+    poisonDamage: 0
+    stamina: 0
+    staminaRegen: 0
+    mp: 0
+    mpRegen: 0
+--- !u!1 &6980525495464165428
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6421826088221375486}
+  m_Layer: 0
+  m_Name: LobbySystems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6421826088221375486
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6980525495464165428}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -310.37085, y: -383.09497, z: 25.271606}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 218831146311868624}
+  - {fileID: 7424726923772867302}
+  - {fileID: 6307794010576585170}
+  - {fileID: 2310742391276926428}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8205189233221269885
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6307794010576585170}
+  - component: {fileID: 43609692969150263}
+  m_Layer: 0
+  m_Name: GoldManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6307794010576585170
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8205189233221269885}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6421826088221375486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &43609692969150263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8205189233221269885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a8bd426b7c42ec45ac7f44ee648358d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isDontDestroyOnLoad: 0
+  currentGold: 0
+--- !u!1 &8928784677320928101
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2310742391276926428}
+  - component: {fileID: 8607633270980712530}
+  m_Layer: 0
+  m_Name: RunManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2310742391276926428
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928784677320928101}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -640.90186, y: -154.43536, z: -3.842743}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6421826088221375486}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8607633270980712530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8928784677320928101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b27e436830939e14fb5599747adc24ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameplaySceneName: 
+  lobbySpawnPoint: {fileID: 0}
+  lobbyVisuals: {fileID: 0}
+  lobbyHUDMainObject: {fileID: 0}
+  selectedFinalBossPool: 1101

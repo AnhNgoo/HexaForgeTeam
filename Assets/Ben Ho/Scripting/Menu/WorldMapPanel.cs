@@ -72,6 +72,10 @@ public class WorldMapPanel : MonoBehaviour,
     [SerializeField] private bool rightClickToClearPing = true;
 
     [Header("Pan")]
+    // IMPORTANT:
+    // The parent of mapContent must be the fixed square viewport.
+    // Add a RectMask2D component to that parent so zoomed map content
+    // is visually clipped inside the square instead of overflowing.
     [SerializeField] private bool allowLeftMousePan = true;
     [SerializeField] private bool allowMiddleMousePan = true;
     [SerializeField] private bool clampMapInsideView = true;
@@ -88,12 +92,21 @@ public class WorldMapPanel : MonoBehaviour,
     private readonly Dictionary<RuntimeMapStructure, MapLocationMarkerUI>
     runtimeMarkers = new Dictionary<RuntimeMapStructure, MapLocationMarkerUI>();
 
+    private readonly Dictionary<RectTransform, Vector3> markerBaseScales =
+        new Dictionary<RectTransform, Vector3>();
+
     private void Awake()
     {
         FindPlayerIfMissing();
 
         if (markerRoot == null)
             markerRoot = mapContent;
+
+        // The zoom/pan math assumes the map is centered in its viewport.
+        // Set MapContent pivot/anchors to the center in the Inspector:
+        // Pivot = (0.5, 0.5), Anchors = center, Position = (0, 0).
+        CacheMarkerBaseScale(playerMarker);
+        CacheMarkerBaseScale(pingMarker);
     }
 
     public void Open()
@@ -114,6 +127,7 @@ public class WorldMapPanel : MonoBehaviour,
         }
 
         BuildMarkers();
+        UpdateMarkerScales();
         UpdatePlayerMarker();
         UpdateCurrentArea();
         RefreshPingMarker();
@@ -193,6 +207,7 @@ public class WorldMapPanel : MonoBehaviour,
         );
 
         mapContent.localScale = Vector3.one * currentZoom;
+        UpdateMarkerScales();
         ClampMapPosition();
     }
 
@@ -248,6 +263,8 @@ public class WorldMapPanel : MonoBehaviour,
             {
                 markerRect.anchoredPosition =
                     WorldToMapPosition(location.worldPosition);
+
+                CacheMarkerBaseScale(markerRect);
             }
 
             spawnedMarkers.Add(marker);
@@ -263,8 +280,15 @@ public class WorldMapPanel : MonoBehaviour,
     {
         foreach (MapLocationMarkerUI marker in spawnedMarkers)
         {
-            if (marker != null)
-                Destroy(marker.gameObject);
+            if (marker == null)
+                continue;
+
+            RectTransform markerRect = marker.transform as RectTransform;
+
+            if (markerRect != null)
+                markerBaseScales.Remove(markerRect);
+
+            Destroy(marker.gameObject);
         }
 
         spawnedMarkers.Clear();
@@ -281,6 +305,48 @@ public class WorldMapPanel : MonoBehaviour,
 
         playerMarker.localEulerAngles =
             new Vector3(0f, 0f, -player.eulerAngles.y);
+    }
+
+    private void UpdateMarkerScales()
+    {
+        ApplyInverseZoomScale(playerMarker);
+        ApplyInverseZoomScale(pingMarker);
+
+        foreach (MapLocationMarkerUI marker in spawnedMarkers)
+        {
+            if (marker != null)
+                ApplyInverseZoomScale(marker.transform as RectTransform);
+        }
+    }
+
+    private void CacheMarkerBaseScale(RectTransform marker)
+    {
+        if (marker != null && !markerBaseScales.ContainsKey(marker))
+            markerBaseScales.Add(marker, marker.localScale);
+    }
+
+    private void ApplyInverseZoomScale(RectTransform marker)
+    {
+        if (marker == null)
+            return;
+
+        CacheMarkerBaseScale(marker);
+
+        if (!markerBaseScales.TryGetValue(marker, out Vector3 baseScale))
+            return;
+
+        bool inheritsMapScale =
+            mapContent != null && marker.IsChildOf(mapContent);
+
+        float safeZoom = Mathf.Max(currentZoom, Mathf.Epsilon);
+
+        // Marker inherits the map zoom, so divide by ONE zoom factor
+        // to keep the marker at a constant on-screen size.
+        float scaleDivisor = inheritsMapScale
+            ? safeZoom
+            : 1f;
+
+        marker.localScale = baseScale / scaleDivisor;
     }
 
     private void UpdateCurrentArea()
@@ -429,30 +495,35 @@ public class WorldMapPanel : MonoBehaviour,
         if (!clampMapInsideView || mapContent == null)
             return;
 
-        RectTransform viewport =
-            mapContent.parent as RectTransform;
+        RectTransform viewport = mapContent.parent as RectTransform;
 
         if (viewport == null)
             return;
 
-        Vector2 contentSize =
-            mapContent.rect.size * currentZoom;
+        // MapContent is expected to be centered in the viewport:
+        // anchors = center, pivot = (0.5, 0.5), anchoredPosition = map offset.
+        Vector2 viewportSize = viewport.rect.size;
+        Vector2 mapSize = Vector2.Scale(mapContent.rect.size, Vector2.one * currentZoom);
 
-        Vector2 viewportSize =
-            viewport.rect.size;
-
-        Vector2 maxOffset = new Vector2(
-            Mathf.Max(0f, (contentSize.x - viewportSize.x) * 0.5f),
-            Mathf.Max(0f, (contentSize.y - viewportSize.y) * 0.5f)
+        // If the map is smaller than the viewport, keep it centered.
+        // If it is larger, allow panning but never reveal empty space.
+        Vector2 halfExcess = new Vector2(
+            Mathf.Max(0f, (mapSize.x - viewportSize.x) * 0.5f),
+            Mathf.Max(0f, (mapSize.y - viewportSize.y) * 0.5f)
         );
 
         Vector2 position = mapContent.anchoredPosition;
 
-        position.x =
-            Mathf.Clamp(position.x, -maxOffset.x, maxOffset.x);
+        position.x = Mathf.Clamp(position.x, -halfExcess.x, halfExcess.x);
+        position.y = Mathf.Clamp(position.y, -halfExcess.y, halfExcess.y);
 
-        position.y =
-            Mathf.Clamp(position.y, -maxOffset.y, maxOffset.y);
+        // At small zoom levels the map is smaller than the viewport,
+        // so prevent it from drifting away from the center.
+        if (mapSize.x <= viewportSize.x)
+            position.x = 0f;
+
+        if (mapSize.y <= viewportSize.y)
+            position.y = 0f;
 
         mapContent.anchoredPosition = position;
     }
@@ -541,6 +612,9 @@ public class WorldMapPanel : MonoBehaviour,
         {
             markerRect.anchoredPosition =
                 WorldToMapPosition(location.worldPosition);
+
+            CacheMarkerBaseScale(markerRect);
+            ApplyInverseZoomScale(markerRect);
         }
 
         runtimeMarkers.Add(structure, marker);
@@ -565,6 +639,13 @@ public class WorldMapPanel : MonoBehaviour,
         spawnedMarkers.Remove(marker);
 
         if (marker != null)
+        {
+            RectTransform markerRect = marker.transform as RectTransform;
+
+            if (markerRect != null)
+                markerBaseScales.Remove(markerRect);
+
             Destroy(marker.gameObject);
+        }
     }
 }

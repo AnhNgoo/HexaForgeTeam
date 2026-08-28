@@ -17,7 +17,8 @@ public class ChainBolt : CharacterSkillBase
             return;
         }
 
-        EventManager.Notify(GameEvent.OnUpdateCooldownSkill1, skillData.cooldown);
+        character.CanBeAttacked = false;
+        EventManager.Notify(GameEvent.OnUpdateCooldownSkill1, skillData.skillStats.cooldown);
 
         character.CharacterAnimation.CrossFade("Skill_1_1", 0.1f);
 
@@ -36,6 +37,8 @@ public class ChainBolt : CharacterSkillBase
         CreateProjectile(lyra.lyraSkill_1_Projectile, lyra.hitEffect);
 
         character.StateController.ChangeState(new IdleState(character));
+        character.CharacterSkill.IsUsingSkill1 = false;
+        character.CanBeAttacked = true;
     }
 
     public void CreateProjectile(PoolType characterProjectile, PoolType hitEffect = PoolType.None)

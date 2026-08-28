@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public enum GameSystemTab
 {
@@ -65,7 +66,7 @@ public class GameSystemMenu : MenuBase
     public override void Open(object data = null)
     {
         base.Open(data);
-
+        MouseManager.Instance?.ShowMouse();
         transform.SetAsLastSibling();
 
         if (mainTabMenu != null)
@@ -90,21 +91,16 @@ public class GameSystemMenu : MenuBase
 
     private void Update()
     {
-        // Không xử lý lại phím ESC trong frame vừa mở menu.
         if (Time.frameCount == openedFrame)
             return;
 
-        if (InputManager.InputActions.Keyboard.Escape.triggered)
+        if (InputManager.InputActions != null && InputManager.InputActions.Keyboard.Escape.triggered)
         {
-            if (GameManager.Instance.MapType == MapType.Lobby)
-            {
-                UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-                LobbyHUDTopBar.Instance?.ShowFullHUD();
-            }
-            else
-            {
-                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-            }
+            CloseToProperMenu();
+        }
+        else if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            CloseToProperMenu();
         }
     }
 
@@ -128,57 +124,39 @@ public class GameSystemMenu : MenuBase
 
     private void SetMapActive(bool active)
     {
-        if (mapPanel == null)
-            return;
-
-        if (active)
-            mapPanel.Open();
-        else
-            mapPanel.Close();
+        if (mapPanel == null) return;
+        if (active) mapPanel.Open();
+        else mapPanel.Close();
     }
 
     private void SetInventoryActive(bool active)
     {
-        if (inventoryMenu == null)
-            return;
-
-        if (active)
-            inventoryMenu.Open();
-        else
-            inventoryMenu.Close();
+        if (inventoryMenu == null) return;
+        if (active) inventoryMenu.Open();
+        else inventoryMenu.Close();
     }
 
     private void SetPlayerStateActive(bool active)
     {
-        if (playerStatePanel == null)
-            return;
-
-        if (active)
-            playerStatePanel.Open();
-        else
-            playerStatePanel.Close();
+        if (playerStatePanel == null) return;
+        if (active) playerStatePanel.Open();
+        else playerStatePanel.Close();
     }
 
     private void SetSystemActive(bool active)
     {
-        if (systemSettingsPanel == null)
-            return;
-
-        if (active)
-            systemSettingsPanel.Open();
-        else
-            systemSettingsPanel.Close();
+        if (systemSettingsPanel == null) return;
+        if (active) systemSettingsPanel.Open();
+        else systemSettingsPanel.Close();
     }
 
     private void RefreshTabs()
     {
-        if (tabItems == null)
-            return;
+        if (tabItems == null) return;
 
         foreach (GameSystemTabItem item in tabItems)
         {
-            if (item == null)
-                continue;
+            if (item == null) continue;
 
             bool selected = item.tab == currentTab;
 
@@ -198,8 +176,7 @@ public class GameSystemMenu : MenuBase
 
     private void AddEvents()
     {
-        if (eventsAdded)
-            return;
+        if (eventsAdded) return;
 
         if (tabItems != null)
         {
@@ -209,8 +186,7 @@ public class GameSystemMenu : MenuBase
             {
                 GameSystemTabItem item = tabItems[i];
 
-                if (item == null || item.toggle == null)
-                    continue;
+                if (item == null || item.toggle == null) continue;
 
                 if (tabToggleGroup != null)
                     item.toggle.group = tabToggleGroup;
@@ -223,15 +199,17 @@ public class GameSystemMenu : MenuBase
         }
 
         if (btnClose != null)
-            btnClose.onClick.AddListener(CloseToGameplay);
+        {
+            btnClose.onClick.RemoveAllListeners();
+            btnClose.onClick.AddListener(CloseToProperMenu);
+        }
 
         eventsAdded = true;
     }
 
     private void RemoveEvents()
     {
-        if (!eventsAdded)
-            return;
+        if (!eventsAdded) return;
 
         if (tabItems != null && tabActions != null)
         {
@@ -245,7 +223,7 @@ public class GameSystemMenu : MenuBase
         }
 
         if (btnClose != null)
-            btnClose.onClick.RemoveListener(CloseToGameplay);
+            btnClose.onClick.RemoveListener(CloseToProperMenu);
 
         tabActions = null;
         eventsAdded = false;
@@ -253,9 +231,7 @@ public class GameSystemMenu : MenuBase
 
     private void OnTabChanged(GameSystemTab tab, bool isOn)
     {
-        if (!isOn)
-            return;
-
+        if (!isOn) return;
         SelectTab(tab);
     }
 
@@ -267,18 +243,98 @@ public class GameSystemMenu : MenuBase
         SetSystemActive(false);
     }
 
-    public void CloseToGameplay()
+    public void CloseToProperMenu()
     {
+        bool isInLobby = CheckIfInLobby();
+
         if (UIManager.Instance != null)
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        {
+            if (isInLobby)
+            {
+                UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+                if (LobbyHUDTopBar.Instance != null)
+                {
+                    LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+                    LobbyHUDTopBar.Instance.ShowFullHUD();
+                }
+
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.SetMapType(MapType.Lobby);
+                }
+            }
+            else
+            {
+                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+                if (LobbyHUDTopBar.Instance != null)
+                {
+                    LobbyHUDTopBar.Instance.gameObject.SetActive(false);
+                }
+            }
+        }
         else
+        {
             gameObject.SetActive(false);
+        }
+    }
+
+    public void CloseToGameplay() => CloseToProperMenu();
+
+    private bool CheckIfInLobby()
+    {
+        if (GameManager.Instance != null)
+        {
+            if (GameManager.Instance.MapType == MapType.Boss || GameManager.Instance.MapType == MapType.Run) 
+                return false;
+            if (GameManager.Instance.MapType == MapType.Lobby) 
+                return true;
+        }
+
+        GameSceneData sceneData = GameSceneData.Instance;
+        if (sceneData != null)
+        {
+            string lobbyName = sceneData.GetSceneName(SceneType.LobbyMain);
+            string run1Name = sceneData.GetSceneName(SceneType.RunGameplay);
+            string run2Name = sceneData.GetSceneName(SceneType.RunGameplay2);
+            string bossName = sceneData.GetSceneName(SceneType.FinalBoss);
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene s = SceneManager.GetSceneAt(i);
+                if (s.isLoaded)
+                {
+                    if (s.name.Equals(bossName, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(run1Name, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(run2Name) && s.name.Equals(run2Name, StringComparison.OrdinalIgnoreCase)) ||
+                        s.name.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        s.name.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            string activeScene = SceneManager.GetActiveScene().name;
+            if (activeScene.Equals(bossName, StringComparison.OrdinalIgnoreCase) ||
+                activeScene.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                activeScene.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                activeScene.IndexOf("Run", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return false;
+            }
+
+            if (activeScene.Equals(lobbyName, StringComparison.OrdinalIgnoreCase) || activeScene.Contains("Lobby"))
+            {
+                return true;
+            }
+        }
+
+        return true;
     }
 
     private void CaptureCursor()
     {
-        if (cursorCaptured)
-            return;
+        if (cursorCaptured) return;
 
         previousCursorLock = Cursor.lockState;
         previousCursorVisible = Cursor.visible;
@@ -291,8 +347,7 @@ public class GameSystemMenu : MenuBase
 
     private void RestoreCursor()
     {
-        if (!cursorCaptured)
-            return;
+        if (!cursorCaptured) return;
 
         Cursor.lockState = previousCursorLock;
         Cursor.visible = previousCursorVisible;

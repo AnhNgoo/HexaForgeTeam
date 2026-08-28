@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using Sirenix.OdinInspector;
+#endif
 
 public class RunGameplayController : MonoBehaviour
 {
@@ -16,7 +19,7 @@ public class RunGameplayController : MonoBehaviour
 
     public bool IsFinalBossDefeated => FinalBossKilled > 0;
 
-    private HashSet<EnemyBase> trackedEnemies = new HashSet<EnemyBase>();
+    private readonly HashSet<EnemyBase> trackedEnemies = new HashSet<EnemyBase>();
 
     private void Awake()
     {
@@ -26,6 +29,20 @@ public class RunGameplayController : MonoBehaviour
     private void OnEnable()
     {
         ResetStats();
+    }
+
+    private void OnDisable()
+    {
+        UnregisterAllTrackedEnemies();
+    }
+
+    private void OnDestroy()
+    {
+        UnregisterAllTrackedEnemies();
+        if (Instance == this)
+        {
+            Instance = null;
+        }
     }
 
     private void Update()
@@ -45,12 +62,9 @@ public class RunGameplayController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// Cộng dồn tổng sát thương thực tế Player đã gây ra
-    /// </summary>
     public void RegisterPlayerDamage(float damage)
     {
-        if (damage <= 0) return;
+        if (this == null || damage <= 0) return;
         TotalDamageDealt += damage;
         if (RunManager.Instance != null)
         {
@@ -60,6 +74,8 @@ public class RunGameplayController : MonoBehaviour
 
     private void ScanAndRegisterEnemies()
     {
+        if (this == null) return;
+
         EnemyBase[] activeEnemies = FindObjectsByType<EnemyBase>(FindObjectsSortMode.None);
 
         foreach (var enemy in activeEnemies)
@@ -67,34 +83,46 @@ public class RunGameplayController : MonoBehaviour
             if (enemy != null && !trackedEnemies.Contains(enemy) && enemy.EventManager != null)
             {
                 trackedEnemies.Add(enemy);
-
-                // 1. ĐĂNG KÝ THEO DÕI SÁT THƯƠNG REAL-TIME
-                enemy.EventManager.OnTakeDamage += (damage) => OnEnemyTookDamageRealtime(damage);
-
-                // 2. ĐĂNG KÝ THEO DÕI QUÁI CHẾT
-                enemy.EventManager.OnDead += () => OnEnemyDiedRealtime(enemy);
+                enemy.EventManager.OnTakeDamage += RegisterPlayerDamage;
+                enemy.EventManager.OnDead += () => OnEnemyDiedHandler(enemy);
             }
         }
     }
 
-    private void OnEnemyTookDamageRealtime(float damage)
+    private void OnEnemyDiedHandler(EnemyBase enemy)
     {
-        RegisterPlayerDamage(damage);
+        if (this == null || !gameObject.activeInHierarchy || enemy == null) return;
+
+        if (trackedEnemies.Contains(enemy))
+        {
+            trackedEnemies.Remove(enemy);
+        }
+
+        OnEnemyDiedRealtime(enemy);
+    }
+
+    private void UnregisterAllTrackedEnemies()
+    {
+        foreach (var enemy in trackedEnemies)
+        {
+            if (enemy != null && enemy.EventManager != null)
+            {
+                enemy.EventManager.OnTakeDamage -= RegisterPlayerDamage;
+            }
+        }
+        trackedEnemies.Clear();
     }
 
     private void OnEnemyDiedRealtime(EnemyBase enemy)
     {
-        if (enemy == null || enemy.Data == null) return;
+        if (this == null || enemy == null || enemy.Data == null) return;
 
-        // PHÂN LOẠI QUÁI CHUẨN XÁC DỰA TRÊN ENEMYDATA
         if (!enemy.Data.isBoss)
         {
-            // Quái Thường (Is Boss KHÔNG ĐƯỢC TÍCH)
             NormalKilled++;
         }
         else
         {
-            // Quái Boss (Is Boss ĐƯỢC TÍCH) -> Phân loại theo Enum bossCategory
             switch (enemy.Data.bossCategory)
             {
                 case EnemyBossCategory.Miniboss:
@@ -108,8 +136,6 @@ public class RunGameplayController : MonoBehaviour
                 case EnemyBossCategory.FinalBoss:
                     FinalBossKilled++;
                     Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED! KÍCH HOẠT PANEL WIN!</color>");
-
-                    // KÍCH HOẠT PANEL WIN KHI TIÊU DIỆT FINAL BOSS
                     TriggerEndRun(true);
                     break;
             }
@@ -127,16 +153,16 @@ public class RunGameplayController : MonoBehaviour
         MonstersKilled = 0;
         TotalDamageDealt = 0f;
         TimeElapsed = 0f;
-        trackedEnemies.Clear();
+        UnregisterAllTrackedEnemies();
     }
 
     public void TriggerEndRun(bool isVictory)
     {
+        if (this == null) return;
         StopAllCoroutines();
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 
-        // Bật màn hình tổng kết Summary
         if (RunResultSummary.Instance != null)
         {
             RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);
@@ -146,5 +172,22 @@ public class RunGameplayController : MonoBehaviour
     public void OnSkipRunPressed(bool forceVictory = false)
     {
         TriggerEndRun(forceVictory);
+    }
+
+#if UNITY_EDITOR
+    [Button("⚡ SKIP TO FINAL BOSS MAP", ButtonSizes.Large)]
+    [GUIColor(1f, 0.8f, 0.2f)]
+#endif
+    public void SkipToFinalBoss()
+    {
+        if (Application.isPlaying && RunManager.Instance != null)
+        {
+            Debug.Log("<color=yellow>[Cheat/Skip] Chuyển thẳng vào Final Boss Map!</color>");
+            RunManager.Instance.EnterFinalBoss();
+        }
+        else
+        {
+            Debug.LogWarning("Chỉ có thể bấm Skip khi đang chạy game (Play Mode)!");
+        }
     }
 }

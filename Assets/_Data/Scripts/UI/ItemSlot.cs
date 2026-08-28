@@ -1,7 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class ItemSLotData
 {
@@ -9,14 +8,23 @@ public class ItemSLotData
     public int index;
 }
 
-public class ItemSlot : LoadComponents
+public class ItemSlot : LoadComponents, IPointerEnterHandler, IPointerExitHandler
 {
     [SerializeField] private ItemDataBase itemData;
     public ItemDataBase ItemData => itemData;
+
     [SerializeField] private Image itemImage;
     [SerializeField] private GameObject selectedImage;
+
+    // Biến lưu trữ thông tin nếu slot này chứa Rune
+    private string customTooltipTitle = "";
+    private string customTooltipDetails = "";
+    private Sprite customTooltipIcon = null;
+    private bool isRuneSlot = false;
+
     public bool isEmpty { get; private set; } = true;
     public int Index { get; set; } = -1;
+
     protected override void LoadComponent()
     {
         if (itemImage == null)
@@ -25,10 +33,7 @@ public class ItemSlot : LoadComponents
             selectedImage = transform.Find("Selected")?.gameObject;
     }
 
-    protected override void LoadComponentRuntime()
-    {
-
-    }
+    protected override void LoadComponentRuntime() { }
 
     private void Start()
     {
@@ -41,35 +46,68 @@ public class ItemSlot : LoadComponents
         DeselectItem();
         DisableSelectedImage();
     }
+
     public void AddItemIntoSlot(ItemSLotData itemSLotData)
     {
-        if (itemSLotData == null) return;
+        if (itemSLotData == null || itemSLotData.itemData == null) return;
 
+        isRuneSlot = false;
         itemData = itemSLotData.itemData;
         Index = itemSLotData.index;
         isEmpty = false;
-        itemImage.gameObject.SetActive(true);
-        itemImage.sprite = itemSLotData.itemData.itemIcon;
+
+        if (itemImage != null)
+        {
+            itemImage.gameObject.SetActive(true);
+            itemImage.sprite = itemSLotData.itemData.itemIcon;
+            itemImage.color = Color.white;
+        }
+    }
+
+    public void SetRuneDirectly(Sprite runeSprite, string title, string details, int index)
+    {
+        isRuneSlot = true;
+        Index = index;
+        isEmpty = false;
+        customTooltipTitle = title;
+        customTooltipDetails = details;
+        customTooltipIcon = runeSprite;
+
+        if (itemImage != null)
+        {
+            itemImage.gameObject.SetActive(true);
+            itemImage.sprite = runeSprite;
+            itemImage.color = Color.white;
+        }
     }
 
     public void DiscardItemFromSlot()
     {
         itemData = null;
         isEmpty = true;
-        itemImage.gameObject.SetActive(false);
-        itemImage.sprite = null;
-        selectedImage.SetActive(false);
+        isRuneSlot = false;
+        customTooltipTitle = "";
+        customTooltipDetails = "";
+        customTooltipIcon = null;
+
+        if (itemImage != null)
+        {
+            itemImage.gameObject.SetActive(false);
+            itemImage.sprite = null;
+        }
+
+        if (selectedImage != null)
+            selectedImage.SetActive(false);
+
         EventManager.Notify(GameEvent.OnDeselectItemInInventory);
     }
 
-    // Khi chọn sẽ gửi index hiện tại của slot và thông báo cho InventoryMenu biết để hiển thị nút Discard
     public void SelectItem()
     {
-        if (itemData == null) return;
+        if (itemData == null && !isRuneSlot) return;
         EventManager.Notify(GameEvent.OnSelectItemInInventory, Index);
     }
 
-    //  Khi bỏ chọn sẽ gửi thông báo cho InventoryMenu biết để ẩn nút Discard
     public void DeselectItem()
     {
         EventManager.Notify(GameEvent.OnDeselectItemInInventory);
@@ -80,4 +118,36 @@ public class ItemSlot : LoadComponents
         if (selectedImage != null)
             selectedImage.SetActive(false);
     }
+
+    #region Tooltip Pointer Events
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (UITooltipPanel.Instance == null || isEmpty) return;
+
+        if (isRuneSlot)
+        {
+            UITooltipPanel.Instance.ShowTooltip(customTooltipTitle, customTooltipDetails, customTooltipIcon);
+        }
+        else if (itemData != null)
+        {
+            UITooltipPanel.Instance.ShowTooltip(itemData.itemName, itemData.itemDescription, itemData.itemIcon);
+        }
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        if (UITooltipPanel.Instance != null)
+        {
+            UITooltipPanel.Instance.HideTooltip();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (UITooltipPanel.Instance != null)
+        {
+            UITooltipPanel.Instance.HideTooltip();
+        }
+    }
+    #endregion
 }

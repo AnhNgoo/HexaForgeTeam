@@ -56,6 +56,7 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     [SerializeField] private Sprite blueRareSprite;
     [SerializeField] private Sprite blueEpicSprite;
     [SerializeField] private Sprite blueLegendarySprite;
+    [SerializeField] private bool disableTooltip = false;
 
     private RuneData currentRuneData;
 
@@ -189,7 +190,8 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
             RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
         }
 
-        // Tự động đẩy dữ liệu ngọc lên Tooltip khi Hover
+        if (disableTooltip) return;
+
         if (UITooltipPanel.Instance != null)
         {
             string title = $"<color={GetRarityHexColor(currentRuneData.runeRarity)}>{currentRuneData.runeName.ToUpper()}</color>";
@@ -199,7 +201,7 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
             {
                 var affix = currentRuneData.affixes[i];
                 string sign = affix.value >= 0 ? "+" : "";
-                details += $"✦ {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
+                details += $"- {affix.statType}: <color=#00FFCC>{sign}{affix.value:F1}</color>\n";
             }
 
             if (!string.IsNullOrEmpty(currentRuneData.runeLore))
@@ -600,5 +602,9 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     public void StartInternalReveal()
     {
         if (!isRevealed && !isAnimating) StartDOTweenRevealAnimation();
+    }
+    public void SetDisableTooltip(bool disable)
+    {
+        disableTooltip = disable;
     }
 }
