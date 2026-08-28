@@ -100,7 +100,6 @@ public class InteractV2 : MonoBehaviour
                 {
                     InteractUIV2.Instance.Hide();
                 }
-                InteractManagerV2.Instance.Unregister(this);
             }
 
             if (UIManager.Instance != null)

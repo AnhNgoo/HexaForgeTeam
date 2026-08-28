@@ -43,6 +43,9 @@ public class DialogueUI : MonoBehaviour
     private string targetFullText = "";
 
     private List<ChoiceTabItem> allChoices = new List<ChoiceTabItem>();
+    private MenuType previousMenuType = MenuType.DefaultLobbyInputMenu;
+
+    public bool IsDialogueOpen() => root != null && root.activeInHierarchy;
 
     private void Awake()
     {
@@ -51,12 +54,7 @@ public class DialogueUI : MonoBehaviour
         allChoices = new List<ChoiceTabItem>() { choice1Tab, choice2Tab, choice3Tab };
         InitTabHoverTriggers();
 
-        Hide();
-
-        if (InteractManagerV2.Instance != null)
-        {
-            InteractManagerV2.Instance.IsBusy = false;
-        }
+        if (root != null) root.SetActive(false);
     }
 
     private void InitTabHoverTriggers()
@@ -73,12 +71,10 @@ public class DialogueUI : MonoBehaviour
 
             trigger.triggers.Clear();
 
-            // Hover vào -> Hiển thị line trượt ngang
             EventTrigger.Entry enterEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
             enterEntry.callback.AddListener((eventData) => { SetTabHoverVisual(index, true); });
             trigger.triggers.Add(enterEntry);
 
-            // Rê chuột ra -> Thu gọn line
             EventTrigger.Entry exitEntry = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
             exitEntry.callback.AddListener((eventData) => { SetTabHoverVisual(index, false); });
             trigger.triggers.Add(exitEntry);
@@ -145,6 +141,7 @@ public class DialogueUI : MonoBehaviour
 
         currentDialogue = data;
         currentIndex = 0;
+
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.IsBusy = true;
@@ -157,6 +154,10 @@ public class DialogueUI : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
+            if (UIManager.Instance.CurrentMenuType != MenuType.LobbyDialogueMenu)
+            {
+                previousMenuType = UIManager.Instance.CurrentMenuType;
+            }
             UIManager.Instance.ChangeMenu(MenuType.LobbyDialogueMenu);
         }
 
@@ -194,22 +195,15 @@ public class DialogueUI : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            string sceneLobbyName = GameSceneData.Instance != null ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain) : "LobbyMain Scene";
-            string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            MenuType targetMenu = (previousMenuType != MenuType.None && previousMenuType != MenuType.LobbyDialogueMenu)
+                ? previousMenuType 
+                : MenuType.DefaultLobbyInputMenu;
 
-            if (currentSceneName == sceneLobbyName)
-            {
-                UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-            }
-            else
-            {
-                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-            }
+            UIManager.Instance.ChangeMenu(targetMenu);
         }
 
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance.SetCooldown(0.25f);
             InteractManagerV2.Instance.IsBusy = false;
             InteractManagerV2.Instance.ForceRefresh();
         }
@@ -283,7 +277,6 @@ public class DialogueUI : MonoBehaviour
 
         if (Time.unscaledTime < allowInputTime) return;
 
-        // Xử lý phím tắt 1, 2, 3 khi các nút lựa chọn đang hiển thị
         if (AreChoicesVisible())
         {
             HandleChoiceHotkeys();
@@ -321,17 +314,14 @@ public class DialogueUI : MonoBehaviour
     {
         if (currentDialogue == null || currentDialogue.choices == null) return;
 
-        // Phím 1 (hoặc Numpad 1) -> Chọn Choice 1
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
             TriggerChoiceAtIndex(0);
         }
-        // Phím 2 (hoặc Numpad 2) -> Chọn Choice 2
         else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
         {
             TriggerChoiceAtIndex(1);
         }
-        // Phím 3 (hoặc Numpad 3) -> Chọn Choice 3
         else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
         {
             TriggerChoiceAtIndex(2);

@@ -108,16 +108,21 @@ public class InteractManagerV2 : MonoBehaviour
         // 1. Dọn dẹp các object bị huỷ
         interactObjects.RemoveAll(item => item == null || item.gameObject == null || !item.enabled || !item.gameObject.activeInHierarchy);
 
-        // 2. Nếu không có bảng thoại hoặc Menu nào đang mở, đảm bảo IsBusy không bị kẹt
-        if (IsBusy)
-        {
-            bool isDialogueActive = DialogueUI.Instance != null && DialogueUI.Instance.gameObject.activeInHierarchy && DialogueUI.Instance.transform.Find("Root") != null && DialogueUI.Instance.transform.Find("Root").gameObject.activeSelf;
-            bool isMenuOpen = UIManager.Instance != null && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu && UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.None;
+        // 2. Tự động kiểm tra trạng thái hội thoại và menu UI
+        bool isDialogueActive = DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueOpen();
+        bool isMenuOpen = UIManager.Instance != null && 
+                          UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu && 
+                          UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && 
+                          UIManager.Instance.CurrentMenuType != MenuType.None;
 
-            if (!isDialogueActive && !isMenuOpen)
-            {
-                IsBusy = false;
-            }
+        if (isDialogueActive || isMenuOpen)
+        {
+            IsBusy = true;
+        }
+        else if (IsBusy && !isDialogueActive && !isMenuOpen)
+        {
+            IsBusy = false;
+            RefreshUI();
         }
 
         // 3. Nếu danh sách rỗng hoặc đang bận -> Ẩn UI
@@ -142,10 +147,6 @@ public class InteractManagerV2 : MonoBehaviour
             ExecuteCurrent();
         }
     }
-
-    /// <summary>
-    /// Quét lại toàn bộ collider quanh Player để tránh tình trạng player đứng sẵn trong vùng trigger lúc load scene
-    /// </summary>
     public void RescanNearbyInteracts()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
