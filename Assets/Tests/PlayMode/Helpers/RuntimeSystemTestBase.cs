@@ -193,10 +193,10 @@ namespace DuskBlade.Tests
         protected string FindGameplayScenePath()
         {
 #if UNITY_EDITOR
-            const string tutorialScene = "Assets/_Data/Scenes/Tutorial.unity";
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(tutorialScene) != null)
+            string configuredPath = TestSceneConfig.GameplayScenePath;
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(configuredPath) != null)
             {
-                return tutorialScene;
+                return configuredPath;
             }
 
             foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
@@ -210,7 +210,7 @@ namespace DuskBlade.Tests
             }
 
             string[] guids = AssetDatabase.FindAssets("t:Scene", new[] { "Assets" });
-            string[] preferred = { "Tutorial", "Tutorial_AGDev", "GameDemo", "LongMap", "Map", "Gameplay" };
+            string[] preferred = { "Run Scene", "Tutorial", "GameDemo", "LongMap", "Map", "Gameplay" };
             foreach (string token in preferred)
             {
                 foreach (string guid in guids)
@@ -227,14 +227,22 @@ namespace DuskBlade.Tests
 
         protected IEnumerator LoadGameplayScene(Ctx ctx)
         {
-            string path = FindGameplayScenePath();
-            Assert.IsFalse(string.IsNullOrEmpty(path), "Không tìm thấy scene gameplay thật trong Assets.");
+            yield return LoadSceneByPath(TestSceneConfig.RunScenePath, ctx);
+        }
+
+        protected IEnumerator LoadSceneByPath(string path, Ctx ctx)
+        {
+            Assert.IsFalse(string.IsNullOrEmpty(path), "Scene test không được để trống.");
 #if UNITY_EDITOR
-            AsyncOperation op = EditorSceneManager.LoadSceneAsyncInPlayMode(path, new LoadSceneParameters(LoadSceneMode.Single));
-            while (op != null && !op.isDone) yield return null;
+            SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(path);
+            Assert.IsNotNull(sceneAsset, "Scene test không tồn tại: " + path);
+            AsyncOperation operation = EditorSceneManager.LoadSceneAsyncInPlayMode(path, new LoadSceneParameters(LoadSceneMode.Single));
+            Assert.IsNotNull(operation, "Không thể bắt đầu load scene: " + path);
+            while (!operation.isDone) yield return null;
 #else
             yield return SceneManager.LoadSceneAsync(path, LoadSceneMode.Single);
 #endif
+            Assert.IsTrue(SceneManager.GetActiveScene().IsValid(), "Scene active không hợp lệ sau khi load: " + path);
             ctx.Actual += "Scene đã load=" + path + ". ";
         }
 

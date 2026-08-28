@@ -38,10 +38,10 @@ namespace DuskBlade.Tests
             TestResultCsvExporter.Export("ConsoleError", records);
         }
 
-        [UnityTest, Category("ConsoleError"), Category("Tu dong"), Description("CE-001: Load scene Tutorial.")]
+        [UnityTest, Category("ConsoleError"), Category("Tu dong"), Description("CE-001: Load scene Run Scene.")]
         public IEnumerator CE_001_LoadGameplaySceneKhongLoiDo()
         {
-            yield return RunUnity("CE-001", "Load scene Tutorial", "Scene Tutorial load duoc trong PlayMode.", "High", LoadSceneNoError);
+            yield return RunUnity("CE-001", "Load scene Run Scene", "Scene Run Scene cua Trung load duoc trong PlayMode.", "High", LoadSceneNoError);
         }
 
         [UnityTest, Category("ConsoleError"), Category("Tu dong"), Description("CE-002: Spawn Player prefab that.")]
@@ -83,7 +83,7 @@ namespace DuskBlade.Tests
         private IEnumerator LoadSceneNoError(Ctx c)
         {
             string scenePath = FindGameplayScenePath();
-            Assert.IsFalse(string.IsNullOrEmpty(scenePath), "Khong tim thay scene Tutorial that trong project.");
+            Assert.IsFalse(string.IsNullOrEmpty(scenePath), "Khong tim thay scene Run Scene cua Trung trong project.");
 #if UNITY_EDITOR
             AsyncOperation op = EditorSceneManager.LoadSceneAsyncInPlayMode(scenePath, new LoadSceneParameters(LoadSceneMode.Single));
             while (op != null && !op.isDone) yield return null;
@@ -92,7 +92,7 @@ namespace DuskBlade.Tests
 #endif
             yield return null;
             c.Actual = $"Scene da load={scenePath}, activeScene={SceneManager.GetActiveScene().name}.";
-            Assert.IsTrue(SceneManager.GetActiveScene().IsValid(), "Scene Tutorial load ra khong hop le.");
+            Assert.IsTrue(SceneManager.GetActiveScene().IsValid(), "Scene Run Scene load ra khong hop le.");
         }
 
         private IEnumerator SpawnPlayerNoError(Ctx c)
@@ -171,28 +171,11 @@ namespace DuskBlade.Tests
         private string FindGameplayScenePath()
         {
 #if UNITY_EDITOR
-            const string tutorialScene = "Assets/_Data/Scenes/Tutorial.unity";
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(tutorialScene) != null) return tutorialScene;
-
-            foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
-            {
-                if (scene.enabled && !string.IsNullOrEmpty(scene.path) && scene.path.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return scene.path;
-                }
-            }
-
-            string[] guids = AssetDatabase.FindAssets("t:Scene", new[] { "Assets/_Data/Scenes" });
-            if (guids.Length == 0) guids = AssetDatabase.FindAssets("t:Scene");
-            foreach (string guid in guids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (path.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0) return path;
-            }
-
-            return guids.Length > 0 ? AssetDatabase.GUIDToAssetPath(guids[0]) : null;
+            string configuredPath = TestSceneConfig.GameplayScenePath;
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<SceneAsset>(configuredPath), "Khong tim thay scene Run Game: " + configuredPath);
+            return configuredPath;
 #else
-            return null;
+            return TestSceneConfig.GameplayScenePath;
 #endif
         }
 
