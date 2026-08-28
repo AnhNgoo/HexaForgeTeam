@@ -115,11 +115,11 @@ public class RunResultSummary : MonoBehaviour
         {
             if (isVictory)
             {
-                txtTitleBanner.text = "<size=130%><color=#FFE066>◆ NIGHT FELL ◆</color></size>\n<size=60%><color=#FFD700>— VICTORY ACHIEVED —</color></size>";
+                txtTitleBanner.text = "<size=130%><color=#FFE066> NIGHT FELL </color></size>\n<size=60%><color=#FFD700>— VICTORY ACHIEVED —</color></size>";
             }
             else
             {
-                txtTitleBanner.text = "<size=130%><color=#FF3333>◆ YOU DIED ◆</color></size>\n<size=60%><color=#FF6B6B>— NIGHTMARE PREVAILS —</color></size>";
+                txtTitleBanner.text = "<size=130%><color=#FF3333> YOU DIED </color></size>\n<size=60%><color=#FF6B6B>— NIGHTMARE PREVAILS —</color></size>";
             }
             txtTitleBanner.transform.localScale = Vector3.one * 2.2f;
             txtTitleBanner.alpha = 0f;

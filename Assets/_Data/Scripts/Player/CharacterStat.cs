@@ -7,6 +7,9 @@ public class CharacterStat : MonoBehaviour
     [SerializeField] private CharacterStats originStats;
     public CharacterStats OriginStats => originStats;
 
+    [SerializeField] private CharacterStats runStats = new();
+    public CharacterStats RunStats => runStats;
+
     private CharacterStats cachedCurrentStats;
 
     public CharacterStats runeStats { get; set; } = new CharacterStats();
@@ -44,20 +47,88 @@ public class CharacterStat : MonoBehaviour
     public void SetFinalStats(bool isSetMaxHealth = true, bool isSetMaxStamina = true, bool isSetMaxMP = true)
     {
         finalStats = new CharacterStats();
-        finalStats.maxHealth = originStats.maxHealth + runeStats.maxHealth + levelStats.maxHealth;
-        finalStats.speed = originStats.speed + runeStats.speed + levelStats.speed;
-        finalStats.damage = originStats.damage + runeStats.damage + levelStats.damage;
-        finalStats.defense = originStats.defense + runeStats.defense + levelStats.defense;
-        finalStats.poisonDamage = originStats.poisonDamage + runeStats.poisonDamage + levelStats.poisonDamage;
-        finalStats.stamina = originStats.stamina + runeStats.stamina + levelStats.stamina;
-        finalStats.staminaRegen = originStats.staminaRegen + runeStats.staminaRegen + levelStats.staminaRegen;
-        finalStats.mp = originStats.mp + runeStats.mp + levelStats.mp;
-        finalStats.mpRegen = originStats.mpRegen + runeStats.mpRegen + levelStats.mpRegen;
+        finalStats.maxHealth = originStats.maxHealth + runeStats.maxHealth + levelStats.maxHealth + runStats.maxHealth;
+        finalStats.speed = originStats.speed + runeStats.speed + levelStats.speed + runStats.speed;
+        finalStats.damage = originStats.damage + runeStats.damage + levelStats.damage + runStats.damage;
+        finalStats.defense = originStats.defense + runeStats.defense + levelStats.defense + runStats.defense;
+        finalStats.poisonDamage = originStats.poisonDamage + runeStats.poisonDamage + levelStats.poisonDamage + runStats.poisonDamage;
+        finalStats.stamina = originStats.stamina + runeStats.stamina + levelStats.stamina + runStats.stamina;
+        finalStats.staminaRegen = originStats.staminaRegen + runeStats.staminaRegen + levelStats.staminaRegen + runStats.staminaRegen;
+        finalStats.mp = originStats.mp + runeStats.mp + levelStats.mp + runStats.mp;
+        finalStats.mpRegen = originStats.mpRegen + runeStats.mpRegen + levelStats.mpRegen + runStats.mpRegen;
+
 
         characterBase.CharacterHealth.SetMaxHealth(finalStats.maxHealth, isSetMaxHealth);
         characterBase.CharacterStamina.SetMaxStamina(finalStats.stamina, isSetMaxStamina);
         characterBase.CharacterMP.SetMaxMP(finalStats.mp, isSetMaxMP);
     }
+
+    public bool ApplyRunReward(BossRewardType rewardType, float percentage)
+    {
+        if (percentage <= 0f) return false;
+
+        float ratio = percentage / 100f;
+
+        switch (rewardType)
+        {
+            case BossRewardType.MaxHealth:
+                {
+                    float oldMax = finalStats.maxHealth;
+                    runStats.maxHealth += oldMax * ratio;
+                    SetFinalStats(false, false, false);
+                    characterBase.CharacterHealth.AddHealth(finalStats.maxHealth - oldMax);
+                    return true;
+                }
+
+            case BossRewardType.Damage:
+                runStats.damage += finalStats.damage * ratio;
+                SetFinalStats(false, false, false);
+                return true;
+
+            case BossRewardType.Defense:
+                runStats.defense += finalStats.defense * ratio;
+                SetFinalStats(false, false, false);
+                return true;
+
+            case BossRewardType.Stamina:
+                {
+                    float oldMax = finalStats.stamina;
+                    runStats.stamina += oldMax * ratio;
+                    SetFinalStats(false, false, false);
+                    characterBase.CharacterStamina.AddStamina(finalStats.stamina - oldMax);
+                    return true;
+                }
+            case BossRewardType.MoveSpeed:
+                runStats.speed += finalStats.speed * ratio;
+                break;
+
+            case BossRewardType.PoisonDamage:
+                runStats.poisonDamage += finalStats.poisonDamage * ratio;
+                break;
+
+            case BossRewardType.StaminaRegen:
+                runStats.staminaRegen += finalStats.staminaRegen * ratio;
+                break;
+
+            case BossRewardType.MPRegen:
+                runStats.mpRegen += finalStats.mpRegen * ratio;
+                break;
+
+            case BossRewardType.MaxMP:
+                {
+                    float oldMax = finalStats.mp;
+                    runStats.mp += oldMax * ratio;
+                    SetFinalStats(false, false, false);
+                    characterBase.CharacterMP.AddMP(finalStats.mp - oldMax);
+                    return true;
+                }
+
+            default: return false;
+        }
+        SetFinalStats(false, false, false);
+        return true;
+    }
+
 
     #region Skill Stats
     /// <summary>
@@ -138,4 +209,28 @@ public class CharacterStat : MonoBehaviour
         return totalPoisonDamage;
     }
     #endregion
+    private static CharacterStats CloneStats(CharacterStats source)
+    {
+        if (source == null) return new CharacterStats();
+
+        return new CharacterStats
+        {
+            maxHealth = source.maxHealth,
+            speed = source.speed,
+            damage = source.damage,
+            defense = source.defense,
+            poisonDamage = source.poisonDamage,
+            stamina = source.stamina,
+            staminaRegen = source.staminaRegen,
+            mp = source.mp,
+            mpRegen = source.mpRegen
+        };
+    }
+
+    public void ResetRunStats()
+    {
+        runStats = new CharacterStats();
+        SetFinalStats();
+    }
+
 }

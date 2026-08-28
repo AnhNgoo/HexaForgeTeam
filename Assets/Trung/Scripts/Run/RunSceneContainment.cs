@@ -37,7 +37,6 @@ public class RunSceneContainment : MonoBehaviour
 
     private void LateUpdate()
     {
-        // Liên tục quét bảo vệ: Hốt sạch các Clone lỡ bị đẻ vào LobbyMainScene đưa về Run Scene Container
         ContainExistingLooseObjects();
     }
 
@@ -51,13 +50,9 @@ public class RunSceneContainment : MonoBehaviour
         if (myRunScene.isLoaded && SceneManager.GetActiveScene() != myRunScene)
         {
             SceneManager.SetActiveScene(myRunScene);
-            Debug.Log($"[Containment] Active Scene successfully forced to: {myRunScene.name}");
         }
     }
 
-    /// <summary>
-    /// Chuyển đối tượng bị đẻ nhầm vào đúng Run Scene Container
-    /// </summary>
     public void ContainObject(GameObject obj)
     {
         if (obj == null) return;
@@ -91,7 +86,7 @@ public class RunSceneContainment : MonoBehaviour
             if (obj == null) continue;
 
             string name = obj.name;
-            if (name.Contains("(Clone)") && !name.Contains("Player") && !name.Contains("UI"))
+            if (name.Contains("(Clone)") && !name.Contains("Player") && !name.Contains("UI") && !name.Contains("GameplayController"))
             {
                 ContainObject(obj);
             }

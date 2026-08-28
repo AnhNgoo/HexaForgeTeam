@@ -1021,6 +1021,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: b846eeb34ce26744f984f5d326fd7438, type: 2}
+  attackVFXSpawnPoints:
+  - attackData: {fileID: 11400000, guid: b846eeb34ce26744f984f5d326fd7438, type: 2}
+    vfxEntries:
+    - vfxType: 0
+      spawnPoints: []
+      offset: {x: 0, y: 0, z: 0}
+      euler: {x: 0, y: 0, z: 0}
+      scale: 1
+  - attackData: {fileID: 11400000, guid: b846eeb34ce26744f984f5d326fd7438, type: 2}
+    vfxEntries: []
   selectionMode: 0
 --- !u!114 &3176172881863949468
 MonoBehaviour:
@@ -1130,6 +1140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lootPrefab: {fileID: 0}
+  bossLoot: []
 --- !u!114 &7895337377040709387
 MonoBehaviour:
   m_ObjectHideFlags: 0

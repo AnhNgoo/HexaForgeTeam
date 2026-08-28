@@ -103,12 +103,12 @@ public class TitleMenu : MenuBase
         GameSaveData saveData = SaveLoadManager.Instance?.SaveData;
         GameSceneData sceneData = GameSceneData.Instance;
 
-        string targetLobbyScene = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.LobbyMain) 
+        string targetLobbyScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.LobbyMain)
             : "LobbyMain Scene";
 
-        string targetTutorialScene = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Tutorial) 
+        string targetTutorialScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Tutorial)
             : "Tutorial Scene";
 
         // Gán chính xác tên Scene đã override
@@ -116,6 +116,9 @@ public class TitleMenu : MenuBase
             saveData?.isTutorialCompleted == true
                 ? targetLobbyScene
                 : targetTutorialScene;
+
+        LoadTrace.Begin($"UIGame -> {LoadingData.TargetSceneName}");
+        LoadTrace.Mark("Opening LoadingMenu");
 
         UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }
@@ -147,12 +150,12 @@ public class TitleMenu : MenuBase
     {
         GameSceneData sceneData = GameSceneData.Instance;
 
-        string loginSceneName = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Login) 
+        string loginSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Login)
             : "Login Scene";
 
-        string loadingSceneName = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Loading) 
+        string loadingSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Loading)
             : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
