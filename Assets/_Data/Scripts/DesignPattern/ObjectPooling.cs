@@ -103,6 +103,31 @@ public enum PoolType
     DarkMageMeteorStrike = 1111,
     DarkMageLaserBeam = 1112,
     TutorialSafeZone = 2001,
+    EnemyBatAttackVFX = 3002,
+    EnemySlashVFX = 3003,
+    BeeStingerVFX = 3004,
+    DogBarkVFX = 3005,
+    DogPupVFX = 3006,
+    SpiderVFX = 3010,
+    SpiderToxinVFX = 3007,
+    Skeleton_ArrowVFX = 3008,
+    SkeletonMageAttackVFX = 3009,
+    SkeletonMageSummonVFX = 3026,
+    MushroomAttackVFX = 3011,
+    MinibossWarriorAttackVFX = 3012,
+    MinibossWarriorCastSpellVFX = 3020,
+    MinibossPhantomAttackVFX = 3013,
+    MinibossBruteSwingVFX = 3014,
+    MinibossBruteSlashVFX = 3015,
+    MinibossBruteKickVFX = 3016,
+    MinibossBruteThrowBoulderVFX = 3017,
+    MinibossBruteJumpSmashVFX = 3018,
+    MinibossBruteEarthPillarVFX = 3019,
+    MinibossPhantomCastSpellVFX = 3021,
+    MinibossShadeAttackVFX = 3022,
+    MinibossShadeCastSpellVFX = 3023,
+    MinibossBrurrowAttackVFX = 3024,
+    MinibossBrurrowCastSpellVFX = 3025,
     DormantPowerDropVFX = 3101,
     DormantPowerFlickerVFX = 3102,
     DormantPowerPickupVFX = 3103,
@@ -307,8 +332,12 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
         activeCount[poolType]++;
 
-        IPoolable poolable = obj.GetComponent<IPoolable>();
-        poolable?.OnSpawnFromPool();
+        IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
+
+        foreach (IPoolable poolable in poolables)
+        {
+            poolable.OnSpawnFromPool();
+        }
 
         return obj;
     }
@@ -323,8 +352,12 @@ public class ObjectPooling : Singleton<ObjectPooling>
             return;
         }
 
-        IPoolable poolable = obj.GetComponent<IPoolable>();
-        poolable?.OnReturnToPool();
+        IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
+
+        foreach (IPoolable poolable in poolables)
+        {
+            poolable.OnReturnToPool();
+        }
 
         obj.SetActive(false);
         obj.transform.SetParent(poolSettings[poolType].parent);
