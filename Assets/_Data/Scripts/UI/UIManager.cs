@@ -79,6 +79,7 @@ public class UIManager : Singleton<UIManager>
     protected override void Awake()
     {
         base.Awake();
+        LoadMenus();
         AutoOpenFirstMenu();
     }
     private void AutoOpenFirstMenu()
@@ -175,6 +176,7 @@ public class UIManager : Singleton<UIManager>
 
     public void InitUI()
     {
+        LoadMenus();
         menus.RemoveAll(
             menu => menu == null || menu.menuBase == null
         );

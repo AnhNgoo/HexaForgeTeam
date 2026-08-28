@@ -250,13 +250,13 @@ public class GameplayMenu : MenuBase
         base.Close();
     }
 
-    private void Update()
-    {
-        if (InputManager.InputActions.Keyboard.Escape.triggered)
-        {
-            UIManager.Instance?.ChangeMenu(MenuType.GameSystemMenu);
-        }
-    }
+    // private void Update()
+    // {
+    //     if (InputManager.InputActions.Keyboard.Escape.triggered)
+    //     {
+    //         UIManager.Instance?.ChangeMenu(MenuType.GameSystemMenu);
+    //     }
+    // }
 
 
     public void OpenPauseMenu()
