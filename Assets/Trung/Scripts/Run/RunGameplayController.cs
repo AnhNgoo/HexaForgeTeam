@@ -20,15 +20,21 @@ public class RunGameplayController : MonoBehaviour
     public bool IsFinalBossDefeated => FinalBossKilled > 0;
 
     private readonly HashSet<EnemyBase> trackedEnemies = new HashSet<EnemyBase>();
+    private float scanTimer = 0f;
 
     private void Awake()
     {
-        Instance = this;
-    }
-
-    private void OnEnable()
-    {
-        ResetStats();
+        if (Instance == null)
+        {
+            Instance = this;
+            transform.SetParent(null);
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
     }
 
     private void OnDisable()
@@ -48,14 +54,18 @@ public class RunGameplayController : MonoBehaviour
     private void Update()
     {
         TimeElapsed += Time.deltaTime;
-        ScanAndRegisterEnemies();
 
-        // Phím = test nhanh Win
+        scanTimer += Time.deltaTime;
+        if (scanTimer >= 0.5f)
+        {
+            scanTimer = 0f;
+            ScanAndRegisterEnemies();
+        }
+
         if (Input.GetKeyDown(KeyCode.Equals))
         {
             OnSkipRunPressed(true);
         }
-        // Phím - test nhanh Loss
         if (Input.GetKeyDown(KeyCode.Minus))
         {
             OnSkipRunPressed(false);
@@ -135,7 +145,6 @@ public class RunGameplayController : MonoBehaviour
 
                 case EnemyBossCategory.FinalBoss:
                     FinalBossKilled++;
-                    Debug.Log("<color=purple>[RunGameplay] FINAL BOSS DEFEATED! KÍCH HOẠT PANEL WIN!</color>");
                     TriggerEndRun(true);
                     break;
             }
@@ -182,12 +191,7 @@ public class RunGameplayController : MonoBehaviour
     {
         if (Application.isPlaying && RunManager.Instance != null)
         {
-            Debug.Log("<color=yellow>[Cheat/Skip] Chuyển thẳng vào Final Boss Map!</color>");
             RunManager.Instance.EnterFinalBoss();
-        }
-        else
-        {
-            Debug.LogWarning("Chỉ có thể bấm Skip khi đang chạy game (Play Mode)!");
         }
     }
 }

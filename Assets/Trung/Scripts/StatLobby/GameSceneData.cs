@@ -95,7 +95,10 @@ public class GameSceneData : ScriptableObject
 
     public string GetSceneName(SceneType type)
     {
-        CheckAndCacheActivePersonalConfig();
+        if (!personalConfigCached)
+        {
+            CheckAndCacheActivePersonalConfig();
+        }
 
         switch (type)
         {
@@ -152,7 +155,6 @@ public class GameSceneData : ScriptableObject
 
         int rand = Random.Range(0, 2);
         string selectedMap = (rand == 0) ? map1 : map2;
-        Debug.Log($"<color=#FFCC00><b>[Run Random Map]</b> Đã bốc ngẫu nhiên: <b>{selectedMap}</b> (Map index: {rand + 1})</color>");
         return selectedMap;
     }
 
