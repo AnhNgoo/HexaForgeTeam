@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using TMPro;
 using DG.Tweening;
 
@@ -11,20 +12,27 @@ public class GachaUI : MonoBehaviour
 
     [Header("Result Panel")]
     [SerializeField] private GameObject resultPanel;
+    [SerializeField] private CanvasGroup resultCanvasGroup;
 
     [Header("Card Prefab & Container")]
     [SerializeField] private RuneCardUI cardPrefab;
     [SerializeField] private Transform cardParent;
 
-    [Header("DOTween Reveal Settings")]
-    [SerializeField] private float legendaryZoomScale = 1.45f;
-    [SerializeField] private float legendaryShakeDuration = 0.45f;
-    [SerializeField] private float legendaryShakeStrength = 18f;
+    [Header("Smooth Reveal Settings")]
+    [SerializeField] private float cardPopDuration = 0.35f;
+    [SerializeField] private float legendaryScaleMultiplier = 1.25f;
 
     [Header("Action Buttons")]
     [SerializeField] private GameObject closeButton;
     [SerializeField] private GameObject rerollButton;
     [SerializeField] private GameObject skipButton;
+
+    [Header("Info / Rate Dialog Settings")]
+    [SerializeField] private Button infoButton;
+    [SerializeField] private GameObject infoPanelRoot;
+    [SerializeField] private CanvasGroup infoCanvasGroup;
+    [SerializeField] private TMP_Text infoRatesText;
+    [SerializeField] private Button infoCloseButton;
 
     [Header("Main Roll Buttons & Cost Displays")]
     [SerializeField] private Button roll1Button;
@@ -32,28 +40,18 @@ public class GachaUI : MonoBehaviour
     [SerializeField] private CostDisplayUI cost1DisplayUI;
     [SerializeField] private CostDisplayUI cost10DisplayUI;
 
-    [Header("Summoning FX Settings")]
-    [SerializeField] private GameObject portalFXRoot;
-    [SerializeField] private Image portalCircleImage;
-    [SerializeField] private Image flashOverlayImage;
-
-    [Header("Alive Background UI FX")]
-    [SerializeField] private Image backgroundAuraGlow;
-    [SerializeField] private Transform meteorParticlesParent;
-    [SerializeField] private RectTransform mainCanvasRect;
-    [SerializeField] private Sprite meteorSprite;
-
-    [Header("FX Color Themes")]
-    [SerializeField] private Color commonColorFX = new Color(1f, 1f, 1f, 0.6f);
-    [SerializeField] private Color rareColorFX = new Color(0.2f, 0.6f, 1f, 0.7f);
-    [SerializeField] private Color epicColorFX = new Color(0.7f, 0.2f, 1f, 0.8f);
-    [SerializeField] private Color legendaryColorFX = new Color(1f, 0.6f, 0f, 0.9f);
+    [Header("Gacha Video Player Settings")]
+    [SerializeField] private GameObject videoPanelRoot;
+    [SerializeField] private CanvasGroup videoCanvasGroup;
+    [SerializeField] private VideoPlayer gachaVideoPlayer;
+    [SerializeField] private RawImage videoRawImage;
+    [SerializeField] private RenderTexture videoRenderTexture;
 
     private readonly List<GameObject> currentCards = new List<GameObject>();
     private List<RuneData> cachedPendingRunes = new List<RuneData>();
     private Sequence activeLegendarySequence;
-    private Tween auraGlowTween;
-    private Coroutine summoningRoutine;
+    private Coroutine videoPlayRoutine;
+    private Coroutine cardSpawnRoutine;
 
     private void Awake()
     {
@@ -62,15 +60,135 @@ public class GachaUI : MonoBehaviour
 
     private void Start()
     {
-        if (resultPanel != null) resultPanel.SetActive(false);
+        if (resultPanel != null)
+        {
+            if (resultCanvasGroup == null) resultCanvasGroup = resultPanel.GetComponent<CanvasGroup>() ?? resultPanel.AddComponent<CanvasGroup>();
+            resultPanel.SetActive(false);
+        }
+
+        if (videoPanelRoot != null)
+        {
+            if (videoCanvasGroup == null) videoCanvasGroup = videoPanelRoot.GetComponent<CanvasGroup>() ?? videoPanelRoot.AddComponent<CanvasGroup>();
+            videoPanelRoot.SetActive(false);
+        }
+
+        if (infoPanelRoot != null)
+        {
+            if (infoCanvasGroup == null) infoCanvasGroup = infoPanelRoot.GetComponent<CanvasGroup>() ?? infoPanelRoot.AddComponent<CanvasGroup>();
+            infoPanelRoot.SetActive(false);
+        }
+
         if (skipButton != null) skipButton.SetActive(false);
 
-        StartBackgroundAuraBreathing();
+        if (gachaVideoPlayer != null)
+        {
+            gachaVideoPlayer.loopPointReached += OnVideoEndReached;
+        }
+
+        if (infoButton != null)
+        {
+            infoButton.onClick.RemoveAllListeners();
+            infoButton.onClick.AddListener(() =>
+            {
+                AnimateButtonPunch(infoButton.transform);
+                OpenInfoPanel();
+            });
+        }
+
+        if (infoCloseButton != null)
+        {
+            infoCloseButton.onClick.RemoveAllListeners();
+            infoCloseButton.onClick.AddListener(CloseInfoPanel);
+        }
+
+        if (skipButton != null)
+        {
+            Button btn = skipButton.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() =>
+                {
+                    if (GachaManager.Instance != null)
+                    {
+                        GachaManager.Instance.SkipAllGachaAnimations();
+                    }
+                });
+            }
+        }
+    }
+
+    private void Update()
+    {
+        if (infoPanelRoot != null && infoPanelRoot.activeInHierarchy && Input.GetMouseButtonDown(0))
+        {
+            RectTransform rect = infoPanelRoot.GetComponent<RectTransform>();
+            if (rect != null && !RectTransformUtility.RectangleContainsScreenPoint(rect, Input.mousePosition, null))
+            {
+                CloseInfoPanel();
+            }
+        }
     }
 
     private void OnEnable()
     {
         RefreshCostUI();
+    }
+
+    public void OpenInfoPanel()
+    {
+        if (infoPanelRoot == null) return;
+
+        if (infoRatesText != null)
+        {
+            infoRatesText.text = 
+                "<color=#FFCC00><b>SUMMON RATES & INFO</b></color>\n\n" +
+                "<color=#FFFFFF>• Common:</color> <color=#00FFCC><b>65%</b></color> (1 Affix)\n" +
+                "<color=#3399FF>• Rare:</color> <color=#00FFCC><b>25%</b></color> (2 Affixes)\n" +
+                "<color=#B266FF>• Epic:</color> <color=#00FFCC><b>8%</b></color> (3 Affixes)\n" +
+                "<color=#FF9900>• Legendary:</color> <color=#00FFCC><b>2%</b></color> (4 Affixes)\n\n" +
+                "<i>Duplicated runes can be dismantled for Shards & Gems.</i>";
+        }
+
+        infoPanelRoot.SetActive(true);
+
+        if (infoCanvasGroup != null)
+        {
+            infoCanvasGroup.DOKill();
+            infoCanvasGroup.alpha = 0f;
+            infoCanvasGroup.DOFade(1f, 0.2f).SetUpdate(true);
+        }
+
+        Transform panelContent = infoPanelRoot.transform;
+        panelContent.DOKill(true);
+        panelContent.localScale = Vector3.one * 0.8f;
+        panelContent.DOScale(Vector3.one, 0.22f).SetEase(Ease.OutBack).SetUpdate(true);
+    }
+
+    public void CloseInfoPanel()
+    {
+        if (infoPanelRoot == null || !infoPanelRoot.activeInHierarchy) return;
+
+        if (infoCanvasGroup != null)
+        {
+            infoCanvasGroup.DOKill();
+            infoCanvasGroup.DOFade(0f, 0.15f).SetUpdate(true).OnComplete(() =>
+            {
+                infoPanelRoot.SetActive(false);
+            });
+        }
+        else
+        {
+            infoPanelRoot.SetActive(false);
+        }
+    }
+
+    private void AnimateButtonPunch(Transform btnTransform)
+    {
+        if (btnTransform == null) return;
+        btnTransform.DOKill(true);
+        btnTransform.localScale = Vector3.one;
+        btnTransform.DOPunchScale(new Vector3(0.08f, 0.08f, 0f), 0.2f, 5, 0.5f).SetUpdate(true);
     }
 
     public bool IsResultPanelActive()
@@ -121,143 +239,109 @@ public class GachaUI : MonoBehaviour
         }
     }
 
-    private void StartBackgroundAuraBreathing()
-    {
-        if (backgroundAuraGlow == null) return;
-
-        backgroundAuraGlow.transform.localScale = Vector3.one;
-        auraGlowTween = backgroundAuraGlow.transform.DOScale(new Vector3(1.1f, 1.1f, 1.1f), 2.5f)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine);
-    }
-
-    public void TriggerMeteorStrikeFX(Color themeColor, int count)
-    {
-        if (meteorParticlesParent == null || mainCanvasRect == null) return;
-
-        for (int i = 0; i < count; i++)
-        {
-            GameObject meteor = new GameObject("MeteorParticle", typeof(Image));
-            meteor.transform.SetParent(meteorParticlesParent, false);
-
-            Image img = meteor.GetComponent<Image>();
-
-            if (meteorSprite != null)
-            {
-                img.sprite = meteorSprite;
-            }
-
-            img.color = new Color(themeColor.r, themeColor.g, themeColor.b, Random.Range(0.5f, 0.9f));
-
-            RectTransform rect = meteor.GetComponent<RectTransform>();
-            rect.sizeDelta = new Vector2(Random.Range(15f, 35f), Random.Range(150f, 300f));
-            rect.rotation = Quaternion.Euler(0, 0, 45f);
-
-            float randomX = Random.Range(-mainCanvasRect.rect.width / 2f, mainCanvasRect.rect.width / 2f);
-            float startY = mainCanvasRect.rect.height / 2f + 200f;
-            rect.anchoredPosition = Vector2.zero + new Vector2(randomX, startY);
-
-            float duration = Random.Range(0.6f, 1.2f);
-
-            rect.DOAnchorPos(new Vector2(rect.anchoredPosition.x - 500f, -startY), duration).SetEase(Ease.InQuad);
-            img.DOFade(0f, duration).SetEase(Ease.InCubic).OnComplete(() => {
-                Destroy(meteor);
-            });
-        }
-    }
-
     public void PlaySummoningFX(RuneRarity highestRarity, List<RuneData> runesToSpawn)
     {
         cachedPendingRunes = new List<RuneData>(runesToSpawn);
-        if (summoningRoutine != null) StopCoroutine(summoningRoutine);
-        summoningRoutine = StartCoroutine(SummoningPortalFXRoutine(highestRarity, runesToSpawn));
+
+        // Ẩn TopBar HUD hoàn toàn khi bắt đầu chiếu Video Gacha
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(false);
+        }
+
+        CloseInfoPanel();
+        StopAllSummoningCoroutines();
+        videoPlayRoutine = StartCoroutine(PlayGachaVideoRoutine());
     }
 
-    public void StopAllSummoningCoroutines()
+    private IEnumerator PlayGachaVideoRoutine()
     {
-        if (summoningRoutine != null)
+        if (videoPanelRoot != null)
         {
-            StopCoroutine(summoningRoutine);
-            summoningRoutine = null;
+            videoPanelRoot.SetActive(true);
+            if (videoCanvasGroup != null)
+            {
+                videoCanvasGroup.DOKill();
+                videoCanvasGroup.alpha = 0f;
+                videoCanvasGroup.DOFade(1f, 0.2f).SetUpdate(true);
+            }
         }
 
-        if (portalFXRoot != null) portalFXRoot.SetActive(false);
-        if (flashOverlayImage != null) flashOverlayImage.gameObject.SetActive(false);
+        if (skipButton != null) skipButton.SetActive(true);
+
+        if (gachaVideoPlayer != null)
+        {
+            if (videoRenderTexture != null)
+            {
+                videoRenderTexture.Release();
+            }
+
+            gachaVideoPlayer.Stop();
+            gachaVideoPlayer.Prepare();
+
+            while (!gachaVideoPlayer.isPrepared)
+            {
+                yield return null;
+            }
+
+            gachaVideoPlayer.Play();
+        }
+        else
+        {
+            yield return new WaitForSeconds(1.5f);
+            OnVideoEndReached(null);
+        }
     }
 
-    private IEnumerator SummoningPortalFXRoutine(RuneRarity highestRarity, List<RuneData> runesToSpawn)
+    private void OnVideoEndReached(VideoPlayer source)
     {
-        if (portalFXRoot != null) portalFXRoot.SetActive(true);
+        StopGachaVideoOnly();
+        cardSpawnRoutine = StartCoroutine(SpawnAndAnimateCardsRoutine());
+    }
 
-        Color targetFXColor = commonColorFX;
-        string rarityAnnounce = "COMMON";
-        switch (highestRarity)
+    private IEnumerator SpawnAndAnimateCardsRoutine()
+    {
+        if (resultPanel != null)
         {
-            case RuneRarity.Rare: targetFXColor = rareColorFX; rarityAnnounce = "RARE"; break;
-            case RuneRarity.Epic: targetFXColor = epicColorFX; rarityAnnounce = "EPIC"; break;
-            case RuneRarity.Legendary: targetFXColor = legendaryColorFX; rarityAnnounce = "LEGENDARY"; break;
+            resultPanel.SetActive(true);
+            if (resultCanvasGroup != null)
+            {
+                resultCanvasGroup.DOKill();
+                resultCanvasGroup.alpha = 0f;
+                resultCanvasGroup.DOFade(1f, 0.25f).SetUpdate(true);
+            }
         }
 
-        if (LobbyNotifyManager.Instance != null)
-            LobbyNotifyManager.Instance.ShowNotify($"Sensing {rarityAnnounce} portal energies...", targetFXColor);
+        if (skipButton != null) skipButton.SetActive(true);
 
-        if (backgroundAuraGlow != null)
+        ClearCards();
+
+        float targetCardScale = cachedPendingRunes.Count > 5 ? 0.9f : 0.85f;
+
+        for (int i = 0; i < cachedPendingRunes.Count; i++)
         {
-            backgroundAuraGlow.DOColor(new Color(targetFXColor.r, targetFXColor.g, targetFXColor.b, 0.4f), 0.5f);
-        }
-
-        TriggerMeteorStrikeFX(targetFXColor, runesToSpawn.Count * 6);
-
-        if (portalCircleImage != null)
-        {
-            portalCircleImage.color = new Color(targetFXColor.r, targetFXColor.g, targetFXColor.b, 0f);
-            portalCircleImage.transform.localScale = Vector3.zero;
-
-            portalCircleImage.DOColor(targetFXColor, 0.4f);
-            portalCircleImage.transform.DOScale(Vector3.one, 0.6f).SetEase(Ease.OutBack);
-            portalCircleImage.transform.DORotate(new Vector3(0, 0, -1080f), 2.2f, RotateMode.FastBeyond360).SetEase(Ease.InOutCubic);
-        }
-
-        yield return new WaitForSeconds(2.0f);
-
-        float shakeStrength = highestRarity == RuneRarity.Legendary ? 30f : highestRarity == RuneRarity.Epic ? 15f : 8f;
-        if (Camera.main != null) Camera.main.transform.DOShakePosition(0.4f, shakeStrength, 25);
-
-        if (flashOverlayImage != null)
-        {
-            flashOverlayImage.gameObject.SetActive(true);
-            flashOverlayImage.color = Color.white;
-            flashOverlayImage.DOColor(new Color(1f, 1f, 1f, 0f), 0.5f).OnComplete(() => {
-                flashOverlayImage.gameObject.SetActive(false);
-            });
-        }
-
-        if (portalFXRoot != null) portalFXRoot.SetActive(false);
-
-        if (resultPanel != null) resultPanel.SetActive(true);
-
-        SetMainRollButtonsInteractable(true);
-
-        float targetCardScale = runesToSpawn.Count > 5 ? 0.9f : 0.85f;
-
-        for (int i = 0; i < runesToSpawn.Count; i++)
-        {
-            RuneCardUI card = SpawnCard(runesToSpawn[i]);
+            RuneCardUI card = SpawnCard(cachedPendingRunes[i]);
 
             if (card != null)
             {
                 card.transform.rotation = Quaternion.identity;
                 card.transform.localScale = Vector3.zero;
 
-                card.transform.DOScale(Vector3.one * targetCardScale, 0.35f).SetEase(Ease.OutBack);
-
-                Sequence cardAppearSeq = DOTween.Sequence();
-                cardAppearSeq.SetDelay(0.06f * i);
-                cardAppearSeq.Append(card.transform.DOPunchScale(new Vector3(0.08f, 0.08f, 0.08f), 0.2f, 8, 0.8f));
+                card.transform.DOScale(Vector3.one * targetCardScale, cardPopDuration)
+                    .SetEase(Ease.OutBack, 1.1f);
             }
 
-            yield return new WaitForSeconds(0.06f);
+            yield return new WaitForSeconds(0.08f);
         }
+
+        // Hiện lại TopBar HUD sau khi các thẻ bài đã xuất hiện xong
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.RefreshCurrencyUI();
+        }
+
+        SetMainRollButtonsInteractable(true);
 
         if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy)
         {
@@ -265,6 +349,150 @@ public class GachaUI : MonoBehaviour
         }
 
         RefreshCostUI();
+    }
+
+    public void TriggerLegendaryRevealAction(RuneCardUI legendaryCard)
+    {
+        if (legendaryCard == null || cardParent == null) return;
+
+        List<CanvasGroup> otherGroups = new List<CanvasGroup>();
+        RuneCardUI[] allCards = cardParent.GetComponentsInChildren<RuneCardUI>();
+
+        foreach (var card in allCards)
+        {
+            if (card == legendaryCard) continue;
+            CanvasGroup group = card.GetComponent<CanvasGroup>() ?? card.gameObject.AddComponent<CanvasGroup>();
+            otherGroups.Add(group);
+            group.DOFade(0.2f, 0.3f);
+        }
+
+        RectTransform legendRect = legendaryCard.transform as RectTransform;
+        Vector3 originalScale = legendRect.localScale;
+        Vector3 originalPos = legendRect.localPosition;
+
+        activeLegendarySequence = DOTween.Sequence();
+        
+        Vector3 targetScale = originalScale * legendaryScaleMultiplier;
+        activeLegendarySequence.Append(legendRect.DOScale(targetScale, 0.35f).SetEase(Ease.OutCubic));
+        activeLegendarySequence.Join(legendRect.DOMove(cardParent.position, 0.35f).SetEase(Ease.OutCubic));
+
+        activeLegendarySequence.Append(legendRect.DOPunchScale(new Vector3(0.06f, 0.06f, 0f), 0.25f, 4, 0.4f));
+        activeLegendarySequence.AppendCallback(() => {
+            legendaryCard.StartInternalReveal();
+        });
+
+        activeLegendarySequence.AppendInterval(0.5f);
+
+        activeLegendarySequence.Append(legendRect.DOScale(originalScale, 0.3f).SetEase(Ease.InOutCubic));
+        activeLegendarySequence.Join(legendRect.DOLocalMove(originalPos, 0.3f).SetEase(Ease.InOutCubic));
+
+        activeLegendarySequence.OnComplete(() => {
+            foreach (var group in otherGroups)
+            {
+                if (group != null)
+                {
+                    group.DOFade(1f, 0.25f);
+                }
+            }
+            activeLegendarySequence = null;
+        });
+    }
+
+    public void ForceInstantRevealAll()
+    {
+        StopAllSummoningCoroutines();
+
+        if (activeLegendarySequence != null)
+        {
+            activeLegendarySequence.Kill(false);
+            activeLegendarySequence = null;
+        }
+
+        if (cardParent == null) return;
+
+        ClearCards();
+
+        if (cachedPendingRunes != null && cachedPendingRunes.Count > 0)
+        {
+            float targetCardScale = cachedPendingRunes.Count > 5 ? 0.9f : 0.85f;
+
+            for (int i = 0; i < cachedPendingRunes.Count; i++)
+            {
+                RuneCardUI card = SpawnCard(cachedPendingRunes[i]);
+                if (card != null)
+                {
+                    card.transform.DOKill();
+                    card.transform.rotation = Quaternion.identity;
+                    card.transform.localScale = Vector3.one * targetCardScale;
+
+                    CanvasGroup group = card.GetComponent<CanvasGroup>();
+                    if (group != null)
+                    {
+                        group.DOKill();
+                        group.alpha = 1f;
+                    }
+
+                    card.InstantRevealWithoutAnimation();
+                }
+            }
+        }
+
+        // Hiện lại TopBar HUD ngay lập tức khi bấm Skip
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.RefreshCurrencyUI();
+        }
+
+        SetMainRollButtonsInteractable(true);
+        ToggleUIPanels(false);
+        SetResultPanelActive(true);
+
+        if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy)
+        {
+            RuneInventoryUI.Instance.RefreshInventory();
+        }
+
+        RefreshCostUI();
+    }
+
+    private void StopGachaVideoOnly()
+    {
+        if (videoPlayRoutine != null)
+        {
+            StopCoroutine(videoPlayRoutine);
+            videoPlayRoutine = null;
+        }
+
+        if (gachaVideoPlayer != null)
+        {
+            gachaVideoPlayer.Stop();
+        }
+
+        if (videoPanelRoot != null)
+        {
+            if (videoCanvasGroup != null)
+            {
+                videoCanvasGroup.DOFade(0f, 0.2f).OnComplete(() => {
+                    videoPanelRoot.SetActive(false);
+                });
+            }
+            else
+            {
+                videoPanelRoot.SetActive(false);
+            }
+        }
+    }
+
+    public void StopAllSummoningCoroutines()
+    {
+        StopGachaVideoOnly();
+
+        if (cardSpawnRoutine != null)
+        {
+            StopCoroutine(cardSpawnRoutine);
+            cardSpawnRoutine = null;
+        }
     }
 
     private RuneCardUI SpawnCard(RuneData runeData)
@@ -292,119 +520,6 @@ public class GachaUI : MonoBehaviour
                 }
             }
         }
-
-        if (backgroundAuraGlow != null)
-        {
-            backgroundAuraGlow.DOColor(new Color(1f, 1f, 1f, 0.2f), 0.4f);
-        }
-    }
-
-    public void TriggerLegendaryRevealAction(RuneCardUI legendaryCard)
-    {
-        if (legendaryCard == null || cardParent == null) return;
-
-        List<CanvasGroup> otherGroups = new List<CanvasGroup>();
-        RuneCardUI[] allCards = cardParent.GetComponentsInChildren<RuneCardUI>();
-
-        foreach (var card in allCards)
-        {
-            if (card == legendaryCard) continue;
-            CanvasGroup group = card.GetComponent<CanvasGroup>() ?? card.gameObject.AddComponent<CanvasGroup>();
-            otherGroups.Add(group);
-            group.DOFade(0f, 0.25f);
-            group.blocksRaycasts = false;
-            group.interactable = false;
-        }
-
-        RectTransform legendRect = legendaryCard.transform as RectTransform;
-        Vector3 originalScale = legendRect.localScale;
-        Vector3 originalPos = legendRect.localPosition;
-
-        activeLegendarySequence = DOTween.Sequence();
-        activeLegendarySequence.Append(legendRect.DOShakePosition(legendaryShakeDuration, legendaryShakeStrength, 30));
-
-        Vector3 targetScale = originalScale * legendaryZoomScale;
-        activeLegendarySequence.Append(legendRect.DOScale(targetScale, 0.35f).SetEase(Ease.OutCubic));
-        activeLegendarySequence.Join(legendRect.DOMove(cardParent.position, 0.35f).SetEase(Ease.OutCubic));
-
-        activeLegendarySequence.AppendInterval(0.15f);
-        activeLegendarySequence.Append(legendRect.DOPunchScale(new Vector3(0.12f, 0.12f, 0.12f), 0.2f, 5, 0.5f));
-        activeLegendarySequence.AppendCallback(() => {
-            legendaryCard.StartInternalReveal();
-        });
-
-        activeLegendarySequence.AppendInterval(0.6f);
-
-        activeLegendarySequence.Append(legendRect.DOScale(originalScale, 0.25f).SetEase(Ease.InCubic));
-        activeLegendarySequence.Join(legendRect.DOLocalMove(originalPos, 0.25f).SetEase(Ease.InCubic));
-
-        activeLegendarySequence.OnComplete(() => {
-            foreach (var group in otherGroups)
-            {
-                if (group != null)
-                {
-                    group.DOFade(1f, 0.2f);
-                    group.blocksRaycasts = true;
-                    group.interactable = true;
-                }
-            }
-            activeLegendarySequence = null;
-        });
-    }
-
-    public void ForceInstantRevealAll()
-    {
-        StopAllSummoningCoroutines();
-
-        if (activeLegendarySequence != null)
-        {
-            activeLegendarySequence.Kill(false);
-            activeLegendarySequence = null;
-        }
-
-        if (portalFXRoot != null) portalFXRoot.SetActive(false);
-        if (flashOverlayImage != null) flashOverlayImage.gameObject.SetActive(false);
-
-        if (cardParent == null) return;
-
-        ClearCards();
-
-        if (cachedPendingRunes != null && cachedPendingRunes.Count > 0)
-        {
-            float targetCardScale = cachedPendingRunes.Count > 5 ? 0.9f : 0.85f;
-
-            for (int i = 0; i < cachedPendingRunes.Count; i++)
-            {
-                RuneCardUI card = SpawnCard(cachedPendingRunes[i]);
-                if (card != null)
-                {
-                    card.transform.DOKill();
-                    card.transform.rotation = Quaternion.identity;
-                    card.transform.localScale = Vector3.one * targetCardScale;
-
-                    CanvasGroup group = card.GetComponent<CanvasGroup>();
-                    if (group != null)
-                    {
-                        group.DOKill();
-                        group.alpha = 1f;
-                        group.blocksRaycasts = true;
-                        group.interactable = true;
-                    }
-
-                    card.InstantRevealWithoutAnimation();
-                }
-            }
-        }
-
-        SetMainRollButtonsInteractable(true);
-        if (resultPanel != null) resultPanel.SetActive(true);
-
-        if (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy)
-        {
-            RuneInventoryUI.Instance.RefreshInventory();
-        }
-
-        RefreshCostUI();
     }
 
     public void SetMainRollButtonsInteractable(bool interactable)
@@ -419,6 +534,7 @@ public class GachaUI : MonoBehaviour
         if (closeButton != null) closeButton.SetActive(!isRolling);
         if (rerollButton != null) rerollButton.SetActive(!isRolling);
         if (skipButton != null) skipButton.SetActive(isRolling);
+        if (infoButton != null) infoButton.gameObject.SetActive(!isRolling);
     }
 
     public void SetSkipButtonActive(bool active)
@@ -433,6 +549,14 @@ public class GachaUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (auraGlowTween != null) auraGlowTween.Kill();
+        if (gachaVideoPlayer != null)
+        {
+            gachaVideoPlayer.loopPointReached -= OnVideoEndReached;
+        }
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+        }
     }
 }

@@ -186,6 +186,12 @@ public class GachaManager : MonoBehaviour
 
         isRollActive = false;
 
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.RefreshCurrencyUI();
+        }
+
         if (GachaUI.Instance != null)
         {
             GachaUI.Instance.ToggleUIPanels(false);
@@ -202,6 +208,13 @@ public class GachaManager : MonoBehaviour
     public void CloseResultPanel()
     {
         isRollActive = false;
+
+        if (LobbyHUDTopBar.Instance != null)
+        {
+            LobbyHUDTopBar.Instance.gameObject.SetActive(true);
+            LobbyHUDTopBar.Instance.RefreshCurrencyUI();
+        }
+
         if (GachaUI.Instance != null)
         {
             GachaUI.Instance.SetResultPanelActive(false);
@@ -209,7 +222,6 @@ public class GachaManager : MonoBehaviour
             GachaUI.Instance.RefreshCostUI();
         }
     }
-
     public void ReRoll()
     {
         if (lastRollAmount <= 0) return;
