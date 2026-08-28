@@ -12,7 +12,8 @@ public enum SceneType
     RunGameplay = 5,
     Tutorial = 6,
     FinalBoss = 7,
-    CustomRun = 8
+    CustomRun = 8,
+    RunGameplay2 = 9
 }
 
 [System.Serializable]
@@ -52,75 +53,85 @@ public class GameSceneData : ScriptableObject
     public string loadingScene = "Loading Scene";
     public string lobbyMainScene = "LobbyMain Scene";
     public string runGameplayScene = "Run Scene";
+    public string runGameplayScene2 = "Run Scene 2";
     public string tutorialScene = "Tutorial Scene";
     public string finalBossScene = "FinalBoss Scene";
 
     [Header("Custom Scene List (Mở rộng cho Scene)")]
     [SerializeField] private List<SceneEntry> customScenes = new List<SceneEntry>();
 
-    // Dynamic Cached Config Cá Nhân đang Kích Hoạt
     private SceneConfigSO activePersonalConfig;
+    private bool personalConfigCached;
 
-    /// <summary>
-    /// Tự động quét trong thư mục Resources để tìm file Config Cá Nhân nào đang BẬT (isOverrideMyLocalScene = true)
-    /// </summary>
     public void CheckAndCacheActivePersonalConfig()
     {
+#if UNITY_EDITOR
+        if (personalConfigCached)
+            return;
+
+        personalConfigCached = true;
         activePersonalConfig = null;
 
-        #if UNITY_EDITOR
-        // Quét toàn bộ file SceneConfigSO có trong dự án
-        SceneConfigSO[] allConfigs = Resources.FindObjectsOfTypeAll<SceneConfigSO>();
-        if (allConfigs == null || allConfigs.Length == 0)
-        {
-            allConfigs = Resources.LoadAll<SceneConfigSO>("");
-        }
+        SceneConfigSO[] allConfigs =
+            Resources.LoadAll<SceneConfigSO>("SceneConfigs");
 
-        foreach (var config in allConfigs)
+        foreach (SceneConfigSO config in allConfigs)
         {
-            if (config != null && config.isOverrideMyLocalScene)
-            {
-                activePersonalConfig = config;
-                Debug.Log($"<color=#00FFCC><b>[Scene System]</b> Đã kích hoạt Override Scene Cá Nhân của Dev: <b>[{config.devName}]</b></color>");
-                break;
-            }
+            if (config == null || !config.isOverrideMyLocalScene)
+                continue;
+
+            activePersonalConfig = config;
+
+            Debug.Log(
+                $"<color=#00FFCC><b>[Scene System]</b> " +
+                $"Đã kích hoạt Override Scene Cá Nhân của Dev: " +
+                $"<b>[{config.devName}]</b></color>"
+            );
+
+            break;
         }
-        #endif
+#endif
     }
 
     public string GetSceneName(SceneType type)
     {
-        // Re-check bảo đảm luôn nạp đúng cấu hình cá nhân mới nhất
-        CheckAndCacheActivePersonalConfig();
+        if (!personalConfigCached)
+        {
+            CheckAndCacheActivePersonalConfig();
+        }
 
         switch (type)
         {
             case SceneType.Login:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoginScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoginScene))
                     ? activePersonalConfig.customLoginScene : loginScene;
 
             case SceneType.UIGame:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customUiScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customUiScene))
                     ? activePersonalConfig.customUiScene : uiScene;
 
             case SceneType.Loading:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoadingScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLoadingScene))
                     ? activePersonalConfig.customLoadingScene : loadingScene;
 
             case SceneType.LobbyMain:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLobbyScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customLobbyScene))
                     ? activePersonalConfig.customLobbyScene : lobbyMainScene;
 
             case SceneType.RunGameplay:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene))
                     ? activePersonalConfig.customRunGameplayScene : runGameplayScene;
 
+            case SceneType.RunGameplay2:
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customRunGameplayScene2))
+                    ? activePersonalConfig.customRunGameplayScene2 : runGameplayScene2;
+
             case SceneType.Tutorial:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customTutorialScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customTutorialScene))
                     ? activePersonalConfig.customTutorialScene : tutorialScene;
 
             case SceneType.FinalBoss:
-                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customFinalBossScene)) 
+                return (activePersonalConfig != null && !string.IsNullOrEmpty(activePersonalConfig.customFinalBossScene))
                     ? activePersonalConfig.customFinalBossScene : finalBossScene;
 
             case SceneType.CustomRun:
@@ -131,6 +142,20 @@ public class GameSceneData : ScriptableObject
             default:
                 return runGameplayScene;
         }
+    }
+
+    public string GetRandomRunSceneName()
+    {
+        string map1 = GetSceneName(SceneType.RunGameplay);
+        string map2 = GetSceneName(SceneType.RunGameplay2);
+        if (string.IsNullOrWhiteSpace(map2) || map2 == map1)
+        {
+            return map1;
+        }
+
+        int rand = Random.Range(0, 2);
+        string selectedMap = (rand == 0) ? map1 : map2;
+        return selectedMap;
     }
 
     public bool IsSceneActive(SceneType type)

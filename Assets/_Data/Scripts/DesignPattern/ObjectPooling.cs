@@ -73,6 +73,7 @@ public enum PoolType
     SpawnCharacterEffect = 103,
     PickedUpItemEffect = 104,
     LevelUpEffect = 105,
+    GoldFalling = 106,
     EnemyBruteBoss = 1001,
     EnemyVenomousQueenBoss = 1002,
     EnemyNightStalkerBoss = 1003,
@@ -95,7 +96,42 @@ public enum PoolType
     EarthshakerSandBreath = 1104,
     EarthshakerCrackTelegraph = 1105,
     EarthshakerCrackEruption = 1106,
+    DarkMageBurrowTelegraph = 1107,
+    DarkMageRitualTelegraph = 1108,
+    DarkMageRitualPillar = 1109,
+    DarkMageMeteorTelegraph = 1110,
+    DarkMageMeteorStrike = 1111,
+    DarkMageLaserBeam = 1112,
     TutorialSafeZone = 2001,
+    EnemyBatAttackVFX = 3002,
+    EnemySlashVFX = 3003,
+    BeeStingerVFX = 3004,
+    DogBarkVFX = 3005,
+    DogPupVFX = 3006,
+    SpiderVFX = 3010,
+    SpiderToxinVFX = 3007,
+    Skeleton_ArrowVFX = 3008,
+    SkeletonMageAttackVFX = 3009,
+    SkeletonMageSummonVFX = 3026,
+    MushroomAttackVFX = 3011,
+    MinibossWarriorAttackVFX = 3012,
+    MinibossWarriorCastSpellVFX = 3020,
+    MinibossPhantomAttackVFX = 3013,
+    MinibossBruteSwingVFX = 3014,
+    MinibossBruteSlashVFX = 3015,
+    MinibossBruteKickVFX = 3016,
+    MinibossBruteThrowBoulderVFX = 3017,
+    MinibossBruteJumpSmashVFX = 3018,
+    MinibossBruteEarthPillarVFX = 3019,
+    MinibossPhantomCastSpellVFX = 3021,
+    MinibossShadeAttackVFX = 3022,
+    MinibossShadeCastSpellVFX = 3023,
+    MinibossBrurrowAttackVFX = 3024,
+    MinibossBrurrowCastSpellVFX = 3025,
+    DormantPowerDropVFX = 3101,
+    DormantPowerFlickerVFX = 3102,
+    DormantPowerPickupVFX = 3103,
+
 
 }
 
@@ -128,9 +164,23 @@ public class ObjectPooling : Singleton<ObjectPooling>
     }
     protected override void Awake()
     {
+        LoadTrace.Mark("ObjectPooling Awake begin");
+
         base.Awake();
+
+        // Singleton cũ vừa lên lịch Destroy object trùng,
+        // không được tiếp tục tạo toàn bộ pool.
+        if (Instance != this)
+        {
+            LoadTrace.Mark("Duplicate ObjectPooling skipped");
+            return;
+        }
+
         LoadPoolData();
+        LoadTrace.Mark($"PoolData loaded: {pools.Count} entries");
+
         InitializePools();
+        LoadTrace.Mark("ObjectPooling initialization completed");
     }
 
     private void LoadPoolData()
@@ -154,6 +204,7 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
         foreach (Pool pool in pools)
         {
+            float poolStart = Time.realtimeSinceStartup;
             if (pool.prefab == null)
             {
                 Debug.LogWarning($"Pool {pool.poolType} has no prefab assigned!");
@@ -178,6 +229,16 @@ public class ObjectPooling : Singleton<ObjectPooling>
             }
 
             poolDictionary[pool.poolType] = objectQueue;
+
+            float duration = Time.realtimeSinceStartup - poolStart;
+
+            if (duration >= 0.05f)
+            {
+                Debug.LogWarning(
+                    $"[LOAD-TRACE] Slow pool: {pool.poolType} | " +
+                    $"InitialSize={pool.initialSize} | {duration:F2}s"
+                );
+            }
         }
     }
 
@@ -271,8 +332,12 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
         activeCount[poolType]++;
 
-        IPoolable poolable = obj.GetComponent<IPoolable>();
-        poolable?.OnSpawnFromPool();
+        IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
+
+        foreach (IPoolable poolable in poolables)
+        {
+            poolable.OnSpawnFromPool();
+        }
 
         return obj;
     }
@@ -287,8 +352,12 @@ public class ObjectPooling : Singleton<ObjectPooling>
             return;
         }
 
-        IPoolable poolable = obj.GetComponent<IPoolable>();
-        poolable?.OnReturnToPool();
+        IPoolable[] poolables = obj.GetComponentsInChildren<IPoolable>(true);
+
+        foreach (IPoolable poolable in poolables)
+        {
+            poolable.OnReturnToPool();
+        }
 
         obj.SetActive(false);
         obj.transform.SetParent(poolSettings[poolType].parent);

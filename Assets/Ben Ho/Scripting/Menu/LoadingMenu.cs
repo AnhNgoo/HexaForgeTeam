@@ -53,6 +53,7 @@ public class LoadingMenu : MenuBase
 
     private IEnumerator LoadingRoutine()
     {
+        LoadTrace.Mark($"LoadingMenu delay started: {loadingTime:F2}s");
         float timer = 0f;
 
         SetProgress(0f);
@@ -76,7 +77,9 @@ public class LoadingMenu : MenuBase
             string sceneName = LoadingData.TargetSceneName;
             LoadingData.TargetSceneName = "";
 
+            LoadTrace.Mark($"SceneManager.LoadScene begin: {sceneName}");
             SceneManager.LoadScene(sceneName, LoadSceneMode.Single);
+            LoadTrace.End($"SceneManager.LoadScene returned: {sceneName}");
         }
         else
         {

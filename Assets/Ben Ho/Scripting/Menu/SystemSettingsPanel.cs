@@ -1,6 +1,8 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public enum SystemSettingPage
 {
@@ -64,6 +66,7 @@ public class SystemSettingsPanel : MonoBehaviour
     {
         gameObject.SetActive(true);
         AddEvents();
+        UpdateDynamicTabLabels();
         ShowPage(defaultPage);
     }
 
@@ -77,12 +80,68 @@ public class SystemSettingsPanel : MonoBehaviour
     private void OnEnable()
     {
         AddEvents();
+        UpdateDynamicTabLabels();
         ShowPage(defaultPage);
     }
 
     private void OnDisable()
     {
         RemoveEvents();
+    }
+
+    private void UpdateDynamicTabLabels()
+    {
+        bool isInLobby = CheckIsInLobby();
+
+        if (logoutLabel != null)
+        {
+            logoutLabel.text = isInLobby ? "Logout" : "Return Lobby";
+        }
+    }
+
+    private bool CheckIsInLobby()
+    {
+        if (GameManager.Instance != null)
+        {
+            if (GameManager.Instance.MapType == MapType.Boss || GameManager.Instance.MapType == MapType.Run)
+                return false;
+            if (GameManager.Instance.MapType == MapType.Lobby)
+                return true;
+        }
+
+        GameSceneData sceneData = GameSceneData.Instance;
+        if (sceneData != null)
+        {
+            string bossName = sceneData.GetSceneName(SceneType.FinalBoss);
+            string run1Name = sceneData.GetSceneName(SceneType.RunGameplay);
+            string run2Name = sceneData.GetSceneName(SceneType.RunGameplay2);
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene s = SceneManager.GetSceneAt(i);
+                if (s.isLoaded)
+                {
+                    if (s.name.Equals(bossName, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(run1Name, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(run2Name) && s.name.Equals(run2Name, StringComparison.OrdinalIgnoreCase)) ||
+                        s.name.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        s.name.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        string activeScene = SceneManager.GetActiveScene().name;
+        if (activeScene.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            activeScene.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            activeScene.IndexOf("Run", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private void AddEvents()
@@ -197,8 +256,25 @@ public class SystemSettingsPanel : MonoBehaviour
     public void CloseGameSystemMenu()
     {
         if (gameSystemMenu != null)
-            gameSystemMenu.CloseToGameplay();
-        else if (UIManager.Instance != null)
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+        {
+            gameSystemMenu.CloseToProperMenu();
+        }
+        else
+        {
+            bool isInLobby = CheckIsInLobby();
+
+            if (UIManager.Instance != null)
+            {
+                if (isInLobby)
+                {
+                    UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
+                    LobbyHUDTopBar.Instance?.ShowFullHUD();
+                }
+                else
+                {
+                    UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+                }
+            }
+        }
     }
 }

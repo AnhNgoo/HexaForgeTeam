@@ -96,17 +96,29 @@ public class TitleMenu : MenuBase
             btn_Logout.onClick.RemoveListener(OnLogoutButtonClicked);
     }
 
-    // Button callback stubs
     private void OnPlayButtonClicked()
     {
         Time.timeScale = 1f;
 
         GameSaveData saveData = SaveLoadManager.Instance?.SaveData;
+        GameSceneData sceneData = GameSceneData.Instance;
 
+        string targetLobbyScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.LobbyMain)
+            : "LobbyMain Scene";
+
+        string targetTutorialScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Tutorial)
+            : "Tutorial Scene";
+
+        // Gán chính xác tên Scene đã override
         LoadingData.TargetSceneName =
             saveData?.isTutorialCompleted == true
-                ? GameSceneData.Instance.lobbyMainScene
-                : GameSceneData.Instance.tutorialScene;
+                ? targetLobbyScene
+                : targetTutorialScene;
+
+        LoadTrace.Begin($"UIGame -> {LoadingData.TargetSceneName}");
+        LoadTrace.Mark("Opening LoadingMenu");
 
         UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }
@@ -136,8 +148,15 @@ public class TitleMenu : MenuBase
 
     private IEnumerator LogoutTransitionRoutine()
     {
-        string loginSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loginScene : "Login Scene";
-        string loadingSceneName = GameSceneData.Instance != null ? GameSceneData.Instance.loadingScene : "Loading Scene";
+        GameSceneData sceneData = GameSceneData.Instance;
+
+        string loginSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Login)
+            : "Login Scene";
+
+        string loadingSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Loading)
+            : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
         while (!loadLoading.isDone) yield return null;
@@ -171,7 +190,6 @@ public class TitleMenu : MenuBase
     private void OnHelpButtonClicked()
     {
         HelpMenuData.BackMenu = MenuType.TitleMenu;
-
         UIManager.Instance.ChangeMenu(MenuType.HelpMenu);
     }
 
@@ -183,7 +201,6 @@ public class TitleMenu : MenuBase
     private void OnSettingsButtonClicked()
     {
         SettingMenuData.BackMenu = MenuType.TitleMenu;
-
         UIManager.Instance.ChangeMenu(MenuType.SettingMenu);
     }
 

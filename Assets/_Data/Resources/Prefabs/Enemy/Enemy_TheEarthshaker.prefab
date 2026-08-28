@@ -129,6 +129,17 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 56227ac6b3f58e440afb020110ea1377, type: 2}
   - {fileID: 11400000, guid: d7b73dc7b11f1cd49ba59eebdec7e6d0, type: 2}
   - {fileID: 11400000, guid: 20771ee126560ef41bb28413ffc4970a, type: 2}
+  attackVFXSpawnPoints:
+  - attackData: {fileID: 0}
+    spawnPoints: []
+  - attackData: {fileID: 0}
+    spawnPoints: []
+  - attackData: {fileID: 0}
+    spawnPoints: []
+  - attackData: {fileID: 0}
+    spawnPoints: []
+  - attackData: {fileID: 0}
+    spawnPoints: []
   selectionMode: 1
 --- !u!114 &1899280645183552684
 MonoBehaviour:
@@ -852,7 +863,7 @@ SphereCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Radius: 0.5
+  m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &8636987237232215775
 MonoBehaviour:
@@ -1757,8 +1768,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 1, y: 1.5, z: 1.5}
+  m_Center: {x: 0, y: -0.5, z: 0}
 --- !u!114 &5626714639241977201
 MonoBehaviour:
   m_ObjectHideFlags: 0
