@@ -136,8 +136,7 @@ public class DormantPowerMenu : MenuBase
         if (rewardCards == null || rewardCards.Length == 0)
             rewardCards = GetComponentsInChildren<DormantPowerCardUI>(true);
 
-        Transform detailPanel =
-            transform.Find("RewardPanel/DetailPanel");
+        Transform detailPanel = transform.Find("RewardPanel/DetailPanel");
 
         if (detailPanel == null)
             return;

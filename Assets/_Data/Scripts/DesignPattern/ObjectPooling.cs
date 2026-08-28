@@ -164,9 +164,23 @@ public class ObjectPooling : Singleton<ObjectPooling>
     }
     protected override void Awake()
     {
+        LoadTrace.Mark("ObjectPooling Awake begin");
+
         base.Awake();
+
+        // Singleton cũ vừa lên lịch Destroy object trùng,
+        // không được tiếp tục tạo toàn bộ pool.
+        if (Instance != this)
+        {
+            LoadTrace.Mark("Duplicate ObjectPooling skipped");
+            return;
+        }
+
         LoadPoolData();
+        LoadTrace.Mark($"PoolData loaded: {pools.Count} entries");
+
         InitializePools();
+        LoadTrace.Mark("ObjectPooling initialization completed");
     }
 
     private void LoadPoolData()
@@ -190,6 +204,7 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
         foreach (Pool pool in pools)
         {
+            float poolStart = Time.realtimeSinceStartup;
             if (pool.prefab == null)
             {
                 Debug.LogWarning($"Pool {pool.poolType} has no prefab assigned!");
@@ -214,6 +229,16 @@ public class ObjectPooling : Singleton<ObjectPooling>
             }
 
             poolDictionary[pool.poolType] = objectQueue;
+
+            float duration = Time.realtimeSinceStartup - poolStart;
+
+            if (duration >= 0.05f)
+            {
+                Debug.LogWarning(
+                    $"[LOAD-TRACE] Slow pool: {pool.poolType} | " +
+                    $"InitialSize={pool.initialSize} | {duration:F2}s"
+                );
+            }
         }
     }
 
