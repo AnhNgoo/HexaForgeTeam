@@ -97,7 +97,7 @@ LightmapSettings:
     m_TrainingDataDestination: TrainingData
     m_LightProbeSampleCountMultiplier: 4
   m_LightingDataAsset: {fileID: 0}
-  m_LightingSettings: {fileID: 0}
+  m_LightingSettings: {fileID: 616201369}
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -200,8 +200,8 @@ MonoBehaviour:
   spawnDistance: 45
   despawnDistance: 45
   enemiesInCamp:
-  - enemyType: 50
-    spawnPoint: {fileID: 1832756880}
+  - enemyType: 1001
+    spawnPoint: {fileID: 566031423}
     isPatroller: 0
     isDead: 0
     savedHealth: -1
@@ -212,16 +212,14 @@ MonoBehaviour:
   defaultIsPatroller: 0
   showSpawnPointsGizmos: 1
   enemyGizmoDataList:
-  - enemyType: 50
-    enemyData: {fileID: 11400000, guid: 551f6bd90ba11f44791e8d21b80765dd, type: 2}
-  - enemyType: 51
-    enemyData: {fileID: 11400000, guid: 5724e48d9b7b0be4d9f5e236eceb1fcb, type: 2}
+  - enemyType: 1004
+    enemyData: {fileID: 11400000, guid: 9ae854e628c3d2d4a8250d0a11b268c2, type: 2}
+  - enemyType: 1002
+    enemyData: {fileID: 11400000, guid: 466592ca1224c01428d8d86abc0e5c4f, type: 2}
   - enemyType: 52
     enemyData: {fileID: 11400000, guid: f61fa835c72f8a24fad95516b79439c7, type: 2}
-  - enemyType: 54
-    enemyData: {fileID: 11400000, guid: 493f671f3306ec940af138fc67b70108, type: 2}
-  - enemyType: 57
-    enemyData: {fileID: 11400000, guid: 27b7e91ef08c9f141ba9465f4cb156b9, type: 2}
+  - enemyType: 1101
+    enemyData: {fileID: 11400000, guid: 8dd27854aa3947f45b54b0298f603e5d, type: 2}
   - enemyType: 58
     enemyData: {fileID: 11400000, guid: ff3b96ffc8d436142bed1cea1ec4afed, type: 2}
   - enemyType: 55
@@ -232,6 +230,18 @@ MonoBehaviour:
     enemyData: {fileID: 11400000, guid: 5724e48d9b7b0be4d9f5e236eceb1fcb, type: 2}
   - enemyType: 65
     enemyData: {fileID: 11400000, guid: 61ee47dc895a3e74a9f283493d75f10d, type: 2}
+  - enemyType: 1001
+    enemyData: {fileID: 11400000, guid: f3368be4bed54694a8bad55e21b6bc98, type: 2}
+  - enemyType: 67
+    enemyData: {fileID: 11400000, guid: 499dd1d68217fa4478f74295f6f6bed1, type: 2}
+  - enemyType: 66
+    enemyData: {fileID: 11400000, guid: cd29d455f40c1e84ebd923264a635cd2, type: 2}
+  - enemyType: 69
+    enemyData: {fileID: 11400000, guid: 071278ab0b7d78440a0b037cde1aada7, type: 2}
+  - enemyType: 65
+    enemyData: {fileID: 11400000, guid: 61ee47dc895a3e74a9f283493d75f10d, type: 2}
+  - enemyType: 1003
+    enemyData: {fileID: 11400000, guid: 747f03357e221314689fd26dfae88559, type: 2}
   spawnPointGizmoHeight: 1
 --- !u!1 &328194637
 GameObject:
@@ -340,13 +350,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 566031422}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 10.9, y: 0, z: -4.8}
+  m_LocalRotation: {x: 0, y: 0.90549475, z: 0, w: 0.4243575}
+  m_LocalPosition: {x: -16.9, y: 0, z: 16.54}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 328194638}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 129.78, z: 0}
 --- !u!1 &608278191
 GameObject:
   m_ObjectHideFlags: 0
@@ -484,6 +494,70 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!850595691 &616201369
+LightingSettings:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 6
+  m_GIWorkflowMode: 1
+  m_EnableBakedLightmaps: 1
+  m_EnableRealtimeLightmaps: 0
+  m_RealtimeEnvironmentLighting: 1
+  m_BounceScale: 1
+  m_AlbedoBoost: 1
+  m_IndirectOutputScale: 1
+  m_UsingShadowmask: 1
+  m_BakeBackend: 1
+  m_LightmapMaxSize: 1024
+  m_BakeResolution: 40
+  m_Padding: 2
+  m_LightmapCompression: 3
+  m_AO: 0
+  m_AOMaxDistance: 1
+  m_CompAOExponent: 1
+  m_CompAOExponentDirect: 0
+  m_ExtractAO: 0
+  m_MixedBakeMode: 2
+  m_LightmapsBakeMode: 1
+  m_FilterMode: 1
+  m_LightmapParameters: {fileID: 15204, guid: 0000000000000000f000000000000000, type: 0}
+  m_ExportTrainingData: 0
+  m_TrainingDataDestination: TrainingData
+  m_RealtimeResolution: 2
+  m_ForceWhiteAlbedo: 0
+  m_ForceUpdates: 0
+  m_FinalGather: 0
+  m_FinalGatherRayCount: 256
+  m_FinalGatherFiltering: 1
+  m_PVRCulling: 1
+  m_PVRSampling: 1
+  m_PVRDirectSampleCount: 32
+  m_PVRSampleCount: 512
+  m_PVREnvironmentSampleCount: 256
+  m_PVREnvironmentReferencePointCount: 2048
+  m_LightProbeSampleCountMultiplier: 4
+  m_PVRBounces: 2
+  m_PVRMinBounces: 2
+  m_PVREnvironmentImportanceSampling: 1
+  m_PVRFilteringMode: 1
+  m_PVRDenoiserTypeDirect: 1
+  m_PVRDenoiserTypeIndirect: 1
+  m_PVRDenoiserTypeAO: 1
+  m_PVRFilterTypeDirect: 0
+  m_PVRFilterTypeIndirect: 0
+  m_PVRFilterTypeAO: 0
+  m_PVRFilteringGaussRadiusDirect: 1
+  m_PVRFilteringGaussRadiusIndirect: 5
+  m_PVRFilteringGaussRadiusAO: 2
+  m_PVRFilteringAtrousPositionSigmaDirect: 0.5
+  m_PVRFilteringAtrousPositionSigmaIndirect: 2
+  m_PVRFilteringAtrousPositionSigmaAO: 1
+  m_PVRTiledBaking: 0
+  m_NumRaysToShootPerTexel: -1
+  m_RespectSceneVisibilityWhenBakingGI: 0
 --- !u!1 &697455724
 GameObject:
   m_ObjectHideFlags: 0
@@ -1032,7 +1106,7 @@ Transform:
   m_GameObject: {fileID: 1326366036}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -12, y: 1, z: 0}
+  m_LocalPosition: {x: -0.73, y: 1, z: 11}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
