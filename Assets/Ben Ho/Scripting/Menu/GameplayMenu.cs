@@ -212,6 +212,7 @@ public class GameplayMenu : MenuBase
         EventManager.Subscribe(GameEvent.OnUpdateCooldownSkill1, UpdateCooldownSkill1);
         EventManager.Subscribe(GameEvent.OnUpdateCooldownSkill2, UpdateCooldownSkill2);
         EventManager.Subscribe(GameEvent.OnUpdateLevel, UpdateLevel);
+        EventManager.Subscribe(GameEvent.OnPlayerSpawned, HidePickUpItemPanel);
     }
 
     private void OnDestroy()
@@ -235,6 +236,7 @@ public class GameplayMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnUpdateCooldownSkill1, UpdateCooldownSkill1);
         EventManager.Unsubscribe(GameEvent.OnUpdateCooldownSkill2, UpdateCooldownSkill2);
         EventManager.Unsubscribe(GameEvent.OnUpdateLevel, UpdateLevel);
+        EventManager.Unsubscribe(GameEvent.OnPlayerSpawned, HidePickUpItemPanel);
     }
 
     public override void Open(object data = null)

@@ -72,23 +72,13 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private Characters LoadCharacterSelected()
     {
-        Character selected = Character.Kael;
-        CharacterUnlockData savedData =
-            SaveLoadManager.Instance?.SaveData?.characterData;
-
-        if (savedData != null &&
-            savedData.selectedCharacter == CharacterType.Lyra &&
-            savedData.lyraUnlocked)
-        {
-            selected = Character.Lyra;
-        }
-
-        Characters result =
-            characterList.Find(item => item.character == selected);
-
-        return result ??
-               characterList.Find(item => item.character == Character.Kael) ??
-               characterList[0];
+        string selectedCharacter = PlayerPrefs.GetString("SelectedCharacter");
+        Character characterEnum = (Character)System.Enum.Parse(typeof(Character), selectedCharacter);
+        Characters character = characterList.Find(c => c.character == characterEnum);
+        if (character != null)
+            return character;
+        else
+            return characterList[0];
     }
 
     private void SaveCharacterSelected()
@@ -182,7 +172,6 @@ public class PlayerManager : Singleton<PlayerManager>
 
         SpawnCharacter(character, spawnPointInLobby);
         SaveCharacterSelected();
-        Debug.Log($"Spawn Character {character.character} in Lobby at {spawnPointInLobby.position}");
     }
 
     private void SpawnCharacter(Characters character, Transform spawnPoint)
@@ -205,6 +194,9 @@ public class PlayerManager : Singleton<PlayerManager>
 
         currentCharacter.character = character.character;
         currentCharacter.characterData = characterData;
+
+        if (GameManager.Instance.MapType == MapType.Lobby)
+            currentCharacterBase.CharacterSkill.LockUseSkill(true, true);
     }
 
     #endregion
@@ -322,7 +314,7 @@ public class PlayerManager : Singleton<PlayerManager>
         currentCharacterBase.transform.position = this.reSpawnPoint.position + offsetSpawnPoint;
         currentCharacterBase.gameObject.SetActive(true);
         currentCharacterBase.CharacterLevel?.DecreaseLevel();
-        currentCharacterBase.ResetCharacter();
+        currentCharacterBase.ResetRespawnCharacter();
 
         if (characterController != null)
             characterController.enabled = true;
