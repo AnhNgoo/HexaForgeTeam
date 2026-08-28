@@ -34,6 +34,7 @@ public class ResetDataManager : MonoBehaviour
         PlayerPrefs.SetInt("IsAutoLoginActive", 0);
         PlayerPrefs.DeleteKey("LastAccountUser");
         PlayerPrefs.DeleteKey("LastAccountPass");
+        PlayerPrefs.SetInt("UNLOCKED_BOSS_DARKMAGE", 0);
 
         PlayerPrefs.Save();
 
