@@ -193,13 +193,24 @@ namespace DuskBlade.Tests
         protected string FindGameplayScenePath()
         {
 #if UNITY_EDITOR
+            const string tutorialScene = "Assets/_Data/Scenes/Tutorial.unity";
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(tutorialScene) != null)
+            {
+                return tutorialScene;
+            }
+
             foreach (EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
             {
-                if (scene.enabled && !string.IsNullOrEmpty(scene.path)) return scene.path;
+                if (scene.enabled &&
+                    !string.IsNullOrEmpty(scene.path) &&
+                    scene.path.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    return scene.path;
+                }
             }
 
             string[] guids = AssetDatabase.FindAssets("t:Scene", new[] { "Assets" });
-            string[] preferred = { "GameDemo", "LongMap", "Map", "Gameplay" };
+            string[] preferred = { "Tutorial", "Tutorial_AGDev", "GameDemo", "LongMap", "Map", "Gameplay" };
             foreach (string token in preferred)
             {
                 foreach (string guid in guids)
