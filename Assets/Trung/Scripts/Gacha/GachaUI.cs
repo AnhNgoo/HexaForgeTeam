@@ -14,6 +14,11 @@ public class GachaUI : MonoBehaviour
     [SerializeField] private GameObject resultPanel;
     [SerializeField] private CanvasGroup resultCanvasGroup;
 
+    [Header("Result Video Player Settings")]
+    [SerializeField] private VideoPlayer resultVideoPlayer;
+    [SerializeField] private RawImage resultVideoRawImage;
+    [SerializeField] private RenderTexture resultVideoRenderTexture;
+
     [Header("Card Prefab & Container")]
     [SerializeField] private RuneCardUI cardPrefab;
     [SerializeField] private Transform cardParent;
@@ -243,7 +248,6 @@ public class GachaUI : MonoBehaviour
     {
         cachedPendingRunes = new List<RuneData>(runesToSpawn);
 
-        // Ẩn TopBar HUD hoàn toàn khi bắt đầu chiếu Video Gacha
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.gameObject.SetActive(false);
@@ -312,6 +316,9 @@ public class GachaUI : MonoBehaviour
             }
         }
 
+        // Kích hoạt phát video Result khi panel kết quả hiện lên
+        PlayResultVideo();
+
         if (skipButton != null) skipButton.SetActive(true);
 
         ClearCards();
@@ -334,7 +341,6 @@ public class GachaUI : MonoBehaviour
             yield return new WaitForSeconds(0.08f);
         }
 
-        // Hiện lại TopBar HUD sau khi các thẻ bài đã xuất hiện xong
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.gameObject.SetActive(true);
@@ -349,6 +355,28 @@ public class GachaUI : MonoBehaviour
         }
 
         RefreshCostUI();
+    }
+
+    private void PlayResultVideo()
+    {
+        if (resultVideoPlayer != null)
+        {
+            if (resultVideoRenderTexture != null)
+            {
+                resultVideoRenderTexture.Release();
+            }
+            resultVideoPlayer.Stop();
+            resultVideoPlayer.Prepare();
+            resultVideoPlayer.Play();
+        }
+    }
+
+    private void StopResultVideo()
+    {
+        if (resultVideoPlayer != null)
+        {
+            resultVideoPlayer.Stop();
+        }
     }
 
     public void TriggerLegendaryRevealAction(RuneCardUI legendaryCard)
@@ -437,7 +465,8 @@ public class GachaUI : MonoBehaviour
             }
         }
 
-        // Hiện lại TopBar HUD ngay lập tức khi bấm Skip
+        PlayResultVideo();
+
         if (LobbyHUDTopBar.Instance != null)
         {
             LobbyHUDTopBar.Instance.gameObject.SetActive(true);
@@ -515,7 +544,6 @@ public class GachaUI : MonoBehaviour
             {
                 if (cardParent.GetChild(i) != null)
                 {
-                    cardParent.GetChild(i).DOKill();
                     Destroy(cardParent.GetChild(i).gameObject);
                 }
             }
@@ -530,7 +558,12 @@ public class GachaUI : MonoBehaviour
 
     public void ToggleUIPanels(bool isRolling)
     {
-        if (resultPanel != null) resultPanel.SetActive(!isRolling);
+        if (resultPanel != null)
+        {
+            resultPanel.SetActive(!isRolling);
+            if (!isRolling) PlayResultVideo();
+            else StopResultVideo();
+        }
         if (closeButton != null) closeButton.SetActive(!isRolling);
         if (rerollButton != null) rerollButton.SetActive(!isRolling);
         if (skipButton != null) skipButton.SetActive(isRolling);
@@ -544,7 +577,12 @@ public class GachaUI : MonoBehaviour
 
     public void SetResultPanelActive(bool active)
     {
-        if (resultPanel != null) resultPanel.SetActive(active);
+        if (resultPanel != null)
+        {
+            resultPanel.SetActive(active);
+            if (active) PlayResultVideo();
+            else StopResultVideo();
+        }
     }
 
     private void OnDestroy()
