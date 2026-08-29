@@ -208,7 +208,7 @@ public class GraphicsMenu : MenuBase
     [SerializeField] private SystemSettingsPanel systemSettingsPanel;
 
     [Header("Selector Values")]
-    [SerializeField] private int[] frameRates = { 30, 60, 120, 144, 165, 240, -1 };
+    [SerializeField] private int[] frameRates = { 30, 60, 144};
     [SerializeField] private string[] displayModes = { "Full Screen", "Borderless", "Windowed" };
     [SerializeField] private string[] sharpeningModes = { "Off", "Fidelity FX" };
 
@@ -270,8 +270,6 @@ public class GraphicsMenu : MenuBase
         AddResolution(1600, 900);
         AddResolution(1680, 1050);
         AddResolution(1920, 1080);
-        AddResolution(2560, 1440);
-        AddResolution(3840, 2160);
 
         foreach (Resolution resolution in Screen.resolutions)
             AddResolution(resolution.width, resolution.height);

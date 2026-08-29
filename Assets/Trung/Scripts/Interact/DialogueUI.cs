@@ -1,9 +1,12 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using DG.Tweening;
 
 public class DialogueUI : MonoBehaviour
@@ -55,6 +58,37 @@ public class DialogueUI : MonoBehaviour
         InitTabHoverTriggers();
 
         if (root != null) root.SetActive(false);
+    }
+
+    private void OnEnable()
+    {
+        // ✅ Tự dịch lại khi đổi ngôn ngữ
+        LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
+    }
+
+    private void OnDisable()
+    {
+        LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
+    }
+
+    private void OnLocaleChanged(Locale locale)
+    {
+        // Đang mở dialogue → dịch lại tên NPC, lời thoại và các nút
+        if (root != null && root.activeSelf && currentDialogue != null)
+        {
+            if (npcNameText != null)
+                npcNameText.SetTextSafe(T(currentDialogue.npcName));
+
+            RefreshDialogue();
+            if (AreChoicesVisible())
+                RefreshChoices();
+        }
+    }
+
+    // ✅ Helper dịch text (bọc SettingsLocalizationData.Translate)
+    private string T(string text)
+    {
+        return SettingsLocalizationData.Translate(text);
     }
 
     private void InitTabHoverTriggers()
@@ -163,7 +197,8 @@ public class DialogueUI : MonoBehaviour
 
         if (npcNameText != null)
         {
-            npcNameText.SetTextSafe(data.npcName);
+            // ✅ Dịch tên NPC
+            npcNameText.SetTextSafe(T(data.npcName));
         }
 
         if (root != null)
@@ -209,12 +244,6 @@ public class DialogueUI : MonoBehaviour
         }
     }
 
-    private void OnDisable()
-    {
-        StopTypewriterRoutine();
-        ResetAllHoverLines();
-    }
-
     private void RefreshDialogue()
     {
         if (dialogueText == null || currentDialogue == null || currentIndex >= currentDialogue.dialogues.Count)
@@ -224,8 +253,19 @@ public class DialogueUI : MonoBehaviour
 
         StopTypewriterRoutine();
 
-        targetFullText = currentDialogue.dialogues[currentIndex];
+        // ✅ Dịch lời thoại TRƯỚC khi chạy typewriter
+        targetFullText = T(currentDialogue.dialogues[currentIndex]);
         typewriterRoutine = StartCoroutine(TypewriterRoutine(targetFullText));
+    }
+
+    // ✅ Thêm method này để refresh các nút khi đổi ngôn ngữ
+    private void RefreshChoices()
+    {
+        if (currentDialogue == null || currentDialogue.choices == null) return;
+
+        SetupTabChoice(choice1Tab, currentDialogue, 0);
+        SetupTabChoice(choice2Tab, currentDialogue, 1);
+        SetupTabChoice(choice3Tab, currentDialogue, 2);
     }
 
     private IEnumerator TypewriterRoutine(string fullText)
@@ -352,9 +392,7 @@ public class DialogueUI : MonoBehaviour
             return;
         }
 
-        SetupTabChoice(choice1Tab, currentDialogue, 0);
-        SetupTabChoice(choice2Tab, currentDialogue, 1);
-        SetupTabChoice(choice3Tab, currentDialogue, 2);
+        RefreshChoices();
 
         for (int i = 0; i < allChoices.Count; i++)
         {
@@ -382,7 +420,8 @@ public class DialogueUI : MonoBehaviour
 
         if (tab.text != null)
         {
-            tab.text.SetTextSafe(choice.choiceText);
+            // ✅ Dịch text của nút lựa chọn
+            tab.text.SetTextSafe(T(choice.choiceText));
             tab.text.color = Color.white;
         }
 
