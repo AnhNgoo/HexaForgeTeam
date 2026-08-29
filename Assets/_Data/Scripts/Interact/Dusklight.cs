@@ -37,6 +37,15 @@ public class Dusklight : InteractBase
 
         GoldManager.Instance.RemoveGold(levelUpCostNext); // Trừ vàng
         character.CharacterLevel.LevelUp(); // Lên cấp
+
+        // Cộng thêm bình máu cho đủ = với số bình máu tối đa đã nhặt được
+        int currentMaxRecoveryBottle = character.CharacterRecovery.CurrentMaxRecoveryBottle;
+        int currentRecoveryBottle = character.CharacterRecovery.CurrentRecoveryBottle;
+        int amount = currentMaxRecoveryBottle - currentRecoveryBottle;
+        if (amount > 0) // Nếu còn bình máu tối đa chưa đầy, thì thêm bình máu để đầy
+            character.CharacterRecovery.AddBottle(amount);
+
+        character.CharacterRecovery.AddBottle(character.CharacterRecovery.StartRecoveryBottle);
         ObjectPooling.Instance.SpawnFromPool(PoolType.LevelUpEffect, transform.position, Quaternion.identity); // Hiệu ứng lên cấp
         UIManager.Instance.ChangeMenu(MenuType.GameSystemMenu, GameSystemTab.PlayerState);
     }

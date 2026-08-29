@@ -204,6 +204,9 @@ public class LobbyBossSelectMenu : MenuBase
             ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
             : "Run Scene";
 
+        // Đóng Menu chọn Boss hiện tại
+        Close();
+
         if (RunManager.Instance != null)
         {
             RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);

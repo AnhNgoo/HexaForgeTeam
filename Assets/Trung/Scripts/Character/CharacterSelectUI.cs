@@ -26,22 +26,10 @@ public class CharacterSelectUI : LoadComponents
     [SerializeField] private GameObject aresComingSoonBadge;
     [SerializeField] private GameObject elaraComingSoonBadge;
 
-    [Header("Character Info")]
+    [Header("Character Info Texts")]
     [SerializeField] private TMP_Text CharacterNameText;
     [SerializeField] private TMP_Text RoleText;
     [SerializeField] private TMP_Text StatText;
-
-    [Header("Character Stat Sliders")]
-    [SerializeField] private Slider hpSlider;
-    [SerializeField] private Slider atkSlider;
-    [SerializeField] private Slider defSlider;
-    [SerializeField] private Slider spdSlider;
-
-    [Header("Stat Max Cap Config")]
-    [SerializeField] private float maxHealthCap = 2000f;
-    [SerializeField] private float maxDamageCap = 1500f;
-    [SerializeField] private float maxDefenseCap = 500f;
-    [SerializeField] private float maxSpeedCap = 20f;
 
     [Header("Skill Icons")]
     [SerializeField] private Image Skill1IconImage;
@@ -193,8 +181,6 @@ public class CharacterSelectUI : LoadComponents
         if (ConfirmButton != null)
         {
             ConfirmButton.gameObject.SetActive(true);
-
-            // Xóa triệt để Tween cũ và ép về Kích thước chuẩn Vector3.one
             ConfirmButton.transform.DOKill(true);
             ConfirmButton.transform.localScale = Vector3.one;
 
@@ -316,15 +302,71 @@ public class CharacterSelectUI : LoadComponents
             if (StatText != null && realData.stats != null)
             {
                 string atkLabel = (realData.characterTypes == CharacterTypes.Magical) ? "MATK" : "ATK";
+
+float bonusHP = 0, bonusATK = 0, bonusDEF = 0, bonusMP = 0, bonusStamina = 0, bonusCrit = 0;
+                
+                if (CharacterManager.Instance != null && RuneInventoryManager.Instance != null)
+                {
+                    CharacterRuneEquip build = CharacterManager.Instance.GetCharacterRuneBuild(type);
+                    if (build != null && build.equippedRuneIDs != null)
+                    {
+                        for (int i = 0; i < build.equippedRuneIDs.Length; i++)
+                        {
+                            string runeId = build.equippedRuneIDs[i];
+                            if (string.IsNullOrEmpty(runeId)) continue;
+
+                            RuneData rData = RuneInventoryManager.Instance.runes.Find(r => r.runeID == runeId);
+                            if (rData != null && rData.affixes != null)
+                            {
+                                for (int k = 0; k < rData.affixes.Count; k++)
+                                {
+                                    var aff = rData.affixes[k];
+                                    switch (aff.statType)
+                                    {
+                                        case RuneStatType.HP: bonusHP += aff.value; break;
+                                        case RuneStatType.HPPercent: bonusHP += realData.stats.maxHealth * (aff.value / 100f); break;
+                                        case RuneStatType.ATK: bonusATK += aff.value; break;
+                                        case RuneStatType.ATKPercent: bonusATK += realData.stats.damage * (aff.value / 100f); break;
+                                        case RuneStatType.DEF: bonusDEF += aff.value; break;
+                                        case RuneStatType.DEFPercent: bonusDEF += realData.stats.defense * (aff.value / 100f); break;
+                                        case RuneStatType.MP: bonusMP += aff.value; break;
+                                        case RuneStatType.MPPercent: bonusMP += realData.stats.mp * (aff.value / 100f); break;
+                                        case RuneStatType.Stamina: bonusStamina += aff.value; break;
+                                        case RuneStatType.StaminaPercent: bonusStamina += realData.stats.stamina * (aff.value / 100f); break;
+                                        case RuneStatType.CritChance: bonusCrit += aff.value; break;
+                                        case RuneStatType.AllStats:
+                                            bonusHP += realData.stats.maxHealth * (aff.value / 100f);
+                                            bonusATK += realData.stats.damage * (aff.value / 100f);
+                                            bonusDEF += realData.stats.defense * (aff.value / 100f);
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Helper định dạng màu mè đẹp mắt: Base + (+Bonus)
+                string FormatStatLine(string labelColor, string label, float baseVal, float bonusVal)
+                {
+                    if (bonusVal > 0.1f)
+                    {
+                        float totalVal = baseVal + bonusVal;
+                        return $"<color={labelColor}><b>{label}:</b></color> {baseVal:F0} <color=#00FFCC><b>(+{bonusVal:F0})</b></color> <color=#FFFFFF>→</color> <b><color=#FFD700>{totalVal:F0}</color></b>";
+                    }
+                    return $"<color={labelColor}><b>{label}:</b></color> <b>{baseVal:F0}</b>";
+                }
+
                 StatText.SetTextSafe(
-                    $"HP: {realData.stats.maxHealth}\n" +
-                    $"{atkLabel}: {realData.stats.damage}\n" +
-                    $"DEF: {realData.stats.defense}\n" +
-                    $"SPD: {realData.stats.speed}"
+                    $"{FormatStatLine("#FF5555", "HP", realData.stats.maxHealth, bonusHP)}\n" +
+                    $"{FormatStatLine("#55AAFF", "MP", realData.stats.mp, bonusMP)}\n" +
+                    $"{FormatStatLine("#FFAA33", atkLabel, realData.stats.damage, bonusATK)}\n" +
+                    $"{FormatStatLine("#33FFBB", "DEF", realData.stats.defense, bonusDEF)}\n" +
+                    $"<color=#55FF55><b>SPD:</b></color> <b>{realData.stats.speed:F1}</b>\n" +
+                    $"{FormatStatLine("#FFFF66", "Stamina", realData.stats.stamina, bonusStamina)}" +
+                    (bonusCrit > 0.1f ? $"\n<color=#CC66FF><b>Crit Chance:</b></color> <color=#00FFCC><b>+{bonusCrit:F1}%</b></color>" : "")
                 );
             }
-
-            UpdateStatSliders(realData);
 
             if (Skill1IconImage != null)
             {
@@ -362,7 +404,7 @@ public class CharacterSelectUI : LoadComponents
         {
             if (CharacterNameText != null) CharacterNameText.SetTextSafe(type.ToString().ToUpper());
             if (RoleText != null) RoleText.SetTextSafe("Unknown");
-            if (StatText != null) StatText.SetTextSafe("HP: ---\nATK: ---\nDEF: ---\nSPD: ---");
+            if (StatText != null) StatText.SetTextSafe("HP: ---\nMP: ---\nATK: ---\nDEF: ---\nSPD: ---");
 
             if (Skill1IconImage != null) Skill1IconImage.gameObject.SetActive(false);
             if (Skill2IconImage != null) Skill2IconImage.gameObject.SetActive(false);
@@ -424,23 +466,6 @@ public class CharacterSelectUI : LoadComponents
                 }
             }
         }
-    }
-
-    private void UpdateStatSliders(CharacterData realData)
-    {
-        if (realData == null || realData.stats == null) return;
-
-        if (hpSlider != null) { hpSlider.maxValue = maxHealthCap; AnimateSlider(hpSlider, realData.stats.maxHealth); }
-        if (atkSlider != null) { atkSlider.maxValue = maxDamageCap; AnimateSlider(atkSlider, realData.stats.damage); }
-        if (defSlider != null) { defSlider.maxValue = maxDefenseCap; AnimateSlider(defSlider, realData.stats.defense); }
-        if (spdSlider != null) { spdSlider.maxValue = maxSpeedCap; AnimateSlider(spdSlider, realData.stats.speed); }
-    }
-
-    private void AnimateSlider(Slider slider, float targetValue)
-    {
-        if (slider == null) return;
-        slider.DOKill();
-        slider.DOValue(targetValue, 0.4f).SetEase(Ease.OutQuad);
     }
 
     private Sprite GetRealRuneSprite(RuneData rune)

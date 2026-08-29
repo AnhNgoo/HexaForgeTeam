@@ -79,6 +79,7 @@ public class UIManager : Singleton<UIManager>
     protected override void Awake()
     {
         base.Awake();
+        LoadMenus();
         AutoOpenFirstMenu();
     }
     private void AutoOpenFirstMenu()
@@ -175,21 +176,24 @@ public class UIManager : Singleton<UIManager>
 
     public void InitUI()
     {
-        menus.RemoveAll(m => m == null || m.menuBase == null);
+        LoadMenus();
+        menus.RemoveAll(
+            menu => menu == null || menu.menuBase == null
+        );
 
-        foreach (var menu in menus)
+        foreach (MenuData menu in menus)
         {
+            if (menu?.menuBase == null)
+                continue;
 
-            if (menu?.menuBase != null)
-            {
-                menu.menuBase.Open();
-                menu.menuBase.Close();
-            }
+            menu.menuBase.Open();
+            menu.menuBase.Close();
         }
 
         CurrentMenu = null;
         CurrentMenuType = MenuType.None;
         PreviousMenuType = MenuType.None;
+
         Debug.Log("UIManager initialized. All menus are closed.");
     }
 }

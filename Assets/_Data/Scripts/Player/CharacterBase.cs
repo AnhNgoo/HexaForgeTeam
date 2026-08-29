@@ -24,7 +24,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterMP))]
 [RequireComponent(typeof(CharacterLevel))]
 [RequireComponent(typeof(CharacterGoldFalling))]
-public abstract class CharacterBase : LoadComponents, ITakeDamage
+[RequireComponent(typeof(CharacterRelic))]
+public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
@@ -85,6 +86,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public CharacterLevel CharacterLevel => characterLevel;
     [SerializeField] protected CharacterGoldFalling characterGoldFalling;
     public CharacterGoldFalling CharacterGoldFalling => characterGoldFalling;
+    [SerializeField] protected CharacterRelic characterRelic;
+    public CharacterRelic CharacterRelic => characterRelic;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
@@ -110,6 +113,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public bool IsHitStateActive { get; set; } = false;
     public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
 
+    public PoolType PoolType => characterData?.characterPoolType ?? PoolType.None;
 
     protected override void LoadComponent()
     {
@@ -151,6 +155,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterLevel = GetComponent<CharacterLevel>();
         if (characterGoldFalling == null)
             characterGoldFalling = GetComponent<CharacterGoldFalling>();
+        if (characterRelic == null)
+            characterRelic = GetComponent<CharacterRelic>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -203,6 +209,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterGoldFalling.Init(this);
             stateController = new StateController();
             stateController.ChangeState(new IdleState(this));
+            characterMovement.CC.enabled = true;
 
             //SECTION - Skill
             characterSkill?.Init(this, characterData.skill1Data, characterData.skill2Data, GetSkill_1(characterData.skill1Data), GetSkill_2(characterData.skill2Data));
@@ -224,7 +231,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     }
 
-    public void ResetCharacter()
+    public void ResetRespawnCharacter()
     {
         stateController?.ChangeState(new IdleState(this));
         characterHealth?.ResetHealth();
@@ -260,15 +267,15 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     {
         if (stateController == null || stateController.currentState == null)
             return false;
-        if (stateController.currentState is BirdRideState)
-            return false;
+        // if (stateController.currentState is BirdRideState)
+        //     return false;
+
         //Chuyển về FallState nếu đang ở trên không và bắt đầu rơi
-        if (!CharacterMovement.IsGrounded && CharacterMovement.CC.velocity.y < CharacterMovement.FallThreshold)
+        if (!CharacterMovement.IsGrounded && CharacterMovement.VerticalVelocity < CharacterMovement.FallThreshold)
         {
             stateController.ChangeState(new FallState(this));
             return true;
         }
-
 
         return false;
     }
@@ -636,6 +643,16 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         }
         CharacterMovement.Stop();
         CharacterMovement.IsLunging = false;
+    }
+
+    public void OnSpawnFromPool()
+    {
+
+    }
+
+    public void OnReturnToPool()
+    {
+
     }
 
     #endregion

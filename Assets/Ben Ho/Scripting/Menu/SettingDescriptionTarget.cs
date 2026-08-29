@@ -9,42 +9,27 @@ public sealed class SettingDescriptionTarget :
     ISubmitHandler
 {
     private SettingsDescriptionPanel panel;
-    private string itemName;
-    private string description;
+    private SettingsDescriptionEntry entry;
 
     public void Configure(
         SettingsDescriptionPanel targetPanel,
-        string targetItemName,
-        string targetDescription)
+        SettingsDescriptionEntry targetEntry)
     {
         panel = targetPanel;
-        itemName = targetItemName;
-        description = targetDescription;
+        entry = targetEntry;
     }
 
-    public void OnSelect(BaseEventData eventData)
-    {
-        ShowDescription();
-    }
+    public void OnSelect(BaseEventData eventData) => ShowDescription();
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        ShowDescription();
-    }
+    public void OnPointerEnter(PointerEventData eventData) => ShowDescription();
 
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        ShowDescription();
-    }
+    public void OnPointerClick(PointerEventData eventData) => ShowDescription();
 
-    public void OnSubmit(BaseEventData eventData)
-    {
-        ShowDescription();
-    }
+    public void OnSubmit(BaseEventData eventData) => ShowDescription();
 
     private void ShowDescription()
     {
-        if (panel != null)
-            panel.Show(itemName, description);
+        if (panel != null && entry != null)
+            panel.ShowEntry(entry);
     }
 }

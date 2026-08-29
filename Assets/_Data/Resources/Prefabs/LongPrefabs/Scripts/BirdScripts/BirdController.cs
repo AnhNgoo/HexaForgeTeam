@@ -278,7 +278,7 @@ public class BirdController : MonoBehaviour
         );
 
         PlayDisableParticle();
-
+        ObjectPooling.Instance.RestoreToPoolParent(releasedPlayer.PoolType, releasedPlayer.gameObject);
         Destroy(gameObject);
     }
 

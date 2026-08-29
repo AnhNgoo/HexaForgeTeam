@@ -131,6 +131,11 @@ public class RunManager : MonoBehaviour
         }
 
         ResetDamageData();
+        if (RunGameplayController.Instance != null)
+        {
+            RunGameplayController.Instance.ResetStats();
+        }
+
         HideLobbyHUD();
 
         if (InteractManagerV2.Instance != null)
@@ -216,7 +221,6 @@ public class RunManager : MonoBehaviour
         }
 
         SceneManager.SetActiveScene(finalBossScene);
-        EventManager.Notify(GameEvent.OnLoadingComplete);
         HideLobbyHUD();
 
         GameObject playerObject = GameObject.FindGameObjectWithTag("Player");
@@ -224,16 +228,6 @@ public class RunManager : MonoBehaviour
         {
             playerObject.transform.SetParent(null, true);
             SceneManager.MoveGameObjectToScene(playerObject, finalBossScene);
-        }
-
-        if (RunGameplayController.Instance != null)
-        {
-            GameObject runController = RunGameplayController.Instance.gameObject;
-            runController.transform.SetParent(null, true);
-            if (runController.scene != finalBossScene)
-            {
-                SceneManager.MoveGameObjectToScene(runController, finalBossScene);
-            }
         }
 
         yield return StartCoroutine(UnloadAllOldGameplayScenes(bossSceneName));
@@ -367,6 +361,7 @@ public class RunManager : MonoBehaviour
 
     public void ReturnToLobby()
     {
+        EventManager.Notify(GameEvent.OnReturnToLobby);
         StartCoroutine(UnloadSceneCoroutine());
     }
 
@@ -398,8 +393,12 @@ public class RunManager : MonoBehaviour
             LoadingUIManager.Instance.SetDestinationName(targetLobbyScene);
         }
 
-        // Dỡ sạch sẽ tất cả Scene Gameplay (kể cả Map 2: RunGameTrung(1) và Boss)
         yield return StartCoroutine(UnloadAllOldGameplayScenes());
+
+        if (RunGameplayController.Instance != null)
+        {
+            Destroy(RunGameplayController.Instance.gameObject);
+        }
 
         float duration = Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
@@ -411,10 +410,8 @@ public class RunManager : MonoBehaviour
         if (lobbyScene.IsValid())
         {
             SceneManager.SetActiveScene(lobbyScene);
-            EventManager.Notify(GameEvent.OnLoadingComplete);
         }
 
-        // CỐ ĐỊNH LẠI MAP TYPE LÀ LOBBY
         if (GameManager.Instance != null)
         {
             GameManager.Instance.SetMapType(MapType.Lobby);
@@ -425,10 +422,10 @@ public class RunManager : MonoBehaviour
             lobbyVisuals.SetActive(true);
         }
 
-        // if (PlayerManager.Instance != null)
-        // {
-        //     PlayerManager.Instance.SpawnCharacterInLobby();
-        // }
+        if (PlayerManager.Instance != null)
+        {
+            PlayerManager.Instance.SpawnCharacterInLobby();
+        }
 
         if (GoldManager.Instance != null) GoldManager.Instance.ResetGold();
 
@@ -450,7 +447,6 @@ public class RunManager : MonoBehaviour
 
         if (LeaderboardManager.Instance != null) LeaderboardManager.Instance.UpdateAllStatistics();
 
-        // CHUYỂN MENU VỀ LOBBY CHUẨN
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
@@ -492,7 +488,6 @@ public class RunManager : MonoBehaviour
         {
             if (s.IsValid() && s.isLoaded)
             {
-                Debug.Log($"<color=orange>[RunManager] Unloading Residual Scene: {s.name}</color>");
                 AsyncOperation un = SceneManager.UnloadSceneAsync(s);
                 while (un != null && !un.isDone) yield return null;
             }

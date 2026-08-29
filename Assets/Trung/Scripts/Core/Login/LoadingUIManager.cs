@@ -96,6 +96,7 @@ public class LoadingUIManager : MonoBehaviour
     /// </summary>
     public IEnumerator TrackProgressRoutine(AsyncOperation targetSceneLoad, bool hasEventNotify = true, float minDuration = 6.0f)
     {
+        LoadTrace.Mark($"TrackProgressRoutine started | " + $"MinDuration={minDuration:F2}s | " + $"OperationNull={targetSceneLoad == null}");
         if (progressSlider == null) yield break;
 
         float targetDuration = (minDuration <= 0f) ? Random.Range(5.0f, 7.0f) : minDuration;
@@ -119,11 +120,15 @@ public class LoadingUIManager : MonoBehaviour
             yield return null;
         }
 
+        LoadTrace.Mark($"Visual minimum duration completed | " + $"SceneProgress={targetSceneLoad?.progress ?? 1f:F2}");
+
         while (progressSlider.value < 1f)
         {
             progressSlider.value = Mathf.MoveTowards(progressSlider.value, 1f, Time.unscaledDeltaTime * fillSpeed);
             yield return null;
         }
+
+        LoadTrace.Mark("Loading slider reached 100%");
 
         yield return new WaitForSecondsRealtime(0.3f);
 

@@ -494,7 +494,11 @@ namespace DuskBlade.Tests
             Ctx c = new Ctx();
             Exception failure = null;
             IEnumerator routine = null;
-            try { routine = body(c); } catch (Exception e) { failure = e; }
+            try
+            {
+                routine = RunAfterSceneLoad(c, body);
+            }
+            catch (Exception e) { failure = e; }
             while (failure == null)
             {
                 bool next = false; object current = null;
@@ -504,6 +508,13 @@ namespace DuskBlade.Tests
             }
             if (failure == null) Record(id, title, expected, c.Actual, "Pass", "", "Tự động kiểm tra bằng Unity Test Runner.");
             else { Record(id, title, expected, (c.Actual + " KHÔNG ĐẠT - " + failure.Message).Trim(), "Fail", severity, "Tự động kiểm tra bằng Unity Test Runner."); throw failure; }
+        }
+
+        private IEnumerator RunAfterSceneLoad(Ctx context, Func<Ctx, IEnumerator> body)
+        {
+            yield return TestSceneLoader.Load(TestSceneConfig.RunScenePath);
+            IEnumerator routine = body(context);
+            while (routine != null && routine.MoveNext()) yield return routine.Current;
         }
 
         private void Record(string id, string title, string expected, string actual, string status, string severity, string steps)
