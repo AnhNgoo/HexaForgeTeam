@@ -12817,7 +12817,7 @@ MonoBehaviour:
       m_warpIterations: 6.013052
       m_warpStrength: 0.81316346
       m_warpOffset: {x: -922.7452, y: -950.37225, z: 565.7197, w: 0}
-    m_noiseSettings: {fileID: 1292001079}
+    m_noiseSettings: {fileID: 1867648508}
     m_noiseToolSettings:
       worldHeightRemap: {x: 0, y: 0}
       coordSpace: 0
@@ -17298,6 +17298,143 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 464654, guid: 6e454738044fc1c41b643593002d5e1a, type: 3}
   m_PrefabInstance: {fileID: 301821713}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &301904252
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 301904256}
+  - component: {fileID: 301904255}
+  - component: {fileID: 301904254}
+  - component: {fileID: 301904253}
+  m_Layer: 0
+  m_Name: Camera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &301904253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301904252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+--- !u!81 &301904254
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301904252}
+  m_Enabled: 1
+--- !u!20 &301904255
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301904252}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.3
+  far clip plane: 1000
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &301904256
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 301904252}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: 0.99993116, z: -0, w: 0.011733344}
+  m_LocalPosition: {x: 224.91954, y: 40, z: 436.64804}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 178.655, z: 0}
 --- !u!1001 &302451475
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35299,7 +35436,7 @@ Transform:
   m_GameObject: {fileID: 555597822}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 59.314873, y: 0.40011597, z: 178.68686}
+  m_LocalPosition: {x: 60.854767, y: -11.804089, z: 180.04662}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -74692,7 +74829,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDontDestroyOnLoad: 0
   volume: {fileID: 1288179857}
-  defaultVolumeProfile: {fileID: 0}
+  defaultVolumeProfile: {fileID: 11400000, guid: 6a2568c163127e94ca46d778e0f39a9f, type: 2}
 --- !u!1001 &1291549630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74817,30 +74954,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 464654, guid: 6e454738044fc1c41b643593002d5e1a, type: 3}
   m_PrefabInstance: {fileID: 1291586448}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1292001079
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformSettings:
-    translation: {x: -408.9513, y: 210.57971, z: 342.09958}
-    scale: {x: 5.5257483, y: 1, z: 5.5257483}
-    rotation: {x: 0, y: 0, z: 0}
-    flipScaleX: 0
-    flipScaleY: 0
-    flipScaleZ: 0
-  domainSettings:
-    noiseTypeName: Perlin
-    fractalTypeName: Fbm
-    noiseTypeParams: 
-    fractalTypeParams: '{"warpOffsets":{"x":-922.7451782226563,"y":-950.3722534179688,"z":565.7197265625,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.31929415464401247,"frequency":1.0,"persistence":0.5,"lacunarity":0.9767619967460632,"warpIterations":6.013051986694336,"warpStrength":0.8131634593009949,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &1296044809
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -90848,7 +90961,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_stampID: c550daaa-d924-4d4b-9e30-264c0797f4e4
-  m_stampImage: {fileID: 1601139379}
+  m_stampImage: {fileID: 1882527869}
   m_stampImageGUID: 
   m_autoSpawnersToggleAll: 0
   m_autoMaskExportersToggleAll: 0
@@ -97973,7 +98086,6 @@ MonoBehaviour:
     prefabs:
     - {fileID: 1740969921528975730, guid: b2e7c4c3a1490344ebffdfd19d5316af, type: 3}
     - {fileID: 6955102535958767655, guid: 74ecd5106b156b149b3c5b02fe9dcbdb, type: 3}
-    - {fileID: 1740969921528975730, guid: b2e7c4c3a1490344ebffdfd19d5316af, type: 3}
     yOffset: 5.5
   - spawnPoints:
     - {fileID: 451231398}
@@ -97982,7 +98094,7 @@ MonoBehaviour:
     prefabs:
     - {fileID: 7643937622354082334, guid: 90ee5805021332e4ebdb63d068343b68, type: 3}
     - {fileID: 3425448620107259196, guid: f16e416dc9764f84892385cdfe129e0a, type: 3}
-    - {fileID: 7643937622354082334, guid: 90ee5805021332e4ebdb63d068343b68, type: 3}
+    - {fileID: 2113193742222694301, guid: 2ce30c0283f452147aceb7b6d809e451, type: 3}
     yOffset: 2
   - spawnPoints:
     - {fileID: 35620733}
@@ -97991,7 +98103,7 @@ MonoBehaviour:
     prefabs:
     - {fileID: 2729950116037401368, guid: aca716b6ad0879e40b718dcd47309aa4, type: 3}
     - {fileID: 8709309338722208652, guid: 1be8d691d39343347bf7841e7948e151, type: 3}
-    - {fileID: 2729950116037401368, guid: aca716b6ad0879e40b718dcd47309aa4, type: 3}
+    - {fileID: 8001563882337726020, guid: 0e043a344a34ff745849cd1d528baf94, type: 3}
     yOffset: -0.5
   - spawnPoints:
     - {fileID: 1922033868}
@@ -123830,7 +123942,7 @@ MonoBehaviour:
   m_showTerrainHelper: 1
   m_spawnMode: 0
   imageMasks:
-  - m_active: 1
+  - m_active: 0
     m_invert: 0
     m_hasErrors: 0
     m_influence: 0
@@ -126236,54 +126348,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 491500, guid: fdc563315018d384fa38ac8b344aa35c, type: 3}
   m_PrefabInstance: {fileID: 1600467148}
   m_PrefabAsset: {fileID: 0}
---- !u!28 &1601139379
-Texture2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UnityWhite
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 2
-  m_Width: 4
-  m_Height: 4
-  m_CompleteImageSize: 256
-  m_MipsStripped: 0
-  m_TextureFormat: 20
-  m_MipCount: 1
-  m_IsReadable: 1
-  m_IsPreProcessed: 0
-  m_IgnoreMipmapLimit: 0
-  m_MipmapLimitGroupName: 
-  m_StreamingMipmaps: 0
-  m_StreamingMipmapsPriority: 0
-  m_VTOnly: 0
-  m_AlphaIsTransparency: 0
-  m_ImageCount: 1
-  m_TextureDimension: 2
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 0
-    m_WrapV: 0
-    m_WrapW: 0
-  m_LightmapFormat: 0
-  m_ColorSpace: 1
-  m_PlatformBlob: 
-  image data: 256
-  _typelessdata: 0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
 --- !u!1001 &1602410235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -140687,6 +140751,30 @@ RenderTexture:
   m_Dimension: 2
   m_VolumeDepth: 1
   m_ShadowSamplingMode: 2
+--- !u!114 &1867648508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformSettings:
+    translation: {x: -408.9513, y: 210.57971, z: 342.09958}
+    scale: {x: 5.5257483, y: 1, z: 5.5257483}
+    rotation: {x: 0, y: 0, z: 0}
+    flipScaleX: 0
+    flipScaleY: 0
+    flipScaleZ: 0
+  domainSettings:
+    noiseTypeName: Perlin
+    fractalTypeName: Fbm
+    noiseTypeParams: 
+    fractalTypeParams: '{"warpOffsets":{"x":-922.7451782226563,"y":-950.3722534179688,"z":565.7197265625,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.31929415464401247,"frequency":1.0,"persistence":0.5,"lacunarity":0.9767619967460632,"warpIterations":6.013051986694336,"warpStrength":0.8131634593009949,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &1868068890
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -141381,6 +141469,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 491500, guid: fdc563315018d384fa38ac8b344aa35c, type: 3}
   m_PrefabInstance: {fileID: 1880938094}
   m_PrefabAsset: {fileID: 0}
+--- !u!28 &1882527869
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UnityWhite
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 2
+  m_Width: 4
+  m_Height: 4
+  m_CompleteImageSize: 256
+  m_MipsStripped: 0
+  m_TextureFormat: 20
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_IsPreProcessed: 0
+  m_IgnoreMipmapLimit: 0
+  m_MipmapLimitGroupName: 
+  m_StreamingMipmaps: 0
+  m_StreamingMipmapsPriority: 0
+  m_VTOnly: 0
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 1
+  m_PlatformBlob: 
+  image data: 256
+  _typelessdata: 0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
 --- !u!1001 &1882544999
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -149587,9 +149723,9 @@ MonoBehaviour:
     m_foamBubblesStrength: 0.8
     m_foamEdge: 0.25
     m_foamMoveSpeed: 0.3
-  m_player: {fileID: 0}
+  m_player: {fileID: 301904256}
   m_RenderCamera: {fileID: 0}
-  m_gameCamera: {fileID: 0}
+  m_gameCamera: {fileID: 301904255}
   m_RenderPath: 0
   m_waterMaterialInstances:
   - {fileID: 2100000, guid: 003f45c94730b9f498051fd22ebb0c87, type: 2}
@@ -156461,3 +156597,4 @@ SceneRoots:
   - {fileID: 1971713526}
   - {fileID: 327383099}
   - {fileID: 2050032268}
+  - {fileID: 301904256}

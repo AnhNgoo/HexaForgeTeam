@@ -61,6 +61,9 @@ public class AttackDataSO : ScriptableObject
     [Header("Stats Modifiers")]
     public float damageMultiplier = 1f; //Hệ số sát thương, có thể dùng để điều chỉnh sát thương của đòn tấn công dựa trên sát thương cơ bản của Enemy
     public float poiseDamage = 10f; //Damage phá thế khi tấn công player
+    [Header("Audio Settings")]
+    public AudioClip attackSound; //Âm thanh phát đúng thời điểm Animation Event AttackImpact được gọi
+    [Range(0f, 1f)] public float attackSoundVolume = 1f;
     [Header("Range Requirements")]
     public float minAttackRange = 0f; //Khoảng cách mà đòn tấn công có thể đánh trúng mục tiêu, có thể dùng để kiểm tra nếu player nằm trong phạm vi tấn công
     public float maxAttackRange = 2f; //Khoảng cách tối đa mà đòn tấn công có thể đánh trúng mục tiêu, có thể dùng để kiểm tra nếu player nằm trong phạm vi tấn công

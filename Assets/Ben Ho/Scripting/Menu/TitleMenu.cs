@@ -111,11 +111,17 @@ public class TitleMenu : MenuBase
             ? sceneData.GetSceneName(SceneType.Tutorial) 
             : "Tutorial Scene";
 
+        bool isGoingToLobby = saveData?.isTutorialCompleted == true;
+
         // Gán chính xác tên Scene đã override
-        LoadingData.TargetSceneName =
-            saveData?.isTutorialCompleted == true
-                ? targetLobbyScene
-                : targetTutorialScene;
+        LoadingData.TargetSceneName = isGoingToLobby
+            ? targetLobbyScene
+            : targetTutorialScene;
+
+        if (isGoingToLobby && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.StopMusic();
+        }
 
         UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }

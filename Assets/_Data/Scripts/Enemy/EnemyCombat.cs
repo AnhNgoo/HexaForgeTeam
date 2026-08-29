@@ -272,6 +272,8 @@ public class EnemyCombat : MonoBehaviour
         if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
         if (currentAttackData == null) return;
 
+        PlayCurrentAttackSound();
+
         Debug.Log($"[EnemyCombat] AttackImpact event: {currentAttackData.attackName}");
         Debug.Log($"[EnemyCombat] Gọi skill impact: {(currentAttackData.skillLogic != null ? currentAttackData.skillLogic.name : "NULL - fallback")}");
 
@@ -289,6 +291,17 @@ public class EnemyCombat : MonoBehaviour
         {
             SpawnProjectile();
         }
+    }
+
+    private void PlayCurrentAttackSound()
+    {
+        if (currentAttackData.attackSound == null || AudioManager.Instance == null)
+            return;
+
+        AudioManager.Instance.PlaySfx(
+            currentAttackData.attackSound,
+            currentAttackData.attackSoundVolume
+        );
     }
 
     public void HandleAttackEndEvent()
