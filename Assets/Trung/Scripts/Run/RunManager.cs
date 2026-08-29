@@ -9,12 +9,20 @@ public struct ActiveRunBuffs
     public bool hasGoldBuff;
     public bool hasReviveBuff;
     public bool hasAtkBuff;
+    public List<string> activeItemIDs;
+
+    public void AddBuff(string itemID)
+    {
+        if (activeItemIDs == null) activeItemIDs = new List<string>();
+        if (!activeItemIDs.Contains(itemID)) activeItemIDs.Add(itemID);
+    }
 
     public void Reset()
     {
         hasGoldBuff = false;
         hasReviveBuff = false;
         hasAtkBuff = false;
+        activeItemIDs?.Clear();
     }
 }
 

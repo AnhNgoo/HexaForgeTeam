@@ -62,9 +62,9 @@ public class LobbyBossSelectMenu : MenuBase
     private const string ItemReviveID = "ITEM_BUFF_REVIVE";
     private const string ItemAtkID = "ITEM_BUFF_ATK";
 
-    private const string ItemGoldName = "Gold Elixir";
-    private const string ItemReviveName = "Phoenix Charm";
-    private const string ItemAtkName = "Power Elixir";
+    private const string ItemGoldName = "Lucky Cat";
+    private const string ItemReviveName = "Medical Kit";
+    private const string ItemAtkName = "Brawn Elixir";
 
     private int selectedBossIndex = 0;
     private string previewedRunMapName = "";
@@ -283,7 +283,8 @@ public class LobbyBossSelectMenu : MenuBase
         RefreshBuffTogglesState();
 
         HideAndStopAllVideos();
-        SelectBoss(0, isInitialOpen: true);
+
+        SelectBoss(selectedBossIndex, isInitialOpen: true);
     }
 
     public override void Close()
@@ -490,18 +491,25 @@ public class LobbyBossSelectMenu : MenuBase
         var selected = bossOptions[selectedBossIndex];
         PlaySelectedBossVideoOnly(selectedBossIndex);
 
-        if (RunManager.Instance != null)
+        if (!isInitialOpen && RunManager.Instance != null)
         {
             RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
         }
 
-        Debug.Log($"<color=#00FFCC><b>[LobbyBossSelectMenu]</b> Đã chọn: <b>{selected.bossName}</b></color>");
+        Debug.Log($"<color=#00FFCC><b>[LobbyBossSelectMenu]</b> Đã chọn: <b>{selected.bossName}</b> | PoolType: <b>{selected.bossPoolType}</b></color>");
         UpdateMapDebugUI();
     }
 
     private void OnConfirmStartRun()
     {
         if (bossOptions == null || bossOptions.Count == 0) return;
+
+        if (selectedBossIndex < 0 || selectedBossIndex >= bossOptions.Count)
+        {
+            selectedBossIndex = 0;
+        }
+
+        var selected = bossOptions[selectedBossIndex];
 
         int currentGem = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null) 
             ? SaveLoadManager.Instance.SaveData.gem 
@@ -523,6 +531,7 @@ public class LobbyBossSelectMenu : MenuBase
             if (InventoryItemManager.Instance != null && InventoryItemManager.Instance.SpendItem(ItemGoldID, 1))
             {
                 activeBuffs.hasGoldBuff = true;
+                activeBuffs.AddBuff(ItemGoldID);
             }
         }
 
@@ -531,6 +540,7 @@ public class LobbyBossSelectMenu : MenuBase
             if (InventoryItemManager.Instance != null && InventoryItemManager.Instance.SpendItem(ItemReviveID, 1))
             {
                 activeBuffs.hasReviveBuff = true;
+                activeBuffs.AddBuff(ItemReviveID);
             }
         }
 
@@ -539,6 +549,7 @@ public class LobbyBossSelectMenu : MenuBase
             if (InventoryItemManager.Instance != null && InventoryItemManager.Instance.SpendItem(ItemAtkID, 1))
             {
                 activeBuffs.hasAtkBuff = true;
+                activeBuffs.AddBuff(ItemAtkID);
             }
         }
 
@@ -548,14 +559,14 @@ public class LobbyBossSelectMenu : MenuBase
             SaveLoadManager.Instance.SaveGame();
         }
 
-        var selected = bossOptions[selectedBossIndex];
-
         if (string.IsNullOrEmpty(previewedRunMapName))
         {
             previewedRunMapName = GameSceneData.Instance != null 
                 ? GameSceneData.Instance.GetRandomRunSceneName() 
                 : "Run Scene";
         }
+
+        Debug.Log($"<color=#00FF00><b>[START RUN CONFIRMED]</b> Nạp Map: <b>{previewedRunMapName}</b> | Boss Target: <b>{selected.bossName}</b> (PoolType: <b>{selected.bossPoolType}</b>)</color>");
 
         Close();
 
