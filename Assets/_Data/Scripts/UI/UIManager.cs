@@ -79,6 +79,7 @@ public class UIManager : Singleton<UIManager>
     protected override void Awake()
     {
         base.Awake();
+        LoadMenus();
         AutoOpenFirstMenu();
     }
     private void AutoOpenFirstMenu()
@@ -175,6 +176,7 @@ public class UIManager : Singleton<UIManager>
 
     public void InitUI()
     {
+        LoadMenus();
         menus.RemoveAll(
             menu => menu == null || menu.menuBase == null
         );
@@ -184,7 +186,8 @@ public class UIManager : Singleton<UIManager>
             if (menu?.menuBase == null)
                 continue;
 
-            menu.menuBase.gameObject.SetActive(false);
+            menu.menuBase.Open();
+            menu.menuBase.Close();
         }
 
         CurrentMenu = null;

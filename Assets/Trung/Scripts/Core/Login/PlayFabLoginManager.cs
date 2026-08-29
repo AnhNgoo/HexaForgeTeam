@@ -59,6 +59,24 @@ public class PlayFabLoginManager : MonoBehaviour
 
         LoadSavedAccounts();
 
+        // Chạy Video Intro trước, sau khi chạy xong mới thực hiện Auto Login hoặc hiện bảng Login
+        bool isIntroRunning = false;
+        if (LoginIntroManager.Instance != null)
+        {
+            isIntroRunning = LoginIntroManager.Instance.TryPlayIntro(() =>
+            {
+                ProceedAfterIntro();
+            });
+        }
+
+        if (!isIntroRunning)
+        {
+            ProceedAfterIntro();
+        }
+    }
+    private void ProceedAfterIntro()
+    {
+        // Dừng mọi hoạt động, auto login chỉ chạy sau khi intro hoàn tất hoặc bị skip
         if (CheckAndTryAutoLogin())
         {
             return;
@@ -68,6 +86,21 @@ public class PlayFabLoginManager : MonoBehaviour
         {
             PlayFabLoginUI.Instance.SwitchTab(true);
         }
+    }
+    public void Logout()
+    {
+        PlayerPrefs.SetInt(AutoLoginKey, 0);
+        PlayerPrefs.Save();
+
+        // Ẩn/dừng mọi tiến trình loading nếu có
+        HideLoadingOverlay();
+        isLoggingIn = false;
+
+        // Nếu muốn khi Logout ra màn hình đăng nhập KHÔNG bị lặp lại video intro thì giữ nguyên,
+        // còn nếu muốn khi Logout ra phải xem lại video intro thì bật dòng dưới đây:
+        // LoginIntroManager.ResetIntroSession();
+
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 
     private bool CheckAndTryAutoLogin()

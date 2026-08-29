@@ -66,14 +66,15 @@ public class GameSceneData : ScriptableObject
     public void CheckAndCacheActivePersonalConfig()
     {
 #if UNITY_EDITOR
-        if (personalConfigCached)
-            return;
-
-        personalConfigCached = true;
         activePersonalConfig = null;
 
-        SceneConfigSO[] allConfigs =
-            Resources.LoadAll<SceneConfigSO>("SceneConfigs");
+        SceneConfigSO[] allConfigs = Resources.LoadAll<SceneConfigSO>("SceneConfigs");
+
+        if (allConfigs == null || allConfigs.Length == 0)
+        {
+            // Quét dự phòng toàn bộ thư mục Resources nếu chưa tạo subfolder SceneConfigs
+            allConfigs = Resources.LoadAll<SceneConfigSO>("");
+        }
 
         foreach (SceneConfigSO config in allConfigs)
         {
@@ -90,6 +91,8 @@ public class GameSceneData : ScriptableObject
 
             break;
         }
+
+        personalConfigCached = true;
 #endif
     }
 

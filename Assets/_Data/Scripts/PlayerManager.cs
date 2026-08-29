@@ -61,6 +61,7 @@ public class PlayerManager : Singleton<PlayerManager>
         EventManager.Subscribe(GameEvent.OnPlayerDeath, CheckRespawnCharacter);
         EventManager.Subscribe(GameEvent.OnFinalSafeZoneCompleted, SetRespawnAttemptsInFinalSafeZone);
         EventManager.Subscribe(GameEvent.OnStartSafeZone, SetRespawnAttemptsInRun);
+        EventManager.Subscribe(GameEvent.OnReturnToLobby, ClearCurrentCharacter);
     }
 
     private void OnDestroy()
@@ -68,27 +69,65 @@ public class PlayerManager : Singleton<PlayerManager>
         EventManager.Unsubscribe(GameEvent.OnPlayerDeath, CheckRespawnCharacter);
         EventManager.Unsubscribe(GameEvent.OnFinalSafeZoneCompleted, SetRespawnAttemptsInFinalSafeZone);
         EventManager.Unsubscribe(GameEvent.OnStartSafeZone, SetRespawnAttemptsInRun);
+        EventManager.Unsubscribe(GameEvent.OnReturnToLobby, ClearCurrentCharacter);
     }
 
     private Characters LoadCharacterSelected()
     {
-        Character selected = Character.Kael;
-        CharacterUnlockData savedData =
-            SaveLoadManager.Instance?.SaveData?.characterData;
+        const string key = "SelectedCharacter";
 
-        if (savedData != null &&
-            savedData.selectedCharacter == CharacterType.Lyra &&
-            savedData.lyraUnlocked)
+        string savedValue = PlayerPrefs.GetString(
+            key,
+            Character.Kael.ToString()
+        );
+
+        if (!System.Enum.TryParse(
+                savedValue,
+                true,
+                out Character selectedCharacter) ||
+            selectedCharacter == Character.None)
         {
-            selected = Character.Lyra;
+            selectedCharacter = Character.Kael;
         }
 
-        Characters result =
-            characterList.Find(item => item.character == selected);
+        Characters result = characterList.Find(character =>
+            character != null &&
+            character.character == selectedCharacter &&
+            character.characterData != null
+        );
 
-        return result ??
-               characterList.Find(item => item.character == Character.Kael) ??
-               characterList[0];
+        if (result == null)
+        {
+            result = characterList.Find(character =>
+                character != null &&
+                character.character == Character.Kael &&
+                character.characterData != null
+            );
+        }
+
+        if (result == null)
+        {
+            result = characterList.Find(character =>
+                character != null &&
+                character.characterData != null
+            );
+        }
+
+        if (result == null)
+        {
+            Debug.LogError(
+                "[PlayerManager] Character List không có CharacterData hợp lệ."
+            );
+            return null;
+        }
+
+        if (savedValue != result.character.ToString())
+        {
+            PlayerPrefs.SetString(key, result.character.ToString());
+            PlayerPrefs.Save();
+        }
+
+        return result;
     }
 
     private void SaveCharacterSelected()
@@ -173,6 +212,11 @@ public class PlayerManager : Singleton<PlayerManager>
 
         if (spawnPointInLobby == null)
             FindSpawnPointInLobby();
+        if (spawnPointInLobby == null)
+        {
+            Debug.LogError("[PlayerManager] Không thể spawn vì thiếu SpawnPointCharacterInLobby.");
+            return;
+        }
 
         if (character == null)
         {
@@ -182,7 +226,6 @@ public class PlayerManager : Singleton<PlayerManager>
 
         SpawnCharacter(character, spawnPointInLobby);
         SaveCharacterSelected();
-        Debug.Log($"Spawn Character {character.character} in Lobby at {spawnPointInLobby.position}");
     }
 
     private void SpawnCharacter(Characters character, Transform spawnPoint)
@@ -205,17 +248,44 @@ public class PlayerManager : Singleton<PlayerManager>
 
         currentCharacter.character = character.character;
         currentCharacter.characterData = characterData;
+
+        if (GameManager.Instance.MapType == MapType.Lobby)
+            currentCharacterBase.CharacterSkill.LockUseSkill(true, true);
     }
 
+    private void ClearCurrentCharacter(object data = null)
+    {
+        if (currentCharacterBase != null)
+        {
+            ObjectPooling.Instance.ReturnToPool(currentCharacter.characterData.characterPoolType, currentCharacterBase.gameObject);
+            currentCharacterBase = null;
+        }
+        currentCharacter.character = Character.None;
+        currentCharacter.characterData = null;
+    }
     #endregion
 
     #region Find Spawn Position In Lobby
 
     public void FindSpawnPointInLobby()
     {
-        spawnPointInLobby = GameObject.FindGameObjectWithTag("SpawnPointCharacterInLobby").transform;
-        if (spawnPointInLobby == null)
-            Debug.LogError("Không tìm thấy SpawnPointCharacterInLobby trong scene");
+        GameObject spawnPointObject =
+            GameObject.FindGameObjectWithTag(
+                "SpawnPointCharacterInLobby"
+            );
+
+        if (spawnPointObject == null)
+        {
+            spawnPointInLobby = null;
+
+            Debug.LogError(
+                "[PlayerManager] Không tìm thấy object có tag " +
+                "'SpawnPointCharacterInLobby'."
+            );
+            return;
+        }
+
+        spawnPointInLobby = spawnPointObject.transform;
     }
     #endregion
 
@@ -322,7 +392,7 @@ public class PlayerManager : Singleton<PlayerManager>
         currentCharacterBase.transform.position = this.reSpawnPoint.position + offsetSpawnPoint;
         currentCharacterBase.gameObject.SetActive(true);
         currentCharacterBase.CharacterLevel?.DecreaseLevel();
-        currentCharacterBase.ResetCharacter();
+        currentCharacterBase.ResetRespawnCharacter();
 
         if (characterController != null)
             characterController.enabled = true;

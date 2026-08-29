@@ -193,7 +193,10 @@ public class InventoryMenu : MenuBase
         EventManager.Unsubscribe(GameEvent.OnDeselectItemInInventory, OnHideDiscardButton);
 
         WeaponInventorySystem.Instance?.SetRewardReplacementMode(false);
-        rewardReplacementHeader?.SetActive(false);
+        if (rewardReplacementHeader != null)
+        {
+            rewardReplacementHeader.SetActive(false);
+        }
 
         if (useButtonLabel != null) useButtonLabel.text = defaultUseButtonText;
         if (btn_Use != null) btn_Use.interactable = true;
@@ -537,7 +540,10 @@ public class InventoryMenu : MenuBase
                 : defaultUseButtonText;
         }
 
-        rewardReplacementHeader?.SetActive(active);
+        if (rewardReplacementHeader != null)
+        {
+            rewardReplacementHeader.SetActive(active);
+        }
         WeaponInventorySystem.Instance?.SetRewardReplacementMode(active);
 
         if (!active)

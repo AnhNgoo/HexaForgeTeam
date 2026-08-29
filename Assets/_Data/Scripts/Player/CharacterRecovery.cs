@@ -6,35 +6,41 @@ using UnityEngine;
 public class CharacterRecovery : MonoBehaviour
 {
     [SerializeField] private int maxRecoveryBottle = 7;
-    [SerializeField] private int recoveryBottle = 0;
-    public int RecoveryBottle => recoveryBottle;
+    [SerializeField] private int startRecoveryBottle = 3;
+    public int StartRecoveryBottle => startRecoveryBottle;
+    [SerializeField] private int currentRecoveryBottle = 0;
+    public int CurrentRecoveryBottle => currentRecoveryBottle;
     [SerializeField] private float healPercent = 36;
 
     private CharacterBase character;
+    // Số lượng bình máu tối đa đã nhặt hiện tại
+    public int CurrentMaxRecoveryBottle { get; private set; } = 0;
 
     public void Init(CharacterBase character)
     {
         this.character = character;
-        AddBottle(maxRecoveryBottle); // Khởi tạo số lượng bình hồi máu ban đầu
-        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
+        AddBottle(startRecoveryBottle); // Khởi tạo số lượng bình hồi máu ban đầu
+        CurrentMaxRecoveryBottle = 0;
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
     }
 
     public void ResetRecovery()
     {
-        AddBottle(maxRecoveryBottle);
+        AddBottle(CurrentMaxRecoveryBottle);
     }
 
     [Button("Add Recovery Bottle")]
     public void AddBottle(int amount = 1)
     {
-        recoveryBottle = Mathf.Min(recoveryBottle + amount, maxRecoveryBottle);
-        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
+        currentRecoveryBottle = Mathf.Min(currentRecoveryBottle + amount, maxRecoveryBottle);
+        CurrentMaxRecoveryBottle = currentRecoveryBottle > CurrentMaxRecoveryBottle ? currentRecoveryBottle : CurrentMaxRecoveryBottle;
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
     }
 
     public void ResetBottle()
     {
-        recoveryBottle = 0;
-        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
+        currentRecoveryBottle = 0;
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
     }
 
     // Chỉnh phần trăm healPercent
@@ -46,12 +52,12 @@ public class CharacterRecovery : MonoBehaviour
 
     public void UseRecoveryBottle()
     {
-        if (recoveryBottle <= 0)
+        if (currentRecoveryBottle <= 0)
             return;
 
-        recoveryBottle--;
+        currentRecoveryBottle--;
         float healAmount = character.CharacterHealth.MaxHealth * healPercent / 100f;
         character.CharacterHealth.AddHealth(healAmount);
-        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, recoveryBottle);
+        EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
     }
 }
