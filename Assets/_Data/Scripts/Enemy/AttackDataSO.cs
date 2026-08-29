@@ -28,6 +28,13 @@ public enum EnemyAttackAnchorType
     Target,
 }
 
+public enum EnemyAttackVFXSpace
+{
+    World,
+    FollowAnchor
+}
+
+
 public enum EnemyHitboxType
 {
     None,
@@ -77,6 +84,8 @@ public class AttackDataSO : ScriptableObject
     [Header("VFX Settings")]
     public PoolType attackVFX; //VFX gán khi đòn đánh được đánh ra
     public EnemyAttackAnchorType vfxAnchor = EnemyAttackAnchorType.Root; //Điểm neo để gắn VFX khi đòn đánh được đánh ra, có thể dùng để xác định vị trí gắn hiệu ứng khi tấn công
+    [Tooltip("World: VFX đứng tại nơi spawn. FollowAnchor: VFX đi theo socket trong thời gian sống.")]
+    public EnemyAttackVFXSpace vfxSpace = EnemyAttackVFXSpace.World;
     public Vector3 vfxOffset; //Offset để điều chỉnh vị trí gắn VFX khi đòn đánh được đánh ra, có thể dùng để tinh chỉnh vị trí gắn hiệu ứng khi tấn công để phù hợp với animation và mô hình của Enemy
     public Vector3 vfxEuler; //Rotation để điều chỉnh hướng gắn VFX khi đòn đánh được đánh ra, có thể dùng để tinh chỉnh hướng gắn hiệu ứng khi tấn công để phù hợp với animation và mô hình của Enemy
     public float vfxScale = 1f; //Scale để điều chỉnh kích thước gắn VFX khi đòn đánh được đánh ra, có thể dùng để tinh chỉnh kích thước gắn hiệu ứng khi tấn công để phù hợp với animation và mô hình của Enemy

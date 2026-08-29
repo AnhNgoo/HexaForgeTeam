@@ -294,5 +294,11 @@ public class EnemyBase : LoadComponents, IPoolable
     {
         _damageReceiver.TakeHit(500f, 30f, transform);
     }
+
+    [Button("Test: Stun Enemy", ButtonSizes.Large)]
+    public void DebugStunEnemy()
+    {
+        _damageReceiver.TakeHit(0f, 500f, transform);
+    }
     #endregion
 }

@@ -132,6 +132,28 @@ public enum PoolType
     DormantPowerFlickerVFX = 3102,
     DormantPowerPickupVFX = 3103,
 
+    VenomQueenClawVFX = 3201,
+    VenomQueenBiteVFX = 3202,
+    VenomQueenCastVFX = 3203,
+
+    NightStalkerBiteVFX = 3211,
+    NightStalkerKickVFX = 3212,
+    NightStalkerCastVFX = 3213,
+    NightStalkerMuzzleVFX = 3214,
+
+    ThunderBeastBiteVFX = 3221,
+    ThunderBeastPounceImpactVFX = 3222,
+    ThunderBeastChargeVFX = 3223,
+    ThunderBeastMuzzleVFX = 3224,
+    ThunderBeastLightningBall = 3225,
+
+    HellhoundSlashVFX = 3231,
+    HellhoundBiteVFX = 3232,
+    HellhoundPounceImpactVFX = 3233,
+    HellhoundMuzzleVFX = 3234,
+    HellhoundHellfireOrb = 3235,
+
+
 
 }
 
