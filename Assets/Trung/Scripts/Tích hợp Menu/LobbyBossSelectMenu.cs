@@ -1,8 +1,11 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 using TMPro;
 using DG.Tweening;
+using UnityEngine.EventSystems;
 
 public class LobbyBossSelectMenu : MenuBase
 {
@@ -18,6 +21,11 @@ public class LobbyBossSelectMenu : MenuBase
         public Button selectButton;
         public GameObject highlightObject;
 
+        [Header("Video Preview Settings")]
+        public VideoPlayer videoPlayer;
+        public RawImage videoRawImage;
+        public RenderTexture videoRenderTexture;
+
         [Header("Lock State")]
         public GameObject lockOverlay;
         public TMP_Text lockMessageText;
@@ -26,14 +34,54 @@ public class LobbyBossSelectMenu : MenuBase
     [Header("Boss Config List")]
     [SerializeField] private List<BossSelectOption> bossOptions = new List<BossSelectOption>();
 
+    [Header("Wager Slider & Risk Tiers UI")]
+    [SerializeField] private Slider wagerSlider;
+    [SerializeField] private TMP_Text txtSelectedWagerInfo;
+
+    [Header("Wager Costs & Multipliers Config")]
+    [SerializeField] private int costTier1 = 50;
+    [SerializeField] private int costTier2 = 150;
+    [SerializeField] private int costTier3 = 400;
+
+    [Header("Run Buff Toggles & Item Count Displays")]
+    [SerializeField] private GameObject buffGroupRoot;
+    [SerializeField] private Toggle toggleGoldBuff;
+    [SerializeField] private TMP_Text txtGoldCount;
+    [SerializeField] private Toggle toggleReviveBuff;
+    [SerializeField] private TMP_Text txtReviveCount;
+    [SerializeField] private Toggle toggleAtkBuff;
+    [SerializeField] private TMP_Text txtAtkCount;
+
     [Header("UI Action Buttons")]
     [SerializeField] private Button btnConfirmStartRun;
 
     [Header("Map Debug Preview (Optional Text in Scene)")]
     [SerializeField] private TMP_Text txtSelectedMapDebug;
 
+    private const string ItemGoldID = "ITEM_BUFF_GOLD";
+    private const string ItemReviveID = "ITEM_BUFF_REVIVE";
+    private const string ItemAtkID = "ITEM_BUFF_ATK";
+
+    private const string ItemGoldName = "Gold Elixir";
+    private const string ItemReviveName = "Phoenix Charm";
+    private const string ItemAtkName = "Power Elixir";
+
     private int selectedBossIndex = 0;
     private string previewedRunMapName = "";
+    private int selectedWagerAmount = 50;
+    private float selectedMultiplier = 1.0f;
+    private int currentTierIndex = 0;
+    private Coroutine playVideoCoroutine;
+
+    protected override void LoadComponent()
+    {
+        if (txtSelectedMapDebug == null)
+        {
+            txtSelectedMapDebug = transform.Find("TxtSelectedMapDebug")?.GetComponent<TMP_Text>();
+        }
+    }
+
+    protected override void LoadComponentRuntime() { }
 
     private void Start()
     {
@@ -43,7 +91,173 @@ public class LobbyBossSelectMenu : MenuBase
             btnConfirmStartRun.onClick.AddListener(OnConfirmStartRun);
         }
 
+        SetupWagerSlider();
         SetupBossButtons();
+        SetupBuffToggles();
+        UpdateMapDebugUI();
+    }
+
+    private void OnEnable()
+    {
+        if (wagerSlider != null)
+        {
+            EventTrigger trigger = wagerSlider.gameObject.GetComponent<EventTrigger>() 
+                ?? wagerSlider.gameObject.AddComponent<EventTrigger>();
+
+            trigger.triggers.Clear();
+            EventTrigger.Entry entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerUp };
+            entry.callback.AddListener((data) => { SnapToClosestTier(); });
+            trigger.triggers.Add(entry);
+        }
+    }
+
+    private void SetupBuffToggles()
+    {
+        if (toggleGoldBuff != null)
+        {
+            toggleGoldBuff.onValueChanged.RemoveAllListeners();
+            toggleGoldBuff.onValueChanged.AddListener((isOn) => OnBuffToggleClicked(ItemGoldID, toggleGoldBuff, isOn));
+        }
+
+        if (toggleReviveBuff != null)
+        {
+            toggleReviveBuff.onValueChanged.RemoveAllListeners();
+            toggleReviveBuff.onValueChanged.AddListener((isOn) => OnBuffToggleClicked(ItemReviveID, toggleReviveBuff, isOn));
+        }
+
+        if (toggleAtkBuff != null)
+        {
+            toggleAtkBuff.onValueChanged.RemoveAllListeners();
+            toggleAtkBuff.onValueChanged.AddListener((isOn) => OnBuffToggleClicked(ItemAtkID, toggleAtkBuff, isOn));
+        }
+    }
+
+    private void OnBuffToggleClicked(string itemID, Toggle toggle, bool isOn)
+    {
+        if (!isOn) return;
+
+        int owned = InventoryItemManager.Instance != null ? InventoryItemManager.Instance.GetItemQuantity(itemID) : 0;
+        if (owned <= 0)
+        {
+            toggle.SetIsOnWithoutNotify(false);
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify("Vật phẩm đã hết! Hãy mua thêm tại Cửa Hàng.", Color.yellow);
+            }
+        }
+    }
+
+    private void RefreshBuffTogglesState()
+    {
+        int goldQty = InventoryItemManager.Instance != null ? InventoryItemManager.Instance.GetItemQuantity(ItemGoldID) : 0;
+        int reviveQty = InventoryItemManager.Instance != null ? InventoryItemManager.Instance.GetItemQuantity(ItemReviveID) : 0;
+        int atkQty = InventoryItemManager.Instance != null ? InventoryItemManager.Instance.GetItemQuantity(ItemAtkID) : 0;
+
+        if (txtGoldCount != null) txtGoldCount.SetTextSafe($"{ItemGoldName} x{goldQty}");
+        if (txtReviveCount != null) txtReviveCount.SetTextSafe($"{ItemReviveName} x{reviveQty}");
+        if (txtAtkCount != null) txtAtkCount.SetTextSafe($"{ItemAtkName} x{atkQty}");
+
+        if (currentTierIndex == 0)
+        {
+            SetToggleActive(toggleGoldBuff, false);
+            SetToggleActive(toggleReviveBuff, false);
+            SetToggleActive(toggleAtkBuff, false);
+        }
+        else if (currentTierIndex == 1)
+        {
+            SetToggleActive(toggleGoldBuff, true);
+            SetToggleActive(toggleReviveBuff, true);
+            SetToggleActive(toggleAtkBuff, false);
+        }
+        else
+        {
+            SetToggleActive(toggleGoldBuff, true);
+            SetToggleActive(toggleReviveBuff, true);
+            SetToggleActive(toggleAtkBuff, true);
+        }
+    }
+
+    private void SetToggleActive(Toggle toggle, bool isInteractable)
+    {
+        if (toggle == null) return;
+        toggle.interactable = isInteractable;
+        if (!isInteractable)
+        {
+            toggle.SetIsOnWithoutNotify(false);
+        }
+    }
+
+    private void SetupWagerSlider()
+    {
+        if (wagerSlider != null)
+        {
+            wagerSlider.wholeNumbers = true;
+            wagerSlider.minValue = 0;
+            wagerSlider.maxValue = 2;
+            wagerSlider.value = 0;
+            wagerSlider.transition = Selectable.Transition.ColorTint;
+
+            wagerSlider.onValueChanged.RemoveAllListeners();
+            wagerSlider.onValueChanged.AddListener(OnWagerSliderChanged);
+
+            OnWagerSliderChanged(0);
+        }
+    }
+
+    private void SnapToClosestTier()
+    {
+        if (wagerSlider == null) return;
+
+        int nearestTier = Mathf.RoundToInt(wagerSlider.value);
+        DOTween.To(() => wagerSlider.value, x => wagerSlider.value = x, nearestTier, 0.15f)
+              .SetEase(Ease.OutQuad)
+              .SetUpdate(true);
+    }
+
+    private void OnWagerSliderChanged(float value)
+    {
+        currentTierIndex = Mathf.RoundToInt(value);
+
+        switch (currentTierIndex)
+        {
+            case 0:
+                selectedWagerAmount = costTier1;
+                selectedMultiplier = 1.0f;
+                if (txtSelectedWagerInfo != null)
+                {
+                    txtSelectedWagerInfo.text =
+                        "<b>Tier: <color=#00FF00>Standard (Safe)</color></b> | Bet: <color=#00FFFF>" + costTier1 + " Gems</color> (x1.0)\n" +
+                        "<color=#00FF00>• Benefits:</color> Standard combat, resources kept intact.\n" +
+                        "<color=#FF5555>• Note:</color> No secondary buffs allowed.";
+                }
+                break;
+
+            case 1:
+                selectedWagerAmount = costTier2;
+                selectedMultiplier = 1.5f;
+                if (txtSelectedWagerInfo != null)
+                {
+                    txtSelectedWagerInfo.text =
+                        "<b>Tier: <color=#FFFF00>Risky (Challenge)</color></b> | Bet: <color=#00FFFF>" + costTier2 + " Gems</color> (x1.5)\n" +
+                        "<color=#00FF00>• Benefits:</color> EXP & Resource gains +50%.\n" +
+                        "<color=#00FFFF>• Buffs:</color> Gold Boost & Phoenix Charm available.";
+                }
+                break;
+
+            case 2:
+                selectedWagerAmount = costTier3;
+                selectedMultiplier = 2.5f;
+                if (txtSelectedWagerInfo != null)
+                {
+                    txtSelectedWagerInfo.text =
+                        "<b>Tier: <color=#FF3333>Nightmare (Hardcore)</color></b> | Bet: <color=#00FFFF>" + costTier3 + " Gems</color> (x2.5)\n" +
+                        "<color=#00FF00>• Benefits:</color> Massive rewards (x2.5) & Rune Shards.\n" +
+                        "<color=#00FFFF>• Buffs:</color> All 3 Combat Elixirs unlocked!";
+                }
+                break;
+        }
+
+        RefreshBuffTogglesState();
     }
 
     private void Update()
@@ -65,14 +279,22 @@ public class LobbyBossSelectMenu : MenuBase
 
         SetupBossButtons();
         RefreshBossLockStates();
-
         RerollPreviewMap();
+        RefreshBuffTogglesState();
 
+        HideAndStopAllVideos();
         SelectBoss(0, isInitialOpen: true);
     }
 
     public override void Close()
     {
+        if (playVideoCoroutine != null)
+        {
+            StopCoroutine(playVideoCoroutine);
+            playVideoCoroutine = null;
+        }
+
+        HideAndStopAllVideos();
         base.Close();
 
         if (LobbyHUDTopBar.Instance != null)
@@ -102,20 +324,9 @@ public class LobbyBossSelectMenu : MenuBase
 
             bool isLocked = (option.bossPoolType == PoolType.EnemyDarkMageBoss) && !isBoss2Unlocked;
 
-            if (option.lockOverlay != null)
-            {
-                option.lockOverlay.SetActive(isLocked);
-            }
-
-            if (option.selectButton != null)
-            {
-                option.selectButton.interactable = !isLocked;
-            }
-
-            if (option.lockMessageText != null)
-            {
-                option.lockMessageText.gameObject.SetActive(isLocked);
-            }
+            if (option.lockOverlay != null) option.lockOverlay.SetActive(isLocked);
+            if (option.selectButton != null) option.selectButton.interactable = !isLocked;
+            if (option.lockMessageText != null) option.lockMessageText.gameObject.SetActive(isLocked);
         }
     }
 
@@ -127,19 +338,76 @@ public class LobbyBossSelectMenu : MenuBase
             var option = bossOptions[index];
             if (option == null || option.selectButton == null) continue;
 
+            if (option.videoPlayer != null)
+            {
+                option.videoPlayer.playOnAwake = false;
+            }
+
             option.selectButton.onClick.RemoveAllListeners();
             option.selectButton.onClick.AddListener(() =>
             {
                 SelectBoss(index, isInitialOpen: false);
             });
+        }
+    }
 
-            UITooltipAutoTrigger tooltipTrigger = option.selectButton.GetComponent<UITooltipAutoTrigger>();
-            if (tooltipTrigger == null)
+    private void PlaySelectedBossVideoOnly(int targetIndex)
+    {
+        if (playVideoCoroutine != null)
+        {
+            StopCoroutine(playVideoCoroutine);
+        }
+
+        playVideoCoroutine = StartCoroutine(PlayVideoRoutine(targetIndex));
+    }
+
+    private IEnumerator PlayVideoRoutine(int targetIndex)
+    {
+        for (int i = 0; i < bossOptions.Count; i++)
+        {
+            var opt = bossOptions[i];
+            if (opt == null) continue;
+
+            if (i != targetIndex)
             {
-                tooltipTrigger = option.selectButton.gameObject.AddComponent<UITooltipAutoTrigger>();
+                if (opt.videoPlayer != null && opt.videoPlayer.isPlaying) opt.videoPlayer.Stop();
+                if (opt.videoRawImage != null) opt.videoRawImage.gameObject.SetActive(false);
             }
+        }
 
-            tooltipTrigger.SetData(option.bossName, option.bossDescription, option.bossIcon);
+        if (targetIndex >= 0 && targetIndex < bossOptions.Count)
+        {
+            var currentOpt = bossOptions[targetIndex];
+            if (currentOpt != null && currentOpt.videoPlayer != null)
+            {
+                if (currentOpt.videoRawImage != null) currentOpt.videoRawImage.gameObject.SetActive(true);
+                if (!currentOpt.videoPlayer.gameObject.activeSelf) currentOpt.videoPlayer.gameObject.SetActive(true);
+
+                if (currentOpt.videoRenderTexture != null) currentOpt.videoRenderTexture.Release();
+
+                currentOpt.videoPlayer.Stop();
+                currentOpt.videoPlayer.Prepare();
+
+                while (!currentOpt.videoPlayer.isPrepared)
+                {
+                    yield return null;
+                }
+
+                currentOpt.videoPlayer.Play();
+            }
+        }
+    }
+
+    private void HideAndStopAllVideos()
+    {
+        for (int i = 0; i < bossOptions.Count; i++)
+        {
+            var opt = bossOptions[i];
+            if (opt == null) continue;
+
+            if (opt.videoPlayer != null) opt.videoPlayer.Stop();
+            if (opt.videoRawImage != null) opt.videoRawImage.gameObject.SetActive(false);
+            if (opt.videoRenderTexture != null) opt.videoRenderTexture.Release();
         }
     }
 
@@ -161,15 +429,28 @@ public class LobbyBossSelectMenu : MenuBase
 
         previewedRunMapName = (previewedRunMapName == map1) ? map2 : map1;
         UpdateMapDebugUI();
+
+        if (bossOptions != null && bossOptions.Count > selectedBossIndex && RunManager.Instance != null)
+        {
+            RunManager.Instance.ConfigureRun(previewedRunMapName, bossOptions[selectedBossIndex].bossPoolType);
+        }
     }
 
     private void UpdateMapDebugUI()
     {
+        if (string.IsNullOrEmpty(previewedRunMapName))
+        {
+            previewedRunMapName = GameSceneData.Instance != null 
+                ? GameSceneData.Instance.GetRandomRunSceneName() 
+                : "Run Scene";
+        }
+
         if (txtSelectedMapDebug != null)
         {
             txtSelectedMapDebug.text = $"Map Target: <color=#00FFFF>{previewedRunMapName}</color>";
         }
-        Debug.Log($"<color=#FF7700><b>[LobbyBossSelectMenu]</b> Map Previewed: <b>{previewedRunMapName}</b> (Nhấn 'M' để đổi Map thủ công)</color>");
+
+        Debug.Log($"<color=#FF7700><b>[LobbyBossSelectMenu]</b> Target Map: <b>{previewedRunMapName}</b> (Nhấn 'M' để đổi Map)</color>");
     }
 
     public void SelectBoss(int index, bool isInitialOpen = false)
@@ -203,46 +484,68 @@ public class LobbyBossSelectMenu : MenuBase
             if (option.highlightObject != null)
             {
                 option.highlightObject.SetActive(isSelected);
-
-                if (isSelected && !isInitialOpen)
-                {
-                    option.highlightObject.transform.DOKill(true);
-                    option.highlightObject.transform.localScale = Vector3.one;
-                    option.highlightObject.transform.DOPunchScale(new Vector3(0.12f, 0.12f, 0f), 0.25f, 5);
-                }
-            }
-
-            if (isSelected && option.selectButton != null && !isInitialOpen)
-            {
-                option.selectButton.transform.DOKill(true);
-                option.selectButton.transform.localScale = Vector3.one;
-                option.selectButton.transform.DOPunchScale(new Vector3(0.06f, 0.06f, 0f), 0.2f, 4);
             }
         }
 
         var selected = bossOptions[selectedBossIndex];
+        PlaySelectedBossVideoOnly(selectedBossIndex);
 
         if (RunManager.Instance != null)
         {
             RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
         }
 
-        if (!isInitialOpen && LobbyNotifyManager.Instance != null)
-        {
-            string notifyText = string.IsNullOrEmpty(selected.bossName) ? $"Selected Boss {index + 1}" : $"Target: {selected.bossName}";
-            LobbyNotifyManager.Instance.ShowNotify(notifyText, Color.cyan);
-        }
+        Debug.Log($"<color=#00FFCC><b>[LobbyBossSelectMenu]</b> Đã chọn: <b>{selected.bossName}</b></color>");
+        UpdateMapDebugUI();
     }
 
     private void OnConfirmStartRun()
     {
-        if (bossOptions.Count == 0) return;
+        if (bossOptions == null || bossOptions.Count == 0) return;
 
-        if (btnConfirmStartRun != null)
+        int currentGem = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null) 
+            ? SaveLoadManager.Instance.SaveData.gem 
+            : 0;
+
+        if (currentGem < selectedWagerAmount)
         {
-            btnConfirmStartRun.transform.DOKill(true);
-            btnConfirmStartRun.transform.localScale = Vector3.one;
-            btnConfirmStartRun.transform.DOPunchScale(new Vector3(0.08f, 0.08f, 0f), 0.25f, 5);
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"Not enough Gems! Required wager: {selectedWagerAmount} Gems.", Color.red);
+            }
+            return;
+        }
+
+        ActiveRunBuffs activeBuffs = new ActiveRunBuffs();
+
+        if (toggleGoldBuff != null && toggleGoldBuff.isOn && toggleGoldBuff.interactable)
+        {
+            if (InventoryItemManager.Instance != null && InventoryItemManager.Instance.SpendItem(ItemGoldID, 1))
+            {
+                activeBuffs.hasGoldBuff = true;
+            }
+        }
+
+        if (toggleReviveBuff != null && toggleReviveBuff.isOn && toggleReviveBuff.interactable)
+        {
+            if (InventoryItemManager.Instance != null && InventoryItemManager.Instance.SpendItem(ItemReviveID, 1))
+            {
+                activeBuffs.hasReviveBuff = true;
+            }
+        }
+
+        if (toggleAtkBuff != null && toggleAtkBuff.isOn && toggleAtkBuff.interactable)
+        {
+            if (InventoryItemManager.Instance != null && InventoryItemManager.Instance.SpendItem(ItemAtkID, 1))
+            {
+                activeBuffs.hasAtkBuff = true;
+            }
+        }
+
+        if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+        {
+            SaveLoadManager.Instance.SaveData.gem -= selectedWagerAmount;
+            SaveLoadManager.Instance.SaveGame();
         }
 
         var selected = bossOptions[selectedBossIndex];
@@ -254,18 +557,14 @@ public class LobbyBossSelectMenu : MenuBase
                 : "Run Scene";
         }
 
-        Debug.Log($"<color=#00FF00><b>[START RUN]</b> Map: <b>{previewedRunMapName}</b> | Boss: <b>{selected.bossName}</b></color>");
-
-        // Đóng Menu chọn Boss hiện tại
         Close();
 
         if (RunManager.Instance != null)
         {
+            RunManager.Instance.SetWagerConfig(selectedWagerAmount, selectedMultiplier);
+            RunManager.Instance.SetActiveBuffs(activeBuffs);
             RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
             RunManager.Instance.StartRun();
         }
     }
-
-    protected override void LoadComponent() { }
-    protected override void LoadComponentRuntime() { }
 }

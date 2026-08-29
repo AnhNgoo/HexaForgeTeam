@@ -3,6 +3,21 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
+public struct ActiveRunBuffs
+{
+    public bool hasGoldBuff;
+    public bool hasReviveBuff;
+    public bool hasAtkBuff;
+
+    public void Reset()
+    {
+        hasGoldBuff = false;
+        hasReviveBuff = false;
+        hasAtkBuff = false;
+    }
+}
+
 public class RunManager : MonoBehaviour
 {
     public static RunManager Instance;
@@ -26,6 +41,17 @@ public class RunManager : MonoBehaviour
     public bool IsRunActive => isRunActive;
 
     [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
+    private int currentWagerAmount = 0;
+    private float currentRewardMultiplier = 1.0f;
+    private bool isRunWon = false;
+
+    [Header("Active Run Buffs")]
+    [SerializeField] private ActiveRunBuffs activeBuffs;
+
+    public int CurrentWagerAmount => currentWagerAmount;
+    public float CurrentRewardMultiplier => currentRewardMultiplier;
+    public bool IsRunWon => isRunWon;
+    public ActiveRunBuffs ActiveBuffs => activeBuffs;
 
     public PoolType SelectedFinalBossPool => selectedFinalBossPool;
 
@@ -74,6 +100,28 @@ public class RunManager : MonoBehaviour
         pendingGem = gem;
         pendingExp = exp;
         pendingShards = shards;
+    }
+
+    public void SetWagerConfig(int wager, float multiplier)
+    {
+        currentWagerAmount = wager;
+        currentRewardMultiplier = multiplier;
+        isRunWon = false;
+    }
+
+    public void SetActiveBuffs(ActiveRunBuffs buffs)
+    {
+        activeBuffs = buffs;
+    }
+
+    public void MarkRunVictory(bool victory)
+    {
+        isRunWon = victory;
+    }
+
+    public void ConsumeReviveBuff()
+    {
+        activeBuffs.hasReviveBuff = false;
     }
 
     public void StartRun()
@@ -326,6 +374,12 @@ public class RunManager : MonoBehaviour
     {
         isRunActive = false;
         Time.timeScale = 1f;
+
+        // XÓA SẠCH VÀ RESET TOÀN BỘ BUFF KHI VỀ LẠI LOBBY
+        activeBuffs.Reset();
+        currentWagerAmount = 0;
+        currentRewardMultiplier = 1.0f;
+        isRunWon = false;
 
         if (UIManager.Instance != null)
         {
