@@ -19417,7 +19417,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 1219159941533241387, guid: 0ecb8e5db0390a7469d50804b5eaf919, type: 3}
       propertyPath: m_CameraDistance
-      value: 0.7267958
+      value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 1855165991823348253, guid: 0ecb8e5db0390a7469d50804b5eaf919, type: 3}
       propertyPath: m_CameraDistance
@@ -50216,6 +50216,10 @@ PrefabInstance:
       propertyPath: startingMenu
       value: 3
       objectReference: {fileID: 0}
+    - target: {fileID: 6172579279717358305, guid: 0d2059afd762bc84abf5f0e37f8dfac5, type: 3}
+      propertyPath: isDontDestroyOnLoad
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 7297962791199906774, guid: 0d2059afd762bc84abf5f0e37f8dfac5, type: 3}
       propertyPath: m_LocalPosition.x
       value: 9.664033
@@ -59718,6 +59722,15 @@ PrefabInstance:
     - target: {fileID: 1645099289879395046, guid: 30f867ae55c3bb147bb3c097df4e38d2, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4896115941228855404, guid: 30f867ae55c3bb147bb3c097df4e38d2, type: 3}
+      propertyPath: m_WarningMessage
+      value: "\nBinding warning: Some generic clip(s) animate transforms that are
+        already bound by a Humanoid avatar. These transforms can only be changed
+        by Humanoid clips.\n\tTransform 'lowerarm.r'\n\tTransform 'upperarm.l'\n\tTransform
+        'chest'\n\tTransform 'hand.r'\n\tTransform 'lowerarm.l'\n\tTransform 'lowerleg.r'\n\tTransform
+        'lowerleg.l'\n\tTransform 'upperleg.l'\n\tTransform 'hand.l'\n\tTransform
+        'root'\n\tand more ...\n\tFrom animation clip 'HangOnBird'"
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

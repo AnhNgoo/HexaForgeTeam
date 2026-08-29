@@ -184,7 +184,8 @@ public class UIManager : Singleton<UIManager>
             if (menu?.menuBase == null)
                 continue;
 
-            menu.menuBase.gameObject.SetActive(false);
+            menu.menuBase.Open();
+            menu.menuBase.Close();
         }
 
         CurrentMenu = null;
