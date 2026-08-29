@@ -49,6 +49,7 @@ public enum GameEvent
     OnUpdateLevel = 41,
     OnFinalSafeZoneCompleted = 42,
     OnStartSafeZone = 43,
+    OnReturnToLobby = 44,
 }
 public static class EventManager
 {

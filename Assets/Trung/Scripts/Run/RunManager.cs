@@ -82,8 +82,8 @@ public class RunManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(gameplaySceneName))
         {
-            gameplaySceneName = GameSceneData.Instance != null 
-                ? GameSceneData.Instance.GetRandomRunSceneName() 
+            gameplaySceneName = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetRandomRunSceneName()
                 : "Run Scene";
         }
 
@@ -318,6 +318,7 @@ public class RunManager : MonoBehaviour
 
     public void ReturnToLobby()
     {
+        EventManager.Notify(GameEvent.OnReturnToLobby);
         StartCoroutine(UnloadSceneCoroutine());
     }
 
