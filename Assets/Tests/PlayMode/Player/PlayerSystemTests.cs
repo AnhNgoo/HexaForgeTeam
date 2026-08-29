@@ -1836,7 +1836,7 @@ namespace DuskBlade.Tests
 
             try
             {
-                routine = body(context);
+                routine = RunAfterSceneLoad(context, body);
             }
             catch (Exception exception)
             {
@@ -1877,6 +1877,13 @@ namespace DuskBlade.Tests
                 RecordFail(id, title, expected, BuildFailActual(context, failure), severity, steps);
                 throw failure;
             }
+        }
+
+        private IEnumerator RunAfterSceneLoad(TestRunContext context, Func<TestRunContext, IEnumerator> body)
+        {
+            yield return TestSceneLoader.Load(TestSceneConfig.RunScenePath);
+            IEnumerator routine = body(context);
+            while (routine != null && routine.MoveNext()) yield return routine.Current;
         }
 
         private GameObject InstantiatePlayerOrFail()
