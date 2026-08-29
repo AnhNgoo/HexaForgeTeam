@@ -378,6 +378,34 @@ public class ObjectPooling : Singleton<ObjectPooling>
         return $"{poolType}: Total={total}, Active={active}, Available={available}";
     }
 
+    /// <summary>
+    /// Đưa GameObject về đúng parent gốc của pool (Pool_{poolType}).
+    /// Dùng khi GameObject bị lôi ra ngoài hierarchy trong lúc runtime.
+    /// Không ảnh hưởng đến queue hay activeCount — chỉ đặt lại parent.
+    /// </summary>
+    public void RestoreToPoolParent(PoolType poolType, GameObject obj)
+    {
+        if (obj == null)
+        {
+            Debug.LogWarning($"[ObjectPooling] RestoreToPoolParent: obj is null (poolType={poolType})");
+            return;
+        }
+
+        if (!poolSettings.ContainsKey(poolType))
+        {
+            Debug.LogWarning($"[ObjectPooling] RestoreToPoolParent: Pool {poolType} không tồn tại!");
+            return;
+        }
+
+        Transform poolParent = poolSettings[poolType].parent;
+        if (obj.transform.parent == poolParent)
+            return; // Đã đúng chỗ rồi, không cần làm gì
+
+        obj.transform.SetParent(poolParent, true); // true = giữ world position
+        Debug.Log($"[ObjectPooling] {obj.name} đã được đưa về parent: {poolParent.name}");
+    }
+
+
     internal void ReturnToPool(PoolType poolType, object gameObject)
     {
 

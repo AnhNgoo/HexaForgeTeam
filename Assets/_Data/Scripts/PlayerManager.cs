@@ -61,6 +61,7 @@ public class PlayerManager : Singleton<PlayerManager>
         EventManager.Subscribe(GameEvent.OnPlayerDeath, CheckRespawnCharacter);
         EventManager.Subscribe(GameEvent.OnFinalSafeZoneCompleted, SetRespawnAttemptsInFinalSafeZone);
         EventManager.Subscribe(GameEvent.OnStartSafeZone, SetRespawnAttemptsInRun);
+        EventManager.Subscribe(GameEvent.OnReturnToLobby, ClearCurrentCharacter);
     }
 
     private void OnDestroy()
@@ -68,6 +69,7 @@ public class PlayerManager : Singleton<PlayerManager>
         EventManager.Unsubscribe(GameEvent.OnPlayerDeath, CheckRespawnCharacter);
         EventManager.Unsubscribe(GameEvent.OnFinalSafeZoneCompleted, SetRespawnAttemptsInFinalSafeZone);
         EventManager.Unsubscribe(GameEvent.OnStartSafeZone, SetRespawnAttemptsInRun);
+        EventManager.Unsubscribe(GameEvent.OnReturnToLobby, ClearCurrentCharacter);
     }
 
     private Characters LoadCharacterSelected()
@@ -251,6 +253,16 @@ public class PlayerManager : Singleton<PlayerManager>
             currentCharacterBase.CharacterSkill.LockUseSkill(true, true);
     }
 
+    private void ClearCurrentCharacter(object data = null)
+    {
+        if (currentCharacterBase != null)
+        {
+            ObjectPooling.Instance.ReturnToPool(currentCharacter.characterData.characterPoolType, currentCharacterBase.gameObject);
+            currentCharacterBase = null;
+        }
+        currentCharacter.character = Character.None;
+        currentCharacter.characterData = null;
+    }
     #endregion
 
     #region Find Spawn Position In Lobby

@@ -25,7 +25,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterLevel))]
 [RequireComponent(typeof(CharacterGoldFalling))]
 [RequireComponent(typeof(CharacterRelic))]
-public abstract class CharacterBase : LoadComponents, ITakeDamage
+public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
@@ -113,6 +113,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public bool IsHitStateActive { get; set; } = false;
     public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
 
+    public PoolType PoolType => characterData?.characterPoolType ?? PoolType.None;
 
     protected override void LoadComponent()
     {
@@ -642,6 +643,16 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         }
         CharacterMovement.Stop();
         CharacterMovement.IsLunging = false;
+    }
+
+    public void OnSpawnFromPool()
+    {
+
+    }
+
+    public void OnReturnToPool()
+    {
+
     }
 
     #endregion
