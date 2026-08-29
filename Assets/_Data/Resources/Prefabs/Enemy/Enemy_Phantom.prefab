@@ -1608,6 +1608,10 @@ MonoBehaviour:
   attackArsenal:
   - {fileID: 11400000, guid: e4d18dc39927d9c4f902c121965fd113, type: 2}
   - {fileID: 11400000, guid: 79a30f52dd240a2408b1ceb54c6b9f09, type: 2}
+  meleeAttackSoundOverride: {fileID: 0}
+  meleeAttackSoundVolume: 1
+  rangedAttackSoundOverride: {fileID: 0}
+  rangedAttackSoundVolume: 1
   selectionMode: 1
 --- !u!114 &4326142766520402140
 MonoBehaviour:
@@ -1795,6 +1799,8 @@ MonoBehaviour:
   disappearDelay: 0.5
   reappearDelay: 0.5
   blinkVFX: 63
+  blinkSound: {fileID: 8300000, guid: 22064555af33cf74984e4570e4feb94c, type: 3}
+  blinkSoundVolume: 1
   renderersToHide: []
 --- !u!195 &7656977643984955884
 NavMeshAgent:

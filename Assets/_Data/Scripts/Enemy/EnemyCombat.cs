@@ -14,6 +14,15 @@ public class EnemyCombat : MonoBehaviour
     [SerializeField] private AttackDataSO[] attackArsenal; //Mảng dữ liệu tấn công, có thể dùng để lưu trữ nhiều loại tấn công khác nhau và chọn ngẫu nhiên hoặc theo thứ tự khi tấn công
     public AttackDataSO[] AttackArsenal => attackArsenal; //Cho phép các lớp khác truy cập mảng dữ liệu tấn công nhưng không cho phép thay đổi trực tiếp
 
+    [Header("Per-Enemy Attack Audio Overrides")]
+    [Tooltip("Sound riêng cho đòn Melee của enemy này. Để trống để dùng sound trong AttackDataSO.")]
+    [SerializeField] private AudioClip meleeAttackSoundOverride;
+    [SerializeField, Range(0f, 1f)] private float meleeAttackSoundVolume = 1f;
+
+    [Tooltip("Sound riêng cho đòn Ranged của enemy này. Để trống để dùng sound trong AttackDataSO.")]
+    [SerializeField] private AudioClip rangedAttackSoundOverride;
+    [SerializeField, Range(0f, 1f)] private float rangedAttackSoundVolume = 1f;
+
     private Dictionary<AttackDataSO, float> _attackCooldownTimers; //Dictionary để theo dõi thời gian hồi chiêu của từng đòn tấn công, giúp kiểm soát thời gian giữa các đòn tấn công khác nhau
 
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
@@ -295,12 +304,35 @@ public class EnemyCombat : MonoBehaviour
 
     private void PlayCurrentAttackSound()
     {
-        if (currentAttackData.attackSound == null || AudioManager.Instance == null)
+        if (currentAttackData == null)
             return;
 
-        AudioManager.Instance.PlaySfx(
-            currentAttackData.attackSound,
-            currentAttackData.attackSoundVolume
+        AudioManager audioManager = AudioManager.GetOrCreateInstance();
+        if (audioManager == null)
+            return;
+
+        AudioClip selectedSound = currentAttackData.attackSound;
+        float selectedVolume = currentAttackData.attackSoundVolume;
+
+        if (currentAttackData.attackType == AttackType.Melee &&
+            meleeAttackSoundOverride != null)
+        {
+            selectedSound = meleeAttackSoundOverride;
+            selectedVolume = meleeAttackSoundVolume;
+        }
+        else if (currentAttackData.attackType == AttackType.Ranged &&
+                 rangedAttackSoundOverride != null)
+        {
+            selectedSound = rangedAttackSoundOverride;
+            selectedVolume = rangedAttackSoundVolume;
+        }
+
+        if (selectedSound == null)
+            return;
+
+        audioManager.PlaySfx(
+            selectedSound,
+            selectedVolume
         );
     }
 

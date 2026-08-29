@@ -51,7 +51,22 @@ public class LobbyBossSelectMenu : MenuBase
 
         SetupBossButtons();
         RefreshBossLockStates();
-        SelectBoss(0, isInitialOpen: true);
+
+        // Không tự động đè lựa chọn trước đó về Earthshaker mỗi khi menu mở lại.
+        int initialIndex = 0;
+        if (RunManager.Instance != null)
+        {
+            int savedIndex = bossOptions.FindIndex(option =>
+                option != null &&
+                option.bossPoolType == RunManager.Instance.SelectedFinalBossPool);
+
+            if (savedIndex >= 0)
+            {
+                initialIndex = savedIndex;
+            }
+        }
+
+        SelectBoss(initialIndex, isInitialOpen: true);
     }
 
     public override void Close()
@@ -193,6 +208,10 @@ public class LobbyBossSelectMenu : MenuBase
         {
             RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
             RunManager.Instance.StartRun();
+        }
+        else
+        {
+            Debug.LogError("[LobbyBossSelectMenu] Không tìm thấy RunManager để lưu boss đã chọn.");
         }
     }
 
