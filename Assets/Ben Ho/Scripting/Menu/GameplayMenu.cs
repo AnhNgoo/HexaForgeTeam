@@ -6,6 +6,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using DG.Tweening;
 using Cysharp.Threading.Tasks;
+using System.Collections.Generic;
 
 [System.Serializable]
 public class TutorialPanel
@@ -59,7 +60,9 @@ public class GameplayMenu : MenuBase
     [SerializeField] private Image img_Skill2;
     [SerializeField] private Image cooldown_Skill2;
 
-
+    [Header("Dynamic Active Buffs Display")]
+    [SerializeField] private Transform buffIconsContainer;
+    [SerializeField] private GameObject buffIconPrefab;
 
     private bool isGoldSubscribed;
     private CancellationTokenSource cooldownSkill1Cts;
@@ -145,6 +148,10 @@ public class GameplayMenu : MenuBase
             text_Description =
                 FindDeepChild("Text_Description")
                     ?.GetComponent<TextMeshProUGUI>();
+        }
+        if (buffIconsContainer == null)
+        {
+            buffIconsContainer = FindDeepChild("BuffIconsContainer");
         }
 
         if (displayWeapon == null)
@@ -243,6 +250,7 @@ public class GameplayMenu : MenuBase
     {
         base.Open(data);
         LoadComponentRuntime();
+        RefreshActiveBuffsUI();
     }
 
     public override void Close()
@@ -640,6 +648,60 @@ public class GameplayMenu : MenuBase
         {
             displayWeapon.SetDisplayItem(null);
         }
+    }
+
+    #endregion
+    #region Active Buffs UI
+
+    public void RefreshActiveBuffsUI()
+    {
+        if (buffIconsContainer == null) return;
+
+        for (int i = buffIconsContainer.childCount - 1; i >= 0; i--)
+        {
+            Destroy(buffIconsContainer.GetChild(i).gameObject);
+        }
+        if (RunManager.Instance == null) return;
+
+        List<string> activeIDs = new List<string>();
+        ActiveRunBuffs buffs = RunManager.Instance.ActiveBuffs;
+
+        if (buffs.hasGoldBuff) activeIDs.Add("ITEM_BUFF_GOLD");
+        if (buffs.hasReviveBuff) activeIDs.Add("ITEM_BUFF_REVIVE");
+        if (buffs.hasAtkBuff) activeIDs.Add("ITEM_BUFF_ATK");
+
+        if (activeIDs.Count == 0) return;
+
+        for (int i = 0; i < activeIDs.Count; i++)
+        {
+            string itemID = activeIDs[i];
+            Sprite icon = InventoryItemDatabase.Instance != null 
+                ? InventoryItemDatabase.Instance.GetItemSprite(itemID) 
+                : null;
+
+            if (icon == null) continue;
+
+            GameObject itemObj = buffIconPrefab != null
+                ? Instantiate(buffIconPrefab, buffIconsContainer)
+                : new GameObject($"BuffIcon_{itemID}", typeof(RectTransform), typeof(Image));
+
+            if (buffIconPrefab == null)
+            {
+                itemObj.transform.SetParent(buffIconsContainer, false);
+            }
+
+            Image img = itemObj.GetComponent<Image>();
+            if (img != null)
+            {
+                img.sprite = icon;
+                img.preserveAspect = true;
+            }
+
+            itemObj.transform.localScale = Vector3.one;
+            itemObj.transform.localPosition = Vector3.zero;
+        }
+
+        UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(buffIconsContainer as RectTransform);
     }
 
     #endregion

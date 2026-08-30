@@ -57,8 +57,13 @@ private AttackVFXSpawnPoint[] attackVFXSpawnPoints;
         _attackCooldownTimers[currentAttackData] = Time.time;
 
         EnemyMinibossBehaviour behaviour = _enemyBase.MinibossBehaviour;
+        float difficultyMultiplier = 1.0f;
+        if (RunManager.Instance != null)
+        {
+            difficultyMultiplier = RunManager.Instance.CurrentRewardMultiplier;
+        }
         CurrentAttackDamageMultiplier =
-            behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f;
+            (behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f) * difficultyMultiplier;
 
         behaviour?.OnAttackStarted(currentAttackData);
         currentAttackData.skillLogic?.OnAttackStart(CreateAttackContext());
