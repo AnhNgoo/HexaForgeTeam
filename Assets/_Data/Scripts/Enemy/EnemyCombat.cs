@@ -14,6 +14,15 @@ public class EnemyCombat : MonoBehaviour
     [SerializeField] private AttackDataSO[] attackArsenal; //Mảng dữ liệu tấn công, có thể dùng để lưu trữ nhiều loại tấn công khác nhau và chọn ngẫu nhiên hoặc theo thứ tự khi tấn công
     public AttackDataSO[] AttackArsenal => attackArsenal; //Cho phép các lớp khác truy cập mảng dữ liệu tấn công nhưng không cho phép thay đổi trực tiếp
 
+    [Header("Per-Enemy Attack Audio Overrides")]
+    [Tooltip("Sound riêng cho đòn Melee của enemy này. Để trống để dùng sound trong AttackDataSO.")]
+    [SerializeField] private AudioClip meleeAttackSoundOverride;
+    [SerializeField, Range(0f, 1f)] private float meleeAttackSoundVolume = 1f;
+
+    [Tooltip("Sound riêng cho đòn Ranged của enemy này. Để trống để dùng sound trong AttackDataSO.")]
+    [SerializeField] private AudioClip rangedAttackSoundOverride;
+    [SerializeField, Range(0f, 1f)] private float rangedAttackSoundVolume = 1f;
+
     private Dictionary<AttackDataSO, float> _attackCooldownTimers; //Dictionary để theo dõi thời gian hồi chiêu của từng đòn tấn công, giúp kiểm soát thời gian giữa các đòn tấn công khác nhau
 
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
@@ -57,8 +66,13 @@ private AttackVFXSpawnPoint[] attackVFXSpawnPoints;
         _attackCooldownTimers[currentAttackData] = Time.time;
 
         EnemyMinibossBehaviour behaviour = _enemyBase.MinibossBehaviour;
+        float difficultyMultiplier = 1.0f;
+        if (RunManager.Instance != null)
+        {
+            difficultyMultiplier = RunManager.Instance.CurrentRewardMultiplier;
+        }
         CurrentAttackDamageMultiplier =
-            behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f;
+            (behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f) * difficultyMultiplier;
 
         behaviour?.OnAttackStarted(currentAttackData);
         currentAttackData.skillLogic?.OnAttackStart(CreateAttackContext());
@@ -355,6 +369,8 @@ private void SpawnAttackVFX(Transform spawnPoint)
         if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
         if (currentAttackData == null) return;
 
+        PlayCurrentAttackSound();
+
         Debug.Log($"[EnemyCombat] AttackImpact event: {currentAttackData.attackName}");
         Debug.Log($"[EnemyCombat] Gọi skill impact: {(currentAttackData.skillLogic != null ? currentAttackData.skillLogic.name : "NULL - fallback")}");
 
@@ -372,6 +388,40 @@ private void SpawnAttackVFX(Transform spawnPoint)
         {
             SpawnProjectile();
         }
+    }
+
+    private void PlayCurrentAttackSound()
+    {
+        if (currentAttackData == null)
+            return;
+
+        AudioManager audioManager = AudioManager.GetOrCreateInstance();
+        if (audioManager == null)
+            return;
+
+        AudioClip selectedSound = currentAttackData.attackSound;
+        float selectedVolume = currentAttackData.attackSoundVolume;
+
+        if (currentAttackData.attackType == AttackType.Melee &&
+            meleeAttackSoundOverride != null)
+        {
+            selectedSound = meleeAttackSoundOverride;
+            selectedVolume = meleeAttackSoundVolume;
+        }
+        else if (currentAttackData.attackType == AttackType.Ranged &&
+                 rangedAttackSoundOverride != null)
+        {
+            selectedSound = rangedAttackSoundOverride;
+            selectedVolume = rangedAttackSoundVolume;
+        }
+
+        if (selectedSound == null)
+            return;
+
+        audioManager.PlaySfx(
+            selectedSound,
+            selectedVolume
+        );
     }
 
     public void HandleAttackEndEvent()

@@ -103,6 +103,7 @@ public class CampSpawner : MonoBehaviour
 
     private Transform _playerTransform; // Biến để lưu trữ reference đến Transform của player, có thể dùng để kiểm tra khoảng cách giữa player và camp để quyết định khi nào spawn/despawn enemy
     private bool _isCampActive = false; // Biến để theo dõi trạng thái hoạt động của camp, có thể dùng để kiểm soát việc spawn/despawn enemy dựa trên trạng thái này
+    private bool _hasWarnedMissingPool = false;
 
     private void Start()
     {
@@ -171,6 +172,20 @@ public class CampSpawner : MonoBehaviour
 
     private async UniTask SpawnEnemiesInCamp()
     {
+        ObjectPooling pooling = ObjectPooling.GetOrFindInstance();
+        if (pooling == null)
+        {
+            if (!_hasWarnedMissingPool)
+            {
+                Debug.LogWarning($"[CampSpawner] {name} đang chờ ObjectPooling khởi tạo.", this);
+                _hasWarnedMissingPool = true;
+            }
+
+            // Không đánh dấu camp active để vòng kiểm tra kế tiếp tự thử lại.
+            return;
+        }
+
+        _hasWarnedMissingPool = false;
         _isCampActive = true;
         Debug.Log($"color=cyan><b>Player đã bước vào khu vực camp, bắt đầu spawn quân!</b></color>");
 
@@ -190,7 +205,7 @@ public class CampSpawner : MonoBehaviour
                 Debug.LogWarning($"[CampSpawner] Spawn Point {node.spawnPoint.name} không nằm gần NavMesh.", node.spawnPoint);
                 continue;
             }
-            node.spawnedEnemyObject = ObjectPooling.Instance.SpawnFromPool(node.enemyType, node.spawnPoint.position, node.spawnPoint.rotation); // Spawn enemy từ pool tại vị trí của spawn point với rotation mặc định
+            node.spawnedEnemyObject = pooling.SpawnFromPool(node.enemyType, node.spawnPoint.position, node.spawnPoint.rotation); // Spawn enemy từ pool tại vị trí của spawn point với rotation mặc định
 
             if (node.spawnedEnemyObject != null)
             {

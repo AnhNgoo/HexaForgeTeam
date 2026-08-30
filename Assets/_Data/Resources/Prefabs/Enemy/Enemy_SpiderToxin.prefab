@@ -2076,6 +2076,11 @@ MonoBehaviour:
   attackArsenal:
   - {fileID: 11400000, guid: 7919b084cd36d224f96a765090bf2e57, type: 2}
   - {fileID: 11400000, guid: c581ff61b1c03af4caca62ea999bb53c, type: 2}
+  meleeAttackSoundOverride: {fileID: 8300000, guid: 2535aa26f2129a543bccc88b2f127a41, type: 3}
+  meleeAttackSoundVolume: 1
+  rangedAttackSoundOverride: {fileID: 8300000, guid: 3ce140412af5cd34a979e5920c1c5979, type: 3}
+  rangedAttackSoundVolume: 1
+  attackVFXSpawnPoints: []
   selectionMode: 0
 --- !u!114 &2949728392096226988
 MonoBehaviour:
@@ -2185,6 +2190,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lootPrefab: {fileID: 0}
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 0
+  groundOffset: 0.2
 --- !u!114 &2764778989577047372
 MonoBehaviour:
   m_ObjectHideFlags: 0

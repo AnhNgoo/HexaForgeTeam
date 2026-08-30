@@ -238,6 +238,7 @@ public class EnemyBruteJumpSmashSkillSO : EnemyAttackSkillSO
         else
         {
             Debug.LogWarning("[Brute] Không tìm thấy mặt đất cho Shockwave.");
+            return;
         }
 
         spawnPosition += context.Enemy.MyTransform.TransformDirection(
@@ -258,14 +259,11 @@ public class EnemyBruteJumpSmashSkillSO : EnemyAttackSkillSO
 
             if (ring != null)
             {
-                float scale =
-                    firstRingScale + ringScaleStep * i;
+                float scale = firstRingScale + ringScaleStep * i;
 
-                ring.transform.localScale = Vector3.one * context.AttackData.vfxScale;
+                ring.transform.localScale = Vector3.one * context.AttackData.vfxScale * scale;
 
-                EnemyHitbox hitbox =
-                    ring.GetComponentInChildren<
-                        EnemyHitbox>(true);
+                EnemyHitbox hitbox = ring.GetComponentInChildren<EnemyHitbox>(true);
 
                 hitbox?.Initialize(
                     context.Enemy,

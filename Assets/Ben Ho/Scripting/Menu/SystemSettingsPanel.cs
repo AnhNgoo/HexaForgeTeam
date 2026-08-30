@@ -101,12 +101,9 @@ public class SystemSettingsPanel : MonoBehaviour
 
     private bool CheckIsInLobby()
     {
-        if (GameManager.Instance != null)
+        if (GameManager.Instance != null && GameManager.Instance.MapType != MapType.None)
         {
-            if (GameManager.Instance.MapType == MapType.Boss || GameManager.Instance.MapType == MapType.Run)
-                return false;
-            if (GameManager.Instance.MapType == MapType.Lobby)
-                return true;
+            return GameManager.Instance.MapType == MapType.Lobby;
         }
 
         GameSceneData sceneData = GameSceneData.Instance;

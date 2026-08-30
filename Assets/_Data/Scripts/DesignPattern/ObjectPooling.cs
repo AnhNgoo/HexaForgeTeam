@@ -147,6 +147,8 @@ public class Pool
 }
 public class ObjectPooling : Singleton<ObjectPooling>
 {
+    private const string RuntimePrefabResourcesPath = "Prefabs/LongPrefabs/Scripts/ObjectPooling";
+
     [SerializeField] string poolDataPath = "ScriptableObjects/PoolData";
 
     [Header("Pool Settings")]
@@ -155,6 +157,39 @@ public class ObjectPooling : Singleton<ObjectPooling>
     private Dictionary<PoolType, Queue<GameObject>> poolDictionary;
     private Dictionary<PoolType, Pool> poolSettings;
     private Dictionary<PoolType, int> activeCount;
+
+    public static ObjectPooling GetOrFindInstance()
+    {
+        if (Instance != null)
+            return Instance;
+
+        ObjectPooling sceneInstance = FindObjectOfType<ObjectPooling>();
+        if (sceneInstance == null)
+        {
+            GameObject poolingPrefab = Resources.Load<GameObject>(RuntimePrefabResourcesPath);
+            if (poolingPrefab == null)
+            {
+                Debug.LogError(
+                    $"Không tìm thấy ObjectPooling trong scene hoặc Resources/{RuntimePrefabResourcesPath}.");
+                return null;
+            }
+
+            GameObject runtimeObject = Instantiate(poolingPrefab);
+            runtimeObject.name = "ObjectPooling (Runtime Recovery)";
+            sceneInstance = runtimeObject.GetComponent<ObjectPooling>();
+
+            if (sceneInstance == null)
+            {
+                Debug.LogError($"Prefab {poolingPrefab.name} không chứa component ObjectPooling.");
+                Destroy(runtimeObject);
+                return null;
+            }
+        }
+
+        Instance = sceneInstance;
+        sceneInstance.EnsurePoolsInitialized();
+        return sceneInstance;
+    }
 
 
     protected override void LoadComponent()
@@ -168,6 +203,37 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
         base.Awake();
 
+        // Singleton gốc có thể hủy một bản trùng. Không được tiếp tục khởi tạo
+        // dictionary/pool trên GameObject đang chờ bị hủy.
+        if (Instance != this)
+            return;
+
+        EnsurePoolsInitialized();
+    }
+
+    private void OnEnable()
+    {
+        // Khi Scene Reload bị tắt, Unity có thể không gọi lại Awake ở lượt Play
+        // tiếp theo. OnEnable đăng ký lại chính ObjectPooling còn tồn tại trong scene.
+        if (Instance == null)
+            Instance = this;
+
+        if (Instance != this)
+            return;
+
+        EnsurePoolsInitialized();
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+            Instance = null;
+    }
+
+    private void EnsurePoolsInitialized()
+    {
+        if (poolDictionary != null && poolSettings != null && activeCount != null)
+            return;
         // Singleton cũ vừa lên lịch Destroy object trùng,
         // không được tiếp tục tạo toàn bộ pool.
         if (Instance != this)
@@ -377,6 +443,34 @@ public class ObjectPooling : Singleton<ObjectPooling>
 
         return $"{poolType}: Total={total}, Active={active}, Available={available}";
     }
+
+    /// <summary>
+    /// Đưa GameObject về đúng parent gốc của pool (Pool_{poolType}).
+    /// Dùng khi GameObject bị lôi ra ngoài hierarchy trong lúc runtime.
+    /// Không ảnh hưởng đến queue hay activeCount — chỉ đặt lại parent.
+    /// </summary>
+    public void RestoreToPoolParent(PoolType poolType, GameObject obj)
+    {
+        if (obj == null)
+        {
+            Debug.LogWarning($"[ObjectPooling] RestoreToPoolParent: obj is null (poolType={poolType})");
+            return;
+        }
+
+        if (!poolSettings.ContainsKey(poolType))
+        {
+            Debug.LogWarning($"[ObjectPooling] RestoreToPoolParent: Pool {poolType} không tồn tại!");
+            return;
+        }
+
+        Transform poolParent = poolSettings[poolType].parent;
+        if (obj.transform.parent == poolParent)
+            return; // Đã đúng chỗ rồi, không cần làm gì
+
+        obj.transform.SetParent(poolParent, true); // true = giữ world position
+        Debug.Log($"[ObjectPooling] {obj.name} đã được đưa về parent: {poolParent.name}");
+    }
+
 
     internal void ReturnToPool(PoolType poolType, object gameObject)
     {

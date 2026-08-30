@@ -46,6 +46,9 @@ public class DialogueUI : MonoBehaviour
     private string targetFullText = "";
 
     private List<ChoiceTabItem> allChoices = new List<ChoiceTabItem>();
+    private MenuType previousMenuType = MenuType.DefaultLobbyInputMenu;
+
+    public bool IsDialogueOpen() => root != null && root.activeInHierarchy;
 
     private void Awake()
     {
@@ -54,12 +57,7 @@ public class DialogueUI : MonoBehaviour
         allChoices = new List<ChoiceTabItem>() { choice1Tab, choice2Tab, choice3Tab };
         InitTabHoverTriggers();
 
-        Hide();
-
-        if (InteractManagerV2.Instance != null)
-        {
-            InteractManagerV2.Instance.IsBusy = false;
-        }
+        if (root != null) root.SetActive(false);
     }
 
     private void OnEnable()
@@ -177,6 +175,7 @@ public class DialogueUI : MonoBehaviour
 
         currentDialogue = data;
         currentIndex = 0;
+
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.IsBusy = true;
@@ -189,6 +188,10 @@ public class DialogueUI : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
+            if (UIManager.Instance.CurrentMenuType != MenuType.LobbyDialogueMenu)
+            {
+                previousMenuType = UIManager.Instance.CurrentMenuType;
+            }
             UIManager.Instance.ChangeMenu(MenuType.LobbyDialogueMenu);
         }
 
@@ -227,22 +230,15 @@ public class DialogueUI : MonoBehaviour
 
         if (UIManager.Instance != null)
         {
-            string sceneLobbyName = GameSceneData.Instance != null ? GameSceneData.Instance.GetSceneName(SceneType.LobbyMain) : "LobbyMain Scene";
-            string currentSceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
+            MenuType targetMenu = (previousMenuType != MenuType.None && previousMenuType != MenuType.LobbyDialogueMenu)
+                ? previousMenuType 
+                : MenuType.DefaultLobbyInputMenu;
 
-            if (currentSceneName == sceneLobbyName)
-            {
-                UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
-            }
-            else
-            {
-                UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-            }
+            UIManager.Instance.ChangeMenu(targetMenu);
         }
 
         if (InteractManagerV2.Instance != null)
         {
-            InteractManagerV2.Instance.SetCooldown(0.25f);
             InteractManagerV2.Instance.IsBusy = false;
             InteractManagerV2.Instance.ForceRefresh();
         }

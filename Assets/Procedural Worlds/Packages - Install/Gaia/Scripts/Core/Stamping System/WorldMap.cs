@@ -288,6 +288,21 @@ namespace Gaia
             else
             {
                 Stamper stamper = stamperObj.GetComponent<Stamper>();
+
+                // A World Map Stamper saved without its runtime-only settings
+                // can survive in the scene after a merge / domain reload. Repair
+                // the missing references before Gaia's Spawner accesses them.
+                if (stamper == null)
+                {
+                    stamper = stamperObj.AddComponent<Stamper>();
+                }
+
+                if (stamper.m_settings == null)
+                {
+                    stamper.m_settings = ScriptableObject.CreateInstance<StamperSettings>();
+                    stamper.m_settings.m_operation = GaiaConstants.FeatureOperation.RaiseHeight;
+                }
+
                 stamper.m_settings.m_isWorldmapStamper = true;
                 stamper.m_recordUndo = false;
                 //stamper.m_seaLevel = m_settings.m_currentDefaults.m_seaLevel;
