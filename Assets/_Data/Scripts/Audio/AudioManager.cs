@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 public class AudioManager : Singleton<AudioManager>
 {
+    private const string RuntimePrefabResourcesPath = "Prefabs/Audio Manager";
+
     [Header("Lifetime")]
     [SerializeField] private bool persistAcrossScenes = true;
 
@@ -33,6 +36,9 @@ public class AudioManager : Singleton<AudioManager>
     [SerializeField, Range(0f, 1f)] private float defaultMusicVolume = 1f;
     [SerializeField, Range(0f, 1f)] private float defaultSfxVolume = 1f;
     [SerializeField, Range(0f, 1f)] private float defaultDialogueVolume = 1f;
+
+    [Header("Diagnostics")]
+    [SerializeField] private bool logPlaybackInEditor = false;
 
     private const string AudioDataResourcesPath = "ScriptableObjects/Audio";
     private const float MutedDecibels = -80f;
@@ -68,9 +74,47 @@ public class AudioManager : Singleton<AudioManager>
     public AudioSource SfxSource => sfxSource;
     public AudioSource DialogueSource => dialogueSource;
 
+    public static AudioManager GetOrCreateInstance()
+    {
+        if (Instance != null)
+        {
+            Instance.Initialize();
+            return Instance;
+        }
+
+        AudioManager sceneInstance = FindObjectOfType<AudioManager>();
+        if (sceneInstance != null)
+        {
+            Instance = sceneInstance;
+            sceneInstance.Initialize();
+            return sceneInstance;
+        }
+
+        GameObject managerPrefab = Resources.Load<GameObject>(RuntimePrefabResourcesPath);
+        if (managerPrefab == null)
+        {
+            Debug.LogError(
+                $"Không tìm thấy AudioManager trong scene hoặc Resources/{RuntimePrefabResourcesPath}.");
+            return null;
+        }
+
+        GameObject runtimeObject = Instantiate(managerPrefab);
+        runtimeObject.name = "Audio Manager (Runtime)";
+        return runtimeObject.GetComponent<AudioManager>();
+    }
+
     protected override void Awake()
     {
         isDontDestroyOnLoad = persistAcrossScenes;
+
+        // AudioManager có thể vô tình được gắn lên ObjectPooling hoặc object quan trọng.
+        // Nếu bị trùng, chỉ xóa component AudioManager thừa, không hủy cả GameObject.
+        if (Instance != null && Instance != this)
+        {
+            Destroy(this);
+            return;
+        }
+
         base.Awake();
 
         if (Instance != this)
@@ -83,6 +127,37 @@ public class AudioManager : Singleton<AudioManager>
     {
         // Reapply after the mixer's startup snapshot has initialized.
         ApplyAllVolumes();
+        ApplyMusicForScene(SceneManager.GetActiveScene());
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.activeSceneChanged += HandleActiveSceneChanged;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+    }
+
+    private void HandleActiveSceneChanged(Scene previousScene, Scene newScene)
+    {
+        ApplyMusicForScene(newScene);
+    }
+
+    private void ApplyMusicForScene(Scene scene)
+    {
+        GameSceneData sceneData = GameSceneData.Instance;
+        if (sceneData == null || !sceneData.TryGetBackgroundMusic(scene.name, out AudioClip musicClip))
+            return;
+
+        if (musicClip == null)
+        {
+            StopMusic();
+            return;
+        }
+
+        PlayMusic(musicClip, true);
     }
 
     private void OnDestroy()
@@ -104,7 +179,12 @@ public class AudioManager : Singleton<AudioManager>
 
     public void Initialize()
     {
-        if (isInitialized)
+        bool hasAllRuntimeSources =
+            musicSource != null &&
+            sfxSource != null &&
+            dialogueSource != null;
+
+        if (isInitialized && hasAllRuntimeSources)
             return;
 
         EnsureRuntimeAudioSources();
@@ -514,6 +594,16 @@ public class AudioManager : Singleton<AudioManager>
             volumeScale *= GetEffectiveLinearVolume(channel);
 
         source.PlayOneShot(clip, volumeScale);
+
+#if UNITY_EDITOR
+        if (logPlaybackInEditor)
+        {
+            Debug.Log(
+                $"[AudioManager] Đang phát '{clip.name}' qua {source.name} " +
+                $"(source volume: {source.volume:0.00}, one-shot volume: {volumeScale:0.00}).",
+                this);
+        }
+#endif
     }
 
     private AudioMixerGroup GetOutputGroup(AudioChannel channel)

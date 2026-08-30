@@ -51,7 +51,8 @@ public class FinalBossEncounterDirector : MonoBehaviour
         TeleportPlayer(player, arena.PlayerSpawnPoint);
         arena.SetLocked(true);
 
-        PoolType type = RunManager.Instance != null ? RunManager.Instance.SelectedFinalBossPool : fallbackFinalBossPool;
+        PoolType type = RunManager.ResolveSelectedFinalBossPool(fallbackFinalBossPool);
+        Debug.Log($"[FinalBoss] Spawn boss đã chọn: {type} ({(int)type})");
 
         if (type == PoolType.None)
         {

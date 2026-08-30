@@ -1195,6 +1195,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 681bc92b53c75224eb312734ee11d02a, type: 2}
   - {fileID: 11400000, guid: e39ec11d37dd9b349902a1131b65a319, type: 2}
   - {fileID: 11400000, guid: 2d63da8fccafb06429a57c53bed8c270, type: 2}
+  meleeAttackSoundOverride: {fileID: 0}
+  meleeAttackSoundVolume: 1
+  rangedAttackSoundOverride: {fileID: 0}
+  rangedAttackSoundVolume: 1
   selectionMode: 1
 --- !u!114 &1108157507540339438
 MonoBehaviour:
@@ -1304,7 +1308,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lootPrefab: {fileID: 0}
-  bossLoot: []
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 0
+  groundOffset: 0.2
 --- !u!114 &9029489405922503996
 MonoBehaviour:
   m_ObjectHideFlags: 0

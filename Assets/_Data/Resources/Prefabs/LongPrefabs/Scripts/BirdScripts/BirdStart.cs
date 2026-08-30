@@ -62,6 +62,29 @@ public class BirdStart : MonoBehaviour
             yield break;
         }
 
+        // Bird có thể được scene/spawner kích hoạt và gán route muộn hơn
+        // BirdStart. Chờ tại object này vì coroutine không chạy được trên
+        // chính BirdController khi GameObject Bird đang inactive.
+        timer = 0f;
+
+        while ((!bird.isActiveAndEnabled || !bird.HasDestination) &&
+               timer < findPlayerTimeout)
+        {
+            timer += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (!bird.isActiveAndEnabled || !bird.HasDestination)
+        {
+            Debug.LogWarning(
+                "Bird chưa được kích hoạt hoặc chưa nhận Destination; " +
+                "bỏ qua GrabPlayer để tránh khóa player.",
+                bird
+            );
+
+            yield break;
+        }
+
         Debug.Log(
             $"BirdStart đã tìm thấy Player: {player.name}. " +
             "Bắt đầu GrabPlayer().",

@@ -63,6 +63,7 @@ public class DormantPowerInteractable : InteractBase
         if (isClaimed || rolledRewards.Count == 0)
             return;
 
+        Debug.Log($"{name}: Mở menu Dormant Power với {rolledRewards.Count} reward(s).");
         UIManager.Instance?.ChangeMenu(MenuType.DormantPowerMenu, new DormantPowerMenuData(rolledRewards, ClaimReward, OpenWeaponReplacement));
     }
 

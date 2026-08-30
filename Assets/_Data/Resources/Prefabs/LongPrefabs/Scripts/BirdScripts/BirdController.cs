@@ -11,6 +11,8 @@ public class BirdController : MonoBehaviour
     [Header("Movement")]
     [SerializeField] private float flySpeed = 8f;
     [SerializeField] private float destinationThreshold = 0.1f;
+    [Tooltip("Thời gian chờ Spawner gán Destination khi vừa vào scene.")]
+    [SerializeField] private float destinationWaitTimeout = 2f;
 
     [Header("Drop")]
     [Tooltip("Khoảng cách đặt player thấp hơn Grab Point khi được thả.")]
@@ -22,24 +24,41 @@ public class BirdController : MonoBehaviour
     private bool isDropping;
     private bool playerReleased;
     private bool isCleaningUp;
+    private bool isWaitingForDestination;
+
+    public bool HasDestination => destination != null;
 
     public void GrabPlayer(CharacterBase character)
     {
         // Ngăn chim bắt player nhiều lần.
-        if (isFlying || isDropping || player != null)
+        if (isFlying || isDropping || player != null ||
+            isWaitingForDestination)
             return;
 
-        if (character == null ||
-            grabPoint == null ||
-            destination == null)
+        // BirdStart và BirdRandomSpawner đều có thể khởi động cùng lúc khi
+        // vào scene. Chờ Spawner gán route trước khi khóa movement của player.
+        if (destination == null)
         {
-            Debug.LogError(
-                "BirdController đang thiếu Player, GrabPoint hoặc Destination!",
-                this
-            );
+            // Coroutine không thể chạy trên một GameObject inactive. BirdStart
+            // sẽ tiếp tục chờ và gọi lại sau khi chim được kích hoạt.
+            if (!isActiveAndEnabled)
+                return;
 
+            StartCoroutine(WaitForDestinationAndGrab(character));
             return;
         }
+
+        // if (character == null ||
+        //     grabPoint == null ||
+        //     destination == null)
+        // {
+        //     Debug.LogError(
+        //         "BirdController đang thiếu Player, GrabPoint hoặc Destination!",
+        //         this
+        //     );
+
+        //     return;
+        // }
 
         player = character;
         playerReleased = false;
@@ -77,6 +96,33 @@ public class BirdController : MonoBehaviour
         Physics.SyncTransforms();
 
         isFlying = true;
+    }
+
+    private IEnumerator WaitForDestinationAndGrab(CharacterBase character)
+    {
+        isWaitingForDestination = true;
+        float timer = 0f;
+
+        while (destination == null && timer < destinationWaitTimeout)
+        {
+            timer += Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        isWaitingForDestination = false;
+
+        if (destination != null)
+        {
+            GrabPlayer(character);
+            yield break;
+        }
+
+        // Đây là lỗi setup thật, không còn là cảnh báo sai do thứ tự Start.
+        Debug.LogWarning(
+            $"BirdController không nhận được Destination sau " +
+            $"{destinationWaitTimeout:0.##} giây.",
+            this
+        );
     }
 
     private void Update()
@@ -349,7 +395,7 @@ public class BirdController : MonoBehaviour
 
         if (destination == null)
         {
-            Debug.LogError(
+            Debug.LogWarning(
                 "BirdController: Destination được truyền vào đang null!",
                 this
             );
