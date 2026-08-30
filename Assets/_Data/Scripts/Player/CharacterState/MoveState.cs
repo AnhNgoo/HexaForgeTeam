@@ -58,10 +58,8 @@ public class MoveState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.Dodge &&
-               character.CharacterStamina.HasEnoughStamina(character.CharacterData.staminaCost.dodgeCost))
+        if (character.CharacterInput.Dodge) // Trừ stamina trong hàm Dodge()
         {
-            character.CharacterStamina.SubtractStamina(character.CharacterData.staminaCost.dodgeCost);
             character.Dodge();
             return;
         }

@@ -313,6 +313,7 @@ public class RunManager : MonoBehaviour
         }
 
         if (InteractManagerV2.Instance != null) InteractManagerV2.Instance.IsBusy = false;
+        EventManager.Notify(GameEvent.OnLoadingComplete);
     }
 
     private IEnumerator LoadSceneCoroutine()
