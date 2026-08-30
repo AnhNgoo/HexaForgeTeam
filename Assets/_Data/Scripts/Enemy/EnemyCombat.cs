@@ -26,6 +26,17 @@ public class EnemyCombat : MonoBehaviour
     private Dictionary<AttackDataSO, float> _attackCooldownTimers; //Dictionary để theo dõi thời gian hồi chiêu của từng đòn tấn công, giúp kiểm soát thời gian giữa các đòn tấn công khác nhau
 
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
+    [System.Serializable]
+public class AttackVFXSpawnPoint
+{
+    public AttackDataSO attackData;
+
+    [Tooltip("Các điểm spawn VFX cho attack này")]
+    public Transform[] spawnPoints;
+}
+
+[SerializeField]
+private AttackVFXSpawnPoint[] attackVFXSpawnPoints;
     public AttackDataSO CurrentAttackData => currentAttackData; //Cho phép các lớp khác truy cập dữ liệu tấn công hiện tại nhưng không cho phép thay đổi trực tiếp
 
     public float CurrentAttackDamageMultiplier { get; private set; } = 1f;
@@ -55,8 +66,13 @@ public class EnemyCombat : MonoBehaviour
         _attackCooldownTimers[currentAttackData] = Time.time;
 
         EnemyMinibossBehaviour behaviour = _enemyBase.MinibossBehaviour;
+        float difficultyMultiplier = 1.0f;
+        if (RunManager.Instance != null)
+        {
+            difficultyMultiplier = RunManager.Instance.CurrentRewardMultiplier;
+        }
         CurrentAttackDamageMultiplier =
-            behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f;
+            (behaviour?.ConsumeNextAttackDamageMultiplier() ?? 1f) * difficultyMultiplier;
 
         behaviour?.OnAttackStarted(currentAttackData);
         currentAttackData.skillLogic?.OnAttackStart(CreateAttackContext());
@@ -226,24 +242,96 @@ public class EnemyCombat : MonoBehaviour
         if (hitbox != null)
             hitbox.DisableHitBox();
     }
-    public void PlayAttackVFX()
+public void PlayAttackVFX()
+{
+    if (_enemyBase.StateMachine.CurrentState !=
+        _enemyBase.StateMachine.EnemyAttackState)
+        return;
+
+    if (currentAttackData == null)
+        return;
+
+    if (currentAttackData.attackVFX == PoolType.None)
+        return;
+
+    // Tìm Spawn Point setting của attack hiện tại
+    AttackVFXSpawnPoint setting = null;
+
+    if (attackVFXSpawnPoints != null)
     {
-        if (_enemyBase.StateMachine.CurrentState != _enemyBase.StateMachine.EnemyAttackState) return;
-        if (currentAttackData == null) return;
-        if (currentAttackData.attackVFX == PoolType.None) return;
-
-        Transform anchor = ResolveVFXAnchor(currentAttackData);
-        Vector3 position = anchor.position + anchor.TransformDirection(currentAttackData.vfxOffset);
-        Quaternion rotation = Quaternion.Euler(currentAttackData.vfxEuler) * anchor.rotation;
-
-        GameObject vfx = ObjectPooling.Instance.SpawnFromPool(currentAttackData.attackVFX, position, rotation);
-
-        if (vfx != null && currentAttackData.vfxScale > 0f)
+        foreach (AttackVFXSpawnPoint item in attackVFXSpawnPoints)
         {
-            vfx.transform.localScale = Vector3.one * currentAttackData.vfxScale;
+            if (item != null &&
+                item.attackData == currentAttackData)
+            {
+                setting = item;
+                break;
+            }
         }
     }
 
+    // Nếu có Spawn Point riêng thì dùng chúng
+    if (setting != null &&
+        setting.spawnPoints != null &&
+        setting.spawnPoints.Length > 0)
+    {
+        foreach (Transform spawnPoint in setting.spawnPoints)
+        {
+            if (spawnPoint == null)
+                continue;
+
+            SpawnAttackVFX(spawnPoint);
+        }
+
+        return;
+    }
+
+    // Nếu không có Spawn Point riêng thì dùng Anchor cũ
+    Transform anchor = ResolveVFXAnchor(currentAttackData);
+
+    if (anchor != null)
+    {
+        SpawnAttackVFX(anchor);
+    }
+}
+
+private void SpawnAttackVFX(Transform spawnPoint)
+{
+    if (spawnPoint == null)
+        return;
+
+    Vector3 position =
+        spawnPoint.position +
+        spawnPoint.TransformDirection(currentAttackData.vfxOffset);
+
+    Quaternion rotation =
+        spawnPoint.rotation *
+        Quaternion.Euler(currentAttackData.vfxEuler);
+
+    GameObject vfx =
+        ObjectPooling.Instance.SpawnFromPool(
+            currentAttackData.attackVFX,
+            position,
+            rotation
+        );
+
+    if (vfx == null)
+        return;
+
+    // Không cho VFX đi theo Spawn Point
+    vfx.transform.SetParent(null);
+
+    // Đảm bảo vị trí và góc xoay đúng
+    vfx.transform.position = position;
+    vfx.transform.rotation = rotation;
+
+    // Scale lấy từ VFX Settings trong AttackDataSO
+    if (currentAttackData.vfxScale > 0f)
+    {
+        vfx.transform.localScale =
+            Vector3.one * currentAttackData.vfxScale;
+    }
+}
     public Transform ResolveVFXAnchor(AttackDataSO attackData)
     {
         if (attackData.vfxAnchor == EnemyAttackAnchorType.Hitbox)

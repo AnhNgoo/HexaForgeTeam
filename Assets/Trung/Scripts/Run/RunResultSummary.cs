@@ -94,9 +94,28 @@ public class RunResultSummary : MonoBehaviour
         int killScore = (normal * 100) + (elite * 300) + (boss * 1000) + (finalBoss * 5000);
         int totalScore = damageScore + killScore;
 
-        calculatedGem = (normal * 2) + (elite * 10) + (boss * 50) + (finalBoss * 300);
-        calculatedExp = (normal * 10) + (elite * 30) + (boss * 100) + (finalBoss * 500);
-        calculatedShards = (normal * 5) + (elite * 20) + (boss * 150) + (finalBoss * 1000);
+        // --- TÍNH TOÁN THƯỞNG / PHẠT THEO MỐC CƯỢC ---
+        int wager = RunManager.Instance != null ? RunManager.Instance.CurrentWagerAmount : 0;
+        float multiplier = RunManager.Instance != null ? RunManager.Instance.CurrentRewardMultiplier : 1.0f;
+
+        int baseGemReward = (normal * 2) + (elite * 10) + (boss * 50) + (finalBoss * 300);
+
+        if (isVictory)
+        {
+            int multipliedReward = Mathf.RoundToInt(baseGemReward * multiplier);
+            calculatedGem = wager + multipliedReward; // Hoàn tiền cược gốc + thưởng thắng trận theo mốc
+            if (RunManager.Instance != null) RunManager.Instance.MarkRunVictory(true);
+        }
+        else
+        {
+            // Thua / Chết trận: Mất trắng 100% tiền cược gốc
+            calculatedGem = Mathf.Max(0, baseGemReward - wager);
+            if (RunManager.Instance != null) RunManager.Instance.MarkRunVictory(false);
+        }
+
+        calculatedExp = Mathf.RoundToInt(((normal * 10) + (elite * 30) + (boss * 100) + (finalBoss * 500)) * (isVictory ? multiplier : 0.5f));
+        calculatedShards = isVictory ? Mathf.RoundToInt(((normal * 5) + (elite * 20) + (boss * 150) + (finalBoss * 1000)) * multiplier) : 0;
+        // ----------------------------------------------
 
         SetupHeroDisplay();
 
@@ -107,7 +126,7 @@ public class RunResultSummary : MonoBehaviour
         SetupTextInitial(txtFinalBossCount, "<color=#FF4500>NIGHTMARE LORD</color>", "#FF1493");
         SetupTextInitial(txtTotalScore, "<color=#FFD700>TOTAL SCORE</color>", "#FFD700");
 
-        SetupTextInitial(txtGemReward, "<color=#00FFFF>CRYSTALS</color>", "#00FFFF", "+");
+        SetupTextInitial(txtGemReward, isVictory ? "<color=#00FFFF>CRYSTALS (WON)</color>" : "<color=#FF5555>CRYSTALS (LOST WAGER)</color>", isVictory ? "#00FFFF" : "#FF5555", "+");
         SetupTextInitial(txtShardReward, "<color=#BA55D3>RUNE SHARDS</color>", "#EE82EE", "+");
         SetupTextInitial(txtExpReward, "<color=#32CD32>ACCOUNT EXP</color>", "#7FFF00", "+");
 
@@ -115,11 +134,11 @@ public class RunResultSummary : MonoBehaviour
         {
             if (isVictory)
             {
-                txtTitleBanner.text = "<size=130%><color=#FFE066>◆ NIGHT FELL ◆</color></size>\n<size=60%><color=#FFD700>— VICTORY ACHIEVED —</color></size>";
+                txtTitleBanner.text = "<size=130%><color=#FFE066> NIGHT FELL </color></size>\n<size=60%><color=#FFD700>— VICTORY ACHIEVED (x" + multiplier + ") —</color></size>";
             }
             else
             {
-                txtTitleBanner.text = "<size=130%><color=#FF3333>◆ YOU DIED ◆</color></size>\n<size=60%><color=#FF6B6B>— NIGHTMARE PREVAILS —</color></size>";
+                txtTitleBanner.text = "<size=130%><color=#FF3333> YOU DIED </color></size>\n<size=60%><color=#FF6B6B>— WAGER GEMS LOST —</color></size>";
             }
             txtTitleBanner.transform.localScale = Vector3.one * 2.2f;
             txtTitleBanner.alpha = 0f;
@@ -192,7 +211,7 @@ public class RunResultSummary : MonoBehaviour
 
         runningSequence.AppendInterval(0.08f);
 
-        AppendJuicyText(runningSequence, txtGemReward, "<color=#00FFFF>CRYSTALS</color>", calculatedGem, 0.38f, "#00FFFF", "+");
+        AppendJuicyText(runningSequence, txtGemReward, isVictory ? "<color=#00FFFF>CRYSTALS</color>" : "<color=#FF5555>CRYSTALS</color>", calculatedGem, 0.38f, isVictory ? "#00FFFF" : "#FF5555", "+");
         AppendJuicyText(runningSequence, txtShardReward, "<color=#BA55D3>RUNE SHARDS</color>", calculatedShards, 0.38f, "#EE82EE", "+");
         AppendJuicyText(runningSequence, txtExpReward, "<color=#32CD32>ACCOUNT EXP</color>", calculatedExp, 0.38f, "#7FFF00", "+");
 

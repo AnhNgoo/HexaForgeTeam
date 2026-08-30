@@ -31,7 +31,15 @@ public class GameSystemInputRouter : MonoBehaviour
 
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            ToggleGameSystem(GameSystemTab.System);
+            if (UIManager.Instance.CurrentMenu is GameSystemMenu openedMenu)
+            {
+                openedMenu.CloseToProperMenu();
+            }
+            else
+            {
+                ToggleGameSystem(GameSystemTab.Inventory);
+            }
+
             return;
         }
     }
@@ -42,6 +50,7 @@ public class GameSystemInputRouter : MonoBehaviour
             UIManager.Instance.CurrentMenuType;
 
         if (current != MenuType.GameplayMenu &&
+            current != MenuType.DefaultLobbyInputMenu &&
             current != MenuType.None &&
             current != MenuType.GameSystemMenu)
         {
@@ -55,7 +64,7 @@ public class GameSystemInputRouter : MonoBehaviour
             currentGameSystem != null &&
             currentGameSystem.CurrentTab == tab)
         {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+            currentGameSystem.CloseToProperMenu();
             return;
         }
 

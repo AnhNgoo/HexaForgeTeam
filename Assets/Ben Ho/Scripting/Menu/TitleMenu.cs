@@ -103,12 +103,12 @@ public class TitleMenu : MenuBase
         GameSaveData saveData = SaveLoadManager.Instance?.SaveData;
         GameSceneData sceneData = GameSceneData.Instance;
 
-        string targetLobbyScene = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.LobbyMain) 
+        string targetLobbyScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.LobbyMain)
             : "LobbyMain Scene";
 
-        string targetTutorialScene = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Tutorial) 
+        string targetTutorialScene = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Tutorial)
             : "Tutorial Scene";
 
         bool isGoingToLobby = saveData?.isTutorialCompleted == true;
@@ -122,6 +122,9 @@ public class TitleMenu : MenuBase
         {
             AudioManager.Instance.StopMusic();
         }
+
+        LoadTrace.Begin($"UIGame -> {LoadingData.TargetSceneName}");
+        LoadTrace.Mark("Opening LoadingMenu");
 
         UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
     }
@@ -153,12 +156,12 @@ public class TitleMenu : MenuBase
     {
         GameSceneData sceneData = GameSceneData.Instance;
 
-        string loginSceneName = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Login) 
+        string loginSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Login)
             : "Login Scene";
 
-        string loadingSceneName = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Loading) 
+        string loadingSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Loading)
             : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);

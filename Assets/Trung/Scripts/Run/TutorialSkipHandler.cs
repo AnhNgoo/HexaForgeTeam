@@ -16,8 +16,21 @@ public class TutorialSkipHandler : MonoBehaviour
         PlayerManager.Instance.SpawnCharacterInLobby();
     }
 
+    private bool isTransitioning;
     public void SkipOrCompleteTutorial()
     {
+        if (isTransitioning)
+            return;
+
+        isTransitioning = true;
+
+        Time.timeScale = 1f;
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.ForceUnlockState();
+        }
+
         if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
             SaveLoadManager.Instance.SaveData.isTutorialCompleted = true; // cite: 39
@@ -51,7 +64,7 @@ public class TutorialSkipHandler : MonoBehaviour
             yield return null;
         }
 
-        yield return new WaitForSeconds(0.1f);
+        yield return new WaitForSecondsRealtime(0.1f);
 
         if (LoadingUIManager.Instance != null)
         {
@@ -65,7 +78,7 @@ public class TutorialSkipHandler : MonoBehaviour
 
         if (LoadingUIManager.Instance != null)
         {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLobby));
+            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLobby, hasEventNotify: false));
         }
 
         loadLobby.allowSceneActivation = true;

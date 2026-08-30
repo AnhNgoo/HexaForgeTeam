@@ -49,12 +49,50 @@ public class LobbyHUDTopBar : MonoBehaviour
     private void Start()
     {
         RefreshLayoutByScene();
+        SetupTooltips();
 
         if (AccountLevelManager.Instance != null)
         {
             int currentLv = AccountLevelManager.Instance.GetLevel();
             if (levelText != null) levelText.SetTextSafe(currentLv.ToString());
         }
+    }
+
+    private void SetupTooltips()
+    {
+        // 1. Tooltip cho Gem
+        if (gemText != null)
+        {
+            GameObject gemRoot = gemText.transform.parent != null ? gemText.transform.parent.gameObject : gemText.gameObject;
+            AddTooltip(gemRoot, "Gems", "Premium realm currency. Used for summoning Runes, rerolling affixes, and unlocking rare shop items.");
+        }
+
+        // 2. Tooltip cho Rune Shards
+        if (runeShardText != null)
+        {
+            GameObject shardRoot = runeShardText.transform.parent != null ? runeShardText.transform.parent.gameObject : runeShardText.gameObject;
+            AddTooltip(shardRoot, "Rune Shards", "Ancient essence gained from dismantling duplicate or obsolete runes. Used for Rune Fusion and Sub-Stat Rerolling.");
+        }
+
+        // 3. Tooltip cho Gacha Ticket
+        if (gachaTicketText != null)
+        {
+            GameObject ticketRoot = gachaTicketText.transform.parent != null ? gachaTicketText.transform.parent.gameObject : gachaTicketText.gameObject;
+            AddTooltip(ticketRoot, "Summon Ticket", "A rare astral summon ticket. Can be consumed in the Gacha Chamber instead of Gems to summon powerful Runes.");
+        }
+
+        // 4. Tooltip cho Thanh EXP / Level
+        if (levelGroup != null)
+        {
+            AddTooltip(levelGroup, "Account Level", "Your overall adventurer progression. Leveling up grants stat enhancements and unlocks deeper dungeon tiers.");
+        }
+    }
+
+    private void AddTooltip(GameObject targetObj, string title, string description, Sprite icon = null)
+    {
+        if (targetObj == null) return;
+        var trigger = targetObj.GetComponent<UITooltipAutoTrigger>() ?? targetObj.AddComponent<UITooltipAutoTrigger>();
+        trigger.SetData(title, description, icon);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -69,19 +107,18 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void RefreshLayoutByScene()
     {
-        bool isRunLoaded = GameSceneData.Instance != null && GameSceneData.Instance.IsSceneLoaded(SceneType.RunGameplay);
+        MapType mapType = GameManager.Instance != null ? GameManager.Instance.MapType : MapType.None;
 
-        if (isRunLoaded)
-        {
-            if (levelGroup != null) levelGroup.SetActive(false);
-            if (currencyGroup != null) currencyGroup.SetActive(false);
-        }
-        else
-        {
-            if (levelGroup != null) levelGroup.SetActive(true);
-            if (currencyGroup != null) currencyGroup.SetActive(true);
+        bool hideLobbyHud = mapType == MapType.Run || mapType == MapType.Boss || mapType == MapType.Tutorial;
+
+        if (levelGroup != null)
+            levelGroup.SetActive(!hideLobbyHud);
+
+        if (currencyGroup != null)
+            currencyGroup.SetActive(!hideLobbyHud);
+
+        if (!hideLobbyHud)
             RefreshCurrencyUI();
-        }
     }
 
     public void RefreshCurrencyUI()
@@ -143,8 +180,8 @@ public class LobbyHUDTopBar : MonoBehaviour
 
     public void ShowCurrencyOnly()
     {
-        string runSceneName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay) 
+        string runSceneName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetSceneName(SceneType.RunGameplay)
             : sceneRunName;
 
         Scene runScene = SceneManager.GetSceneByName(runSceneName);
