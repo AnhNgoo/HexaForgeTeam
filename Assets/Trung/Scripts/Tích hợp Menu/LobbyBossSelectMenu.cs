@@ -473,7 +473,7 @@ public class LobbyBossSelectMenu : MenuBase
 
         if (!isInitialOpen && RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(targetRunScene, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
         }
 
         Debug.Log($"<color=#00FFCC><b>[LobbyBossSelectMenu]</b> Đã chọn: <b>{selected.bossName}</b> | PoolType: <b>{selected.bossPoolType}</b></color>");
