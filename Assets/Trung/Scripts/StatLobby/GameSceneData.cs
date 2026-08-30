@@ -57,6 +57,14 @@ public class GameSceneData : ScriptableObject
     public string tutorialScene = "Tutorial Scene";
     public string finalBossScene = "FinalBoss Scene";
 
+    [Header("Background Music (Nhạc Nền Theo Scene)")]
+    [Tooltip("Nhạc nền dùng khi Lobby Main là scene đang hoạt động.")]
+    public AudioClip lobbyMainMusic;
+    [Tooltip("Nhạc nền dùng chung cho Run Gameplay Scene và Run Gameplay Scene 2.")]
+    public AudioClip runGameplayMusic;
+    [Tooltip("Nhạc nền dùng khi Final Boss Scene là scene đang hoạt động.")]
+    public AudioClip finalBossMusic;
+
     [Header("Custom Scene List (Mở rộng cho Scene)")]
     [SerializeField] private List<SceneEntry> customScenes = new List<SceneEntry>();
 
@@ -146,6 +154,35 @@ public class GameSceneData : ScriptableObject
         string selectedMap = (rand == 0) ? map1 : map2;
         Debug.Log($"<color=#FFCC00><b>[Run Random Map]</b> Đã bốc ngẫu nhiên: <b>{selectedMap}</b> (Map index: {rand + 1})</color>");
         return selectedMap;
+    }
+
+    public bool TryGetBackgroundMusic(string sceneName, out AudioClip musicClip)
+    {
+        musicClip = null;
+
+        if (string.IsNullOrWhiteSpace(sceneName))
+            return false;
+
+        if (sceneName == GetSceneName(SceneType.LobbyMain))
+        {
+            musicClip = lobbyMainMusic;
+            return true;
+        }
+
+        if (sceneName == GetSceneName(SceneType.RunGameplay) ||
+            sceneName == GetSceneName(SceneType.RunGameplay2))
+        {
+            musicClip = runGameplayMusic;
+            return true;
+        }
+
+        if (sceneName == GetSceneName(SceneType.FinalBoss))
+        {
+            musicClip = finalBossMusic;
+            return true;
+        }
+
+        return false;
     }
 
     public bool IsSceneActive(SceneType type)

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using UnityEngine.Serialization;
 
 public class AudioManager : Singleton<AudioManager>
@@ -126,6 +127,37 @@ public class AudioManager : Singleton<AudioManager>
     {
         // Reapply after the mixer's startup snapshot has initialized.
         ApplyAllVolumes();
+        ApplyMusicForScene(SceneManager.GetActiveScene());
+    }
+
+    private void OnEnable()
+    {
+        SceneManager.activeSceneChanged += HandleActiveSceneChanged;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.activeSceneChanged -= HandleActiveSceneChanged;
+    }
+
+    private void HandleActiveSceneChanged(Scene previousScene, Scene newScene)
+    {
+        ApplyMusicForScene(newScene);
+    }
+
+    private void ApplyMusicForScene(Scene scene)
+    {
+        GameSceneData sceneData = GameSceneData.Instance;
+        if (sceneData == null || !sceneData.TryGetBackgroundMusic(scene.name, out AudioClip musicClip))
+            return;
+
+        if (musicClip == null)
+        {
+            StopMusic();
+            return;
+        }
+
+        PlayMusic(musicClip, true);
     }
 
     private void OnDestroy()
