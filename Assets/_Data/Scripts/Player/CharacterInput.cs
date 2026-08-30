@@ -42,6 +42,7 @@ public class CharacterInput : MonoBehaviour
         this.characterBase = characterBase;
 
         inputActions.Keyboard.ChangeWeapon.performed += characterBase.ChangeWeapon;
+        ResetInput();
     }
     private void Update()
     {
@@ -95,5 +96,27 @@ public class CharacterInput : MonoBehaviour
     public void DisableSprint()
     {
         sprint = false;
+    }
+
+    private void ResetInput()
+    {
+        moveInput = Vector2.zero;
+        walk = false;
+        sprint = false;
+        dodge = false;
+        jump = false;
+        wallJump = false;
+        attack = false;
+        healthRecovery = false;
+        lockTarget = false;
+        skill_1 = false;
+        skill_2 = false;
+        IsChangingWeapon = false;
+        IsHealthRecovering = false;
+    }
+
+    public void ClearInput()
+    {
+        inputActions.Keyboard.ChangeWeapon.performed -= characterBase.ChangeWeapon;
     }
 }
