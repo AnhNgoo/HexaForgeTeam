@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using UnityEngine;
 using UnityEngine.Localization.Settings;
 
 public static class SettingsLocalizationData
@@ -142,6 +143,44 @@ public static class SettingsLocalizationData
         ("Left Shift", "Shift trái"),
         ("Right Shift", "Shift phải"),
         ("Space", "Phím cách"),
+        ("Pick Up Weapon", "Nhặt vũ khí"),
+        ("Pick Up Item", "Nhặt vật phẩm"),
+        ("Pick Up Gold", "Nhặt vàng"),
+        ("Pick Up Health Potion", "Nhặt bình hồi máu"),
+
+        // ========== INVENTORY / ITEM ACTIONS ==========
+        ("Discard", "Vứt bỏ"),
+        ("Use", "Sử dụng"),
+        ("Escape", "Thoát"),
+
+        // ========== LOGOUT / RETURN LOBBY ==========
+        ("Logout", "Đăng xuất"),
+        ("Are you sure you want to log out?", "Bạn có chắc muốn đăng xuất không?"),
+        ("Return to Lobby", "Quay lại Sảnh chờ"),
+        ("Are you sure you want to abandon this run and return to the Lobby?", "Bạn có chắc muốn từ bỏ lượt chạy này và quay lại Sảnh chờ không?"),
+        ("Cancel", "Hủy"),
+
+        // ========== GRAPHICS: giá trị + tiêu đề mục ==========
+        ("Full Screen", "Toàn màn hình"),
+        ("Fullscreen", "Toàn màn hình"),
+        ("Borderless", "Không viền"),
+        ("Windowed", "Cửa sổ"),
+        ("COLOR GRADING", "HIỆU CHỈNH MÀU"),
+        ("Color Grading", "Hiệu chỉnh màu"),
+
+        // ========== CONTROLLER: loại điều khiển ==========
+        ("Keyboard & Mouse", "Bàn phím & Chuột"),
+        ("Keyboard and Mouse", "Bàn phím và Chuột"),
+        ("Controller", "Tay cầm"),
+
+        // ========== GIÁ TRỊ CHUNG (dropdown/toggle) ==========
+        ("On", "Bật"),
+        ("Off", "Tắt"),
+        ("Low", "Thấp"),
+        ("Medium", "Trung bình"),
+        ("High", "Cao"),
+        ("Ultra", "Cực cao"),
+        ("Unlimited", "Không giới hạn"),
     };
 
         // ✅ TEXT ĐỘNG (có số thay đổi) - dùng Regex
@@ -174,16 +213,8 @@ public static class SettingsLocalizationData
 
     private static bool IsVietnamese()
     {
-        try
-        {
-            return LocalizationSettings.SelectedLocale != null &&
-                   LocalizationSettings.SelectedLocale.Identifier.Code
-                       .ToLower().StartsWith("vi");
-        }
-        catch
-        {
-            return false;
-        }
+        // Đọc thẳng PlayerPrefs — luôn có sẵn, không phải chờ Localization init
+    return PlayerPrefs.GetInt("LANGUAGE", 0) == 1;
     }
 
     public static string Translate(string englishText)
@@ -205,6 +236,10 @@ public static class SettingsLocalizationData
         foreach (var entry in RegexEntries)
             if (entry.regex.IsMatch(normalized))
                 return entry.regex.Replace(normalized, entry.replacement);
+
+        // ✅ Chỉ log chuỗi có chữ cái thật sự (bỏ qua số như "1920 x 1080", "60")
+        if (Regex.IsMatch(normalized, @"[a-zA-Z]{3,}"))
+            Debug.LogWarning($"[THIẾU KEY VI] \"{normalized}\"");
 
         return englishText;
     }

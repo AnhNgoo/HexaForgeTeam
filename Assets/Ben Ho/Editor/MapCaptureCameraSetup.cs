@@ -2,24 +2,37 @@
 using UnityEditor;
 using UnityEngine;
 
-public static class MapCaptureCameraSetup
+public static class MapCaptureTools
 {
-    private static readonly string[] excludeLayers = { "UI", "Player", "Enemy" };
-
-    [MenuItem("Tools/Map Capture 📷/1. Tạo camera chụp map (chọn RenderTexture trước)")]
-    private static void SetupCamera()
+    [MenuItem("Tools/Map Capture 📷/Chụp TOÀN CẢNH map (chọn RenderTexture trước)")]
+    private static void CaptureWholeMap()
     {
         RenderTexture rt = Selection.activeObject as RenderTexture;
         if (rt == null)
         {
-            Debug.LogError("⚠️ Hãy chọn RenderTexture (MainMap_RT) trong Project trước!");
+            Debug.LogError("⚠️ Hãy chọn RenderTexture (MainMap2_RT) trong Project trước!");
             return;
         }
 
-        // ✅ Tự động tính bounds của TOÀN BỘ map
-        Bounds bounds = CalculateMapBounds();
-        Debug.Log($"🗺️ Map bounds: center={bounds.center}, size={bounds.size}");
+        // 1. Tính bounds gộp của TẤT CẢ terrain tiles
+        bool has = false;
+        Bounds b = new Bounds();
 
+        foreach (Terrain t in Object.FindObjectsOfType<Terrain>())
+        {
+            Vector3 pos = t.GetPosition();
+            Vector3 size = t.terrainData.size;
+            Bounds tb = new Bounds(pos + size * 0.5f, size);
+            if (!has) { b = tb; has = true; } else b.Encapsulate(tb);
+        }
+
+        if (!has)
+        {
+            Debug.LogError("⚠️ Không tìm thấy Terrain nào trong scene!");
+            return;
+        }
+
+        // 2. Tự động đặt camera đúng tâm + ortho phủ kín map
         GameObject camObj = GameObject.Find("MapCaptureCamera");
         if (camObj == null)
         {
@@ -29,72 +42,20 @@ public static class MapCaptureCameraSetup
 
         Camera cam = camObj.GetComponent<Camera>();
         cam.orthographic = true;
-        cam.orthographicSize = Mathf.Max(bounds.size.x, bounds.size.z) * 0.525f;
-        cam.transform.position = new Vector3(bounds.center.x, bounds.max.y + 500f, bounds.center.z);
+        cam.orthographicSize = Mathf.Max(b.size.x, b.size.z) * 0.5f * 1.02f;
+        cam.transform.position = new Vector3(b.center.x, b.max.y + 500f, b.center.z);
         cam.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
         cam.nearClipPlane = 0.1f;
         cam.farClipPlane = 5000f;
         cam.clearFlags = CameraClearFlags.SolidColor;
         cam.backgroundColor = Color.black;
-        cam.cullingMask = CalculateCullingMask();
         cam.targetTexture = rt;
 
-        cam.Render(); // Render NGAY
+        // 3. Render ngay
+        cam.Render();
 
-        Debug.Log("✅ Camera đã render! Select MainMap_RT và xem preview trong Inspector để kiểm tra.");
-    }
-
-    private static int CalculateCullingMask()
-    {
-        int mask = ~0;
-        foreach (string layer in excludeLayers)
-        {
-            int idx = LayerMask.NameToLayer(layer);
-            if (idx >= 0)
-                mask &= ~(1 << idx);
-        }
-        return mask;
-    }
-
-    private static Bounds CalculateMapBounds()
-    {
-        bool hasBounds = false;
-        Bounds result = new Bounds();
-
-        // ✅ Quét tất cả Terrain
-        foreach (Terrain t in Object.FindObjectsOfType<Terrain>())
-        {
-            Vector3 pos = t.GetPosition();
-            Vector3 size = t.terrainData.size;
-            Bounds b = new Bounds(pos + size * 0.5f, size);
-
-            if (!hasBounds) { result = b; hasBounds = true; }
-            else result.Encapsulate(b);
-        }
-
-        // ✅ Quét tất cả renderer (nhà cửa, cây cối, núi...)
-        foreach (Renderer r in Object.FindObjectsOfType<Renderer>())
-        {
-            if (r is ParticleSystemRenderer) continue;
-            if (r.GetComponentInParent<Camera>() != null) continue;
-
-            string layerName = LayerMask.LayerToName(r.gameObject.layer);
-            bool excluded = false;
-            foreach (string ex in excludeLayers)
-                if (layerName == ex) { excluded = true; break; }
-            if (excluded) continue;
-
-            if (!hasBounds) { result = r.bounds; hasBounds = true; }
-            else result.Encapsulate(r.bounds);
-        }
-
-        if (!hasBounds)
-        {
-            Debug.LogWarning("⚠️ Không tìm thấy renderer nào! Map có thể chỉ sinh ra khi PLAY.");
-            result = new Bounds(Vector3.zero, Vector3.one * 1000f);
-        }
-
-        return result;
+        Debug.Log($"✅ ĐÃ CHỤP MAP! center={b.center}, size={b.size}, ortho={cam.orthographicSize:F0}");
+        Debug.Log($"📋 Bounds cho WorldMapPanel: Min=({b.min.x:F0},{b.min.z:F0}) Max=({b.max.x:F0},{b.max.z:F0})");
     }
 }
 #endif
