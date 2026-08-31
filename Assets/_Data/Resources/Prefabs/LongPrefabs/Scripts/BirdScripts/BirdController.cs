@@ -277,6 +277,7 @@ public class BirdController : Singleton<BirdController>
             new JumpState(releasedPlayer)
         );
 
+        releasedPlayer.CharacterInput.LockInput = false;
         PlayDisableParticle();
         Destroy(gameObject);
     }

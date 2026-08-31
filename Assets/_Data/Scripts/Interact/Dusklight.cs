@@ -45,7 +45,6 @@ public class Dusklight : InteractBase
         if (amount > 0) // Nếu còn bình máu tối đa chưa đầy, thì thêm bình máu để đầy
             character.CharacterRecovery.AddBottle(amount);
 
-        character.CharacterRecovery.AddBottle(character.CharacterRecovery.StartRecoveryBottle);
         ObjectPooling.Instance.SpawnFromPool(PoolType.LevelUpEffect, transform.position, Quaternion.identity); // Hiệu ứng lên cấp
         UIManager.Instance.ChangeMenu(MenuType.GameSystemMenu, GameSystemTab.PlayerState);
     }

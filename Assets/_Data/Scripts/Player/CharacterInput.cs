@@ -32,6 +32,7 @@ public class CharacterInput : MonoBehaviour
     public bool IsMoving => moveInput != Vector2.zero;
     public bool IsChangingWeapon { get; set; } = false;
     public bool IsHealthRecovering { get; set; } = false;
+    public bool LockInput { get; set; } = false; // Khoá input
 
     private InputActions inputActions => InputManager.InputActions;
     private CharacterBase characterBase;
@@ -54,7 +55,7 @@ public class CharacterInput : MonoBehaviour
         bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
         bool isLobbyDefault = UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu;
 
-        if (!isUIGameplay && !isLobbyDefault)
+        if (!isUIGameplay && !isLobbyDefault || LockInput)
         {
             moveInput = Vector2.zero;
             walk = false;

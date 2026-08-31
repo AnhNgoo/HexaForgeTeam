@@ -25,6 +25,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterLevel))]
 [RequireComponent(typeof(CharacterGoldFalling))]
 [RequireComponent(typeof(CharacterRelic))]
+[RequireComponent(typeof(CharacterSound))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 {
     [Header("Character Data")]
@@ -88,6 +89,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public CharacterGoldFalling CharacterGoldFalling => characterGoldFalling;
     [SerializeField] protected CharacterRelic characterRelic;
     public CharacterRelic CharacterRelic => characterRelic;
+    [SerializeField] protected CharacterSound characterSound;
+    public CharacterSound CharacterSound => characterSound;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
@@ -158,6 +161,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             characterGoldFalling = GetComponent<CharacterGoldFalling>();
         if (characterRelic == null)
             characterRelic = GetComponent<CharacterRelic>();
+        if (characterSound == null)
+            characterSound = GetComponent<CharacterSound>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -592,22 +597,22 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
-        Debug.Log("Change Weapon Input Detected");
-        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
+        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu &&
+             UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
             return;
-        Debug.Log("Change Weapon Input Detected and Passed Menu Check");
+
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
         if (scrollY > 0f)
         {
             if (CharacterInput.IsChangingWeapon ||
+            CharacterInput.LockInput ||
              WeaponInventorySystem.Instance.CheckWeaponInSlots() == false ||
              characterCombat.IsAttacking ||
              characterSkill.IsUsingSkill
              ) return;
 
-            Debug.Log("Change Weapon Input Detected and Passed All Checks - Changing Weapon");
             StateController.ChangeState(new ChangeWeaponState(this));
         }
     }

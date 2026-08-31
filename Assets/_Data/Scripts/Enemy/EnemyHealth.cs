@@ -38,8 +38,8 @@ public class EnemyHealth : MonoBehaviour
         Debug.Log($"{gameObject.name} đã load lượng máu đã lưu: {currentHealth}");
     }
     public void SetMaxHealthDirectly(float newMaxHealth)
-{
-    maxHealthOverride = newMaxHealth;
-    currentHealth = newMaxHealth;
-}
+    {
+        maxHealthOverride = newMaxHealth;
+        currentHealth = newMaxHealth;
+    }
 }
