@@ -4,15 +4,18 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
+using System.Text.RegularExpressions;
 using UnityEngine.SceneManagement;
 
 public class AutoTranslateUI : MonoBehaviour
 {
     private static AutoTranslateUI instance;
     public static AutoTranslateUI Instance => instance;
+    private readonly HashSet<string> loggedMissing = new HashSet<string>();
 
     // Lưu text GỐC tiếng Anh
     private readonly Dictionary<TMP_Text, string> originalTexts = new Dictionary<TMP_Text, string>();
+    
 
     [Header("Quét định kỳ (fallback cho text động)")]
     [SerializeField] private float scanInterval = 2f;
@@ -81,31 +84,35 @@ public class AutoTranslateUI : MonoBehaviour
     }
 
     private void ScanAll()
+{
+    TMP_Text[] texts = FindObjectsOfType<TMP_Text>(true);
+
+    foreach (TMP_Text t in texts)
     {
-        TMP_Text[] texts = FindObjectsOfType<TMP_Text>(true);
+        if (t == null) continue;
+        if (t.name == "Item-Name" || t.name == "Description") continue;
 
-        foreach (TMP_Text t in texts)
+        if (originalTexts.ContainsKey(t))
         {
-            if (t == null) continue;
-            if (t.name == "Item-Name" || t.name == "Description") continue;
-
-            if (originalTexts.ContainsKey(t))
-            {
-                // Text ĐỘNG: game vừa đặt giá trị tiếng Anh mới → cập nhật bản gốc
-                if (t.text != originalTexts[t] && SettingsLocalizationData.HasTranslation(t.text))
-                    originalTexts[t] = t.text;
-            }
-            else if (SettingsLocalizationData.HasTranslation(t.text))
-            {
-                // Text MỚI → gỡ LocalizeStringEvent tàn dư rồi theo dõi
-                var loc = t.GetComponent<UnityEngine.Localization.Components.LocalizeStringEvent>();
-                if (loc != null)
-                    Destroy(loc);
-
+            if (t.text != originalTexts[t] && SettingsLocalizationData.HasTranslation(t.text))
                 originalTexts[t] = t.text;
-            }
+        }
+        else if (SettingsLocalizationData.HasTranslation(t.text))
+        {
+            var loc = t.GetComponent<UnityEngine.Localization.Components.LocalizeStringEvent>();
+            if (loc != null) Destroy(loc);
+
+            originalTexts[t] = t.text;
+        }
+        // ✅ MỚI: text CHƯA có key → điểm danh vào Console (mỗi chuỗi chỉ log 1 lần)
+        else if (Regex.IsMatch(t.text, @"[a-zA-Z]{3,}"))
+        {
+            string normalized = Regex.Replace(t.text.Trim(), @"\s+", " ");
+            if (loggedMissing.Add(normalized))
+                Debug.LogWarning($"[THIẾU KEY VI] \"{normalized}\"");
         }
     }
+}
 
     private void ApplyTranslation()
     {
