@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_EXPEDITION_TRIAL
+  m_EditorClassIdentifier: 
+  questID: QUEST_EXPEDITION_TRIAL
+  questTitle: Trial of the Expedition
+  questDescription: Follow Dat Vit to the Expedition Gate and complete your first
+    combat run (victory or defeat).
+  questType: 0
+  requiredAccountLevel: 1
+  requiredPrerequisiteQuestID: QUEST_OPEN_RUNE_INVENTORY
+  targetProgress: 1
+  targetStationPointName: Point Khoa
+  npcName: Dat
+  notStartedDialogues:
+  - speaker: 0
+    text: The sanctuary is safe, but true glory lies beyond the portal. Follow me
+      to the Expedition Gate.
+  - speaker: 1
+    text: Are there dangerous monsters out there?
+  - speaker: 0
+    text: Fierce beasts and ancient bosses await. Complete a full combat run to prove
+      your mettle!
+  inProgressDialogues:
+  - speaker: 0
+    text: The portal is active right beside us! Step through, fight your way through
+      the hordes, and see how far you can push.
+  - speaker: 1
+    text: I will enter the portal and face the trial right now.
+  canClaimDialogues:
+  - speaker: 1
+    text: I've returned from the expedition. That was an intense battle!
+  - speaker: 0
+    text: Outstanding resilience! Whether you conquer the boss or fall in battle,
+      every trial sharpens your power. Take your reward!
+  completedDialogues:
+  - speaker: 0
+    text: You are now a true expeditioner. Speak with Uong Quoc Trung to review your
+      battle records and rankings.
+  rewardGem: 500
+  rewardShard: 150
+  rewardExp: 200
+  rewardItems: []

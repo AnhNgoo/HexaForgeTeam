@@ -11,9 +11,10 @@ GameObject:
   - component: {fileID: 5680607079563716483}
   - component: {fileID: 5504904050617224755}
   - component: {fileID: 4143736683442057411}
-  - component: {fileID: 5015541489101865343}
   - component: {fileID: 1983531958952499157}
+  - component: {fileID: 5015541489101865343}
   - component: {fileID: 2789373602393393235}
+  - component: {fileID: 627599433513883401}
   m_Layer: 6
   m_Name: NPC-Table
   m_TagString: Untagged
@@ -29,7 +30,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 791914407549839908}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 3, y: 0.5999985, z: -3.1000004}
   m_LocalScale: {x: 3.5, y: 1, z: 3.5}
   m_ConstrainProportionsScale: 0
@@ -87,28 +88,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &5015541489101865343
-MeshCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 791914407549839908}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 1
-  m_CookingOptions: 30
-  m_Mesh: {fileID: -2859856895660755060, guid: d4931afe423a5cd4e921936c43fc14f8, type: 3}
 --- !u!136 &1983531958952499157
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -132,6 +111,28 @@ CapsuleCollider:
   m_Height: 0.5
   m_Direction: 1
   m_Center: {x: -1.9999999, y: -0.24999999, z: 2}
+--- !u!64 &5015541489101865343
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 791914407549839908}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 1
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2859856895660755060, guid: d4931afe423a5cd4e921936c43fc14f8, type: 3}
 --- !u!114 &2789373602393393235
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,6 +151,22 @@ MonoBehaviour:
   playerTag: Player
   openPanel: 1
   menuType: 111
+--- !u!208 &627599433513883401
+NavMeshObstacle:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 791914407549839908}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Shape: 0
+  m_Extents: {x: 2, y: 0.25, z: 2}
+  m_MoveThreshold: 0.1
+  m_Carve: 1
+  m_CarveOnlyStationary: 1
+  m_Center: {x: -2, y: -0.25, z: 2}
+  m_TimeToStationary: 0.5
 --- !u!1001 &5014210154896869151
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -181,6 +198,10 @@ PrefabInstance:
     - target: {fileID: 3544034642323472135, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4278190335
+      objectReference: {fileID: 0}
+    - target: {fileID: 4242185357532822242, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5557491889869160553, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
       propertyPath: displayName

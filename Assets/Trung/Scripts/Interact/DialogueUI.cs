@@ -30,12 +30,15 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private ChoiceTabItem choice1Tab;
     [SerializeField] private ChoiceTabItem choice2Tab;
     [SerializeField] private ChoiceTabItem choice3Tab;
+    [SerializeField] private ChoiceTabItem choice4Tab;
 
     [Header("Typewriter Settings")]
     [SerializeField] private float textSpeedPerChar = 0.03f;
 
     private float allowInputTime = 0f;
-    private DialogueData currentDialogue;
+    private List<DialogueLine> currentLines = new List<DialogueLine>();
+    private string currentNPCName = "NPC";
+    private List<DialogueChoice> currentChoices = new List<DialogueChoice>();
     private int currentIndex;
 
     private Coroutine typewriterRoutine;
@@ -51,7 +54,7 @@ public class DialogueUI : MonoBehaviour
     {
         Instance = this;
 
-        allChoices = new List<ChoiceTabItem>() { choice1Tab, choice2Tab, choice3Tab };
+        allChoices = new List<ChoiceTabItem>() { choice1Tab, choice2Tab, choice3Tab, choice4Tab };
         InitTabHoverTriggers();
 
         if (root != null) root.SetActive(false);
@@ -110,9 +113,17 @@ public class DialogueUI : MonoBehaviour
             }
         }
 
-        if (tab.text != null)
+        if (tab.text != null && index < currentChoices.Count)
         {
-            tab.text.color = isHovered ? new Color(1f, 0.85f, 0.2f) : Color.white;
+            bool isQuestOption = currentChoices[index].choiceText.IndexOf("Quest", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            if (isHovered)
+            {
+                tab.text.color = isQuestOption ? new Color(1f, 0.95f, 0.4f) : new Color(1f, 0.85f, 0.2f);
+            }
+            else
+            {
+                tab.text.color = isQuestOption ? new Color(1f, 0.8f, 0.1f) : Color.white;
+            }
         }
     }
 
@@ -128,10 +139,6 @@ public class DialogueUI : MonoBehaviour
                 tab.selectedLine.transform.DOKill();
                 tab.selectedLine.SetActive(false);
             }
-            if (tab.text != null)
-            {
-                tab.text.color = Color.white;
-            }
         }
     }
 
@@ -139,7 +146,23 @@ public class DialogueUI : MonoBehaviour
     {
         if (data == null) return;
 
-        currentDialogue = data;
+        List<DialogueLine> lines = new List<DialogueLine>();
+        if (data.dialogues != null)
+        {
+            foreach (var d in data.dialogues)
+            {
+                lines.Add(new DialogueLine(SpeakerType.NPC, d));
+            }
+        }
+
+        ShowCustom(data.npcName, lines, data.choices);
+    }
+
+    public void ShowCustom(string npcName, List<DialogueLine> lines, List<DialogueChoice> choices)
+    {
+        currentNPCName = npcName;
+        currentLines = lines != null ? new List<DialogueLine>(lines) : new List<DialogueLine>();
+        currentChoices = choices != null ? new List<DialogueChoice>(choices) : new List<DialogueChoice>();
         currentIndex = 0;
 
         if (InteractManagerV2.Instance != null)
@@ -161,11 +184,6 @@ public class DialogueUI : MonoBehaviour
             UIManager.Instance.ChangeMenu(MenuType.LobbyDialogueMenu);
         }
 
-        if (npcNameText != null)
-        {
-            npcNameText.SetTextSafe(data.npcName);
-        }
-
         if (root != null)
         {
             root.SetActive(true);
@@ -185,12 +203,19 @@ public class DialogueUI : MonoBehaviour
         ResetAllHoverLines();
 
         isTyping = false;
-        currentDialogue = null;
+        currentLines.Clear();
+        currentChoices.Clear();
         currentIndex = 0;
 
         if (root != null)
         {
             root.SetActive(false);
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.IsBusy = false;
+            InteractManagerV2.Instance.ForceRefresh();
         }
 
         if (UIManager.Instance != null)
@@ -201,12 +226,6 @@ public class DialogueUI : MonoBehaviour
 
             UIManager.Instance.ChangeMenu(targetMenu);
         }
-
-        if (InteractManagerV2.Instance != null)
-        {
-            InteractManagerV2.Instance.IsBusy = false;
-            InteractManagerV2.Instance.ForceRefresh();
-        }
     }
 
     private void OnDisable()
@@ -215,16 +234,47 @@ public class DialogueUI : MonoBehaviour
         ResetAllHoverLines();
     }
 
+    private string GetPlayerName()
+    {
+        // 1. Thử lấy tên từ PlayerPrefs nếu có lưu lúc đăng nhập PlayFab / Custom ID
+        string username = PlayerPrefs.GetString("PLAYFAB_USERNAME", "");
+        if (string.IsNullOrEmpty(username))
+        {
+            username = PlayerPrefs.GetString("USERNAME", "");
+        }
+        if (string.IsNullOrEmpty(username))
+        {
+            username = PlayerPrefs.GetString("PLAYER_NAME", "");
+        }
+
+        // 2. Nếu không có tên nào trong PlayerPrefs, hiển thị mặc định
+        return !string.IsNullOrEmpty(username) ? username : "Adventurer";
+    }
+
     private void RefreshDialogue()
     {
-        if (dialogueText == null || currentDialogue == null || currentIndex >= currentDialogue.dialogues.Count)
+        if (dialogueText == null || currentLines == null || currentIndex >= currentLines.Count)
         {
             return;
         }
 
         StopTypewriterRoutine();
 
-        targetFullText = currentDialogue.dialogues[currentIndex];
+        DialogueLine line = currentLines[currentIndex];
+        
+        if (npcNameText != null)
+        {
+            if (line.speaker == SpeakerType.Player)
+            {
+                npcNameText.SetTextSafe($"<color=#55FFFF>[{GetPlayerName()}]</color>");
+            }
+            else
+            {
+                npcNameText.SetTextSafe(currentNPCName);
+            }
+        }
+
+        targetFullText = line.text;
         typewriterRoutine = StartCoroutine(TypewriterRoutine(targetFullText));
     }
 
@@ -285,7 +335,7 @@ public class DialogueUI : MonoBehaviour
 
         if (!Input.GetKeyDown(KeyCode.F) && !Input.GetMouseButtonDown(0)) return;
 
-        if (currentDialogue == null) return;
+        if (currentLines == null || currentLines.Count == 0) return;
 
         if (isTyping)
         {
@@ -293,7 +343,7 @@ public class DialogueUI : MonoBehaviour
             return;
         }
 
-        if (currentIndex < currentDialogue.dialogues.Count - 1)
+        if (currentIndex < currentLines.Count - 1)
         {
             currentIndex++;
             RefreshDialogue();
@@ -307,12 +357,13 @@ public class DialogueUI : MonoBehaviour
     {
         return (choice1Tab?.button != null && choice1Tab.button.gameObject.activeSelf) ||
                (choice2Tab?.button != null && choice2Tab.button.gameObject.activeSelf) ||
-               (choice3Tab?.button != null && choice3Tab.button.gameObject.activeSelf);
+               (choice3Tab?.button != null && choice3Tab.button.gameObject.activeSelf) ||
+               (choice4Tab?.button != null && choice4Tab.button.gameObject.activeSelf);
     }
 
     private void HandleChoiceHotkeys()
     {
-        if (currentDialogue == null || currentDialogue.choices == null) return;
+        if (currentChoices == null) return;
 
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
@@ -326,17 +377,21 @@ public class DialogueUI : MonoBehaviour
         {
             TriggerChoiceAtIndex(2);
         }
+        else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
+        {
+            TriggerChoiceAtIndex(3);
+        }
     }
 
     private void TriggerChoiceAtIndex(int index)
     {
-        if (index < 0 || index >= currentDialogue.choices.Count) return;
+        if (index < 0 || index >= currentChoices.Count) return;
 
-        ChoiceTabItem targetTab = (index == 0) ? choice1Tab : (index == 1) ? choice2Tab : choice3Tab;
+        ChoiceTabItem targetTab = (index == 0) ? choice1Tab : (index == 1) ? choice2Tab : (index == 2) ? choice3Tab : choice4Tab;
         if (targetTab != null && targetTab.button != null && targetTab.button.gameObject.activeSelf)
         {
             SetTabHoverVisual(index, true);
-            ExecuteChoice(currentDialogue.choices[index]);
+            ExecuteChoice(currentChoices[index]);
         }
     }
 
@@ -349,12 +404,14 @@ public class DialogueUI : MonoBehaviour
             if (choice1Tab?.button != null) choice1Tab.button.gameObject.SetActive(false);
             if (choice2Tab?.button != null) choice2Tab.button.gameObject.SetActive(false);
             if (choice3Tab?.button != null) choice3Tab.button.gameObject.SetActive(false);
+            if (choice4Tab?.button != null) choice4Tab.button.gameObject.SetActive(false);
             return;
         }
 
-        SetupTabChoice(choice1Tab, currentDialogue, 0);
-        SetupTabChoice(choice2Tab, currentDialogue, 1);
-        SetupTabChoice(choice3Tab, currentDialogue, 2);
+        SetupTabChoice(choice1Tab, 0);
+        SetupTabChoice(choice2Tab, 1);
+        SetupTabChoice(choice3Tab, 2);
+        SetupTabChoice(choice4Tab, 3);
 
         for (int i = 0; i < allChoices.Count; i++)
         {
@@ -367,23 +424,53 @@ public class DialogueUI : MonoBehaviour
         }
     }
 
-    private void SetupTabChoice(ChoiceTabItem tab, DialogueData data, int index)
+    private void SetupTabChoice(ChoiceTabItem tab, int index)
     {
         if (tab == null || tab.button == null) return;
 
-        if (index >= data.choices.Count)
+        if (index >= currentChoices.Count)
         {
             tab.button.gameObject.SetActive(false);
             return;
         }
 
         tab.button.gameObject.SetActive(true);
-        DialogueChoice choice = data.choices[index];
+        DialogueChoice choice = currentChoices[index];
+
+        bool isUnlocked = true;
+        if (choice.action == DialogueAction.OpenPanel && choice.menuType != MenuType.None && choice.menuType != MenuType.LobbyQuestMenu)
+        {
+            if (QuestManager.Instance != null)
+            {
+                isUnlocked = QuestManager.Instance.IsMenuUnlocked(choice.menuType);
+            }
+        }
+
+        tab.button.interactable = isUnlocked;
+
+        bool isQuestChoice = choice.choiceText.IndexOf("Quest", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                             choice.choiceText.IndexOf("Reward", System.StringComparison.OrdinalIgnoreCase) >= 0;
 
         if (tab.text != null)
         {
-            tab.text.SetTextSafe(choice.choiceText);
-            tab.text.color = Color.white;
+            if (isUnlocked)
+            {
+                if (isQuestChoice)
+                {
+                    // Đã bỏ hoàn toàn các ký hiệu đặc biệt, chỉ giữ text chuẩn màu vàng cam
+                    tab.text.SetTextSafe($"<color=#FFCC00>{choice.choiceText}</color>");
+                }
+                else
+                {
+                    tab.text.SetTextSafe(choice.choiceText);
+                    tab.text.color = Color.white;
+                }
+            }
+            else
+            {
+                tab.text.SetTextSafe($"{choice.choiceText} <color=#888888>(Locked)</color>");
+                tab.text.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
+            }
         }
 
         if (tab.selectedLine != null)
@@ -392,14 +479,65 @@ public class DialogueUI : MonoBehaviour
         }
 
         tab.button.onClick.RemoveAllListeners();
-        tab.button.onClick.AddListener(() => ExecuteChoice(choice));
+        if (isUnlocked)
+        {
+            tab.button.onClick.AddListener(() => ExecuteChoice(choice));
+        }
     }
 
     private void ExecuteChoice(DialogueChoice choice)
     {
+        if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.CurrentInteract != null)
+        {
+            NPCQuestHandler questHandler = InteractManagerV2.Instance.CurrentInteract.GetComponent<NPCQuestHandler>();
+            if (questHandler != null)
+            {
+                if (choice.action == DialogueAction.None && choice.menuType == MenuType.None)
+                {
+                    if (choice.choiceText.Equals("Back", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        questHandler.ShowInitialDialogue();
+                    }
+                    else
+                    {
+                        questHandler.ShowQuestDialogue();
+                    }
+                    return;
+                }
+                else if (choice.action == DialogueAction.CloseDialogue && 
+                        (choice.choiceText.Equals("Accept Quest", System.StringComparison.OrdinalIgnoreCase) || 
+                         choice.choiceText.Equals("Claim Reward", System.StringComparison.OrdinalIgnoreCase)))
+                {
+                    questHandler.OnQuestDialogueActionTriggered();
+                }
+            }
+        }
+
         switch (choice.action)
         {
             case DialogueAction.OpenPanel:
+                if (choice.menuType == MenuType.LobbyShopMenu)
+                {
+                    if (QuestManager.Instance != null)
+                    {
+                        QuestManager.Instance.AddQuestProgress("QUEST_VISIT_SHOP", 1);
+                    }
+                }
+                else if (choice.menuType == MenuType.LobbyAchievementMenu)
+                {
+                    if (QuestManager.Instance != null)
+                    {
+                        QuestManager.Instance.AddQuestProgress("QUEST_CHECK_ACHIEVEMENTS", 1);
+                    }
+                }
+                else if (choice.menuType == MenuType.LobbyLeaderboardMenu)
+                {
+                    if (QuestManager.Instance != null)
+                    {
+                        QuestManager.Instance.AddQuestProgress("QUEST_CHECK_LEADERBOARDS", 1);
+                    }
+                }
+
                 StopTypewriterRoutine();
                 if (root != null) root.SetActive(false);
 
