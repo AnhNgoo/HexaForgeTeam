@@ -149,7 +149,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
             stat.shrinkDuration
         );
 
-        while (safeZone.IsShrinking)
+        while (safeZone != null && safeZone.IsShrinking)
             await UniTask.Yield();
     }
 

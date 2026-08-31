@@ -110,6 +110,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public bool IsHealthRecoveryInterrupted { get; set; } = false;
     public DashShadowEffect DashShadowEffect { get; set; }
     public GhostEffect GhostEffect { get; set; }
+    public DissolveEffect DissolveEffect { get; set; }
     public bool IsHitStateActive { get; set; } = false;
     public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
 
@@ -216,6 +217,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
             GetDashShadowEffect(characterVisual);
             GetGhostEffect(characterVisual);
+            GetDissolveEffect(characterVisual);
 
             GoldManager.Instance?.ResetGold();
             WeaponInventorySystem.Instance?.Init(characterWeapon);
@@ -231,6 +233,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
     }
 
+    /// <summary>
+    /// Reset trạng thái nhân vật về mặc định, dùng khi respawn hoặc khi nhân vật chết
+    /// Không phải trả nhân vật về pool
+    /// </summary>
     public void ResetRespawnCharacter()
     {
         stateController?.ChangeState(new IdleState(this));
@@ -243,7 +249,19 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         IsHitStateActive = false;
         characterLockTarget?.ForceUnlockTarget();
         GoldManager.Instance?.ResetGold();
+        DissolveEffect?.ResetDefaultMaterial();
     }
+
+    public void OnSpawnFromPool()
+    {
+
+    }
+
+    public void OnReturnToPool()
+    {
+        CharacterInput.ClearInput();
+    }
+
     #endregion
 
     protected virtual void Update()
@@ -367,13 +385,13 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     #endregion
     public virtual void Dodge()
     {
+        if (dodgeCooldown.IsOnCooldown)
+            return;
+
         if (!characterStamina.HasEnoughStamina(characterData.staminaCost.dodgeCost))
             return;
 
         characterStamina.SubtractStamina(characterData.staminaCost.dodgeCost);
-
-        if (dodgeCooldown.IsOnCooldown)
-            return;
 
         dodgeCooldown.StartCooldown(characterMovement.DodgeCooldown);
 
@@ -537,7 +555,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     {
         CanBeAttacked = false;
         stateController.ChangeState(new DeathState(this));
-        EventManager.Notify(GameEvent.OnPlayerDeath);
     }
 
     protected virtual void GetDashShadowEffect(GameObject characterVisual)
@@ -548,6 +565,11 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public virtual void GetGhostEffect(GameObject characterVisual)
     {
         GhostEffect = characterVisual.GetComponent<GhostEffect>();
+    }
+
+    public virtual void GetDissolveEffect(GameObject characterVisual)
+    {
+        DissolveEffect = characterVisual.GetComponent<DissolveEffect>();
     }
 
     /// <summary>
@@ -570,8 +592,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
+        Debug.Log("Change Weapon Input Detected");
         if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
             return;
+        Debug.Log("Change Weapon Input Detected and Passed Menu Check");
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
@@ -583,6 +607,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
              characterSkill.IsUsingSkill
              ) return;
 
+            Debug.Log("Change Weapon Input Detected and Passed All Checks - Changing Weapon");
             StateController.ChangeState(new ChangeWeaponState(this));
         }
     }
@@ -643,16 +668,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         }
         CharacterMovement.Stop();
         CharacterMovement.IsLunging = false;
-    }
-
-    public void OnSpawnFromPool()
-    {
-
-    }
-
-    public void OnReturnToPool()
-    {
-
     }
 
     #endregion

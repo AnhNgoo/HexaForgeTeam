@@ -127,7 +127,9 @@ public class RunGameplayController : MonoBehaviour
     {
         if (this == null || enemy == null || enemy.Data == null) return;
 
-        if (!enemy.Data.isBoss)
+        bool isBoss = enemy.Data.isBoss;
+
+        if (!isBoss)
         {
             NormalKilled++;
         }
@@ -151,6 +153,7 @@ public class RunGameplayController : MonoBehaviour
         }
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
+        GameEventManager.TriggerEnemyKilled(1, isBoss);
     }
 
     public void ResetStats()

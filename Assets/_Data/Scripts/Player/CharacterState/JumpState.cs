@@ -37,7 +37,8 @@ public class JumpState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.Dodge)
+
+        if (character.CharacterInput.Dodge) // Trừ stamina trong hàm Dodge()
         {
             character.Dodge();
             return;

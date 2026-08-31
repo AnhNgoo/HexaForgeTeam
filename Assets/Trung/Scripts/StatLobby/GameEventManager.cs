@@ -2,15 +2,21 @@ using System;
 
 public static class GameEventManager
 {
-    // Sự kiện khi kho ngọc hoặc trang bị ngọc thay đổi
     public static event Action OnRuneDataChanged;
     public static void TriggerRuneDataChanged() => OnRuneDataChanged?.Invoke();
 
-    // Sự kiện khi chỉ số nhân vật thay đổi
     public static event Action OnCharacterStatsRecalculated;
     public static void TriggerCharacterStatsRecalculated() => OnCharacterStatsRecalculated?.Invoke();
 
-    // Sự kiện khi đổi nhân vật xem thử
     public static event Action<CharacterType> OnSelectedCharacterChanged;
     public static void TriggerSelectedCharacterChanged(CharacterType type) => OnSelectedCharacterChanged?.Invoke(type);
+
+    public static event Action<int> OnGachaRolled;
+    public static void TriggerGachaRolled(int rollCount) => OnGachaRolled?.Invoke(rollCount);
+
+    public static event Action<int, bool> OnEnemyKilled;
+    public static void TriggerEnemyKilled(int killCount, bool isBoss) => OnEnemyKilled?.Invoke(killCount, isBoss);
+
+    public static event Action OnTutorialCompleted;
+    public static void TriggerTutorialCompleted() => OnTutorialCompleted?.Invoke();
 }
