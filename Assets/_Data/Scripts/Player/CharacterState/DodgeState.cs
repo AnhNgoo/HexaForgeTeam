@@ -35,6 +35,7 @@ public class DodgeState : ICharacterState
 
     private async void Dodge()
     {
+        character.CharacterSound.Play(character.CharacterSound.dodgeSoundEffect); // Phát âm thanh dodge
         Vector2 dodgeDirection = character.CharacterMovement.MoveDirection;
 
         if (dodgeDirection == Vector2.zero)//Nếu không di chuyển thì lấy hướng hiện tại của nhân vật
