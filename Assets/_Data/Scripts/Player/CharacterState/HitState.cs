@@ -15,6 +15,7 @@ public class HitState : ICharacterState
         character.IsHitStateActive = true;
         character.CharacterAnimation.CrossFade("Hit", 0.1f);
         character.CharacterMovement.Stop();
+        character.CharacterSound.Play(character.CharacterSound.hurtSoundEffect); // Phát âm thanh hurt
     }
 
     public void Exit()
