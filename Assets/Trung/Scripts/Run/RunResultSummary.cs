@@ -253,31 +253,38 @@ public class RunResultSummary : MonoBehaviour
     private void SetupHeroDisplay()
     {
         CharacterType selectedType = CharacterType.Kael;
+
+        // 1. Lấy từ CharacterManager nếu có
         if (CharacterManager.Instance != null)
         {
             selectedType = CharacterManager.Instance.GetSelectedCharacter();
         }
+        // 2. Fallback lấy từ PlayerPrefs
+        else
+        {
+            selectedType = (CharacterType)PlayerPrefs.GetInt("SELECTED_CHARACTER", 0);
+        }
 
         Sprite targetSprite = kaelArtwork;
-        string heroTitle = "<color=#FFA500><b>KAEL</b></color> <size=75%><color=#D3D3D3>[SWORDMASTER]</color></size>";
+        string heroTitle = "<color=#FFA500><b>KAEL</b></color>";
 
         switch (selectedType)
         {
             case CharacterType.Kael:
                 targetSprite = kaelArtwork;
-                heroTitle = "<color=#FFA500><b>KAEL</b></color> <size=75%><color=#D3D3D3>[SWORDMASTER]</color></size>";
+                heroTitle = "<color=#FFA500><b>KAEL</b></color>";
                 break;
             case CharacterType.Lyra:
                 targetSprite = lyraArtwork;
-                heroTitle = "<color=#9966FF><b>LYRA</b></color> <size=75%><color=#D3D3D3>[ARCANE MAGE]</color></size>";
+                heroTitle = "<color=#9966FF><b>LYRA</b></color>";
                 break;
             case CharacterType.Ares:
                 targetSprite = aresArtwork;
-                heroTitle = "<color=#FF4444><b>ARES</b></color> <size=75%><color=#D3D3D3>[BERSERKER]</color></size>";
+                heroTitle = "<color=#FF4444><b>ARES</b></color>";
                 break;
             case CharacterType.Elara:
                 targetSprite = elaraArtwork;
-                heroTitle = "<color=#33FF88><b>ELARA</b></color> <size=75%><color=#D3D3D3>[RANGER]</color></size>";
+                heroTitle = "<color=#33FF88><b>ELARA</b></color>";
                 break;
         }
 

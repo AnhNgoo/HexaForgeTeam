@@ -19,7 +19,10 @@ public class LobbyBossSelectMenu : MenuBase
         public Button selectButton;
         public GameObject highlightObject;
 
-        [Header("Video Preview Settings")]
+        [Header("Boss Avatar Icon (Hiện khi KHÔNG highlight)")]
+        public Image bossIconImage;
+
+        [Header("Video Preview Settings (Hiện khi ĐƯỢC highlight)")]
         public VideoPlayer videoPlayer;
         public RawImage videoRawImage;
         public RenderTexture videoRenderTexture;
@@ -52,6 +55,7 @@ public class LobbyBossSelectMenu : MenuBase
 
     [Header("UI Action Buttons")]
     [SerializeField] private Button btnConfirmStartRun;
+    [SerializeField] private Button btnClose;
 
     [Header("Map Debug Preview (Optional Text in Scene)")]
     [SerializeField] private TMP_Text txtSelectedMapDebug;
@@ -77,6 +81,11 @@ public class LobbyBossSelectMenu : MenuBase
         {
             txtSelectedMapDebug = transform.Find("TxtSelectedMapDebug")?.GetComponent<TMP_Text>();
         }
+
+        if (btnClose == null)
+        {
+            btnClose = transform.Find("CloseButton")?.GetComponent<Button>() ?? GetComponentInChildren<Button>();
+        }
     }
 
     protected override void LoadComponentRuntime() { }
@@ -89,10 +98,30 @@ public class LobbyBossSelectMenu : MenuBase
             btnConfirmStartRun.onClick.AddListener(OnConfirmStartRun);
         }
 
+        if (btnClose != null)
+        {
+            btnClose.onClick.RemoveAllListeners();
+            btnClose.onClick.AddListener(CloseMenuAction);
+        }
+
         SetupWagerSlider();
         SetupBossButtons();
         SetupBuffToggles();
         UpdateMapDebugUI();
+    }
+
+    private void Update()
+    {
+        // 1. Nhấn 'M' để chuyển đổi Map trực tiếp khi đang mở menu
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            ToggleForceMap();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            CloseMenuAction();
+        }
     }
 
     private void OnEnable()
@@ -286,6 +315,7 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         HideAndStopAllVideos();
+
         base.Close();
 
         if (LobbyHUDTopBar.Instance != null)
@@ -296,6 +326,15 @@ public class LobbyBossSelectMenu : MenuBase
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.IsBusy = false;
+            InteractManagerV2.Instance.ForceRefresh();
+        }
+    }
+
+    public void CloseMenuAction()
+    {
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
         }
     }
 
@@ -356,30 +395,38 @@ public class LobbyBossSelectMenu : MenuBase
 
             if (i != targetIndex)
             {
+                // Boss không được chọn: Tắt video, hiện lại Icon
                 if (opt.videoPlayer != null && opt.videoPlayer.isPlaying) opt.videoPlayer.Stop();
                 if (opt.videoRawImage != null) opt.videoRawImage.gameObject.SetActive(false);
+                if (opt.bossIconImage != null) opt.bossIconImage.gameObject.SetActive(true);
             }
         }
 
         if (targetIndex >= 0 && targetIndex < bossOptions.Count)
         {
             var currentOpt = bossOptions[targetIndex];
-            if (currentOpt != null && currentOpt.videoPlayer != null)
+            if (currentOpt != null)
             {
-                if (currentOpt.videoRawImage != null) currentOpt.videoRawImage.gameObject.SetActive(true);
-                if (!currentOpt.videoPlayer.gameObject.activeSelf) currentOpt.videoPlayer.gameObject.SetActive(true);
+                // Boss được chọn: Ẩn Icon, bật Video Preview
+                if (currentOpt.bossIconImage != null) currentOpt.bossIconImage.gameObject.SetActive(false);
 
-                if (currentOpt.videoRenderTexture != null) currentOpt.videoRenderTexture.Release();
-
-                currentOpt.videoPlayer.Stop();
-                currentOpt.videoPlayer.Prepare();
-
-                while (!currentOpt.videoPlayer.isPrepared)
+                if (currentOpt.videoPlayer != null)
                 {
-                    yield return null;
-                }
+                    if (currentOpt.videoRawImage != null) currentOpt.videoRawImage.gameObject.SetActive(true);
+                    if (!currentOpt.videoPlayer.gameObject.activeSelf) currentOpt.videoPlayer.gameObject.SetActive(true);
 
-                currentOpt.videoPlayer.Play();
+                    if (currentOpt.videoRenderTexture != null) currentOpt.videoRenderTexture.Release();
+
+                    currentOpt.videoPlayer.Stop();
+                    currentOpt.videoPlayer.Prepare();
+
+                    while (!currentOpt.videoPlayer.isPrepared)
+                    {
+                        yield return null;
+                    }
+
+                    currentOpt.videoPlayer.Play();
+                }
             }
         }
     }
@@ -394,6 +441,9 @@ public class LobbyBossSelectMenu : MenuBase
             if (opt.videoPlayer != null) opt.videoPlayer.Stop();
             if (opt.videoRawImage != null) opt.videoRawImage.gameObject.SetActive(false);
             if (opt.videoRenderTexture != null) opt.videoRenderTexture.Release();
+
+            // Hiển thị lại toàn bộ Icon khi đóng hoặc khởi tạo
+            if (opt.bossIconImage != null) opt.bossIconImage.gameObject.SetActive(true);
         }
     }
 
@@ -420,6 +470,11 @@ public class LobbyBossSelectMenu : MenuBase
         {
             RunManager.Instance.ConfigureRun(previewedRunMapName, bossOptions[selectedBossIndex].bossPoolType);
         }
+
+        if (LobbyNotifyManager.Instance != null)
+        {
+            LobbyNotifyManager.Instance.ShowNotify($"Target Map Changed: {previewedRunMapName}", Color.cyan);
+        }
     }
 
     private void UpdateMapDebugUI()
@@ -433,7 +488,7 @@ public class LobbyBossSelectMenu : MenuBase
 
         if (txtSelectedMapDebug != null)
         {
-            txtSelectedMapDebug.text = $"Map Target: <color=#00FFFF>{previewedRunMapName}</color>";
+            txtSelectedMapDebug.text = $"Map Target: <color=#00FFFF>{previewedRunMapName}</color> (Press 'M' to switch)";
         }
 
         Debug.Log($"<color=#FF7700><b>[LobbyBossSelectMenu]</b> Target Map: <b>{previewedRunMapName}</b> (Nhấn 'M' để đổi Map)</color>");
@@ -468,15 +523,14 @@ public class LobbyBossSelectMenu : MenuBase
             }
         }
 
-        var selected = bossOptions[selectedBossIndex];
         PlaySelectedBossVideoOnly(selectedBossIndex);
 
         if (!isInitialOpen && RunManager.Instance != null)
         {
-            RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
+            RunManager.Instance.ConfigureRun(previewedRunMapName, targetOption.bossPoolType);
         }
 
-        Debug.Log($"<color=#00FFCC><b>[LobbyBossSelectMenu]</b> Đã chọn: <b>{selected.bossName}</b> | PoolType: <b>{selected.bossPoolType}</b></color>");
+        Debug.Log($"<color=#00FFCC><b>[LobbyBossSelectMenu]</b> Đã chọn: <b>{targetOption.bossName}</b> | PoolType: <b>{targetOption.bossPoolType}</b></color>");
         UpdateMapDebugUI();
     }
 
