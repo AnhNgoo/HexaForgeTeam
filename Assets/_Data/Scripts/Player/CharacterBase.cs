@@ -592,22 +592,22 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
-        Debug.Log("Change Weapon Input Detected");
-        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
+        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu &&
+             UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
             return;
-        Debug.Log("Change Weapon Input Detected and Passed Menu Check");
+
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
         if (scrollY > 0f)
         {
             if (CharacterInput.IsChangingWeapon ||
+            CharacterInput.LockInput ||
              WeaponInventorySystem.Instance.CheckWeaponInSlots() == false ||
              characterCombat.IsAttacking ||
              characterSkill.IsUsingSkill
              ) return;
 
-            Debug.Log("Change Weapon Input Detected and Passed All Checks - Changing Weapon");
             StateController.ChangeState(new ChangeWeaponState(this));
         }
     }

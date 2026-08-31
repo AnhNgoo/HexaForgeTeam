@@ -100,6 +100,7 @@ public class RunManager : MonoBehaviour
             InteractManagerV2.Instance.IsBusy = true;
         }
 
+        GameManager.Instance?.StartRun();
         StartCoroutine(LoadSceneCoroutine());
     }
 
