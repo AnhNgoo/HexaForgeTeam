@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackName: Cast Spell
   animationStateName: Cast Spell
-  attackType: 1
+  attackType: 0
   transitionDuration: 0.1
   attackDuration: 1.5
   cooldown: 10
   damageMultiplier: 1.5
   poiseDamage: 15
+  attackSound: {fileID: 8300000, guid: 13f114b0ab20744488638f6b12d88249, type: 3}
+  attackSoundVolume: 1
   minAttackRange: 3
   maxAttackRange: 12
   projectileAnchor: 0
@@ -31,5 +33,6 @@ MonoBehaviour:
   vfxOffset: {x: 0, y: 0, z: 0}
   vfxEuler: {x: 0, y: 0, z: 0}
   vfxScale: 1
+  isFollowUpOnly: 0
   hitboxType: 0
   skillLogic: {fileID: 11400000, guid: fe66516246ad003479ff2b9469711984, type: 2}

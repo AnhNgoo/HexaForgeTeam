@@ -3,9 +3,36 @@ using UnityEngine.SceneManagement;
 using System.Collections;
 using System.Collections.Generic;
 
+[System.Serializable]
+public struct ActiveRunBuffs
+{
+    public bool hasGoldBuff;
+    public bool hasReviveBuff;
+    public bool hasAtkBuff;
+    public List<string> activeItemIDs;
+
+    public void AddBuff(string itemID)
+    {
+        if (activeItemIDs == null) activeItemIDs = new List<string>();
+        if (!activeItemIDs.Contains(itemID)) activeItemIDs.Add(itemID);
+    }
+
+    public void Reset()
+    {
+        hasGoldBuff = false;
+        hasReviveBuff = false;
+        hasAtkBuff = false;
+        activeItemIDs?.Clear();
+    }
+}
+
 public class RunManager : MonoBehaviour
 {
     public static RunManager Instance;
+
+    // Giữ lựa chọn boss trong suốt phiên chơi, kể cả khi một RunManager khác
+    // được tạo lại trong quá trình chuyển scene additive.
+    private static PoolType sessionSelectedFinalBossPool = PoolType.None;
 
     [Header("Current Dynamic Target Scene Name")]
     [SerializeField] private string gameplaySceneName = "";
@@ -26,19 +53,67 @@ public class RunManager : MonoBehaviour
     public bool IsRunActive => isRunActive;
 
     [SerializeField] private PoolType selectedFinalBossPool = PoolType.EnemyEarthshakerBoss;
+    private int currentWagerAmount = 0;
+    private float currentRewardMultiplier = 1.0f;
+    private bool isRunWon = false;
+
+    [Header("Active Run Buffs")]
+    [SerializeField] private ActiveRunBuffs activeBuffs;
+
+    public int CurrentWagerAmount => currentWagerAmount;
+    public float CurrentRewardMultiplier => currentRewardMultiplier;
+    public bool IsRunWon => isRunWon;
+    public ActiveRunBuffs ActiveBuffs => activeBuffs;
 
     public PoolType SelectedFinalBossPool => selectedFinalBossPool;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetSessionState()
+    {
+        Instance = null;
+        sessionSelectedFinalBossPool = PoolType.None;
+    }
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
+
+            if (sessionSelectedFinalBossPool != PoolType.None)
+            {
+                selectedFinalBossPool = sessionSelectedFinalBossPool;
+            }
+            else
+            {
+                sessionSelectedFinalBossPool = selectedFinalBossPool;
+            }
         }
         else
         {
             Destroy(gameObject);
         }
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this)
+        {
+            Instance = null;
+        }
+    }
+
+    public static PoolType ResolveSelectedFinalBossPool(PoolType fallback)
+    {
+        if (Instance != null && Instance.selectedFinalBossPool != PoolType.None)
+        {
+            sessionSelectedFinalBossPool = Instance.selectedFinalBossPool;
+            return Instance.selectedFinalBossPool;
+        }
+
+        return sessionSelectedFinalBossPool != PoolType.None
+            ? sessionSelectedFinalBossPool
+            : fallback;
     }
 
     public void ConfigureRun(string sceneName, PoolType finalBossPool)
@@ -51,6 +126,8 @@ public class RunManager : MonoBehaviour
         if (finalBossPool != PoolType.None)
         {
             selectedFinalBossPool = finalBossPool;
+            sessionSelectedFinalBossPool = finalBossPool;
+            Debug.Log($"[RunManager] Final Boss đã chọn: {selectedFinalBossPool} ({(int)selectedFinalBossPool})");
         }
     }
 
@@ -74,6 +151,28 @@ public class RunManager : MonoBehaviour
         pendingGem = gem;
         pendingExp = exp;
         pendingShards = shards;
+    }
+
+    public void SetWagerConfig(int wager, float multiplier)
+    {
+        currentWagerAmount = wager;
+        currentRewardMultiplier = multiplier;
+        isRunWon = false;
+    }
+
+    public void SetActiveBuffs(ActiveRunBuffs buffs)
+    {
+        activeBuffs = buffs;
+    }
+
+    public void MarkRunVictory(bool victory)
+    {
+        isRunWon = victory;
+    }
+
+    public void ConsumeReviveBuff()
+    {
+        activeBuffs.hasReviveBuff = false;
     }
 
     public void StartRun()
@@ -328,6 +427,12 @@ public class RunManager : MonoBehaviour
     {
         isRunActive = false;
         Time.timeScale = 1f;
+
+        // XÓA SẠCH VÀ RESET TOÀN BỘ BUFF KHI VỀ LẠI LOBBY
+        activeBuffs.Reset();
+        currentWagerAmount = 0;
+        currentRewardMultiplier = 1.0f;
+        isRunWon = false;
 
         if (UIManager.Instance != null)
         {

@@ -9,13 +9,16 @@ public class DefaultLobbyInputMenu : MenuBase
         base.Open(data);
     }
 
-    // private void Update()
-    // {
-    //     if (InputManager.InputActions.Keyboard.Escape.triggered)
-    //     {
-    //         UIManager.Instance.ChangeMenu(MenuType.GameSystemMenu);
-    //     }
-    // }
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.J))
+        {
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.ChangeMenu(MenuType.LobbyQuestMenu);
+            }
+        }
+    }
 
     protected override void LoadComponent()
     {

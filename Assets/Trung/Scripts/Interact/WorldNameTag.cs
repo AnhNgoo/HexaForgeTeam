@@ -1,19 +1,26 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WorldNameTag : MonoBehaviour
 {
-    [SerializeField]
-    private TMP_Text nameText;
+    [Header("Texts")]
+    [SerializeField] private TMP_Text nameText;
+    [SerializeField] private string displayName;
 
-    [SerializeField]
-    private string displayName;
+    [Header("Quest Status Icon UI")]
+    [SerializeField] private GameObject questIconRoot;
+    [SerializeField] private Image questStatusImage;
+    [SerializeField] private Sprite newQuestIcon;      // Icon dấu !
+    [SerializeField] private Sprite followQuestIcon;   // Icon Dẫn đường / Mũi tên / Đi theo
+    [SerializeField] private Sprite claimQuestIcon;    // Icon dấu ?
 
-    private Camera mainCamera;
+    private Camera targetCamera;
+    private Transform camTransform;
 
     private void Awake()
     {
-        mainCamera = Camera.main;
+        FindActiveCamera();
 
         if (nameText != null)
         {
@@ -21,11 +28,91 @@ public class WorldNameTag : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        FindActiveCamera();
+    }
+
+    private void FindActiveCamera()
+    {
+        if (targetCamera == null || !targetCamera.gameObject.activeInHierarchy)
+        {
+            targetCamera = Camera.main != null ? Camera.main : FindAnyObjectByType<Camera>();
+            if (targetCamera != null)
+            {
+                camTransform = targetCamera.transform;
+            }
+        }
+    }
+
     private void LateUpdate()
     {
-        if (mainCamera != null)
+        if (camTransform == null)
         {
-            transform.forward = mainCamera.transform.forward;
+            FindActiveCamera();
+            if (camTransform == null) return;
+        }
+
+        transform.rotation = Quaternion.LookRotation(transform.position - camTransform.position);
+    }
+
+    public void SetDisplayName(string newName)
+    {
+        displayName = newName;
+        if (nameText != null)
+        {
+            nameText.SetTextSafe(displayName);
+        }
+    }
+
+    public void UpdateQuestIcon(QuestState state, bool isGuiding = false)
+    {
+        if (questIconRoot == null || questStatusImage == null) return;
+
+        if (state == QuestState.NotStarted && newQuestIcon != null)
+        {
+            questStatusImage.sprite = newQuestIcon;
+            questStatusImage.enabled = true;
+            questIconRoot.SetActive(true);
+            EnsureVisibleHierarchy(questIconRoot);
+        }
+        else if (state == QuestState.InProgress && isGuiding && followQuestIcon != null)
+        {
+            questStatusImage.sprite = followQuestIcon;
+            questStatusImage.enabled = true;
+            questIconRoot.SetActive(true);
+            EnsureVisibleHierarchy(questIconRoot);
+        }
+        else if (state == QuestState.CanClaim && claimQuestIcon != null)
+        {
+            questStatusImage.sprite = claimQuestIcon;
+            questStatusImage.enabled = true;
+            questIconRoot.SetActive(true);
+            EnsureVisibleHierarchy(questIconRoot);
+        }
+        else
+        {
+            HideQuestIcon();
+        }
+    }
+
+    private void EnsureVisibleHierarchy(GameObject obj)
+    {
+        obj.transform.localScale = Vector3.one;
+        Canvas canvas = GetComponentInChildren<Canvas>(true);
+        if (canvas != null)
+        {
+            canvas.enabled = true;
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = 50;
+        }
+    }
+
+    public void HideQuestIcon()
+    {
+        if (questIconRoot != null)
+        {
+            questIconRoot.SetActive(false);
         }
     }
 
