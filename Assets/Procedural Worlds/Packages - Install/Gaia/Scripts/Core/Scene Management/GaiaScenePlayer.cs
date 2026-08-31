@@ -94,6 +94,28 @@ namespace Gaia
             {
                 return;
             }
+
+            // The lobby uses one large Gaia terrain. Frustum-based terrain culling can
+            // incorrectly hide it while leaving its TerrainCollider active, which makes
+            // the ground, textures, trees and details invisible although the player can
+            // still walk on it. Keep that terrain visible in this scene only.
+            if (gameObject.scene.name == "LobbyMainGameTrung")
+            {
+                foreach (Terrain terrain in Terrain.activeTerrains)
+                {
+                    if (terrain == null)
+                    {
+                        continue;
+                    }
+
+                    terrain.drawHeightmap = true;
+                    terrain.drawTreesAndFoliage = true;
+                    terrain.enabled = true;
+                }
+
+                return;
+            }
+
             if (!GaiaUtils.CheckIfSceneProfileExists())
             {
                 return;

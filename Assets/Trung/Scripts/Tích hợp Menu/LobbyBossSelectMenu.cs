@@ -15,8 +15,6 @@ public class LobbyBossSelectMenu : MenuBase
     public class BossSelectOption
     {
         public string bossName;
-        [TextArea(2, 4)] public string bossDescription;
-        public Sprite bossIcon;
         public PoolType bossPoolType;
         public Button selectButton;
         public GameObject highlightObject;
@@ -101,7 +99,7 @@ public class LobbyBossSelectMenu : MenuBase
     {
         if (wagerSlider != null)
         {
-            EventTrigger trigger = wagerSlider.gameObject.GetComponent<EventTrigger>() 
+            EventTrigger trigger = wagerSlider.gameObject.GetComponent<EventTrigger>()
                 ?? wagerSlider.gameObject.AddComponent<EventTrigger>();
 
             trigger.triggers.Clear();
@@ -260,14 +258,6 @@ public class LobbyBossSelectMenu : MenuBase
         RefreshBuffTogglesState();
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            ToggleForceMap();
-        }
-    }
-
     public override void Open(object data = null)
     {
         base.Open(data);
@@ -306,11 +296,6 @@ public class LobbyBossSelectMenu : MenuBase
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.IsBusy = false;
-        }
-
-        if (UITooltipPanel.Instance != null)
-        {
-            UITooltipPanel.Instance.HideTooltip();
         }
     }
 
@@ -414,8 +399,8 @@ public class LobbyBossSelectMenu : MenuBase
 
     public void RerollPreviewMap()
     {
-        previewedRunMapName = GameSceneData.Instance != null 
-            ? GameSceneData.Instance.GetRandomRunSceneName() 
+        previewedRunMapName = GameSceneData.Instance != null
+            ? GameSceneData.Instance.GetRandomRunSceneName()
             : "Run Scene";
 
         UpdateMapDebugUI();
@@ -441,8 +426,8 @@ public class LobbyBossSelectMenu : MenuBase
     {
         if (string.IsNullOrEmpty(previewedRunMapName))
         {
-            previewedRunMapName = GameSceneData.Instance != null 
-                ? GameSceneData.Instance.GetRandomRunSceneName() 
+            previewedRunMapName = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetRandomRunSceneName()
                 : "Run Scene";
         }
 
@@ -471,11 +456,6 @@ public class LobbyBossSelectMenu : MenuBase
         }
 
         selectedBossIndex = index;
-
-        if (!isInitialOpen)
-        {
-            RerollPreviewMap();
-        }
 
         for (int i = 0; i < bossOptions.Count; i++)
         {
@@ -511,8 +491,8 @@ public class LobbyBossSelectMenu : MenuBase
 
         var selected = bossOptions[selectedBossIndex];
 
-        int currentGem = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null) 
-            ? SaveLoadManager.Instance.SaveData.gem 
+        int currentGem = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+            ? SaveLoadManager.Instance.SaveData.gem
             : 0;
 
         if (currentGem < selectedWagerAmount)
@@ -561,8 +541,8 @@ public class LobbyBossSelectMenu : MenuBase
 
         if (string.IsNullOrEmpty(previewedRunMapName))
         {
-            previewedRunMapName = GameSceneData.Instance != null 
-                ? GameSceneData.Instance.GetRandomRunSceneName() 
+            previewedRunMapName = GameSceneData.Instance != null
+                ? GameSceneData.Instance.GetRandomRunSceneName()
                 : "Run Scene";
         }
 
@@ -576,6 +556,10 @@ public class LobbyBossSelectMenu : MenuBase
             RunManager.Instance.SetActiveBuffs(activeBuffs);
             RunManager.Instance.ConfigureRun(previewedRunMapName, selected.bossPoolType);
             RunManager.Instance.StartRun();
+        }
+        else
+        {
+            Debug.LogError("[LobbyBossSelectMenu] Không tìm thấy RunManager để lưu boss đã chọn.");
         }
     }
 }

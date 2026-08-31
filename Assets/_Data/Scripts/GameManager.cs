@@ -50,7 +50,6 @@ public class GameManager : Singleton<GameManager>
 
     private void OpenMenuAfterLoadingComplete()
     {
-
         if (UIManager.Instance == null) return;
 
         if (currentMapType == MapType.Lobby)
@@ -122,7 +121,7 @@ public class GameManager : Singleton<GameManager>
 
         // Nếu ở map run nhân vật chưa chết lần nào khi bo cuối thì nhân vật sẽ được respawn ở map boss + thêm 1 lần
         if (PlayerManager.Instance.CurrentRespawnAttempts == PlayerManager.Instance.MaxRespawnAttemptsInFinalSafeZone)
-            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss + 1, limitRespawnAttempts: true);
+            PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss + PlayerManager.Instance.BonusRespawnAttemptsInBoss, limitRespawnAttempts: true);
         else
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss, limitRespawnAttempts: true);
     }
