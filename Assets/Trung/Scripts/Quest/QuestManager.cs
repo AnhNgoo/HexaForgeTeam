@@ -346,4 +346,47 @@ public class QuestManager : MonoBehaviour
     {
         AddQuestProgress("QUEST_EXPEDITION_TRIAL", 1);
     }
+    public void SkipAllQuests()
+    {
+        if (quests == null || quests.Count == 0)
+        {
+            SyncFromDatabase();
+        }
+
+        for (int i = 0; i < quests.Count; i++)
+        {
+            QuestData qData = quests[i];
+            if (qData == null) continue;
+
+            QuestSO qSO = GetQuestSO(qData.questID);
+            int target = qSO != null ? qSO.targetProgress : qData.targetProgress;
+
+            qData.state = QuestState.Completed;
+            qData.currentProgress = target;
+        }
+
+        SaveQuests();
+
+        // Cập nhật lại toàn bộ vật thể tương tác
+        InteractV2[] allInteracts = FindObjectsByType<InteractV2>(FindObjectsSortMode.None);
+        for (int i = 0; i < allInteracts.Length; i++)
+        {
+            if (allInteracts[i] != null)
+            {
+                allInteracts[i].CheckFeatureUnlockStatus();
+            }
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.RescanNearbyInteracts();
+        }
+
+        OnQuestUpdated?.Invoke();
+
+        if (LobbyNotifyManager.Instance != null)
+        {
+            LobbyNotifyManager.Instance.ShowNotify("All Quests & Features Fully Unlocked!", Color.green);
+        }
+    }
 }
