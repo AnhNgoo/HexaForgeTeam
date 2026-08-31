@@ -102,6 +102,8 @@ public enum PoolType
     DarkMageMeteorTelegraph = 1110,
     DarkMageMeteorStrike = 1111,
     DarkMageLaserBeam = 1112,
+    DarkMageLaserTelegraph = 1113,
+    DarkMageDarkOrb = 1114,
     TutorialSafeZone = 2001,
     EnemyBatAttackVFX = 3002,
     EnemySlashVFX = 3003,
@@ -153,8 +155,19 @@ public enum PoolType
     HellhoundMuzzleVFX = 3234,
     HellhoundHellfireOrb = 3235,
 
-
-
+    EarthshakerSlashVFX = 3241,
+    EarthshakerSmashVFX = 3242,
+    EarthshakerCastVFX = 3243,
+    EarthshakerChargeVFX = 3244,
+    EarthshakerMuzzleVFX = 3245,
+    EarthshakerPillarVFX = 3246,
+    EarthshakerTeragraphVFX = 3247,
+    DarkMageSlashVFX = 3251,
+    DarkMageBiteVFX = 3252,
+    DarkMageCastVFX = 3253,
+    DarkMageBurrowVFX = 3254,
+    DarkMageMuzzleVFX = 3255,
+    DarkMageEclipseVFX = 3256,
 }
 
 [System.Serializable]
