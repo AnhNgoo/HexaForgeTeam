@@ -19,4 +19,10 @@ public static class GameEventManager
 
     public static event Action OnTutorialCompleted;
     public static void TriggerTutorialCompleted() => OnTutorialCompleted?.Invoke();
+    public static event System.Action<bool> OnRunCompleted;
+
+    public static void TriggerRunCompleted(bool isVictory)
+    {
+        OnRunCompleted?.Invoke(isVictory);
+    }
 }

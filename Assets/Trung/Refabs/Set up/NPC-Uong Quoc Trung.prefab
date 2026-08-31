@@ -293,6 +293,9 @@ GameObject:
   - component: {fileID: 542469589187583577}
   - component: {fileID: 242451752891594453}
   - component: {fileID: 1195363406648988786}
+  - component: {fileID: 6271488466268201812}
+  - component: {fileID: 8282568216600494119}
+  - component: {fileID: 7754132509568484043}
   m_Layer: 0
   m_Name: NPC-Uong Quoc Trung
   m_TagString: Untagged
@@ -308,7 +311,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2727859685423537414}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.99615866, z: -0, w: 0.087567374}
+  m_LocalRotation: {x: 0, y: 0.9961589, z: 0, w: 0.08756439}
   m_LocalPosition: {x: -1126.32, y: -653.76, z: 39.69}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -336,7 +339,7 @@ Animator:
   m_GameObject: {fileID: 2727859685423537414}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: b29b2128ad71ad649baeac918d2d5a2e, type: 2}
-  m_Controller: {fileID: 9100000, guid: ad6d7441e5d634a42a55579a7f20d4d1, type: 2}
+  m_Controller: {fileID: 9100000, guid: 189766bd798ec82408a06f4dcd370efb, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -401,7 +404,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialogueData:
-    npcName: Uong Quoc Turng
+    npcName: U.QTrung
     dialogues:
     - Hey there! Looking to see how you're doing?
     - You can check the leaderboard and see how you rank against other players.
@@ -413,6 +416,9 @@ MonoBehaviour:
     - choiceText: Leaderboard
       action: 1
       menuType: 106
+    - choiceText: Quest
+      action: 0
+      menuType: 0
     - choiceText: Bye
       action: 2
       menuType: 0
@@ -439,6 +445,114 @@ CapsuleCollider:
   m_Height: 1
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
+--- !u!195 &6271488466268201812
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2727859685423537414}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &8282568216600494119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2727859685423537414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8d943c2999f34a4ca8564e02a7640a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isStationary: 0
+  keyRestPoints:
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  wanderRadius: 12
+  minTravelDistance: 7
+  minRandomRestTime: 3
+  maxRandomRestTime: 6
+  moveSpeed: 2.2
+  questMoveSpeed: 4.5
+  rotationSpeed: 360
+  restTurnSpeed: 5
+  interactTurnSpeed: 10
+  acceleration: 6
+  stoppingDistance: 0.4
+  animator: {fileID: 2973794984283229579}
+  idleStateName: Idle
+  walkStateName: Walk
+  transitionDuration: 0.15
+--- !u!114 &7754132509568484043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2727859685423537414}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8de8cdd9198a8047a4de9b1e30a9d60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  questStationPoint: {fileID: 0}
+  worldNameTag: {fileID: 1652981901177617788}
+  firstIntroQuestDialogues:
+  - speaker: 0
+    text: Welcome to the archives. If you wish to learn about the ancient history
+      of this realm, you know where to find me.
+  - speaker: 1
+    text: Thank you! I'll read through the records when I have time.
+  assignedQuests:
+  - {fileID: 11400000, guid: 5b80381a03cecda47ae94a1342e6dcc4, type: 2}
+  - {fileID: 11400000, guid: e39c781b7aed0644bb916eb51961687e, type: 2}
+  - {fileID: 11400000, guid: 95120ef1d5c797749825192aca83964b, type: 2}
 --- !u!1 &2816816606811806916
 GameObject:
   m_ObjectHideFlags: 0
@@ -1980,6 +2094,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
+--- !u!114 &1652981901177617788 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5557491889869160553, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
+  m_PrefabInstance: {fileID: 6615998040489819413}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5655f054dcce3db43b8aaabc7b990d7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!4 &3615140196664101861 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 7636752503445731056, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,6 +9,9 @@ public class LobbyShopUI : LoadComponents
 
     [Header("UI Panels")]
     [SerializeField] private GameObject shopPanelRoot;
+
+    [Header("Scroll View Reference")]
+    [SerializeField] private ScrollRect shopScrollRect;
 
     [Header("Grid List Config")]
     [SerializeField] private Transform gridContentParent;
@@ -45,6 +49,7 @@ public class LobbyShopUI : LoadComponents
     private void OnEnable()
     {
         RefreshShopUI();
+        ResetScrollToTop();
     }
 
     public void OpenShop()
@@ -55,13 +60,33 @@ public class LobbyShopUI : LoadComponents
         }
 
         RefreshShopUI();
+        ResetScrollToTop();
+    }
+
+    public void ResetScrollToTop()
+    {
+        if (shopScrollRect != null)
+        {
+            shopScrollRect.StopMovement();
+            shopScrollRect.verticalNormalizedPosition = 1f;
+        }
+        StartCoroutine(ForceScrollTopRoutine());
+    }
+
+    private IEnumerator ForceScrollTopRoutine()
+    {
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+        if (shopScrollRect != null)
+        {
+            shopScrollRect.verticalNormalizedPosition = 1f;
+        }
     }
 
     public void CloseShop()
     {
         HideShopPanel();
 
-        // Chuyển menu về trạng thái mặc định của Sảnh để MouseManager tự động ẩn chuột
         if (UIManager.Instance != null)
         {
             UIManager.Instance.ChangeMenu(MenuType.DefaultLobbyInputMenu);
@@ -76,7 +101,6 @@ public class LobbyShopUI : LoadComponents
 
     public void HideShopPanel()
     {
-        // Đóng sạch cả 2 Popup nếu còn lỡ bật khi tắt Shop
         if (ShopRuneSelectionPopupUI.Instance != null && ShopRuneSelectionPopupUI.Instance.IsPopupActive())
         {
             ShopRuneSelectionPopupUI.Instance.HidePopup();
@@ -93,19 +117,14 @@ public class LobbyShopUI : LoadComponents
         }
     }
 
-    /// <summary>
-    /// Xử lý phím ESC theo tầng ưu tiên: Popup Chọn Ngọc -> Popup Số Lượng -> Đóng Shop
-    /// </summary>
     public bool HandleEscapeKey()
     {
-        // Ưu tiên 1: Đóng Popup chọn Ngọc tùy chỉnh
         if (ShopRuneSelectionPopupUI.Instance != null && ShopRuneSelectionPopupUI.Instance.IsPopupActive())
         {
             ShopRuneSelectionPopupUI.Instance.HidePopup();
             return true;
         }
 
-        // Ưu tiên 2: Đóng Popup chọn số lượng mua
         if (ShopQuantityPopupUI.Instance != null && ShopQuantityPopupUI.Instance.IsPopupActive())
         {
             ShopQuantityPopupUI.Instance.HidePopup();
@@ -134,6 +153,8 @@ public class LobbyShopUI : LoadComponents
             card.SetupCard(shopItemsDatabase[i]);
             spawnedCards.Add(card);
         }
+
+        ResetScrollToTop();
     }
 
     public void RefreshShopUI()
@@ -163,8 +184,12 @@ public class LobbyShopUI : LoadComponents
     {
         if (shopPanelRoot == null)
         {
-            shopPanelRoot = transform.Find("ShopPanel")?.gameObject;
-            if (shopPanelRoot == null) shopPanelRoot = gameObject;
+            shopPanelRoot = transform.Find("ShopPanel")?.gameObject ?? gameObject;
+        }
+
+        if (shopScrollRect == null)
+        {
+            shopScrollRect = GetComponentInChildren<ScrollRect>();
         }
 
         if (gridContentParent == null)

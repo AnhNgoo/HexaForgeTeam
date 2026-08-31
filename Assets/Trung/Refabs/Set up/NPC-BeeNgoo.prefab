@@ -921,11 +921,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8868180158283152891}
   - component: {fileID: 6579353379314166862}
+  - component: {fileID: 6201721726003730330}
   - component: {fileID: 5361049660334188369}
   - component: {fileID: 4353658034143820853}
   - component: {fileID: 3352645139004169811}
   - component: {fileID: 5630233650682961161}
-  - component: {fileID: 6201721726003730330}
   - component: {fileID: 6945487982344805717}
   - component: {fileID: 4224677356726610917}
   m_Layer: 0
@@ -980,6 +980,27 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!135 &6201721726003730330
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5838950606010897720}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 2.5
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!136 &5361049660334188369
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1105,27 +1126,6 @@ MonoBehaviour:
   playerTag: Player
   openPanel: 1
   menuType: 113
---- !u!135 &6201721726003730330
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5838950606010897720}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 2.5
-  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &6945487982344805717
 MonoBehaviour:
   m_ObjectHideFlags: 0

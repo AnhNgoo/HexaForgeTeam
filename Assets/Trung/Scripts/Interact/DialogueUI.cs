@@ -113,9 +113,17 @@ public class DialogueUI : MonoBehaviour
             }
         }
 
-        if (tab.text != null)
+        if (tab.text != null && index < currentChoices.Count)
         {
-            tab.text.color = isHovered ? new Color(1f, 0.85f, 0.2f) : Color.white;
+            bool isQuestOption = currentChoices[index].choiceText.IndexOf("Quest", System.StringComparison.OrdinalIgnoreCase) >= 0;
+            if (isHovered)
+            {
+                tab.text.color = isQuestOption ? new Color(1f, 0.95f, 0.4f) : new Color(1f, 0.85f, 0.2f);
+            }
+            else
+            {
+                tab.text.color = isQuestOption ? new Color(1f, 0.8f, 0.1f) : Color.white;
+            }
         }
     }
 
@@ -130,10 +138,6 @@ public class DialogueUI : MonoBehaviour
             {
                 tab.selectedLine.transform.DOKill();
                 tab.selectedLine.SetActive(false);
-            }
-            if (tab.text != null)
-            {
-                tab.text.color = Color.white;
             }
         }
     }
@@ -230,6 +234,23 @@ public class DialogueUI : MonoBehaviour
         ResetAllHoverLines();
     }
 
+    private string GetPlayerName()
+    {
+        // 1. Thử lấy tên từ PlayerPrefs nếu có lưu lúc đăng nhập PlayFab / Custom ID
+        string username = PlayerPrefs.GetString("PLAYFAB_USERNAME", "");
+        if (string.IsNullOrEmpty(username))
+        {
+            username = PlayerPrefs.GetString("USERNAME", "");
+        }
+        if (string.IsNullOrEmpty(username))
+        {
+            username = PlayerPrefs.GetString("PLAYER_NAME", "");
+        }
+
+        // 2. Nếu không có tên nào trong PlayerPrefs, hiển thị mặc định
+        return !string.IsNullOrEmpty(username) ? username : "Adventurer";
+    }
+
     private void RefreshDialogue()
     {
         if (dialogueText == null || currentLines == null || currentIndex >= currentLines.Count)
@@ -245,7 +266,7 @@ public class DialogueUI : MonoBehaviour
         {
             if (line.speaker == SpeakerType.Player)
             {
-                npcNameText.SetTextSafe("<color=#55FFFF>[Player]</color>");
+                npcNameText.SetTextSafe($"<color=#55FFFF>[{GetPlayerName()}]</color>");
             }
             else
             {
@@ -427,12 +448,23 @@ public class DialogueUI : MonoBehaviour
 
         tab.button.interactable = isUnlocked;
 
+        bool isQuestChoice = choice.choiceText.IndexOf("Quest", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
+                             choice.choiceText.IndexOf("Reward", System.StringComparison.OrdinalIgnoreCase) >= 0;
+
         if (tab.text != null)
         {
             if (isUnlocked)
             {
-                tab.text.SetTextSafe(choice.choiceText);
-                tab.text.color = Color.white;
+                if (isQuestChoice)
+                {
+                    // Đã bỏ hoàn toàn các ký hiệu đặc biệt, chỉ giữ text chuẩn màu vàng cam
+                    tab.text.SetTextSafe($"<color=#FFCC00>{choice.choiceText}</color>");
+                }
+                else
+                {
+                    tab.text.SetTextSafe(choice.choiceText);
+                    tab.text.color = Color.white;
+                }
             }
             else
             {
@@ -484,12 +516,25 @@ public class DialogueUI : MonoBehaviour
         switch (choice.action)
         {
             case DialogueAction.OpenPanel:
-                // Nếu người chơi mở Shop khi đang nhận Quest 3 -> Hoàn thành nhiệm vụ
                 if (choice.menuType == MenuType.LobbyShopMenu)
                 {
                     if (QuestManager.Instance != null)
                     {
                         QuestManager.Instance.AddQuestProgress("QUEST_VISIT_SHOP", 1);
+                    }
+                }
+                else if (choice.menuType == MenuType.LobbyAchievementMenu)
+                {
+                    if (QuestManager.Instance != null)
+                    {
+                        QuestManager.Instance.AddQuestProgress("QUEST_CHECK_ACHIEVEMENTS", 1);
+                    }
+                }
+                else if (choice.menuType == MenuType.LobbyLeaderboardMenu)
+                {
+                    if (QuestManager.Instance != null)
+                    {
+                        QuestManager.Instance.AddQuestProgress("QUEST_CHECK_LEADERBOARDS", 1);
                     }
                 }
 

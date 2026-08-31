@@ -31,7 +31,7 @@ public class AutoNPCWander : MonoBehaviour
     [SerializeField] private float questMoveSpeed = 5.5f;
     [SerializeField] private float rotationSpeed = 360f;
     [SerializeField] private float restTurnSpeed = 8f;
-    [SerializeField] private float interactTurnSpeed = 12f;
+    [SerializeField] private float interactTurnSpeed = 14f;
     [SerializeField] private float acceleration = 16f;
     [SerializeField] private float stoppingDistance = 0.35f;
 
@@ -44,6 +44,7 @@ public class AutoNPCWander : MonoBehaviour
     private NavMeshAgent agent;
     private NPCQuestHandler questHandler;
     private Vector3 initialSpawnPos;
+    private Quaternion initialSpawnRot;
     private float currentWaitTimer = 0f;
     private bool isWaiting = false;
     private bool isInteracting = false;
@@ -66,6 +67,8 @@ public class AutoNPCWander : MonoBehaviour
         {
             animator = GetComponentInChildren<Animator>();
         }
+
+        initialSpawnRot = transform.rotation;
 
         agent.speed = moveSpeed;
         agent.angularSpeed = rotationSpeed;
@@ -186,15 +189,16 @@ public class AutoNPCWander : MonoBehaviour
 
         CheckInteractionState();
 
+        // Ưu tiên cao nhất: Khi đang nói chuyện với người chơi thì bắt buộc xoay mặt về người chơi
         if (isInteracting)
         {
             HandleTalkingRotation();
             return;
         }
 
-        // Nếu là NPC đứng yên -> Không cho phép chạy logic tuần tra
         if (isStationary)
         {
+            transform.rotation = Quaternion.Slerp(transform.rotation, initialSpawnRot, restTurnSpeed * Time.deltaTime);
             PlayAnimation(false);
             return;
         }
@@ -210,6 +214,7 @@ public class AutoNPCWander : MonoBehaviour
 
     private void HandleTalkingRotation()
     {
+        FindPlayer();
         if (playerTransform != null)
         {
             Vector3 lookTarget = playerTransform.position;
@@ -227,6 +232,7 @@ public class AutoNPCWander : MonoBehaviour
     {
         Transform stationPoint = questHandler != null ? questHandler.GetQuestStationPoint() : null;
         Vector3 targetStationPos = (stationPoint != null) ? stationPoint.position : initialSpawnPos;
+        Quaternion targetStationRot = (stationPoint != null) ? stationPoint.rotation : initialSpawnRot;
 
         agent.speed = questMoveSpeed;
 
@@ -254,9 +260,10 @@ public class AutoNPCWander : MonoBehaviour
 
             PlayAnimation(false);
 
-            if (stationPoint != null)
+            // Khi KHÔNG tương tác, NPC mới xoay về góc nhìn mặc định của trạm
+            if (!isInteracting)
             {
-                transform.rotation = Quaternion.Slerp(transform.rotation, stationPoint.rotation, restTurnSpeed * Time.deltaTime);
+                transform.rotation = Quaternion.Slerp(transform.rotation, targetStationRot, restTurnSpeed * Time.deltaTime);
             }
 
             if (!hasTriggeredInteractUnlock)
@@ -269,18 +276,6 @@ public class AutoNPCWander : MonoBehaviour
 
     private void UnlockNearbyInteractObjects()
     {
-        // Quét tất cả InteractV2 trong phạm vi và ép mở khóa
-        Collider[] colliders = Physics.OverlapSphere(transform.position, 6f);
-        for (int i = 0; i < colliders.Length; i++)
-        {
-            InteractV2 interact = colliders[i].GetComponent<InteractV2>();
-            if (interact != null)
-            {
-                interact.CheckFeatureUnlockStatus();
-            }
-        }
-
-        // Đồng thời thông báo toàn hệ thống cập nhật lại trạng thái mở khóa
         InteractV2[] allInteracts = FindObjectsByType<InteractV2>(FindObjectsSortMode.None);
         for (int i = 0; i < allInteracts.Length; i++)
         {
@@ -288,6 +283,11 @@ public class AutoNPCWander : MonoBehaviour
             {
                 allInteracts[i].CheckFeatureUnlockStatus();
             }
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.RescanNearbyInteracts();
         }
     }
 
@@ -449,7 +449,7 @@ public class AutoNPCWander : MonoBehaviour
     public void PausePatrol(Transform targetPlayer = null)
     {
         isInteracting = true;
-        playerTransform = targetPlayer;
+        playerTransform = targetPlayer != null ? targetPlayer : playerTransform;
 
         if (agent != null && agent.isOnNavMesh)
         {

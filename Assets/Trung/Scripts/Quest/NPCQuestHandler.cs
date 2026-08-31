@@ -76,7 +76,6 @@ public class NPCQuestHandler : MonoBehaviour
         QuestState state;
         QuestSO activeSO = GetCurrentActiveQuestSO(out state);
 
-        // Chỉ khi ĐÃ NHẬN QUEST (InProgress hoặc CanClaim) thì mới chạy đến điểm đích targetStationPointName
         if (activeSO != null && (state == QuestState.InProgress || state == QuestState.CanClaim))
         {
             if (!string.IsNullOrEmpty(activeSO.targetStationPointName))
@@ -89,7 +88,6 @@ public class NPCQuestHandler : MonoBehaviour
             }
         }
 
-        // Khi CHƯA NHẬN QUEST (NotStarted) hoặc không có điểm đích -> Đứng tại điểm gốc của NPC
         return questStationPoint;
     }
 
@@ -125,14 +123,16 @@ public class NPCQuestHandler : MonoBehaviour
 
         if (activeSO != null)
         {
-            if (state == QuestState.NotStarted || state == QuestState.CanClaim)
-            {
-                worldNameTag.UpdateQuestIcon(state);
-            }
-            else
-            {
-                worldNameTag.HideQuestIcon();
-            }
+            // Kiểm tra xem NPC này có phải là người nắm giữ / giao quest này không
+            bool isAssignedToThisNPC = assignedQuests != null && assignedQuests.Contains(activeSO);
+
+            // Icon chỉ dẫn (Follow/Interact indicator) sẽ bật khi:
+            // 1. NPC có trạm cần dẫn người chơi tới
+            // HOẶC 2. NPC chính là người giao quest mở tính năng/panel tại chỗ và quest đang InProgress
+            bool isGuidingQuest = (state == QuestState.InProgress) && 
+                                  (!string.IsNullOrEmpty(activeSO.targetStationPointName) || isAssignedToThisNPC);
+
+            worldNameTag.UpdateQuestIcon(state, isGuidingQuest);
         }
         else
         {
@@ -156,7 +156,16 @@ public class NPCQuestHandler : MonoBehaviour
 
         if (activeSO == null) return false;
 
-        return state == QuestState.NotStarted || state == QuestState.InProgress || state == QuestState.CanClaim;
+        if (state == QuestState.NotStarted || state == QuestState.CanClaim)
+        {
+            return true;
+        }
+        if (state == QuestState.InProgress)
+        {
+            return !string.IsNullOrEmpty(activeSO.targetStationPointName);
+        }
+
+        return false;
     }
 
     public QuestSO GetCurrentActiveQuestSO(out QuestState currentState)
@@ -198,7 +207,6 @@ public class NPCQuestHandler : MonoBehaviour
 
         bool isQuestGiver = assignedQuests.Exists(q => q != null && q.questID == QuestManager.TALK_ALL_QUEST_ID);
 
-        // Đang làm Quest chào hỏi và người này KHÔNG PHẢI người giao quest
         if (QuestManager.Instance != null && QuestManager.Instance.IsTalkQuestActive() && !isQuestGiver)
         {
             if (!QuestManager.Instance.HasTalkedToNPCInQuest(npcIdentifier))

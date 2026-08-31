@@ -38,6 +38,7 @@ public class QuestManager : MonoBehaviour
         GameEventManager.OnGachaRolled += HandleGachaRolled;
         GameEventManager.OnEnemyKilled += HandleEnemyKilled;
         GameEventManager.OnTutorialCompleted += HandleTutorialCompleted;
+        GameEventManager.OnRunCompleted += HandleRunCompleted;
     }
 
     private void OnDisable()
@@ -45,6 +46,7 @@ public class QuestManager : MonoBehaviour
         GameEventManager.OnGachaRolled -= HandleGachaRolled;
         GameEventManager.OnEnemyKilled -= HandleEnemyKilled;
         GameEventManager.OnTutorialCompleted -= HandleTutorialCompleted;
+        GameEventManager.OnRunCompleted -= HandleRunCompleted;
     }
 
     public bool IsTalkQuestActive()
@@ -146,6 +148,13 @@ public class QuestManager : MonoBehaviour
                 talkedNPCsInQuest.Clear();
             }
 
+            // Bắn Notify nhận nhiệm vụ mới
+            if (LobbyNotifyManager.Instance != null)
+            {
+                string title = questSO != null ? questSO.questTitle : quest.title;
+                LobbyNotifyManager.Instance.ShowNotify($"Quest Accepted: {title}", new Color(1f, 0.85f, 0.2f));
+            }
+
             SaveQuests();
             OnQuestUpdated?.Invoke();
         }
@@ -164,6 +173,17 @@ public class QuestManager : MonoBehaviour
             }
 
             quest.AddProgress(amount);
+
+            // Nếu vừa hoàn thành đủ chỉ tiêu tiến độ -> Báo Notify cho người chơi quay lại NPC nhận thưởng
+            if (quest.state == QuestState.CanClaim)
+            {
+                if (LobbyNotifyManager.Instance != null)
+                {
+                    string title = questSO != null ? questSO.questTitle : quest.title;
+                    LobbyNotifyManager.Instance.ShowNotify($"Quest Completed: {title}! Return to NPC for reward.", Color.cyan);
+                }
+            }
+
             SaveQuests();
             OnQuestUpdated?.Invoke();
         }
@@ -208,6 +228,13 @@ public class QuestManager : MonoBehaviour
                     InventoryItemManager.Instance.AddItem(item.itemID, item.itemID, item.amount);
                 }
             }
+        }
+
+        // Bắn Notify nhận thưởng thành công
+        if (LobbyNotifyManager.Instance != null)
+        {
+            string title = questSO != null ? questSO.questTitle : quest.title;
+            LobbyNotifyManager.Instance.ShowNotify($"Reward Claimed for [{title}]!", Color.green);
         }
 
         SaveQuests();
@@ -295,12 +322,28 @@ public class QuestManager : MonoBehaviour
                 return runeQuest != null && runeQuest.state != QuestState.NotStarted;
 
             case MenuType.LobbyCharacterMenu:
-                // Mở khóa Select Character khi đã nhận hoặc hoàn thành Quest 5
                 QuestData charQuest = GetQuest("QUEST_SELECT_CHARACTER");
                 return charQuest != null && charQuest.state != QuestState.NotStarted;
+
+            case MenuType.LobbyBossSelectMenu:
+                // Mở khóa cổng vào Run khi đã nhận hoặc hoàn thành Quest gộp này
+                QuestData bossQuest = GetQuest("QUEST_EXPEDITION_TRIAL");
+                return bossQuest != null && bossQuest.state != QuestState.NotStarted;
+
+            case MenuType.LobbyAchievementMenu:
+                QuestData achQuest = GetQuest("QUEST_CHECK_ACHIEVEMENTS");
+                return achQuest != null && achQuest.state != QuestState.NotStarted;
+
+            case MenuType.LobbyLeaderboardMenu:
+                QuestData leadQuest = GetQuest("QUEST_CHECK_LEADERBOARDS");
+                return leadQuest != null && leadQuest.state != QuestState.NotStarted;
 
             default:
                 return true;
         }
+    }
+    private void HandleRunCompleted(bool isVictory)
+    {
+        AddQuestProgress("QUEST_EXPEDITION_TRIAL", 1);
     }
 }
