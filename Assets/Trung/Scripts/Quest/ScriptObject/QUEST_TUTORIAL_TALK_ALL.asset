@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_TUTORIAL_TALK_ALL
+  m_EditorClassIdentifier: 
+  questID: QUEST_TUTORIAL_TALK_ALL
+  questTitle: Getting Acquainted
+  questDescription: Explore the base and talk to all 6 residents.
+  questType: 0
+  requiredAccountLevel: 1
+  requiredPrerequisiteQuestID: 
+  targetProgress: 6
+  npcName: Guide
+  notStartedDialogues:
+  - speaker: 0
+    text: Greetings, newcomer! Welcome to our sanctuary. You look a bit disoriented.
+  - speaker: 1
+    text: I just arrived here. Could you show me around or tell me who to meet?
+  - speaker: 0
+    text: Take your time to explore the base first. Go introduce yourself to the
+      other 6 companions around here.
+  inProgressDialogues:
+  - speaker: 0
+    text: Have you met everyone yet? There are still people waiting to get acquainted
+      with you."
+  - speaker: 1
+    text: I'm on my way to talk to them right now.
+  canClaimDialogues:
+  - speaker: 1
+    text: I've met everyone in the base. They seem quite helpful!
+  completedDialogues:
+  - speaker: 0
+    text: Splendid! Knowing your allies is the first step before venturing into danger.
+      Here is a small welcome gift for you.
+  rewardGem: 100
+  rewardShard: 50
+  rewardExp: 0
+  rewardItems: []

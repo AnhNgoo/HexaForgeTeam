@@ -1,0 +1,52 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_SELECT_CHARACTER
+  m_EditorClassIdentifier: 
+  questID: QUEST_SELECT_CHARACTER
+  questTitle: Choose Your Champion
+  questDescription: Follow Trung to the Character Pedestal and select your combat
+    avatar.
+  questType: 0
+  requiredAccountLevel: 5
+  requiredPrerequisiteQuestID: 
+  targetProgress: 1
+  targetStationPointName: "\u0110i\u1EC3m d\u1EEBng ch\xE2n char"
+  npcName: Trung
+  notStartedDialogues:
+  - speaker: 0
+    text: Every expedition demands the right fighter. Follow me to the Character
+      Pedestal.
+  - speaker: 1
+    text: Can I switch to different fighters with unique skills?
+  - speaker: 0
+    text: Precisely. Let's head over and review your available champions.
+  inProgressDialogues:
+  - speaker: 0
+    text: Interact with the pedestal right here to inspect and switch your character.
+  canClaimDialogues:
+  - speaker: 1
+    text: I have reviewed my characters and selected my preferred fighter.
+  - speaker: 0
+    text: Excellent choice! Mastery of your champion's mechanics is vital for survival.
+      Here is your reward.
+  completedDialogues:
+  - speaker: 0
+    text: You can return to the pedestal whenever you wish to swap characters.
+  rewardGem: 100
+  rewardShard: 20
+  rewardExp: 100
+  rewardItems:
+  - itemID: REROLL_SCROLL_01
+    amount: 1
+  - itemID: GACHA_TICKET_01
+    amount: 1

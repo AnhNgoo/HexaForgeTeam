@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_OPEN_RUNE_INVENTORY
+  m_EditorClassIdentifier: 
+  questID: QUEST_OPEN_RUNE_INVENTORY
+  questTitle: Rune Resonance
+  questDescription: Follow the Khoa to the Rune Altar and open your Rune Vault to
+    inspect your power.
+  questType: 0
+  requiredAccountLevel: 1
+  requiredPrerequisiteQuestID: QUEST_VISIT_SHOP
+  targetProgress: 1
+  targetStationPointName: "\u0110i\u1EC3m d\u1EEBng ch\xE2n Rune"
+  npcName: Tran Suy Anh Khoa
+  notStartedDialogues:
+  - speaker: 0
+    text: You've gathered runes from summoning, but do you know how to wield them?
+      Follow me to the Rune Altar.
+  - speaker: 1
+    text: Lead the way! I want to see where runes are stored and infused.
+  inProgressDialogues:
+  - speaker: 0
+    text: We are right at the Rune Altar. Interact with it to inspect your equipped
+      runes.
+  canClaimDialogues:
+  - speaker: 1
+    text: I've checked the Rune Vault. The stat boosts are incredible!
+  - speaker: 0
+    text: Indeed. Align your runes properly to maximize your combat efficiency in
+      expeditions. Here is your reward.
+  completedDialogues:
+  - speaker: 0
+    text: Return to the Altar anytime you need to equip or dismantle runes.
+  rewardGem: 300
+  rewardShard: 50
+  rewardExp: 150
+  rewardItems: []
