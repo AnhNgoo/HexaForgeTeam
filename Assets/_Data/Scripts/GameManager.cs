@@ -48,6 +48,10 @@ public class GameManager : Singleton<GameManager>
         EventManager.Unsubscribe(GameEvent.OnPlayerSpawned, HandlePlayerSpawned);
     }
 
+    public void StartRun()
+    {
+        PlayerManager.Instance.CurrentCharacterBase.CharacterInput.LockInput = true;
+    }
     private void OpenMenuAfterLoadingComplete()
     {
         if (UIManager.Instance == null) return;
