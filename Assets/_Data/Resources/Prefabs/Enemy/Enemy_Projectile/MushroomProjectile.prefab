@@ -9787,6 +9787,9 @@ GameObject:
   - component: {fileID: 1940866779908760624}
   - component: {fileID: 4675708942941017707}
   - component: {fileID: 6809880747103385932}
+  - component: {fileID: 6859220320578000319}
+  - component: {fileID: 3042369808781214924}
+  - component: {fileID: 6849187781334956867}
   m_Layer: 0
   m_Name: MushroomProjectile
   m_TagString: Untagged
@@ -14668,6 +14671,75 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
+--- !u!114 &6859220320578000319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6354686006975832417}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d34be991218add24f8e6bfc7daf0942d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  poolType: 3011
+  effectType: 0
+  effectDuration: 1.5
+  isHoming: 0
+  homingTurnSpeed: 240
+  maxHomingTurnSpeed: 900
+  closeRangeTurnFactor: 1.25
+  homingDuration: 4
+  homingTargetHeight: 0.5
+--- !u!135 &3042369808781214924
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6354686006975832417}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.1
+  m_Center: {x: 0, y: 0, z: -0.1}
+--- !u!54 &6849187781334956867
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6354686006975832417}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &7962495910853818648
 GameObject:
   m_ObjectHideFlags: 0
