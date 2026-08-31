@@ -26,6 +26,15 @@ public class InteractV2 : MonoBehaviour
     public bool IsSelected => isSelected;
     #endregion
 
+    private void OnEnable()
+    {
+        CheckFeatureUnlockStatus();
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestUpdated += CheckFeatureUnlockStatus;
+        }
+    }
+
     #region Trigger
     private void Reset()
     {
@@ -36,9 +45,42 @@ public class InteractV2 : MonoBehaviour
         }
     }
 
+    public void CheckFeatureUnlockStatus()
+    {
+        if (openPanel)
+        {
+            if (menuType == MenuType.LobbyRuneInventoryMenu || menuType == MenuType.LobbyCharacterMenu)
+            {
+                bool isUnlocked = QuestManager.Instance != null && QuestManager.Instance.IsMenuUnlocked(menuType);
+                Collider col = GetComponent<Collider>();
+                if (col != null)
+                {
+                    col.enabled = isUnlocked;
+                }
+
+                if (!isUnlocked)
+                {
+                    playerInside = false;
+                    if (InteractManagerV2.Instance != null)
+                    {
+                        InteractManagerV2.Instance.Unregister(this);
+                    }
+                }
+            }
+        }
+    }
+
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
+
+        if (openPanel && (menuType == MenuType.LobbyRuneInventoryMenu || menuType == MenuType.LobbyCharacterMenu))
+        {
+            if (QuestManager.Instance != null && !QuestManager.Instance.IsMenuUnlocked(menuType))
+            {
+                return;
+            }
+        }
 
         playerInside = true;
         if (InteractManagerV2.Instance != null)
@@ -50,6 +92,14 @@ public class InteractV2 : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
+
+        if (openPanel && (menuType == MenuType.LobbyRuneInventoryMenu || menuType == MenuType.LobbyCharacterMenu))
+        {
+            if (QuestManager.Instance != null && !QuestManager.Instance.IsMenuUnlocked(menuType))
+            {
+                return;
+            }
+        }
 
         if (!playerInside)
         {
@@ -81,6 +131,13 @@ public class InteractV2 : MonoBehaviour
             return;
         }
 
+        NPCQuestHandler questHandler = GetComponent<NPCQuestHandler>();
+        if (questHandler != null)
+        {
+            questHandler.ShowInitialDialogue();
+            return;
+        }
+
         NPCDialogue dialogue = GetComponent<NPCDialogue>();
         if (dialogue != null)
         {
@@ -93,6 +150,25 @@ public class InteractV2 : MonoBehaviour
 
         if (openPanel)
         {
+            if (menuType == MenuType.LobbyRuneInventoryMenu || menuType == MenuType.LobbyCharacterMenu)
+            {
+                if (QuestManager.Instance != null && !QuestManager.Instance.IsMenuUnlocked(menuType))
+                {
+                    return;
+                }
+
+                // Chỉ hoàn thành Quest khi người chơi thực sự ấn tương tác mở panel
+                if (menuType == MenuType.LobbyRuneInventoryMenu && QuestManager.Instance != null)
+                {
+                    QuestManager.Instance.AddQuestProgress("QUEST_OPEN_RUNE_INVENTORY", 1);
+                }
+
+                if (menuType == MenuType.LobbyCharacterMenu && QuestManager.Instance != null)
+                {
+                    QuestManager.Instance.AddQuestProgress("QUEST_SELECT_CHARACTER", 1);
+                }
+            }
+
             if (InteractManagerV2.Instance != null)
             {
                 InteractManagerV2.Instance.IsBusy = true;
@@ -144,6 +220,11 @@ public class InteractV2 : MonoBehaviour
 
     private void OnDisable()
     {
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestUpdated -= CheckFeatureUnlockStatus;
+        }
+
         playerInside = false;
         if (InteractManagerV2.Instance != null)
         {
@@ -153,6 +234,11 @@ public class InteractV2 : MonoBehaviour
 
     private void OnDestroy()
     {
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestUpdated -= CheckFeatureUnlockStatus;
+        }
+
         playerInside = false;
         if (InteractManagerV2.Instance != null)
         {

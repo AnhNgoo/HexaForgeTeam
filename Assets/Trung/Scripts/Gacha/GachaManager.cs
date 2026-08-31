@@ -134,6 +134,8 @@ public class GachaManager : MonoBehaviour
             }
         }
 
+        GameEventManager.TriggerGachaRolled(amount);
+
         if (SaveLoadManager.Instance != null)
         {
             SaveLoadManager.Instance.SaveGame();
