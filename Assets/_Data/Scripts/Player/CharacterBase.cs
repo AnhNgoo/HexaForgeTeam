@@ -25,7 +25,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterLevel))]
 [RequireComponent(typeof(CharacterGoldFalling))]
 [RequireComponent(typeof(CharacterRelic))]
-public abstract class CharacterBase : LoadComponents, ITakeDamage
+[RequireComponent(typeof(CharacterSound))]
+public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 {
     [Header("Character Data")]
     [SerializeField] protected CharacterData characterData;
@@ -88,6 +89,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public CharacterGoldFalling CharacterGoldFalling => characterGoldFalling;
     [SerializeField] protected CharacterRelic characterRelic;
     public CharacterRelic CharacterRelic => characterRelic;
+    [SerializeField] protected CharacterSound characterSound;
+    public CharacterSound CharacterSound => characterSound;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
@@ -110,9 +113,11 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public bool IsHealthRecoveryInterrupted { get; set; } = false;
     public DashShadowEffect DashShadowEffect { get; set; }
     public GhostEffect GhostEffect { get; set; }
+    public DissolveEffect DissolveEffect { get; set; }
     public bool IsHitStateActive { get; set; } = false;
     public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
 
+    public PoolType PoolType => characterData?.characterPoolType ?? PoolType.None;
 
     protected override void LoadComponent()
     {
@@ -156,6 +161,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
             characterGoldFalling = GetComponent<CharacterGoldFalling>();
         if (characterRelic == null)
             characterRelic = GetComponent<CharacterRelic>();
+        if (characterSound == null)
+            characterSound = GetComponent<CharacterSound>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -215,6 +222,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
             GetDashShadowEffect(characterVisual);
             GetGhostEffect(characterVisual);
+            GetDissolveEffect(characterVisual);
 
             GoldManager.Instance?.ResetGold();
             WeaponInventorySystem.Instance?.Init(characterWeapon);
@@ -230,6 +238,10 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     }
 
+    /// <summary>
+    /// Reset trạng thái nhân vật về mặc định, dùng khi respawn hoặc khi nhân vật chết
+    /// Không phải trả nhân vật về pool
+    /// </summary>
     public void ResetRespawnCharacter()
     {
         stateController?.ChangeState(new IdleState(this));
@@ -242,7 +254,19 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
         IsHitStateActive = false;
         characterLockTarget?.ForceUnlockTarget();
         GoldManager.Instance?.ResetGold();
+        DissolveEffect?.ResetDefaultMaterial();
     }
+
+    public void OnSpawnFromPool()
+    {
+
+    }
+
+    public void OnReturnToPool()
+    {
+        CharacterInput.ClearInput();
+    }
+
     #endregion
 
     protected virtual void Update()
@@ -366,13 +390,13 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     #endregion
     public virtual void Dodge()
     {
+        if (dodgeCooldown.IsOnCooldown)
+            return;
+
         if (!characterStamina.HasEnoughStamina(characterData.staminaCost.dodgeCost))
             return;
 
         characterStamina.SubtractStamina(characterData.staminaCost.dodgeCost);
-
-        if (dodgeCooldown.IsOnCooldown)
-            return;
 
         dodgeCooldown.StartCooldown(characterMovement.DodgeCooldown);
 
@@ -536,7 +560,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     {
         CanBeAttacked = false;
         stateController.ChangeState(new DeathState(this));
-        EventManager.Notify(GameEvent.OnPlayerDeath);
     }
 
     protected virtual void GetDashShadowEffect(GameObject characterVisual)
@@ -547,6 +570,11 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
     public virtual void GetGhostEffect(GameObject characterVisual)
     {
         GhostEffect = characterVisual.GetComponent<GhostEffect>();
+    }
+
+    public virtual void GetDissolveEffect(GameObject characterVisual)
+    {
+        DissolveEffect = characterVisual.GetComponent<DissolveEffect>();
     }
 
     /// <summary>
@@ -569,14 +597,17 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
-        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
+        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu &&
+             UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
             return;
+
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
         if (scrollY > 0f)
         {
             if (CharacterInput.IsChangingWeapon ||
+            CharacterInput.LockInput ||
              WeaponInventorySystem.Instance.CheckWeaponInSlots() == false ||
              characterCombat.IsAttacking ||
              characterSkill.IsUsingSkill

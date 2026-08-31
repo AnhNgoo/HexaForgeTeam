@@ -32,6 +32,7 @@ public class CharacterInput : MonoBehaviour
     public bool IsMoving => moveInput != Vector2.zero;
     public bool IsChangingWeapon { get; set; } = false;
     public bool IsHealthRecovering { get; set; } = false;
+    public bool LockInput { get; set; } = false; // Khoá input
 
     private InputActions inputActions => InputManager.InputActions;
     private CharacterBase characterBase;
@@ -42,6 +43,7 @@ public class CharacterInput : MonoBehaviour
         this.characterBase = characterBase;
 
         inputActions.Keyboard.ChangeWeapon.performed += characterBase.ChangeWeapon;
+        ResetInput();
     }
     private void Update()
     {
@@ -53,7 +55,7 @@ public class CharacterInput : MonoBehaviour
         bool isUIGameplay = UIManager.Instance?.CurrentMenuType == MenuType.GameplayMenu;
         bool isLobbyDefault = UIManager.Instance?.CurrentMenuType == MenuType.DefaultLobbyInputMenu;
 
-        if (!isUIGameplay && !isLobbyDefault)
+        if (!isUIGameplay && !isLobbyDefault || LockInput)
         {
             moveInput = Vector2.zero;
             walk = false;
@@ -95,5 +97,27 @@ public class CharacterInput : MonoBehaviour
     public void DisableSprint()
     {
         sprint = false;
+    }
+
+    private void ResetInput()
+    {
+        moveInput = Vector2.zero;
+        walk = false;
+        sprint = false;
+        dodge = false;
+        jump = false;
+        wallJump = false;
+        attack = false;
+        healthRecovery = false;
+        lockTarget = false;
+        skill_1 = false;
+        skill_2 = false;
+        IsChangingWeapon = false;
+        IsHealthRecovering = false;
+    }
+
+    public void ClearInput()
+    {
+        inputActions.Keyboard.ChangeWeapon.performed -= characterBase.ChangeWeapon;
     }
 }

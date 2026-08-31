@@ -9,30 +9,29 @@ public class InteractManagerV2 : MonoBehaviour
     [Header("Input")]
     [SerializeField] private KeyCode interactKey = KeyCode.F;
     [SerializeField] private bool enableMouseWheel = true;
+    [SerializeField] private float scrollCooldown = 0.12f;
 
-    [Header("Debug")]
-    [SerializeField] private bool debugMode;
-    [SerializeField] private float scrollCooldown = 0.15f;
-    private bool consumedInputThisFrame;
+    [Header("Distance Limit")]
+    [SerializeField] private float maxInteractDistance = 3.5f;
 
     private float nextScrollTime;
     private float cooldownUntilTime = 0f;
+    private float rescanTimer = 0f;
+    private bool consumedInputThisFrame;
 
     private readonly List<InteractV2> interactObjects = new List<InteractV2>();
-    private int currentIndex;
+    private int currentIndex = 0;
+    private Transform playerTransform;
 
     public bool IsBusy { get; set; }
-
     public IReadOnlyList<InteractV2> InteractObjects => interactObjects;
 
     public InteractV2 CurrentInteract
     {
         get
         {
-            interactObjects.RemoveAll(item => item == null || item.gameObject == null || !item.enabled || !item.gameObject.activeInHierarchy);
-
+            CleanupInvalidInteracts();
             if (interactObjects.Count == 0) return null;
-
             currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
             return interactObjects[currentIndex];
         }
@@ -50,22 +49,24 @@ public class InteractManagerV2 : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
     }
 
     private void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestUpdated += ForceRefresh;
+        }
     }
 
     private void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-    }
-
-    private void OnDestroy()
-    {
-
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.OnQuestUpdated -= ForceRefresh;
+        }
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -73,27 +74,19 @@ public class InteractManagerV2 : MonoBehaviour
         ForceUnlockState();
     }
 
-    private void OnLoadingCompleteEvent(object obj)
-    {
-        ForceUnlockState();
-    }
-
-    /// <summary>
-    /// Reset triệt để mọi trạng thái tương tác mỗi khi nạp scene hoặc đổi menu
-    /// </summary>
     public void ForceUnlockState()
     {
         IsBusy = false;
         cooldownUntilTime = 0f;
         currentIndex = 0;
         interactObjects.Clear();
+        playerTransform = null;
 
         if (InteractUIV2.Instance != null)
         {
             InteractUIV2.Instance.Hide();
         }
 
-        // Tự động quét lại các Trigger xung quanh Player sau khi Scene đã load ổn định
         CancelInvoke(nameof(RescanNearbyInteracts));
         Invoke(nameof(RescanNearbyInteracts), 0.2f);
     }
@@ -103,12 +96,68 @@ public class InteractManagerV2 : MonoBehaviour
         cooldownUntilTime = Time.unscaledTime + duration;
     }
 
+    public Transform GetPlayerTransform()
+    {
+        // Tự động tìm lại nhân vật mới ngay khi nhân vật cũ bị hủy (khi đổi tướng)
+        if (playerTransform == null || !playerTransform.gameObject.activeInHierarchy)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+            }
+        }
+        return playerTransform;
+    }
+
+    private void CleanupInvalidInteracts()
+    {
+        Transform pTransform = GetPlayerTransform();
+
+        for (int i = interactObjects.Count - 1; i >= 0; i--)
+        {
+            var item = interactObjects[i];
+            if (item == null || 
+                item.gameObject == null || 
+                !item.enabled || 
+                !item.gameObject.activeInHierarchy || 
+                !item.IsFeatureUnlocked())
+            {
+                interactObjects.RemoveAt(i);
+                continue;
+            }
+
+            if (pTransform != null)
+            {
+                Collider col = item.GetComponent<Collider>();
+                Vector3 closestPoint = col != null ? col.ClosestPoint(pTransform.position) : item.transform.position;
+                float dist = Vector3.Distance(closestPoint, pTransform.position);
+
+                if (dist > maxInteractDistance + 0.5f)
+                {
+                    interactObjects.RemoveAt(i);
+                }
+            }
+        }
+
+        if (currentIndex >= interactObjects.Count)
+        {
+            currentIndex = Mathf.Max(0, interactObjects.Count - 1);
+        }
+    }
+
     private void Update()
     {
-        // 1. Dọn dẹp các object bị huỷ
-        interactObjects.RemoveAll(item => item == null || item.gameObject == null || !item.enabled || !item.gameObject.activeInHierarchy);
+        // Quét định kỳ mỗi 0.2s để đảm bảo không bao giờ bị mất tương tác khi đứng gần
+        rescanTimer += Time.deltaTime;
+        if (rescanTimer >= 0.2f)
+        {
+            rescanTimer = 0f;
+            RescanNearbyInteracts();
+        }
 
-        // 2. Tự động kiểm tra trạng thái hội thoại và menu UI
+        CleanupInvalidInteracts();
+
         bool isDialogueActive = DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueOpen();
         bool isMenuOpen = UIManager.Instance != null && 
                           UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu && 
@@ -122,10 +171,8 @@ public class InteractManagerV2 : MonoBehaviour
         else if (IsBusy && !isDialogueActive && !isMenuOpen)
         {
             IsBusy = false;
-            RefreshUI();
         }
 
-        // 3. Nếu danh sách rỗng hoặc đang bận -> Ẩn UI
         if (interactObjects.Count == 0 || IsBusy || Time.unscaledTime < cooldownUntilTime)
         {
             if (InteractUIV2.Instance != null && InteractUIV2.Instance.gameObject.activeSelf)
@@ -135,49 +182,43 @@ public class InteractManagerV2 : MonoBehaviour
             return;
         }
 
-        // 4. Lăn chuột đổi mục chọn
-        if (enableMouseWheel)
+        if (enableMouseWheel && interactObjects.Count > 1)
         {
             HandleMouseWheel();
         }
 
-        // 5. Bấm phím tương tác
         if (Input.GetKeyDown(interactKey))
         {
             ExecuteCurrent();
         }
+
+        RefreshUI();
     }
+
     public void RescanNearbyInteracts()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player == null) return;
+        Transform pTransform = GetPlayerTransform();
+        if (pTransform == null) return;
 
-        Collider[] hits = Physics.OverlapSphere(player.transform.position, 3.5f);
+        // Bật QueryTriggerInteraction.Collide để quét được cả Trigger Collider
+        Collider[] hits = Physics.OverlapSphere(pTransform.position, maxInteractDistance, ~0, QueryTriggerInteraction.Collide);
         for (int i = 0; i < hits.Length; i++)
         {
             InteractV2 interact = hits[i].GetComponent<InteractV2>();
-            if (interact != null && interact.enabled && interact.gameObject.activeInHierarchy)
+            if (interact != null && interact.enabled && interact.gameObject.activeInHierarchy && interact.IsFeatureUnlocked())
             {
                 Register(interact);
             }
         }
-        ForceRefresh();
     }
 
-    #region Register
     public void Register(InteractV2 interact)
     {
-        if (interact == null || interactObjects.Contains(interact)) return;
+        if (interact == null || !interact.IsFeatureUnlocked() || interactObjects.Contains(interact)) return;
 
         interactObjects.Add(interact);
-
-        if (interactObjects.Count == 1)
-        {
-            currentIndex = 0;
-        }
-
+        SortInteracts();
         RefreshUI();
-        DebugCurrent();
     }
 
     public void Unregister(InteractV2 interact)
@@ -185,35 +226,54 @@ public class InteractManagerV2 : MonoBehaviour
         if (interact == null) return;
 
         interactObjects.Remove(interact);
+        if (currentIndex >= interactObjects.Count)
+        {
+            currentIndex = Mathf.Max(0, interactObjects.Count - 1);
+        }
 
         if (interactObjects.Count == 0)
         {
-            currentIndex = 0;
-            RefreshUI();
-            return;
+            if (InteractUIV2.Instance != null) InteractUIV2.Instance.Hide();
         }
-
-        currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
-        RefreshUI();
-        DebugCurrent();
+        else
+        {
+            RefreshUI();
+        }
     }
-    #endregion
 
-    #region Mouse Wheel
+    private void SortInteracts()
+    {
+        Transform pTransform = GetPlayerTransform();
+        if (pTransform == null) return;
+
+        interactObjects.Sort((a, b) =>
+        {
+            if (a.Priority != b.Priority) return b.Priority.CompareTo(a.Priority);
+
+            Collider colA = a.GetComponent<Collider>();
+            Collider colB = b.GetComponent<Collider>();
+
+            Vector3 ptA = colA != null ? colA.ClosestPoint(pTransform.position) : a.transform.position;
+            Vector3 ptB = colB != null ? colB.ClosestPoint(pTransform.position) : b.transform.position;
+
+            return Vector3.Distance(ptA, pTransform.position).CompareTo(Vector3.Distance(ptB, pTransform.position));
+        });
+    }
+
     private void HandleMouseWheel()
     {
-        if (Time.unscaledTime < nextScrollTime) return;
-
         float scroll = Input.mouseScrollDelta.y;
 
-        if (scroll > 0f)
+        if (Mathf.Abs(scroll) > 0.05f && Time.unscaledTime >= nextScrollTime)
         {
-            Previous();
-            nextScrollTime = Time.unscaledTime + scrollCooldown;
-        }
-        else if (scroll < 0f)
-        {
-            Next();
+            if (scroll < 0f)
+            {
+                Next();
+            }
+            else
+            {
+                Previous();
+            }
             nextScrollTime = Time.unscaledTime + scrollCooldown;
         }
     }
@@ -221,55 +281,29 @@ public class InteractManagerV2 : MonoBehaviour
     public void Next()
     {
         if (interactObjects.Count <= 1) return;
-
-        currentIndex++;
-        if (currentIndex >= interactObjects.Count)
-        {
-            currentIndex = 0;
-        }
-
+        currentIndex = (currentIndex + 1) % interactObjects.Count;
         RefreshUI();
-        DebugCurrent();
     }
 
     public void Previous()
     {
         if (interactObjects.Count <= 1) return;
-
         currentIndex--;
-        if (currentIndex < 0)
-        {
-            currentIndex = interactObjects.Count - 1;
-        }
-
+        if (currentIndex < 0) currentIndex = interactObjects.Count - 1;
         RefreshUI();
-        DebugCurrent();
     }
-    #endregion
 
-    #region UI
     public void ForceRefresh()
     {
-        interactObjects.RemoveAll(item => item == null || item.gameObject == null || !item.enabled || !item.gameObject.activeInHierarchy);
-
-        if (interactObjects.Count == 0)
-        {
-            if (InteractUIV2.Instance != null) InteractUIV2.Instance.Hide();
-            return;
-        }
-
-        currentIndex = Mathf.Clamp(currentIndex, 0, interactObjects.Count - 1);
+        CleanupInvalidInteracts();
         RefreshUI();
     }
 
     private void RefreshUI()
     {
-        if (IsBusy)
+        if (IsBusy || interactObjects.Count == 0)
         {
-            if (InteractUIV2.Instance != null)
-            {
-                InteractUIV2.Instance.Hide();
-            }
+            if (InteractUIV2.Instance != null) InteractUIV2.Instance.Hide();
             return;
         }
 
@@ -281,33 +315,11 @@ public class InteractManagerV2 : MonoBehaviour
             }
         }
 
-        if (InteractUIV2.Instance == null) return;
-
-        InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
-    }
-    #endregion
-
-    #region Debug
-    private void DebugCurrent()
-    {
-        if (!debugMode) return;
-
-        if (CurrentInteract == null)
+        if (InteractUIV2.Instance != null)
         {
-            Debug.Log("<color=#888888>[InteractV2] Interaction list is empty.</color>");
-            return;
+            InteractUIV2.Instance.Refresh(interactObjects, currentIndex);
         }
-
-        Debug.Log($"<color=#AAAAAA>[InteractV2] Current target focus: {CurrentInteract.InteractText}</color>");
     }
-    #endregion
-
-    #region Public API
-    public bool HasInteract() => interactObjects.Count > 0;
-    public int Count() => interactObjects.Count;
-    public int CurrentIndex() => currentIndex;
-    public List<InteractV2> GetObjects() => interactObjects;
-    #endregion
 
     private void LateUpdate()
     {
@@ -316,10 +328,14 @@ public class InteractManagerV2 : MonoBehaviour
 
     public void ExecuteCurrent()
     {
-        if (IsBusy || Time.unscaledTime < cooldownUntilTime || CurrentInteract == null) return;
+        if (IsBusy || Time.unscaledTime < cooldownUntilTime) return;
 
-        consumedInputThisFrame = true;
-        CurrentInteract.Execute();
+        InteractV2 target = CurrentInteract;
+        if (target != null)
+        {
+            consumedInputThisFrame = true;
+            target.Execute();
+        }
     }
 
     public bool WasInputConsumedThisFrame() => consumedInputThisFrame;

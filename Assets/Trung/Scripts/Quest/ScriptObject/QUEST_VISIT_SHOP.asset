@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_VISIT_SHOP
+  m_EditorClassIdentifier: 
+  questID: QUEST_VISIT_SHOP
+  questTitle: Merchant's Wares
+  questDescription: Browse the supply shop and check out the essential adventurer
+    goods.
+  questType: 0
+  requiredAccountLevel: 1
+  requiredPrerequisiteQuestID: QUEST_ROLL_1
+  targetProgress: 1
+  targetStationPointName: "\u0110i\u1EC3m d\u1EEBng ch\xE2n Rune"
+  npcName: Guide
+  notStartedDialogues:
+  - speaker: 0
+    text: Now that you know how relics work, let me open my general supply store
+      for you.
+  - speaker: 1
+    text: What kind of items do you sell?
+  - speaker: 0
+    text: Potions, enhancement materials, and rare tickets. Take a look inside the
+      Shop menu!
+  inProgressDialogues:
+  - speaker: 0
+    text: Check the shop catalog and see if anything suits your upcoming expeditions.
+  canClaimDialogues:
+  - speaker: 1
+    text: Your shop has quite a variety of useful supplies.
+  - speaker: 0
+    text: Glad you like it. Restock often, and stay prepared for the battlefield!
+  completedDialogues:
+  - speaker: 0
+    text: Welcome to the shop anytime you need consumables or upgrades.
+  rewardGem: 200
+  rewardShard: 50
+  rewardExp: 100
+  rewardItems: []

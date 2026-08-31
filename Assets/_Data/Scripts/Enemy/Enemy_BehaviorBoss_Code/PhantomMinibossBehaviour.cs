@@ -24,6 +24,8 @@ public class PhantomMinibossBehaviour : EnemyMinibossBehaviour
 
     [Header("Blink Presentation")]
     [SerializeField] private PoolType blinkVFX;
+    [SerializeField] private AudioClip blinkSound;
+    [SerializeField, Range(0f, 1f)] private float blinkSoundVolume = 1f;
     [SerializeField] private Renderer[] renderersToHide;
 
     private bool[] _defaultRendererStates;
@@ -108,6 +110,7 @@ public class PhantomMinibossBehaviour : EnemyMinibossBehaviour
         Enemy.Combat.ForceCloseHitbox();
         Enemy.Locomotion.StopMoving();
 
+        PlayBlinkSound();
         PlayBlinkVFX(Enemy.MyTransform.position);
         SetRenderersVisible(false);
 
@@ -191,6 +194,14 @@ public class PhantomMinibossBehaviour : EnemyMinibossBehaviour
     {
         if (blinkVFX == PoolType.None) return;
         ObjectPooling.Instance.SpawnFromPool(blinkVFX, position, Quaternion.identity);
+    }
+
+    private void PlayBlinkSound()
+    {
+        if (blinkSound == null || AudioManager.Instance == null)
+            return;
+
+        AudioManager.Instance.PlaySfx(blinkSound, blinkSoundVolume);
     }
 
     private void SetRenderersVisible(bool visible)

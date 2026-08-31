@@ -47,6 +47,12 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         }
 
         StartSafeZoneFlow().Forget();
+        EventManager.Subscribe(GameEvent.OnReturnToLobby, ClearSafeZone);
+    }
+
+    private void OnDestroy()
+    {
+        EventManager.Unsubscribe(GameEvent.OnReturnToLobby, ClearSafeZone);
     }
 
     public async UniTaskVoid StartSafeZoneFlow(bool skipDelay = false)
@@ -73,6 +79,21 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
         IsSafeZoneCompleted = true;
         OnSafeZonePhaseCompleted?.Invoke(CurrentPhaseIndex, currentTargetCenterPoint);
         EventManager.Notify(GameEvent.OnFinalSafeZoneCompleted);
+    }
+
+    private void ClearSafeZone(object data = null)
+    {
+        if (safeZone != null)
+        {
+            ObjectPooling.Instance?.ReturnToPool(activeSafeZonePool, safeZone.gameObject);
+            safeZone = null;
+        }
+
+        targetCenterPoints.Clear();
+        usedTargetCenterPoints.Clear();
+        CurrentPhaseIndex = 0;
+        IsSafeZoneCompleted = false;
+        IsActiveSafeZone = false;
     }
 
     [Button("Step 1: Create Safe Zone")]
@@ -128,7 +149,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
             stat.shrinkDuration
         );
 
-        while (safeZone.IsShrinking)
+        while (safeZone != null && safeZone.IsShrinking)
             await UniTask.Yield();
     }
 

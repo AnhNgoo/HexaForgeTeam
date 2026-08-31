@@ -32,7 +32,7 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
     public void Init(CharacterWeapon characterWeapon)
     {
         this.characterWeapon = characterWeapon;
-        DiscardAllWeapons();
+        ClearAllWeaponInventory();
         EventManager.Notify(GameEvent.OnUpdateDisplayWeapon, null);
     }
 
@@ -146,6 +146,11 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         return true;
     }
 
+    /// <summary>
+    /// Thử spawn vũ khí thành công, nếu spawn thất bại thì giữ lại vũ khí cũ
+    /// </summary>
+    /// <param name="weaponData"></param>
+    /// <returns></returns>
     private bool TrySpawnWeaponPickup(WeaponData weaponData)
     {
         if (weaponData == null ||
@@ -235,14 +240,14 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         EventManager.Notify(GameEvent.OnDiscardItemInInventory, index);
     }
 
-    private void DiscardAllWeapons()
+    private void ClearAllWeaponInventory()
     {
+        characterWeapon.UnequipWeapon();
+        currentWeaponIndex = -1;
         for (int i = 0; i < weaponSlots.Count; i++)
         {
-            if (weaponSlots[i] != null)
-            {
-                DiscardWeapon(i);
-            }
+            weaponSlots[i] = null;
+            EventManager.Notify(GameEvent.OnDiscardItemInInventory, i);
         }
     }
     // Đặt vũ khí được chọn trong menu Inventory, có thể khác với vũ khí đang được trang bị

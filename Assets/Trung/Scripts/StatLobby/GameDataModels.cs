@@ -10,6 +10,22 @@ public enum CharacterType
     Elara
 }
 
+public enum QuestType
+{
+    Tutorial,
+    Main,
+    Daily,
+    Achievement
+}
+
+public enum QuestState
+{
+    NotStarted,
+    InProgress,
+    CanClaim,
+    Completed
+}
+
 [Serializable]
 public class AccountLevelData
 {
@@ -119,12 +135,54 @@ public class CombinedLobbyStats
     public LobbyStatData levelBonusStats = new LobbyStatData();
     public LobbyStatData runeBonusStats = new LobbyStatData();
 }
+
 [System.Serializable]
 public class SaveData
 {
     public int accountLevel = 1;
     public int lifetimeGemEarned = 0;
-    public int totalKills = 0; // Biến đếm số quái đã trảm
-    public int totalRuns = 0;  // Biến đếm số lượt đi hầm ngục
+    public int totalKills = 0;
+    public int totalRuns = 0;
     public List<AchievementData> achievements = new List<AchievementData>();
+}
+
+[Serializable]
+public class QuestData
+{
+    public string questID;
+    public string title;
+    [TextArea(2, 4)] public string description;
+    public QuestType questType = QuestType.Main;
+    public int currentProgress;
+    public int targetProgress;
+    public int rewardGem;
+    public int rewardShard;
+    public List<CostData> rewardItems = new List<CostData>();
+    public QuestState state = QuestState.NotStarted;
+
+    public QuestData(string id, string title, string description, QuestType type, int target, int gem = 0, int shard = 0, List<CostData> items = null)
+    {
+        this.questID = id;
+        this.title = title;
+        this.description = description;
+        this.questType = type;
+        this.targetProgress = target;
+        this.rewardGem = gem;
+        this.rewardShard = shard;
+        if (items != null) this.rewardItems = items;
+        this.currentProgress = 0;
+        this.state = QuestState.NotStarted;
+    }
+
+    public void AddProgress(int amount)
+    {
+        if (state == QuestState.Completed || state == QuestState.CanClaim) return;
+
+        currentProgress += amount;
+        if (currentProgress >= targetProgress)
+        {
+            currentProgress = targetProgress;
+            state = QuestState.CanClaim;
+        }
+    }
 }

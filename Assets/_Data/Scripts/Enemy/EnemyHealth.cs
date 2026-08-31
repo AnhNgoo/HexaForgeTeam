@@ -6,6 +6,7 @@ public class EnemyHealth : MonoBehaviour
 {
     private EnemyBase _enemyBase;
     [SerializeField] private float currentHealth;
+    private float maxHealthOverride = -1f;
     public float CurrentHealth => currentHealth;
     public void Initialize(EnemyBase enemyBase)
     {
@@ -35,5 +36,10 @@ public class EnemyHealth : MonoBehaviour
         //Nếu savedHealth < 0 thì không có giá trị đã lưu nào hợp lệ, đặt currentHealth về maxHealth, ngược lại thì sử dụng giá trị đã lưu
         currentHealth = (savedHealth < 0) ? _enemyBase.Data.maxHealth : savedHealth; //Nếu savedHealth < 0 thì không có giá trị đã lưu nào hợp lệ, đặt currentHealth về maxHealth, ngược lại thì sử dụng giá trị đã lưu
         Debug.Log($"{gameObject.name} đã load lượng máu đã lưu: {currentHealth}");
+    }
+    public void SetMaxHealthDirectly(float newMaxHealth)
+    {
+        maxHealthOverride = newMaxHealth;
+        currentHealth = newMaxHealth;
     }
 }

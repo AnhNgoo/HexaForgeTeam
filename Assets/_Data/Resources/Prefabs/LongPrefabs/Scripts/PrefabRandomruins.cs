@@ -53,8 +53,15 @@ public class PrefabRandomruins : MonoBehaviour
                     Vector3.down
                 );
 
-                if (!Physics.Raycast(ray, out RaycastHit hit, 100f))
+                if (!TryGetGroundHitInThisScene(ray, out RaycastHit hit))
+                {
+                    Debug.LogWarning(
+                        $"Không tìm thấy mặt đất thuộc scene '{gameObject.scene.name}' " +
+                        $"cho điểm spawn '{point.name}'.",
+                        point
+                    );
                     continue;
+                }
 
                 GameObject spawnedObject = Instantiate(
                     prefab,
@@ -152,5 +159,34 @@ public class PrefabRandomruins : MonoBehaviour
             (indexes[i], indexes[randomIndex]) =
                 (indexes[randomIndex], indexes[i]);
         }
+    }
+
+    private bool TryGetGroundHitInThisScene(Ray ray, out RaycastHit closestHit)
+    {
+        RaycastHit[] hits = Physics.RaycastAll(
+            ray,
+            100f,
+            Physics.DefaultRaycastLayers,
+            QueryTriggerInteraction.Ignore
+        );
+
+        closestHit = default;
+        float closestDistance = float.PositiveInfinity;
+        bool foundHit = false;
+
+        foreach (RaycastHit hit in hits)
+        {
+            if (hit.collider.gameObject.scene != gameObject.scene)
+                continue;
+
+            if (hit.distance >= closestDistance)
+                continue;
+
+            closestHit = hit;
+            closestDistance = hit.distance;
+            foundHit = true;
+        }
+
+        return foundHit;
     }
 }

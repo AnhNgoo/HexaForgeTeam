@@ -16,6 +16,7 @@ public class JumpState : ICharacterState
     {
         character.CharacterAnimation.CrossFade("Jump", 0.1f);
         character.CharacterMovement.Jump();
+        character.CharacterSound.Play(character.CharacterSound.jumpSoundEffect);
         CheckJumped();
     }
 
@@ -37,7 +38,8 @@ public class JumpState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.Dodge)
+
+        if (character.CharacterInput.Dodge) // Trừ stamina trong hàm Dodge()
         {
             character.Dodge();
             return;

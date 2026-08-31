@@ -47,6 +47,7 @@ public enum MenuType
     LobbyRunResultSummaryMenu = 110,
     LobbyBossSelectMenu = 111,
     LobbyTutorialMenu = 112,
+    LobbyQuestMenu = 113,
 }
 
 public class UIManager : Singleton<UIManager>
@@ -186,7 +187,8 @@ public class UIManager : Singleton<UIManager>
             if (menu?.menuBase == null)
                 continue;
 
-            menu.menuBase.gameObject.SetActive(false);
+            menu.menuBase.Open();
+            menu.menuBase.Close();
         }
 
         CurrentMenu = null;
