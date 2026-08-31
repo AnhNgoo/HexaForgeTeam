@@ -13,6 +13,7 @@ public class AutoNPCWander : MonoBehaviour
         public Transform pointTransform;
         public float restDuration = 5f;
     }
+
     [Header("0. Stationary NPC Setting")]
     [Tooltip("Tick chọn nếu NPC này là chủ tiệm đứng yên một chỗ, không bao giờ đi tuần tra")]
     [SerializeField] private bool isStationary = false;
@@ -31,7 +32,7 @@ public class AutoNPCWander : MonoBehaviour
     [SerializeField] private float questMoveSpeed = 5.5f;
     [SerializeField] private float rotationSpeed = 360f;
     [SerializeField] private float restTurnSpeed = 8f;
-    [SerializeField] private float interactTurnSpeed = 14f;
+    [SerializeField] private float interactTurnSpeed = 20f;
     [SerializeField] private float acceleration = 16f;
     [SerializeField] private float stoppingDistance = 0.35f;
 
@@ -154,13 +155,17 @@ public class AutoNPCWander : MonoBehaviour
         }
     }
 
-    private void FindPlayer()
+    private Transform FindPlayer()
     {
-        if (playerTransform == null)
+        if (playerTransform == null || !playerTransform.gameObject.activeInHierarchy)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) playerTransform = playerObj.transform;
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+            }
         }
+        return playerTransform;
     }
 
     private void CheckQuestStateChange()
@@ -189,13 +194,14 @@ public class AutoNPCWander : MonoBehaviour
 
         CheckInteractionState();
 
-        // Ưu tiên cao nhất: Khi đang nói chuyện với người chơi thì bắt buộc xoay mặt về người chơi
+        // 1. ƯU TIÊN TUYỆT ĐỐI: Đang tương tác/hội thoại -> Dừng agent và quay mặt về phía Player
         if (isInteracting)
         {
-            HandleTalkingRotation();
+            ForceLookAtPlayer();
             return;
         }
 
+        // 2. Nếu là NPC đứng yên cố định
         if (isStationary)
         {
             transform.rotation = Quaternion.Slerp(transform.rotation, initialSpawnRot, restTurnSpeed * Time.deltaTime);
@@ -203,28 +209,41 @@ public class AutoNPCWander : MonoBehaviour
             return;
         }
 
+        // 3. Nếu đang có Quest chỉ định đứng ở trạm
         if (questHandler != null && questHandler.ShouldStandAtStation())
         {
             StandAtQuestStation();
             return;
         }
 
+        // 4. Chu trình tuần tra bình thường
         HandlePatrolLoop();
     }
 
-    private void HandleTalkingRotation()
+    /// <summary>
+    /// Ép Agent nhường quyền điều khiển Rotation và xoay mượt mặt NPC về phía người chơi
+    /// </summary>
+    private void ForceLookAtPlayer()
     {
-        FindPlayer();
-        if (playerTransform != null)
+        Transform player = FindPlayer();
+        if (player == null) return;
+
+        if (agent != null && agent.isOnNavMesh)
         {
-            Vector3 lookTarget = playerTransform.position;
-            lookTarget.y = transform.position.y;
-            Vector3 dir = (lookTarget - transform.position).normalized;
-            if (dir != Vector3.zero)
-            {
-                Quaternion targetRot = Quaternion.LookRotation(dir);
-                transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, interactTurnSpeed * Time.deltaTime);
-            }
+            agent.isStopped = true;
+            agent.updateRotation = false;
+            agent.velocity = Vector3.zero;
+        }
+
+        PlayAnimation(false);
+
+        Vector3 direction = player.position - transform.position;
+        direction.y = 0f; // Khóa trục Y để NPC không bị ngửa hoặc chúi đầu
+
+        if (direction.sqrMagnitude > 0.001f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, interactTurnSpeed * Time.deltaTime);
         }
     }
 
@@ -260,7 +279,6 @@ public class AutoNPCWander : MonoBehaviour
 
             PlayAnimation(false);
 
-            // Khi KHÔNG tương tác, NPC mới xoay về góc nhìn mặc định của trạm
             if (!isInteracting)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetStationRot, restTurnSpeed * Time.deltaTime);
@@ -333,12 +351,16 @@ public class AutoNPCWander : MonoBehaviour
     {
         FindPlayer();
 
+        // 1. Kiểm tra đối thoại UI có đang mở không
+        bool isDialogueActive = DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueOpen();
+
+        // 2. Kiểm tra xem người chơi có đang tương tác với chính NPC này không
         if (InteractManagerV2.Instance != null)
         {
             InteractV2 currentFocus = InteractManagerV2.Instance.CurrentInteract;
             bool isCurrentTarget = currentFocus != null && (currentFocus.gameObject == gameObject || currentFocus.transform.IsChildOf(transform));
 
-            if (isCurrentTarget && (Input.GetKeyDown(KeyCode.F) || InteractManagerV2.Instance.IsBusy))
+            if (isCurrentTarget && (Input.GetKeyDown(KeyCode.F) || InteractManagerV2.Instance.IsBusy || isDialogueActive))
             {
                 if (!isInteracting)
                 {
@@ -347,9 +369,9 @@ public class AutoNPCWander : MonoBehaviour
             }
         }
 
+        // 3. Nếu đang tương tác nhưng hội thoại đã tắt và không còn bận -> Tiếp tục tuần tra
         if (isInteracting)
         {
-            bool isDialogueActive = DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueOpen();
             bool isMenuOpen = UIManager.Instance != null &&
                               UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu &&
                               UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu &&
@@ -441,15 +463,18 @@ public class AutoNPCWander : MonoBehaviour
         animator.CrossFade(isMoving ? walkHash : idleHash, transitionDuration);
     }
 
+    /// <summary>
+    /// Gọi trực tiếp từ SendMessage khi ấn F tương tác
+    /// </summary>
     public void OnInteract()
     {
-        PausePatrol(playerTransform);
+        PausePatrol(FindPlayer());
     }
 
     public void PausePatrol(Transform targetPlayer = null)
     {
         isInteracting = true;
-        playerTransform = targetPlayer != null ? targetPlayer : playerTransform;
+        playerTransform = targetPlayer != null ? targetPlayer : FindPlayer();
 
         if (agent != null && agent.isOnNavMesh)
         {

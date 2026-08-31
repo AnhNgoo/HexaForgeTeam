@@ -4,6 +4,11 @@ using UnityEngine.SceneManagement;
 
 public class TutorialSkipHandler : MonoBehaviour
 {
+    [Header("Hotkey Settings")]
+    [Tooltip("Phím tắt để skip nhanh Tutorial")]
+    [SerializeField] private KeyCode skipHotkey = KeyCode.Equals; // Phím '=' trên hàng phím số
+
+    private bool isTransitioning;
 
     private void Start()
     {
@@ -16,7 +21,15 @@ public class TutorialSkipHandler : MonoBehaviour
         PlayerManager.Instance.SpawnCharacterInLobby();
     }
 
-    private bool isTransitioning;
+    private void Update()
+    {
+        // Nhấn phím '=' (hoặc KeypadEquals) để skip nhanh Tutorial
+        if (Input.GetKeyDown(skipHotkey) || Input.GetKeyDown(KeyCode.KeypadEquals))
+        {
+            SkipOrCompleteTutorial();
+        }
+    }
+
     public void SkipOrCompleteTutorial()
     {
         if (isTransitioning)
@@ -33,13 +46,13 @@ public class TutorialSkipHandler : MonoBehaviour
 
         if (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
         {
-            SaveLoadManager.Instance.SaveData.isTutorialCompleted = true; // cite: 39
-            SaveLoadManager.Instance.SaveGame(); // cite: 39
+            SaveLoadManager.Instance.SaveData.isTutorialCompleted = true; // cite: 55
+            SaveLoadManager.Instance.SaveGame(); // cite: 55
 
             if (PlayFabDataManager.Instance != null)
             {
-                Debug.Log("[Tutorial] Ép lưu tiến trình hoàn thành Tutorial lên đám mây PlayFab lập tức..."); // cite: 39
-                PlayFabDataManager.Instance.SaveCloud(); // cite: 39
+                Debug.Log("[Tutorial] Ép lưu tiến trình hoàn thành Tutorial lên đám mây PlayFab lập tức..."); // cite: 55
+                PlayFabDataManager.Instance.SaveCloud(); // cite: 55
             }
         }
 

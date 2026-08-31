@@ -12,10 +12,11 @@ public class InteractManagerV2 : MonoBehaviour
     [SerializeField] private float scrollCooldown = 0.12f;
 
     [Header("Distance Limit")]
-    [SerializeField] private float maxInteractDistance = 3.2f;
+    [SerializeField] private float maxInteractDistance = 3.5f;
 
     private float nextScrollTime;
     private float cooldownUntilTime = 0f;
+    private float rescanTimer = 0f;
     private bool consumedInputThisFrame;
 
     private readonly List<InteractV2> interactObjects = new List<InteractV2>();
@@ -95,18 +96,23 @@ public class InteractManagerV2 : MonoBehaviour
         cooldownUntilTime = Time.unscaledTime + duration;
     }
 
-    private void FindPlayer()
+    public Transform GetPlayerTransform()
     {
-        if (playerTransform == null)
+        // Tự động tìm lại nhân vật mới ngay khi nhân vật cũ bị hủy (khi đổi tướng)
+        if (playerTransform == null || !playerTransform.gameObject.activeInHierarchy)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null) playerTransform = playerObj.transform;
+            if (playerObj != null)
+            {
+                playerTransform = playerObj.transform;
+            }
         }
+        return playerTransform;
     }
 
     private void CleanupInvalidInteracts()
     {
-        FindPlayer();
+        Transform pTransform = GetPlayerTransform();
 
         for (int i = interactObjects.Count - 1; i >= 0; i--)
         {
@@ -121,13 +127,13 @@ public class InteractManagerV2 : MonoBehaviour
                 continue;
             }
 
-            if (playerTransform != null)
+            if (pTransform != null)
             {
                 Collider col = item.GetComponent<Collider>();
-                Vector3 closestPoint = col != null ? col.ClosestPoint(playerTransform.position) : item.transform.position;
-                float dist = Vector3.Distance(closestPoint, playerTransform.position);
+                Vector3 closestPoint = col != null ? col.ClosestPoint(pTransform.position) : item.transform.position;
+                float dist = Vector3.Distance(closestPoint, pTransform.position);
 
-                if (dist > maxInteractDistance)
+                if (dist > maxInteractDistance + 0.5f)
                 {
                     interactObjects.RemoveAt(i);
                 }
@@ -142,6 +148,14 @@ public class InteractManagerV2 : MonoBehaviour
 
     private void Update()
     {
+        // Quét định kỳ mỗi 0.2s để đảm bảo không bao giờ bị mất tương tác khi đứng gần
+        rescanTimer += Time.deltaTime;
+        if (rescanTimer >= 0.2f)
+        {
+            rescanTimer = 0f;
+            RescanNearbyInteracts();
+        }
+
         CleanupInvalidInteracts();
 
         bool isDialogueActive = DialogueUI.Instance != null && DialogueUI.Instance.IsDialogueOpen();
@@ -168,7 +182,6 @@ public class InteractManagerV2 : MonoBehaviour
             return;
         }
 
-        // Xử lý cuộn chuột khi có từ 2 đối tượng trở lên
         if (enableMouseWheel && interactObjects.Count > 1)
         {
             HandleMouseWheel();
@@ -184,10 +197,11 @@ public class InteractManagerV2 : MonoBehaviour
 
     public void RescanNearbyInteracts()
     {
-        FindPlayer();
-        if (playerTransform == null) return;
+        Transform pTransform = GetPlayerTransform();
+        if (pTransform == null) return;
 
-        Collider[] hits = Physics.OverlapSphere(playerTransform.position, maxInteractDistance);
+        // Bật QueryTriggerInteraction.Collide để quét được cả Trigger Collider
+        Collider[] hits = Physics.OverlapSphere(pTransform.position, maxInteractDistance, ~0, QueryTriggerInteraction.Collide);
         for (int i = 0; i < hits.Length; i++)
         {
             InteractV2 interact = hits[i].GetComponent<InteractV2>();
@@ -196,7 +210,6 @@ public class InteractManagerV2 : MonoBehaviour
                 Register(interact);
             }
         }
-        ForceRefresh();
     }
 
     public void Register(InteractV2 interact)
@@ -230,8 +243,8 @@ public class InteractManagerV2 : MonoBehaviour
 
     private void SortInteracts()
     {
-        FindPlayer();
-        if (playerTransform == null) return;
+        Transform pTransform = GetPlayerTransform();
+        if (pTransform == null) return;
 
         interactObjects.Sort((a, b) =>
         {
@@ -240,10 +253,10 @@ public class InteractManagerV2 : MonoBehaviour
             Collider colA = a.GetComponent<Collider>();
             Collider colB = b.GetComponent<Collider>();
 
-            Vector3 ptA = colA != null ? colA.ClosestPoint(playerTransform.position) : a.transform.position;
-            Vector3 ptB = colB != null ? colB.ClosestPoint(playerTransform.position) : b.transform.position;
+            Vector3 ptA = colA != null ? colA.ClosestPoint(pTransform.position) : a.transform.position;
+            Vector3 ptB = colB != null ? colB.ClosestPoint(pTransform.position) : b.transform.position;
 
-            return Vector3.Distance(ptA, playerTransform.position).CompareTo(Vector3.Distance(ptB, playerTransform.position));
+            return Vector3.Distance(ptA, pTransform.position).CompareTo(Vector3.Distance(ptB, pTransform.position));
         });
     }
 
@@ -283,11 +296,6 @@ public class InteractManagerV2 : MonoBehaviour
     public void ForceRefresh()
     {
         CleanupInvalidInteracts();
-        if (interactObjects.Count == 0)
-        {
-            if (InteractUIV2.Instance != null) InteractUIV2.Instance.Hide();
-            return;
-        }
         RefreshUI();
     }
 
