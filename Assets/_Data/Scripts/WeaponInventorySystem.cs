@@ -242,6 +242,8 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
 
     private void ClearAllWeaponInventory()
     {
+        characterWeapon.UnequipWeapon();
+        currentWeaponIndex = -1;
         for (int i = 0; i < weaponSlots.Count; i++)
         {
             weaponSlots[i] = null;

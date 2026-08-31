@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class BirdController : MonoBehaviour
+public class BirdController : Singleton<BirdController>
 {
     [Header("References")]
     [SerializeField] private Transform grabPoint;
@@ -278,11 +278,10 @@ public class BirdController : MonoBehaviour
         );
 
         PlayDisableParticle();
-        ObjectPooling.Instance.RestoreToPoolParent(releasedPlayer.PoolType, releasedPlayer.gameObject);
         Destroy(gameObject);
     }
 
-    private void ReleasePlayerIfNeeded()
+    public void ReleasePlayerIfNeeded()
     {
         // Phương thức này chạy khi chim biến mất vì đổi scene,
         // bị disable hoặc bị destroy ngoài DropPlayerRoutine.

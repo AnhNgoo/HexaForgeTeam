@@ -51,8 +51,10 @@ public class PlayerManager : Singleton<PlayerManager>
     [SerializeField][FoldoutGroup("Character ReSpawn")] private int maxRespawnAttemptsInFinalSafeZone = 2; // Số lần respawn tối đa
     public int MaxRespawnAttemptsInFinalSafeZone => maxRespawnAttemptsInFinalSafeZone;
     [SerializeField][FoldoutGroup("Character ReSpawn")] private int maxRespawnAttemptsInBoss = 1; // Số lần respawn tối đa khi map boss
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private int bonusRespawnAttemptsInBoss = 1; // Số lần respawn cộng thêm khi map boss
 
     public int MaxRespawnAttemptsInBoss => maxRespawnAttemptsInBoss;
+    public int BonusRespawnAttemptsInBoss => bonusRespawnAttemptsInBoss;
 
     #region Init 
 
@@ -255,11 +257,23 @@ public class PlayerManager : Singleton<PlayerManager>
 
     private void ClearCurrentCharacter(object data = null)
     {
+        if (currentCharacterBase == null)
+        {
+            currentCharacter.character = Character.None;
+            currentCharacter.characterData = null;
+            return;
+        }
+
+        // Giải phóng player khỏi BirdController nếu player đang bị chim bắt
+        BirdController.Instance?.ReleasePlayerIfNeeded();
+
         if (currentCharacterBase != null)
         {
             ObjectPooling.Instance.ReturnToPool(currentCharacter.characterData.characterPoolType, currentCharacterBase.gameObject);
-            currentCharacterBase = null;
+
         }
+
+        currentCharacterBase = null;
         currentCharacter.character = Character.None;
         currentCharacter.characterData = null;
     }
@@ -327,6 +341,11 @@ public class PlayerManager : Singleton<PlayerManager>
     private void SetRespawnAttemptsInRun(object data = null)
     {
         SetMaxRespawnAttempts(0, false);
+    }
+
+    public void SetBonusRespawnAttemptsInBoss(int bonusAttempts = 1)
+    {
+        bonusRespawnAttemptsInBoss = bonusAttempts;
     }
 
     public async void CheckRespawnCharacter(object data = null)
