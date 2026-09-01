@@ -12,6 +12,7 @@ public class Projectile : LoadComponents, IPoolable
     [SerializeField] protected float speed = 30f;
     [SerializeField] protected CapsuleCollider _collider;
     [SerializeField] protected Rigidbody _rigidbody;
+    [SerializeField] protected bool DebugNameGameObject = false;
     protected Vector3 direction;
     protected Cooldown cooldownLifeTime = new Cooldown();
     protected PoolType hitEffect;
@@ -56,6 +57,11 @@ public class Projectile : LoadComponents, IPoolable
 
     protected virtual void OnTriggerEnter(Collider other)
     {
+        if (DebugNameGameObject)
+        {
+            Debug.Log($"Projectile {gameObject.name} collided with {other.gameObject.name}");
+        }
+
         if (other.TryGetComponent(out EnemyBase enemy))
         {
             float damage = characterBase.CharacterStat.finalStats.damage + characterBase.CharacterStat.GetWeaponDamage();
