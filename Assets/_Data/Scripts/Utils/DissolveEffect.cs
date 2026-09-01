@@ -67,6 +67,8 @@ public class DissolveEffect : LoadComponents
 
     public void ResetDefaultMaterial()
     {
+        if (cacheDefaultMaterial != null) return; // Nếu chưa có material gốc thì không làm gì cả
+
         // Reset lại material và texture gốc sau khi dissolve xong
         foreach (var smr in skinnedMeshRenderer)
         {
