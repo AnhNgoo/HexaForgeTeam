@@ -143,7 +143,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 
         CurrentPhaseIndex++;
 
-        safeZone.ShrinkSafeZone(
+        safeZone?.ShrinkSafeZone(
             currentTargetCenterPoint.position,
             stat.radius,
             stat.shrinkDuration
