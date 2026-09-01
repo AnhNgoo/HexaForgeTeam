@@ -112,9 +112,70 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public GhostEffect GhostEffect { get; set; }
     public DissolveEffect DissolveEffect { get; set; }
     public bool IsHitStateActive { get; set; } = false;
+    private readonly HashSet<WaterVolume> waterVolumes = new HashSet<WaterVolume>();
+    private WaterVolume currentWaterVolume;
     public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
 
     public PoolType PoolType => characterData?.characterPoolType ?? PoolType.None;
+
+    #region Swimming
+    public float WaterLevel
+    {
+        get
+        {
+            return currentWaterVolume != null ? currentWaterVolume.SurfaceLevel : float.NaN;
+        }
+    }
+
+    public virtual bool IsBodyBelowWaterLevel()
+    {
+        float waterLevel = WaterLevel;
+        if (float.IsNaN(waterLevel) || float.IsInfinity(waterLevel))
+            return false;
+
+        float bodyHeight = 1.5f;
+        Renderer visualRenderer = characterVisual != null ? characterVisual.GetComponent<Renderer>() : null;
+        if (visualRenderer != null)
+            bodyHeight = Mathf.Max(visualRenderer.bounds.size.y, 1.5f);
+
+        float bodyCenterY = transform.position.y + (bodyHeight * 0.5f);
+        return bodyCenterY < waterLevel;
+    }
+
+    public virtual bool IsSwimmingCandidate()
+    {
+        return currentWaterVolume != null && IsBodyBelowWaterLevel();
+    }
+
+    #endregion
+
+    private void OnTriggerEnter(Collider other)
+    {
+        WaterVolume waterVolume = other.GetComponentInParent<WaterVolume>();
+        if (waterVolume == null)
+            return;
+
+        waterVolumes.Add(waterVolume);
+        currentWaterVolume = waterVolume;
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        WaterVolume waterVolume = other.GetComponentInParent<WaterVolume>();
+        if (waterVolume == null)
+            return;
+
+        waterVolumes.Remove(waterVolume);
+        if (currentWaterVolume == waterVolume)
+        {
+            currentWaterVolume = null;
+            foreach (WaterVolume remainingVolume in waterVolumes)
+            {
+                currentWaterVolume = remainingVolume;
+                break;
+            }
+        }
+    }
 
     protected override void LoadComponent()
     {

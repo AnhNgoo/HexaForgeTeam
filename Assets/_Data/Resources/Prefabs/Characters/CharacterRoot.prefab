@@ -368,7 +368,7 @@ MonoBehaviour:
   strafeThreshold: 0.8
   walkSpeedMultiplier: 0.3
   runSpeedMultiplier: 1
-  sprintSpeedMultiplier: 1.5
+  sprintSpeedMultiplier: 2
   dodgeSpeedMultiplier: 3
   dodgeDuration: 0.2
   dodgeCooldown: 0.5
@@ -517,7 +517,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxRecoveryBottle: 7
-  recoveryBottle: 3
+  startRecoveryBottle: 3
+  currentRecoveryBottle: 0
   healPercent: 36
 --- !u!114 &3815555284143218006
 MonoBehaviour:
@@ -583,6 +584,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   originStats:
+    maxHealth: 0
+    speed: 0
+    damage: 0
+    defense: 0
+    poisonDamage: 0
+    stamina: 0
+    staminaRegen: 0
+    mp: 0
+    mpRegen: 0
+  runStats:
     maxHealth: 0
     speed: 0
     damage: 0

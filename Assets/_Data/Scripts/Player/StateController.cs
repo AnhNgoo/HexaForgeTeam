@@ -8,10 +8,14 @@ public class StateController
 
     public void ChangeState(ICharacterState newState)
     {
-        if (currentState == newState)
+        if (newState == null)
+            return;
+
+        if (currentState != null && currentState.GetType() == newState.GetType())
         {
             return;
         }
+
         currentState?.Exit();
         currentState = newState;
         currentState?.Enter();
