@@ -12,7 +12,6 @@ public class InteractV2 : MonoBehaviour
     [Header("Trigger")]
     [SerializeField] private string playerTag = "Player";
 
-    private bool playerInside;
     private bool isSelected;
 
     [SerializeField] private bool openPanel;
@@ -22,7 +21,6 @@ public class InteractV2 : MonoBehaviour
     public string InteractText => interactText;
     public Sprite InteractIcon => interactIcon;
     public int Priority => priority;
-    public bool PlayerInside => playerInside;
     public bool IsSelected => isSelected;
     public MenuType MenuType => menuType;
     public bool OpenPanel => openPanel;
@@ -79,7 +77,6 @@ public class InteractV2 : MonoBehaviour
 
         if (!unlocked)
         {
-            playerInside = false;
             if (InteractManagerV2.Instance != null)
             {
                 InteractManagerV2.Instance.Unregister(this);
@@ -92,7 +89,6 @@ public class InteractV2 : MonoBehaviour
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
         if (!IsFeatureUnlocked()) return;
 
-        playerInside = true;
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.Register(this);
@@ -102,27 +98,18 @@ public class InteractV2 : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
-
         if (!IsFeatureUnlocked())
         {
-            if (playerInside)
+            if (InteractManagerV2.Instance != null)
             {
-                playerInside = false;
-                if (InteractManagerV2.Instance != null)
-                {
-                    InteractManagerV2.Instance.Unregister(this);
-                }
+                InteractManagerV2.Instance.Unregister(this);
             }
             return;
         }
 
-        if (!playerInside)
+        if (InteractManagerV2.Instance != null)
         {
-            playerInside = true;
-            if (InteractManagerV2.Instance != null)
-            {
-                InteractManagerV2.Instance.Register(this);
-            }
+            InteractManagerV2.Instance.Register(this);
         }
     }
 
@@ -130,7 +117,6 @@ public class InteractV2 : MonoBehaviour
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
 
-        playerInside = false;
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.Unregister(this);
@@ -139,7 +125,10 @@ public class InteractV2 : MonoBehaviour
 
     public virtual void Execute()
     {
-        // 1. NPC Quest
+        // 1. Kích hoạt OnInteract trên NPC để ép xoay mặt về người chơi ngay lập tức
+        SendMessage("OnInteract", SendMessageOptions.DontRequireReceiver);
+
+        // 2. NPC Quest
         NPCQuestHandler questHandler = GetComponent<NPCQuestHandler>();
         if (questHandler != null)
         {
@@ -147,7 +136,7 @@ public class InteractV2 : MonoBehaviour
             return;
         }
 
-        // 2. NPC Thoại thường
+        // 3. NPC Thoại thường
         NPCDialogue dialogue = GetComponent<NPCDialogue>();
         if (dialogue != null)
         {
@@ -158,7 +147,7 @@ public class InteractV2 : MonoBehaviour
             return;
         }
 
-        // 3. Tương tác mở Menu
+        // 4. Tương tác mở Menu Panel
         if (openPanel)
         {
             if (!IsFeatureUnlocked()) return;
@@ -189,8 +178,6 @@ public class InteractV2 : MonoBehaviour
 
             return;
         }
-
-        SendMessage("OnInteract", SendMessageOptions.DontRequireReceiver);
     }
 
     public void SetSelected(bool value)
@@ -223,7 +210,6 @@ public class InteractV2 : MonoBehaviour
             QuestManager.Instance.OnQuestUpdated -= CheckFeatureUnlockStatus;
         }
 
-        playerInside = false;
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.Unregister(this);
@@ -237,7 +223,6 @@ public class InteractV2 : MonoBehaviour
             QuestManager.Instance.OnQuestUpdated -= CheckFeatureUnlockStatus;
         }
 
-        playerInside = false;
         if (InteractManagerV2.Instance != null)
         {
             InteractManagerV2.Instance.Unregister(this);

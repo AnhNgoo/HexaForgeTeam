@@ -27,16 +27,16 @@ public class EnemyCombat : MonoBehaviour
 
     private AttackDataSO currentAttackData; //Dữ liệu tấn công, có thể mở rộng sau này để có nhiều loại tấn công khác nhau
     [System.Serializable]
-public class AttackVFXSpawnPoint
-{
-    public AttackDataSO attackData;
+    public class AttackVFXSpawnPoint
+    {
+        public AttackDataSO attackData;
 
-    [Tooltip("Các điểm spawn VFX cho attack này")]
-    public Transform[] spawnPoints;
-}
+        [Tooltip("Các điểm spawn VFX cho attack này")]
+        public Transform[] spawnPoints;
+    }
 
-[SerializeField]
-private AttackVFXSpawnPoint[] attackVFXSpawnPoints;
+    [SerializeField]
+    private AttackVFXSpawnPoint[] attackVFXSpawnPoints;
     public AttackDataSO CurrentAttackData => currentAttackData; //Cho phép các lớp khác truy cập dữ liệu tấn công hiện tại nhưng không cho phép thay đổi trực tiếp
 
     public float CurrentAttackDamageMultiplier { get; private set; } = 1f;
@@ -242,96 +242,111 @@ private AttackVFXSpawnPoint[] attackVFXSpawnPoints;
         if (hitbox != null)
             hitbox.DisableHitBox();
     }
-public void PlayAttackVFX()
-{
-    if (_enemyBase.StateMachine.CurrentState !=
-        _enemyBase.StateMachine.EnemyAttackState)
-        return;
-
-    if (currentAttackData == null)
-        return;
-
-    if (currentAttackData.attackVFX == PoolType.None)
-        return;
-
-    // Tìm Spawn Point setting của attack hiện tại
-    AttackVFXSpawnPoint setting = null;
-
-    if (attackVFXSpawnPoints != null)
+    public void PlayAttackVFX()
     {
-        foreach (AttackVFXSpawnPoint item in attackVFXSpawnPoints)
+        if (_enemyBase.StateMachine.CurrentState !=
+            _enemyBase.StateMachine.EnemyAttackState)
+            return;
+
+        if (currentAttackData == null)
+            return;
+
+        if (currentAttackData.attackVFX == PoolType.None)
+            return;
+
+        // Tìm Spawn Point setting của attack hiện tại
+        AttackVFXSpawnPoint setting = null;
+
+        if (attackVFXSpawnPoints != null)
         {
-            if (item != null &&
-                item.attackData == currentAttackData)
+            foreach (AttackVFXSpawnPoint item in attackVFXSpawnPoints)
             {
-                setting = item;
-                break;
+                if (item != null &&
+                    item.attackData == currentAttackData)
+                {
+                    setting = item;
+                    break;
+                }
             }
         }
-    }
 
-    // Nếu có Spawn Point riêng thì dùng chúng
-    if (setting != null &&
-        setting.spawnPoints != null &&
-        setting.spawnPoints.Length > 0)
-    {
-        foreach (Transform spawnPoint in setting.spawnPoints)
+        // Nếu có Spawn Point riêng thì dùng chúng
+        if (setting != null &&
+            setting.spawnPoints != null &&
+            setting.spawnPoints.Length > 0)
         {
-            if (spawnPoint == null)
-                continue;
+            foreach (Transform spawnPoint in setting.spawnPoints)
+            {
+                if (spawnPoint == null)
+                    continue;
 
-            SpawnAttackVFX(spawnPoint);
+                SpawnAttackVFX(spawnPoint);
+            }
+
+            return;
         }
 
-        return;
+        // Nếu không có Spawn Point riêng thì dùng Anchor cũ
+        Transform anchor = ResolveVFXAnchor(currentAttackData);
+
+        if (anchor != null)
+        {
+            SpawnAttackVFX(anchor);
+        }
     }
 
-    // Nếu không có Spawn Point riêng thì dùng Anchor cũ
-    Transform anchor = ResolveVFXAnchor(currentAttackData);
-
-    if (anchor != null)
+    private void SpawnAttackVFX(Transform spawnPoint)
     {
-        SpawnAttackVFX(anchor);
-    }
-}
+        if (spawnPoint == null || currentAttackData == null)
+            return;
 
-private void SpawnAttackVFX(Transform spawnPoint)
-{
-    if (spawnPoint == null)
-        return;
+        bool followAnchor =
+            currentAttackData.vfxSpace == EnemyAttackVFXSpace.FollowAnchor;
 
-    Vector3 position =
-        spawnPoint.position +
-        spawnPoint.TransformDirection(currentAttackData.vfxOffset);
+        Vector3 position =
+            spawnPoint.position +
+            spawnPoint.TransformDirection(
+                currentAttackData.vfxOffset
+            );
 
-    Quaternion rotation =
-        spawnPoint.rotation *
-        Quaternion.Euler(currentAttackData.vfxEuler);
+        Quaternion rotation =
+            spawnPoint.rotation *
+            Quaternion.Euler(currentAttackData.vfxEuler);
 
-    GameObject vfx =
-        ObjectPooling.Instance.SpawnFromPool(
-            currentAttackData.attackVFX,
-            position,
-            rotation
-        );
+        GameObject vfx =
+            ObjectPooling.Instance.SpawnFromPool(
+                currentAttackData.attackVFX,
+                position,
+                rotation,
+                followAnchor ? spawnPoint : null
+            );
 
-    if (vfx == null)
-        return;
+        if (vfx == null)
+            return;
 
-    // Không cho VFX đi theo Spawn Point
-    vfx.transform.SetParent(null);
+        if (followAnchor)
+        {
+            vfx.transform.localPosition =
+                currentAttackData.vfxOffset;
 
-    // Đảm bảo vị trí và góc xoay đúng
-    vfx.transform.position = position;
-    vfx.transform.rotation = rotation;
+            vfx.transform.localRotation =
+                Quaternion.Euler(
+                    currentAttackData.vfxEuler
+                );
+        }
+        else
+        {
+            vfx.transform.SetParent(null);
+            vfx.transform.position = position;
+            vfx.transform.rotation = rotation;
+        }
 
-    // Scale lấy từ VFX Settings trong AttackDataSO
-    if (currentAttackData.vfxScale > 0f)
-    {
         vfx.transform.localScale =
-            Vector3.one * currentAttackData.vfxScale;
+            Vector3.one *
+            Mathf.Max(0.01f, currentAttackData.vfxScale);
     }
-}
+
+
     public Transform ResolveVFXAnchor(AttackDataSO attackData)
     {
         if (attackData.vfxAnchor == EnemyAttackAnchorType.Hitbox)
