@@ -28,6 +28,13 @@ public class IdleState : ICharacterState
     public void Update()
     {
         character.LookAtTarget();
+
+        if (character.IsSwimmingCandidate())
+        {
+            character.StateController.ChangeState(new SwimmingState(character));
+            return;
+        }
+
         if (character.CharacterInput.MoveInput != Vector2.zero)
         {
             character.StateController.ChangeState(new MoveState(character));
