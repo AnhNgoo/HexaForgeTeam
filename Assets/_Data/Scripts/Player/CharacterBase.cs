@@ -289,7 +289,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             WeaponInventorySystem.Instance.AddWeapon(characterData.weaponData);
             InteractionManager.Instance?.Init(this.transform);
-            CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+            TrySetCamera();
             EventManager.Notify(GameEvent.OnPlayerSpawned, transform);
         }
         catch (Exception e)
@@ -328,6 +328,14 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         CharacterInput.ClearInput();
     }
 
+    private async void TrySetCamera()
+    {
+        if (CameraManager.Instance == null)
+        {
+            await UniTask.WaitUntil(() => CameraManager.Instance != null);
+        }
+        CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+    }
     #endregion
 
     protected virtual void Update()
@@ -696,7 +704,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             dustEffect.Stop();
             isDustEffectPlaying = false;
         }
-
     }
 
     #endregion

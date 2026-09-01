@@ -102,11 +102,10 @@ public class LogoutMenu : MonoBehaviour
 
     public void Cancel()
     {
-        if (confirmationRoot != null)
-            confirmationRoot.SetActive(false);
+        if (systemSettingsPanel == null)
+            return;
 
-        if (systemSettingsPanel != null)
-            systemSettingsPanel.ShowPage(cancelReturnPage);
+        systemSettingsPanel.ShowPage(cancelReturnPage);
     }
 
     public void OnConfirmAction()
@@ -163,12 +162,12 @@ public class LogoutMenu : MonoBehaviour
     {
         GameSceneData sceneData = GameSceneData.Instance;
 
-        string loginSceneName = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Login) 
+        string loginSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Login)
             : "Login Scene";
 
-        string loadingSceneName = sceneData != null 
-            ? sceneData.GetSceneName(SceneType.Loading) 
+        string loadingSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Loading)
             : "Loading Scene";
 
         AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
