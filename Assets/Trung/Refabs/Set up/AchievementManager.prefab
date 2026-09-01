@@ -897,7 +897,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0.00041075816}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 200}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &5814790394209921352
 MonoBehaviour:
@@ -914,8 +914,8 @@ MonoBehaviour:
   m_Padding:
     m_Left: 0
     m_Right: 0
-    m_Top: 150
-    m_Bottom: 0
+    m_Top: 100
+    m_Bottom: 100
   m_ChildAlignment: 4
   m_Spacing: 130
   m_ChildForceExpandWidth: 1
@@ -977,8 +977,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.081875004, y: 0.074148156}
   m_AnchorMax: {x: 0.91656256, y: 0.8934074}
-  m_AnchoredPosition: {x: 1.5, y: -1.909668}
-  m_SizeDelta: {x: 1.3613281, y: 6.4644775}
+  m_AnchoredPosition: {x: 1.5, y: -42.60074}
+  m_SizeDelta: {x: 1.3613, y: -74.9177}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4172335102558787822
 CanvasRenderer:
@@ -1191,15 +1191,19 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5610184477284540856, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_Name
-      value: Scrollbar Vertical_2
+      value: Scrollbar Vertical
+      objectReference: {fileID: 0}
+    - target: {fileID: 5610184477284540856, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5875127345204882404, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5875127345204882404, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 0.99999964
       objectReference: {fileID: 0}
     - target: {fileID: 5875127345204882404, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_AnchorMin.y
@@ -1235,19 +1239,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7022370317202212943, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 35.38736
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7022370317202212943, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.7135415
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7022370317202212943, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.7135415
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7022370317202212943, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_LocalScale.z
-      value: 0.7135415
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7022370317202212943, guid: f85eaa46251c95643806fe3655e4d364, type: 3}
       propertyPath: m_LocalPosition.x

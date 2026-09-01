@@ -169,7 +169,7 @@ public class LobbyBossSelectMenu : MenuBase
             toggle.SetIsOnWithoutNotify(false);
             if (LobbyNotifyManager.Instance != null)
             {
-                LobbyNotifyManager.Instance.ShowNotify("Vật phẩm đã hết! Hãy mua thêm tại Cửa Hàng.", Color.yellow);
+                LobbyNotifyManager.Instance.ShowNotify("Item depleted! Please purchase more from the Shop.", Color.yellow);
             }
         }
     }
