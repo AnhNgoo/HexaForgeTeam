@@ -1227,6 +1227,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 681bc92b53c75224eb312734ee11d02a, type: 2}
   - {fileID: 11400000, guid: e39ec11d37dd9b349902a1131b65a319, type: 2}
   - {fileID: 11400000, guid: 2d63da8fccafb06429a57c53bed8c270, type: 2}
+  meleeAttackSoundOverride: {fileID: 0}
+  meleeAttackSoundVolume: 1
+  rangedAttackSoundOverride: {fileID: 0}
+  rangedAttackSoundVolume: 1
   attackVFXSpawnPoints:
   - attackData: {fileID: 11400000, guid: d7d3635a111222a41aacaecab903700e, type: 2}
     spawnPoints:
@@ -1234,10 +1238,6 @@ MonoBehaviour:
   - attackData: {fileID: 11400000, guid: 049c0619eff9ad146a6ecb04c9b6108f, type: 2}
     spawnPoints:
     - {fileID: 7512264322847378600}
-  meleeAttackSoundOverride: {fileID: 0}
-  meleeAttackSoundVolume: 1
-  rangedAttackSoundOverride: {fileID: 0}
-  rangedAttackSoundVolume: 1
   selectionMode: 1
 --- !u!114 &1108157507540339438
 MonoBehaviour:
@@ -1368,9 +1368,9 @@ MonoBehaviour:
   _footAnchor: {fileID: 0}
   _staggerHitReactDuration: 0.5
   _staggerVFX: 60
-  _staggerVFXOffset: {x: 0, y: 0.2, z: 0}
+  _staggerVFXOffset: {x: 0, y: 1, z: 0}
   _staggerVFXEuler: {x: 0, y: 0, z: 0}
-  _staggerVFXScale: 0.5
+  _staggerVFXScale: 0.4
 --- !u!114 &7375475461168892297
 MonoBehaviour:
   m_ObjectHideFlags: 0

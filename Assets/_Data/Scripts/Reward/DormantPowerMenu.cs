@@ -93,7 +93,7 @@ public class DormantPowerMenu : MenuBase
         detailIcon.enabled = reward.DisplayIcon != null;
         detailName.text = reward.DisplayName;
         detailType.text = reward.TypeLabel;
-        detailRarity.text = reward.DisplayRarity.ToString();
+        detailRarity.text = reward.RarityLabel;
         detailDescription.text = reward.DisplayDescription;
     }
 
