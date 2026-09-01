@@ -5068,30 +5068,14 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 031fd4a0eef0a8843817653cc5bfc4bc, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 6852248524386372275}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 031fd4a0eef0a8843817653cc5bfc4bc, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5389331420476336647}
+      addedObject: {fileID: 5661916400008096872}
   m_SourcePrefab: {fileID: 100100000, guid: 031fd4a0eef0a8843817653cc5bfc4bc, type: 3}
 --- !u!1 &397599725878809916 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 031fd4a0eef0a8843817653cc5bfc4bc, type: 3}
   m_PrefabInstance: {fileID: 668194149664663661}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &6852248524386372275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 397599725878809916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 269c9644778c03148851d34bc085cab3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _vfxPoolType: 3008
---- !u!114 &5389331420476336647
+--- !u!114 &5661916400008096872
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -5103,11 +5087,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d34be991218add24f8e6bfc7daf0942d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  poolType: 59
+  poolType: 3008
   effectType: 0
   effectDuration: 1.5
   isHoming: 0
   homingTurnSpeed: 240
+  maxHomingTurnSpeed: 900
+  closeRangeTurnFactor: 1.25
   homingDuration: 4
   homingTargetHeight: 0.5
 --- !u!4 &1067175491393081222 stripped

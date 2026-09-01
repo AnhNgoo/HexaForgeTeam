@@ -90,6 +90,8 @@ public class EnemyEclipseOfRuinSkillSO : EnemyAttackSkillSO
             );
 
             enemy.Combat.ForceCloseHitbox();
+            if (animator != null)
+                animator.speed = animationSpeed;
             enemy.Locomotion.StopMoving();
 
             animator?.CrossFadeInFixedTime(
@@ -242,10 +244,8 @@ public class EnemyEclipseOfRuinSkillSO : EnemyAttackSkillSO
                 enemy.gameObject.activeInHierarchy &&
                 enemy.Health.CurrentHealth > 0f)
             {
-                enemy.AnimatorController.PlayAnimation(
-                    enemy.AnimatorController.IdleHash,
-                    0.08f
-                );
+                if (animator != null) animator.speed = 1f;
+                enemy.AnimatorController.PlayAnimation(enemy.AnimatorController.IdleHash, 0.08f);
             }
 
             boss?.EndSpecialAction();

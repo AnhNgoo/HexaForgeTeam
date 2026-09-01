@@ -9,6 +9,7 @@ public class EnemyBruteJumpSmashSkillSO : EnemyAttackSkillSO
 {
     [Header("Shockwave")]
     [SerializeField] private PoolType shockwavePool;
+    [SerializeField] private PoolType impactVFXPool = PoolType.None;
     [SerializeField] private int ringCount = 3;
     [SerializeField] private float intervalBetweenRings = 0.18f;
     [SerializeField] private float ringLifetime = 0.65f;
@@ -244,6 +245,16 @@ public class EnemyBruteJumpSmashSkillSO : EnemyAttackSkillSO
         spawnPosition += context.Enemy.MyTransform.TransformDirection(
             context.AttackData.vfxOffset
         );
+
+        if (impactVFXPool != PoolType.None && ObjectPooling.Instance != null)
+        {
+            ObjectPooling.Instance.SpawnFromPool(
+                impactVFXPool,
+                spawnPosition,
+                Quaternion.identity
+            );
+        }
+
 
         for (int i = 0; i < ringCount; i++)
         {
