@@ -46,6 +46,13 @@ public class EnemyState_Attack : EnemyState
             return;
         }
 
+        if (!_enemyBase.Detection.IsCurrentTargetEngageable())
+        {
+            _enemyBase.Detection.ForceLoseTarget();
+            _enemyBase.StateMachine.ChangeState(_enemyBase.StateMachine.EnemyIdleState);
+            return;
+        }
+
         if (!_enemyBase.Detection.IsPointInLeash(playerTransform.position))
         {
             _enemyBase.Detection.ForceLoseTarget();

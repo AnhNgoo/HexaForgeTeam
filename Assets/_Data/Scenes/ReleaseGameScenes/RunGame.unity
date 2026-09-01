@@ -17,7 +17,7 @@ RenderSettings:
   m_Fog: 1
   m_FogColor: {r: 0.8490566, g: 0.6044987, b: 0.53025985, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.01
+  m_FogDensity: 0.005
   m_LinearFogStart: 0
   m_LinearFogEnd: 300
   m_AmbientSkyColor: {r: 0.63529414, g: 0.69411767, b: 0.73333335, a: 0}
@@ -7235,6 +7235,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 434746, guid: c4039b0464243be4ba47435bf8cca039, type: 3}
   m_PrefabInstance: {fileID: 156429574}
   m_PrefabAsset: {fileID: 0}
+--- !u!28 &158042513
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: UnityWhite
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_ForcedFallbackFormat: 4
+  m_DownscaleFallback: 0
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 2
+  m_Width: 4
+  m_Height: 4
+  m_CompleteImageSize: 256
+  m_MipsStripped: 0
+  m_TextureFormat: 20
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_IsPreProcessed: 0
+  m_IgnoreMipmapLimit: 0
+  m_MipmapLimitGroupName: 
+  m_StreamingMipmaps: 0
+  m_StreamingMipmapsPriority: 0
+  m_VTOnly: 0
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 0
+    m_WrapV: 0
+    m_WrapW: 0
+  m_LightmapFormat: 0
+  m_ColorSpace: 1
+  m_PlatformBlob: 
+  image data: 256
+  _typelessdata: 0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
 --- !u!1001 &158232967
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10369,7 +10417,7 @@ MonoBehaviour:
       m_warpIterations: 6.013052
       m_warpStrength: 0.81316346
       m_warpOffset: {x: -922.7452, y: -950.37225, z: 565.7197, w: 0}
-    m_noiseSettings: {fileID: 1612518168}
+    m_noiseSettings: {fileID: 305661628}
     m_noiseToolSettings:
       worldHeightRemap: {x: 0, y: 0}
       coordSpace: 0
@@ -14342,6 +14390,30 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 464108, guid: 2cfd54bf0c46b2b4ea3a18a8fc902902, type: 3}
   m_PrefabInstance: {fileID: 304304267}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &305661628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  transformSettings:
+    translation: {x: -408.9513, y: 210.57971, z: 342.09958}
+    scale: {x: 5.5257483, y: 1, z: 5.5257483}
+    rotation: {x: 0, y: 0, z: 0}
+    flipScaleX: 0
+    flipScaleY: 0
+    flipScaleZ: 0
+  domainSettings:
+    noiseTypeName: Perlin
+    fractalTypeName: Fbm
+    noiseTypeParams: 
+    fractalTypeParams: '{"warpOffsets":{"x":-922.7451782226563,"y":-950.3722534179688,"z":565.7197265625,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.31929415464401247,"frequency":1.0,"persistence":0.5,"lacunarity":0.9767619967460632,"warpIterations":6.013051986694336,"warpStrength":0.8131634593009949,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &307821205
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -25466,54 +25538,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 464108, guid: 2cfd54bf0c46b2b4ea3a18a8fc902902, type: 3}
   m_PrefabInstance: {fileID: 549119451}
   m_PrefabAsset: {fileID: 0}
---- !u!28 &552519329
-Texture2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: UnityWhite
-  m_ImageContentsHash:
-    serializedVersion: 2
-    Hash: 00000000000000000000000000000000
-  m_ForcedFallbackFormat: 4
-  m_DownscaleFallback: 0
-  m_IsAlphaChannelOptional: 0
-  serializedVersion: 2
-  m_Width: 4
-  m_Height: 4
-  m_CompleteImageSize: 256
-  m_MipsStripped: 0
-  m_TextureFormat: 20
-  m_MipCount: 1
-  m_IsReadable: 1
-  m_IsPreProcessed: 0
-  m_IgnoreMipmapLimit: 0
-  m_MipmapLimitGroupName: 
-  m_StreamingMipmaps: 0
-  m_StreamingMipmapsPriority: 0
-  m_VTOnly: 0
-  m_AlphaIsTransparency: 0
-  m_ImageCount: 1
-  m_TextureDimension: 2
-  m_TextureSettings:
-    serializedVersion: 2
-    m_FilterMode: 1
-    m_Aniso: 1
-    m_MipBias: 0
-    m_WrapU: 0
-    m_WrapV: 0
-    m_WrapW: 0
-  m_LightmapFormat: 0
-  m_ColorSpace: 1
-  m_PlatformBlob: 
-  image data: 256
-  _typelessdata: 0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f0000803f
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
 --- !u!1001 &552751106
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -61465,7 +61489,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isDontDestroyOnLoad: 0
   volume: {fileID: 1288179857}
-  defaultVolumeProfile: {fileID: 0}
+  defaultVolumeProfile: {fileID: 11400000, guid: 6a2568c163127e94ca46d778e0f39a9f, type: 2}
 --- !u!1001 &1291549630
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -77514,7 +77538,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_stampID: c550daaa-d924-4d4b-9e30-264c0797f4e4
-  m_stampImage: {fileID: 552519329}
+  m_stampImage: {fileID: 158042513}
   m_stampImageGUID: 
   m_autoSpawnersToggleAll: 0
   m_autoMaskExportersToggleAll: 0
@@ -109383,30 +109407,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 464108, guid: 2cfd54bf0c46b2b4ea3a18a8fc902902, type: 3}
   m_PrefabInstance: {fileID: 1608910631}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1612518168
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cba17d399ab86974c8ef9551f6e8f8d4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  transformSettings:
-    translation: {x: -408.9513, y: 210.57971, z: 342.09958}
-    scale: {x: 5.5257483, y: 1, z: 5.5257483}
-    rotation: {x: 0, y: 0, z: 0}
-    flipScaleX: 0
-    flipScaleY: 0
-    flipScaleZ: 0
-  domainSettings:
-    noiseTypeName: Perlin
-    fractalTypeName: Fbm
-    noiseTypeParams: 
-    fractalTypeParams: '{"warpOffsets":{"x":-922.7451782226563,"y":-950.3722534179688,"z":565.7197265625,"w":0.0},"octavesMinMax":{"x":0.0,"y":16.0},"amplitudeMinMax":{"x":0.0,"y":1.0},"frequencyMinMax":{"x":0.0,"y":2.0},"lacunarityMinMax":{"x":0.0,"y":4.0},"persistenceMinMax":{"x":0.0,"y":1.0},"warpIterationsMinMax":{"x":0.0,"y":8.0},"warpStrengthMinMax":{"x":-2.0,"y":2.0},"octaves":8.0,"amplitude":0.31929415464401247,"frequency":1.0,"persistence":0.5,"lacunarity":0.9767619967460632,"warpIterations":6.013051986694336,"warpStrength":0.8131634593009949,"warpEnabled":true,"warpExpanded":true}'
 --- !u!1001 &1613869239
 PrefabInstance:
   m_ObjectHideFlags: 0

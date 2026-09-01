@@ -250,6 +250,11 @@ public class EnemyDetection : MonoBehaviour
         return HasLineOfSightTo(target, true);
     }
 
+    public bool IsCurrentTargetEngageable()
+    {
+        return currentTarget != null && CanEngageTarget(currentTarget);
+    }
+
     //Bộ não xử lý khi phát hiện kẻ địch
     public void ConfirmTarget(Transform target)
     {
