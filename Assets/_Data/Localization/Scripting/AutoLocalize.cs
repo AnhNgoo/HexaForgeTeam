@@ -15,7 +15,7 @@ public class AutoLocalize : MonoBehaviour
     }
 
     public TextLocalize[] textsToLocalize;
-    
+
     private List<LocalizedString> localizedStrings = new List<LocalizedString>();
     private List<TMP_Text> textComponents = new List<TMP_Text>();
 
@@ -23,16 +23,16 @@ public class AutoLocalize : MonoBehaviour
     {
         // Subscribe to locale changed event
         LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
-        
+
         foreach (var textData in textsToLocalize)
         {
             if (textData.textComponent != null && !string.IsNullOrEmpty(textData.key))
             {
                 // Create LocalizedString
-                var localizedString = new LocalizedString(textData.key, textData.tableReference);
+                var localizedString = new LocalizedString(textData.tableReference, textData.key);
                 localizedStrings.Add(localizedString);
                 textComponents.Add(textData.textComponent);
-                
+
                 // Set initial value
                 UpdateText(localizedString, textData.textComponent);
             }
@@ -63,7 +63,7 @@ public class AutoLocalize : MonoBehaviour
     {
         // Unsubscribe from event
         LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
-        
+
         localizedStrings.Clear();
         textComponents.Clear();
     }
