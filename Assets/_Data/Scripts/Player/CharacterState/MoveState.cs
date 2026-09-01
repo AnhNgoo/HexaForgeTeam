@@ -27,6 +27,12 @@ public class MoveState : ICharacterState
     {
         character.LookAtTarget();
 
+        if (character.IsSwimmingCandidate())
+        {
+            character.StateController.ChangeState(new SwimmingState(character));
+            return;
+        }
+
         if (character.CharacterInput.MoveInput == Vector2.zero)
         {
             character.StateController.ChangeState(new IdleState(character));
