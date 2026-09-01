@@ -567,7 +567,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -0.05, y: -0, z: 0}
-  m_LocalScale: {x: 1.6, y: 1.6, z: 1.6}
+  m_LocalScale: {x: 2, y: 2, z: 2}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 5718149609483545878}
@@ -1021,16 +1021,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: b846eeb34ce26744f984f5d326fd7438, type: 2}
+  meleeAttackSoundOverride: {fileID: 0}
+  meleeAttackSoundVolume: 1
+  rangedAttackSoundOverride: {fileID: 0}
+  rangedAttackSoundVolume: 1
   attackVFXSpawnPoints:
   - attackData: {fileID: 11400000, guid: b846eeb34ce26744f984f5d326fd7438, type: 2}
-    vfxEntries:
-    - vfxType: 0
-      spawnPoints: []
-      offset: {x: 0, y: 0, z: 0}
-      euler: {x: 0, y: 0, z: 0}
-      scale: 1
+    spawnPoints: []
   - attackData: {fileID: 11400000, guid: b846eeb34ce26744f984f5d326fd7438, type: 2}
-    vfxEntries: []
+    spawnPoints: []
   selectionMode: 0
 --- !u!114 &3176172881863949468
 MonoBehaviour:
@@ -1140,7 +1139,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lootPrefab: {fileID: 0}
-  bossLoot: []
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 0
+  groundOffset: 0.2
 --- !u!114 &7895337377040709387
 MonoBehaviour:
   m_ObjectHideFlags: 0

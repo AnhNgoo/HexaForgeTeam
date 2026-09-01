@@ -16,6 +16,7 @@ public class DeathState : ICharacterState
     {
         character.CharacterAnimation.CrossFade("Death", 0.1f);
         character.CharacterMovement.Stop();
+        character.CharacterSound.Play(character.CharacterSound.deathSoundEffect);
         HandleDeath();
     }
 

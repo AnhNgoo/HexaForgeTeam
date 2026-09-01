@@ -25,6 +25,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterLevel))]
 [RequireComponent(typeof(CharacterGoldFalling))]
 [RequireComponent(typeof(CharacterRelic))]
+[RequireComponent(typeof(CharacterSound))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 {
     [Header("Character Data")]
@@ -88,6 +89,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public CharacterGoldFalling CharacterGoldFalling => characterGoldFalling;
     [SerializeField] protected CharacterRelic characterRelic;
     public CharacterRelic CharacterRelic => characterRelic;
+    [SerializeField] protected CharacterSound characterSound;
+    public CharacterSound CharacterSound => characterSound;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
@@ -219,6 +222,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             characterGoldFalling = GetComponent<CharacterGoldFalling>();
         if (characterRelic == null)
             characterRelic = GetComponent<CharacterRelic>();
+        if (characterSound == null)
+            characterSound = GetComponent<CharacterSound>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
