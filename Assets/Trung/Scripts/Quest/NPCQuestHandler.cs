@@ -5,7 +5,7 @@ using UnityEngine;
 [RequireComponent(typeof(NPCDialogue))]
 public class NPCQuestHandler : MonoBehaviour
 {
-    [Header("Quest Station Point (Vị trí gốc đứng giao quest)")]
+    [Header("Quest Station Point (Vi tri goc dung giao quest)")]
     [SerializeField] private Transform questStationPoint;
 
     [Header("World Name Tag Reference")]
@@ -109,7 +109,7 @@ public class NPCQuestHandler : MonoBehaviour
         return null;
     }
 
-    public void RefreshQuestVisuals()
+   public void RefreshQuestVisuals()
     {
         if (worldNameTag == null)
         {
@@ -123,16 +123,12 @@ public class NPCQuestHandler : MonoBehaviour
 
         if (activeSO != null)
         {
-            // Kiểm tra xem NPC này có phải là người nắm giữ / giao quest này không
+            bool isGamble = (activeSO.questID == QuestManager.GAMBLE_QUEST_ID);
             bool isAssignedToThisNPC = assignedQuests != null && assignedQuests.Contains(activeSO);
-
-            // Icon chỉ dẫn (Follow/Interact indicator) sẽ bật khi:
-            // 1. NPC có trạm cần dẫn người chơi tới
-            // HOẶC 2. NPC chính là người giao quest mở tính năng/panel tại chỗ và quest đang InProgress
             bool isGuidingQuest = (state == QuestState.InProgress) && 
                                   (!string.IsNullOrEmpty(activeSO.targetStationPointName) || isAssignedToThisNPC);
 
-            worldNameTag.UpdateQuestIcon(state, isGuidingQuest);
+            worldNameTag.UpdateQuestIcon(state, isGuidingQuest, isGamble);
         }
         else
         {
@@ -293,6 +289,37 @@ public class NPCQuestHandler : MonoBehaviour
 
         string npcName = !string.IsNullOrEmpty(currentQuestSO.npcName) ? currentQuestSO.npcName : gameObject.name;
         List<DialogueLine> sourceLines = null;
+
+        if (currentQuestSO.questID == QuestManager.GAMBLE_QUEST_ID)
+        {
+            if (state != QuestState.InProgress)
+            {
+                ShowInitialDialogue();
+                return;
+            }
+
+            sourceLines = (currentQuestSO.inProgressDialogues != null && currentQuestSO.inProgressDialogues.Count > 0)
+                ? currentQuestSO.inProgressDialogues
+                : new List<DialogueLine>
+                {
+                    new DialogueLine(SpeakerType.NPC, "Hehehe... Just crawled out of the rift alive, did you?"),
+                    new DialogueLine(SpeakerType.NPC, "Care to double those shiny gems in your pouch? One roll of fate, all or nothing!")
+                };
+
+            List<DialogueChoice> gambleChoices = new List<DialogueChoice>
+            {
+                new DialogueChoice { choiceText = "Bet 100 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
+                new DialogueChoice { choiceText = "Bet 300 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
+                new DialogueChoice { choiceText = "Bet 1000 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
+                new DialogueChoice { choiceText = "Walk Away", action = DialogueAction.CloseDialogue, menuType = MenuType.None }
+            };
+
+            if (DialogueUI.Instance != null)
+            {
+                DialogueUI.Instance.ShowCustom(npcName, sourceLines, gambleChoices);
+            }
+            return;
+        }
 
         switch (state)
         {

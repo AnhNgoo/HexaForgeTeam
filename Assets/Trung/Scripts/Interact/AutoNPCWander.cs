@@ -257,7 +257,13 @@ public class AutoNPCWander : MonoBehaviour
 
         float dist = Vector3.Distance(transform.position, targetStationPos);
 
-        if (dist > stoppingDistance + 0.15f)
+        if (!hasTriggeredInteractUnlock)
+        {
+            hasTriggeredInteractUnlock = true;
+            UnlockNearbyInteractObjects();
+        }
+
+        if (dist > stoppingDistance + 0.5f)
         {
             if (agent.isStopped || !agent.hasPath || agent.destination != targetStationPos)
             {
@@ -282,12 +288,6 @@ public class AutoNPCWander : MonoBehaviour
             if (!isInteracting)
             {
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetStationRot, restTurnSpeed * Time.deltaTime);
-            }
-
-            if (!hasTriggeredInteractUnlock)
-            {
-                hasTriggeredInteractUnlock = true;
-                UnlockNearbyInteractObjects();
             }
         }
     }

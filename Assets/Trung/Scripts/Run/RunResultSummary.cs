@@ -254,15 +254,17 @@ public class RunResultSummary : MonoBehaviour
     {
         CharacterType selectedType = CharacterType.Kael;
 
-        // 1. Lấy từ CharacterManager nếu có
         if (CharacterManager.Instance != null)
         {
             selectedType = CharacterManager.Instance.GetSelectedCharacter();
         }
-        // 2. Fallback lấy từ PlayerPrefs
         else
         {
-            selectedType = (CharacterType)PlayerPrefs.GetInt("SELECTED_CHARACTER", 0);
+            string savedChar = PlayerPrefs.GetString("SelectedCharacter", "Kael");
+            if (!System.Enum.TryParse(savedChar, out selectedType))
+            {
+                selectedType = CharacterType.Kael;
+            }
         }
 
         Sprite targetSprite = kaelArtwork;

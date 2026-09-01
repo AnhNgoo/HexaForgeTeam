@@ -236,7 +236,6 @@ public class DialogueUI : MonoBehaviour
 
     private string GetPlayerName()
     {
-        // 1. Thử lấy tên từ PlayerPrefs nếu có lưu lúc đăng nhập PlayFab / Custom ID
         string username = PlayerPrefs.GetString("PLAYFAB_USERNAME", "");
         if (string.IsNullOrEmpty(username))
         {
@@ -247,7 +246,6 @@ public class DialogueUI : MonoBehaviour
             username = PlayerPrefs.GetString("PLAYER_NAME", "");
         }
 
-        // 2. Nếu không có tên nào trong PlayerPrefs, hiển thị mặc định
         return !string.IsNullOrEmpty(username) ? username : "Adventurer";
     }
 
@@ -457,7 +455,6 @@ public class DialogueUI : MonoBehaviour
             {
                 if (isQuestChoice)
                 {
-                    // Đã bỏ hoàn toàn các ký hiệu đặc biệt, chỉ giữ text chuẩn màu vàng cam
                     tab.text.SetTextSafe($"<color=#FFCC00>{choice.choiceText}</color>");
                 }
                 else
@@ -487,6 +484,28 @@ public class DialogueUI : MonoBehaviour
 
     private void ExecuteChoice(DialogueChoice choice)
     {
+        string choiceStr = choice.choiceText.Trim();
+        if (choiceStr.StartsWith("Bet ", System.StringComparison.OrdinalIgnoreCase) || 
+            choiceStr.StartsWith("Wager ", System.StringComparison.OrdinalIgnoreCase))
+        {
+            string[] parts = choiceStr.Split(' ');
+            if (parts.Length > 1)
+            {
+                int betAmount = 0;
+                string numberOnly = System.Text.RegularExpressions.Regex.Replace(parts[1], @"[^\d]", "");
+                if (int.TryParse(numberOnly, out betAmount) && betAmount > 0)
+                {
+                    if (QuestManager.Instance != null)
+                    {
+                        QuestManager.Instance.ExecuteGambleBet(betAmount);
+                    }
+                }
+            }
+
+            Hide();
+            return;
+        }
+
         if (InteractManagerV2.Instance != null && InteractManagerV2.Instance.CurrentInteract != null)
         {
             NPCQuestHandler questHandler = InteractManagerV2.Instance.CurrentInteract.GetComponent<NPCQuestHandler>();
