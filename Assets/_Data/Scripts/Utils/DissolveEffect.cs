@@ -29,6 +29,7 @@ public class DissolveEffect : LoadComponents
         if (skinnedMeshRenderer == null || skinnedMeshRenderer.Length == 0)
             return;
 
+        ResetDefaultMaterial();
         cacheDefaultMaterial = skinnedMeshRenderer[0].material; // Lưu lại material gốc để reset sau khi dissolve xong
         cacheDefaultTexture = cacheDefaultMaterial.GetTexture("_Texture2D"); // Lưu lại texture gốc để reset sau khi dissolve xong
 
@@ -47,6 +48,7 @@ public class DissolveEffect : LoadComponents
             dissolveCoroutine = null;
         }
 
+        ObjectPooling.Instance?.SpawnFromPool(PoolType.DissolveEffect, transform.position, transform.rotation);
         dissolveCoroutine = DissolveCoroutine(duration);
         StartCoroutine(dissolveCoroutine); // Bắt đầu coroutine mới
     }
@@ -65,9 +67,10 @@ public class DissolveEffect : LoadComponents
         }
     }
 
+    [Button("Reset Default Material")]
     public void ResetDefaultMaterial()
     {
-        if (cacheDefaultMaterial != null) return; // Nếu chưa có material gốc thì không làm gì cả
+        if (cacheDefaultMaterial == null) return; // Nếu chưa có material gốc thì không làm gì cả
 
         // Reset lại material và texture gốc sau khi dissolve xong
         foreach (var smr in skinnedMeshRenderer)

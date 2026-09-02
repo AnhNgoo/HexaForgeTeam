@@ -44,7 +44,7 @@ public class PlayerManager : Singleton<PlayerManager>
     [SerializeField][FoldoutGroup("Character ReSpawn")] private float radiusFindRespawnPoint = 1000f;
     [SerializeField][FoldoutGroup("Character ReSpawn")] private float distanceRespawnPointToSafeZoneEdge = 10f;   //Khoảng cách của điểm respawn đến rìa bo 
     [SerializeField][FoldoutGroup("Character ReSpawn")] private LayerMask respawnPointLayerMask;
-    [SerializeField][FoldoutGroup("Character ReSpawn")] private float delayRespawn = 3f;
+    [SerializeField][FoldoutGroup("Character ReSpawn")] private float delayRespawn = 2f;
     [SerializeField][FoldoutGroup("Character ReSpawn")] private bool isLimitRespawnAttempts = true; // Giới hạn số lần respawn
     [SerializeField][FoldoutGroup("Character ReSpawn")] private int currentRespawnAttempts = 0;  // Số lần được respawn hiện tại
     public int CurrentRespawnAttempts => currentRespawnAttempts;
@@ -360,7 +360,7 @@ public class PlayerManager : Singleton<PlayerManager>
 
         await UniTask.Delay((int)(delayRespawn * 1000));
         UIManager.Instance?.ChangeMenu(MenuType.YouDiedRespawnMenu, true); // Hiện menu respawn
-        await UniTask.Delay(2000);
+        await UniTask.Delay(7400);
 
         MapType mapType = GameManager.Instance != null ? GameManager.Instance.MapType : MapType.None;
 

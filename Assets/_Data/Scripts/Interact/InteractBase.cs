@@ -82,6 +82,7 @@ public abstract class InteractBase : LoadComponents
     public void ShowHighlight()
     {
         lockTargetMarker = ObjectPooling.Instance.SpawnFromPool(PoolType.LockTargetMarker, modelItem.position, modelItem.rotation, modelItem);
+        lockTargetMarker.transform.localScale = Vector3.one;
     }
 
     public void HideHighlight()

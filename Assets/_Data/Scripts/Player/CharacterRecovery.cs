@@ -34,7 +34,7 @@ public class CharacterRecovery : MonoBehaviour
         currentRecoveryBottle = Mathf.Min(currentRecoveryBottle + amount, maxRecoveryBottle);
         EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
 
-        CurrentMaxRecoveryBottle = currentRecoveryBottle;
+        CurrentMaxRecoveryBottle = currentRecoveryBottle > CurrentMaxRecoveryBottle ? currentRecoveryBottle : CurrentMaxRecoveryBottle; // Tăng thể tích
     }
 
     public void ResetBottle()
