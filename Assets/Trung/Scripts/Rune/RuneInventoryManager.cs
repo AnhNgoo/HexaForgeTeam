@@ -61,7 +61,34 @@ public class RuneInventoryManager : MonoBehaviour
         SaveRunes();
     }
 
-    #region Dismantle System (Chuẩn GDD)
+    #region Dismantle System (Balanced 30 Levels)
+
+    public static void GetDismantleReward(RuneRarity rarity, out int gemReward, out int shardReward)
+    {
+        switch (rarity)
+        {
+            case RuneRarity.Common:
+                gemReward = 2;
+                shardReward = 5;
+                break;
+            case RuneRarity.Rare:
+                gemReward = 5;
+                shardReward = 15;
+                break;
+            case RuneRarity.Epic:
+                gemReward = 15;
+                shardReward = 40;
+                break;
+            case RuneRarity.Legendary:
+                gemReward = 40;
+                shardReward = 100;
+                break;
+            default:
+                gemReward = 1;
+                shardReward = 2;
+                break;
+        }
+    }
 
     public void DismantleRunes(List<string> runeIDsToDismantle)
     {
@@ -75,28 +102,9 @@ public class RuneInventoryManager : MonoBehaviour
         {
             if (runeIDsToDismantle.Contains(runes[i].runeID))
             {
-                RuneRarity rarity = runes[i].runeRarity;
-
-                // Tỷ lệ hoàn trả Gem & Shard theo GDD
-                switch (rarity)
-                {
-                    case RuneRarity.Common:
-                        totalGemsGained += 10;
-                        totalShardsGained += 50;
-                        break;
-                    case RuneRarity.Rare:
-                        totalGemsGained += 25;
-                        totalShardsGained += 150;
-                        break;
-                    case RuneRarity.Epic:
-                        totalGemsGained += 60;
-                        totalShardsGained += 400;
-                        break;
-                    case RuneRarity.Legendary:
-                        totalGemsGained += 150;
-                        totalShardsGained += 1000;
-                        break;
-                }
+                GetDismantleReward(runes[i].runeRarity, out int g, out int s);
+                totalGemsGained += g;
+                totalShardsGained += s;
 
                 runes.RemoveAt(i);
                 countDismantled++;
@@ -135,6 +143,7 @@ public class RuneInventoryManager : MonoBehaviour
     }
 
     #endregion
+
 
     #region Equip
 
@@ -428,4 +437,5 @@ public class RuneInventoryManager : MonoBehaviour
             SaveRunes();
         }
     }
+    
 }

@@ -39,10 +39,10 @@ public class LobbyBossSelectMenu : MenuBase
     [SerializeField] private Slider wagerSlider;
     [SerializeField] private TMP_Text txtSelectedWagerInfo;
 
-    [Header("Wager Costs & Multipliers Config")]
+    [Header("Wager Costs & Multipliers Config (Balanced)")]
     [SerializeField] private int costTier1 = 50;
     [SerializeField] private int costTier2 = 150;
-    [SerializeField] private int costTier3 = 400;
+    [SerializeField] private int costTier3 = 300;
 
     [Header("Run Buff Toggles & Item Count Displays")]
     [SerializeField] private GameObject buffGroupRoot;
@@ -273,12 +273,12 @@ public class LobbyBossSelectMenu : MenuBase
 
             case 2:
                 selectedWagerAmount = costTier3;
-                selectedMultiplier = 2.5f;
+                selectedMultiplier = 2.2f; // Điều chỉnh từ 2.5 xuống 2.2
                 if (txtSelectedWagerInfo != null)
                 {
                     txtSelectedWagerInfo.text =
-                        "<b>Tier: <color=#FF3333>Nightmare (Hardcore)</color></b> | Bet: <color=#00FFFF>" + costTier3 + " Gems</color> (x2.5)\n" +
-                        "<color=#00FF00>• Benefits:</color> Massive rewards (x2.5) & Rune Shards.\n" +
+                        "<b>Tier: <color=#FF3333>Nightmare (Hardcore)</color></b> | Bet: <color=#00FFFF>" + costTier3 + " Gems</color> (x2.2)\n" +
+                        "<color=#00FF00>• Benefits:</color> Massive rewards (x2.2) & Rune Shards.\n" +
                         "<color=#00FFFF>• Buffs:</color> All 3 Combat Elixirs unlocked!";
                 }
                 break;

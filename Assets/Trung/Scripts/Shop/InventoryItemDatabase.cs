@@ -12,6 +12,7 @@ public class InventoryItemDatabase : MonoBehaviour
     [SerializeField] private Sprite gemIconSprite;
     [SerializeField] private Sprite runeShardIconSprite;
     [SerializeField] private Sprite originRuneIconSprite;
+    [SerializeField] private Sprite expIconSprite; // Thêm trường icon cho EXP
 
     private void Awake()
     {
@@ -55,6 +56,12 @@ public class InventoryItemDatabase : MonoBehaviour
         if (itemID == "ORIGIN_RUNE")
         {
             return originRuneIconSprite;
+        }
+
+        // Bổ sung nhận diện EXP hiển thị trên CostDisplayUI
+        if (itemID == "EXP" || itemID == "ACCOUNT_EXP")
+        {
+            return expIconSprite;
         }
 
         ShopItemSO itemSO = GetItemSO(itemID);

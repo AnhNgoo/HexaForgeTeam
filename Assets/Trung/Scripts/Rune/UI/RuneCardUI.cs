@@ -62,6 +62,10 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     private Canvas parentCanvas;
     private CanvasGroup canvasGroup;
     private GameObject dragProxy;
+    [Header("Audio SFX Clips")]
+    [SerializeField] private AudioClip hoverSFX;
+    [SerializeField] private AudioClip clickSFX;
+    private static AudioSource sharedCardAudioSource;
 
     private void Awake()
     {
@@ -178,15 +182,24 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (currentRuneData == null || !isRevealed || isDeleteMode) return;
+        if (currentRuneData == null || !isRevealed || isAnimating || isDeleteMode) return;
 
-        if (RuneInventoryUI.Instance != null)
+        PlayCardSFX(hoverSFX, 0.5f);
+
+        bool isInsideInventory = (RuneInventoryUI.Instance != null && RuneInventoryUI.Instance.gameObject.activeInHierarchy) ||
+                                 (RuneDetailInfoPanel.Instance != null && RuneDetailInfoPanel.Instance.IsPanelActive());
+
+        if (isInsideInventory)
         {
-            RuneInventoryUI.Instance.OnRuneHovered(currentRuneData);
-        }
-        else if (RuneDetailInfoPanel.Instance != null)
-        {
-            RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
+            if (RuneInventoryUI.Instance != null)
+            {
+                RuneInventoryUI.Instance.OnRuneHovered(currentRuneData);
+            }
+            else if (RuneDetailInfoPanel.Instance != null)
+            {
+                RuneDetailInfoPanel.Instance.DisplayRuneInfo(currentRuneData);
+            }
+            return;
         }
 
         if (UITooltipPanel.Instance != null)
@@ -262,6 +275,8 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         if (isAnimating) return;
+
+        PlayCardSFX(clickSFX, 0.8f);
 
         if (canRevealAnimation && !isRevealed)
         {
@@ -599,5 +614,19 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
     public void StartInternalReveal()
     {
         if (!isRevealed && !isAnimating) StartDOTweenRevealAnimation();
+    }
+    private void PlayCardSFX(AudioClip clip, float volume = 0.8f)
+    {
+        if (clip == null) return;
+
+        if (sharedCardAudioSource == null)
+        {
+            GameObject audioObj = new GameObject("Card_AudioSource_Shared");
+            DontDestroyOnLoad(audioObj);
+            sharedCardAudioSource = audioObj.AddComponent<AudioSource>();
+            sharedCardAudioSource.playOnAwake = false;
+        }
+
+        sharedCardAudioSource.PlayOneShot(clip, volume);
     }
 }

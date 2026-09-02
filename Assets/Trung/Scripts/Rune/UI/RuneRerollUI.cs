@@ -165,16 +165,18 @@ public class RuneRerollUI : MonoBehaviour
         bool isTargetMode = useTargetRerollToggle != null && useTargetRerollToggle.isOn;
         List<CostData> costs = new List<CostData>();
 
-        if (selectedAffixIndex != -1)
+        if (selectedAffixIndex != -1 && targetRuneData != null)
         {
+            int shardCost = isTargetMode ? GetTargetRerollCost(targetRuneData.runeRarity) : GetRandomRerollCost(targetRuneData.runeRarity);
+
             if (isTargetMode)
             {
                 costs.Add(new CostData(rerollItemID, 1));
-                costs.Add(new CostData("RUNE_SHARD", targetRerollShardCost));
+                costs.Add(new CostData("RUNE_SHARD", shardCost));
             }
             else
             {
-                costs.Add(new CostData("RUNE_SHARD", randomRerollShardCost));
+                costs.Add(new CostData("RUNE_SHARD", shardCost));
             }
 
             if (rerollActionButton != null) rerollActionButton.interactable = true;
@@ -197,6 +199,7 @@ public class RuneRerollUI : MonoBehaviour
         if (targetRuneData == null || selectedAffixIndex == -1 || isAnimating) return;
 
         bool isTargetMode = useTargetRerollToggle != null && useTargetRerollToggle.isOn;
+        int shardCost = isTargetMode ? GetTargetRerollCost(targetRuneData.runeRarity) : GetRandomRerollCost(targetRuneData.runeRarity);
 
         if (isTargetMode)
         {
@@ -209,7 +212,7 @@ public class RuneRerollUI : MonoBehaviour
                 return;
             }
 
-            if (RuneShardManager.Instance == null || RuneShardManager.Instance.GetCurrentShards() < targetRerollShardCost)
+            if (RuneShardManager.Instance == null || RuneShardManager.Instance.GetCurrentShards() < shardCost)
             {
                 if (LobbyNotifyManager.Instance != null)
                 {
@@ -219,11 +222,11 @@ public class RuneRerollUI : MonoBehaviour
             }
 
             if (!InventoryItemManager.Instance.SpendItem(rerollItemID, 1)) return;
-            if (!RuneShardManager.Instance.SpendShards(targetRerollShardCost)) return;
+            if (!RuneShardManager.Instance.SpendShards(shardCost)) return;
         }
         else
         {
-            if (RuneShardManager.Instance == null || !RuneShardManager.Instance.SpendShards(randomRerollShardCost))
+            if (RuneShardManager.Instance == null || !RuneShardManager.Instance.SpendShards(shardCost))
             {
                 if (LobbyNotifyManager.Instance != null)
                 {
@@ -467,5 +470,21 @@ public class RuneRerollUI : MonoBehaviour
             case RuneStatType.AllStats: return "All Attributes";
         }
         return "Unknown Stat";
+    }
+    private int GetRandomRerollCost(RuneRarity rarity)
+    {
+        switch (rarity)
+        {
+            case RuneRarity.Common: return 25;
+            case RuneRarity.Rare: return 60;
+            case RuneRarity.Epic: return 120;
+            case RuneRarity.Legendary: return 250;
+            default: return 50;
+        }
+    }
+
+    private int GetTargetRerollCost(RuneRarity rarity)
+    {
+        return GetRandomRerollCost(rarity) * 2;
     }
 }

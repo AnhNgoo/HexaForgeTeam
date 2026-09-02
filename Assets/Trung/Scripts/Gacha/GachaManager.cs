@@ -11,9 +11,14 @@ public class GachaManager : MonoBehaviour
     [SerializeField] [Range(0, 100)] private int epicRate = 8;
     [SerializeField] [Range(0, 100)] private int legendaryRate = 2;
 
-    [Header("Cost Config Per Roll")]
-    [SerializeField] private int gemCostPerRoll = 120;
+    [Header("Cost Config Per Roll (Balanced 30 Levels)")]
+    [SerializeField] private int gemCostPerRoll = 150;
+    [SerializeField] private int gemCostMultiRoll = 1350;
     [SerializeField] private string ticketItemID = "GACHA_TICKET_01";
+
+    [Header("Pity Guarantee System")]
+    [SerializeField] private int pityLegendaryThreshold = 60;
+    private int currentPityCount = 0;
 
     [Header("Inventory Protection Config")]
     [SerializeField] private int maxInventorySlots = 100;
@@ -24,9 +29,15 @@ public class GachaManager : MonoBehaviour
     private int totalCardCount;
     private bool isRollActive = false;
 
+    public int SingleRollCost => gemCostPerRoll;
+    public int MultiRollCost => gemCostMultiRoll;
+    public int CurrentPityCount => currentPityCount;
+    public int PityThreshold => pityLegendaryThreshold;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
+        currentPityCount = PlayerPrefs.GetInt("GACHA_PITY_COUNT", 0);
     }
 
     public bool IsRollActive() => isRollActive;
@@ -65,7 +76,7 @@ public class GachaManager : MonoBehaviour
         {
             if (amount == 10 && ticketsToUse == 0)
             {
-                requiredGem = 1080;
+                requiredGem = gemCostMultiRoll;
             }
             else
             {
@@ -117,7 +128,24 @@ public class GachaManager : MonoBehaviour
 
         for (int i = 0; i < amount; i++)
         {
-            RuneData rune = GenerateRandomRune();
+            currentPityCount++;
+
+            RuneRarity chosenRarity;
+            if (currentPityCount >= pityLegendaryThreshold)
+            {
+                chosenRarity = RuneRarity.Legendary;
+                currentPityCount = 0;
+            }
+            else
+            {
+                chosenRarity = RandomRuneRarity();
+                if (chosenRarity == RuneRarity.Legendary)
+                {
+                    currentPityCount = 0;
+                }
+            }
+
+            RuneData rune = GenerateRandomRuneWithRarity(chosenRarity);
             rolledRunesData.Add(rune);
 
             if (rune.runeRarity > highestRarityInThisRoll)
@@ -133,6 +161,9 @@ public class GachaManager : MonoBehaviour
                 if (rune.runeRarity == RuneRarity.Legendary) AchievementManager.Instance.AddLegendaryProgress(1);
             }
         }
+
+        PlayerPrefs.SetInt("GACHA_PITY_COUNT", currentPityCount);
+        PlayerPrefs.Save();
 
         GameEventManager.TriggerGachaRolled(amount);
 
@@ -224,17 +255,17 @@ public class GachaManager : MonoBehaviour
             GachaUI.Instance.RefreshCostUI();
         }
     }
+
     public void ReRoll()
     {
         if (lastRollAmount <= 0) return;
         Roll(lastRollAmount);
     }
 
-    private RuneData GenerateRandomRune()
+    private RuneData GenerateRandomRuneWithRarity(RuneRarity rarity)
     {
         RuneColor runeColor = RandomRuneColor();
-        RuneRarity runeRarity = RandomRuneRarity();
-        RuneData rune = new RuneData(runeColor, runeRarity);
+        RuneData rune = new RuneData(runeColor, rarity);
         AssignRuneLore(rune);
         GenerateAffixes(rune);
         return rune;

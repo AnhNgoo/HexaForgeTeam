@@ -326,15 +326,7 @@ public class RuneDetailInfoPanel : MonoBehaviour
     {
         if (currentData == null) return;
 
-        int refundGem = 30;
-        int shardReward = 50;
-
-        switch (currentData.runeRarity)
-        {
-            case RuneRarity.Rare: refundGem = 80; shardReward = 150; break;
-            case RuneRarity.Epic: refundGem = 200; shardReward = 400; break;
-            case RuneRarity.Legendary: refundGem = 600; shardReward = 1000; break;
-        }
+        RuneInventoryManager.GetDismantleReward(currentData.runeRarity, out int refundGem, out int shardReward);
 
         CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
         foreach (CharacterType charType in allChars)
@@ -360,6 +352,11 @@ public class RuneDetailInfoPanel : MonoBehaviour
         if (RuneShardManager.Instance != null && shardReward > 0)
         {
             RuneShardManager.Instance.AddShards(shardReward);
+        }
+
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.AddDismantleProgress(1);
         }
 
         if (RuneInventoryManager.Instance != null)
@@ -389,7 +386,6 @@ public class RuneDetailInfoPanel : MonoBehaviour
             LobbyNotifyManager.Instance.ShowNotify($"Dismantled Rune! Recovered {refundGem} Gems & {shardReward} Shards.", Color.green);
         }
     }
-
     private void UpdateRuneImageVisual(RuneData runeData)
     {
         if (targetRuneImage == null) return;

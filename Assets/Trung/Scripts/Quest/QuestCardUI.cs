@@ -54,10 +54,12 @@ public class QuestCardUI : MonoBehaviour
             List<CostData> rewards = new List<CostData>();
             int gem = questSO != null ? questSO.rewardGem : questData.rewardGem;
             int shard = questSO != null ? questSO.rewardShard : questData.rewardShard;
+            int exp = questSO != null ? questSO.rewardExp : 0;
             List<CostData> items = questSO != null ? questSO.rewardItems : questData.rewardItems;
 
             if (gem > 0) rewards.Add(new CostData("GEM", gem));
             if (shard > 0) rewards.Add(new CostData("RUNE_SHARD", shard));
+            if (exp > 0) rewards.Add(new CostData("EXP", exp));
             if (items != null) rewards.AddRange(items);
 
             rewardDisplay.SetupCost(rewards);

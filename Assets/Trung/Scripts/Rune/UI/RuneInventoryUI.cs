@@ -432,15 +432,7 @@ public class RuneInventoryUI : MonoBehaviour
                 }
             }
 
-            int gemBack = 10;
-            int shardBack = 50;
-            switch (runeData.runeRarity)
-            {
-                case RuneRarity.Rare: gemBack = 25; shardBack = 150; break;
-                case RuneRarity.Epic: gemBack = 60; shardBack = 400; break;
-                case RuneRarity.Legendary: gemBack = 150; shardBack = 1000; break;
-            }
-
+            RuneInventoryManager.GetDismantleReward(runeData.runeRarity, out int gemBack, out int shardBack);
             totalGemsRefund += gemBack;
             totalShardsRefund += shardBack;
 
@@ -458,6 +450,11 @@ public class RuneInventoryUI : MonoBehaviour
         if (RuneShardManager.Instance != null && totalShardsRefund > 0)
         {
             RuneShardManager.Instance.AddShards(totalShardsRefund);
+        }
+
+        if (AchievementManager.Instance != null)
+        {
+            AchievementManager.Instance.AddDismantleProgress(runesToRemove.Count);
         }
 
         if (RuneInventoryManager.Instance != null)

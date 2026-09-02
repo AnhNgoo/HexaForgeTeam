@@ -11,10 +11,10 @@ public class RuneFusionManager : MonoBehaviour
     [Range(0f, 100f)] [SerializeField] private float rareToEpicRate = 60f;
     [Range(0f, 100f)] [SerializeField] private float epicToLegendaryRate = 35f;
 
-    [Header("Rune Shard Cost (GDD Standard)")]
-    [SerializeField] private int costCommon = 100;
-    [SerializeField] private int costRare = 300;
-    [SerializeField] private int costEpic = 800;
+    [Header("Rune Shard Cost (Balanced 30 Levels)")]
+    [SerializeField] private int costCommon = 50; 
+    [SerializeField] private int costRare = 150;    
+    [SerializeField] private int costEpic = 450;    
 
     [Header("Protection Item Config")]
     [SerializeField] private string charmItemID = "FUSION_CHARM_01";
