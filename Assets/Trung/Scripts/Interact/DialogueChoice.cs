@@ -15,8 +15,9 @@ public class DialogueChoice
 public enum DialogueAction
 {
     None,
-
     OpenPanel,
-
-    CloseDialogue
+    CloseDialogue,
+    GambleBet50,
+    GambleBet100,
+    GambleBet250
 }

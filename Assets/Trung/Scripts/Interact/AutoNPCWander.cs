@@ -220,9 +220,6 @@ public class AutoNPCWander : MonoBehaviour
         HandlePatrolLoop();
     }
 
-    /// <summary>
-    /// Ép Agent nhường quyền điều khiển Rotation và xoay mượt mặt NPC về phía người chơi
-    /// </summary>
     private void ForceLookAtPlayer()
     {
         Transform player = FindPlayer();
@@ -233,17 +230,44 @@ public class AutoNPCWander : MonoBehaviour
             agent.isStopped = true;
             agent.updateRotation = false;
             agent.velocity = Vector3.zero;
+            agent.ResetPath();
         }
 
-        PlayAnimation(false);
+        // Cưỡng bức đổi animation sang Idle ngay lập tức
+        isMoving = false;
+        if (animator != null)
+        {
+            animator.Play(idleHash);
+        }
 
         Vector3 direction = player.position - transform.position;
-        direction.y = 0f; // Khóa trục Y để NPC không bị ngửa hoặc chúi đầu
+        direction.y = 0f;
 
         if (direction.sqrMagnitude > 0.001f)
         {
             Quaternion targetRotation = Quaternion.LookRotation(direction);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, interactTurnSpeed * Time.deltaTime);
+        }
+    }
+
+    public void PausePatrol(Transform targetPlayer = null)
+    {
+        isInteracting = true;
+        playerTransform = targetPlayer != null ? targetPlayer : FindPlayer();
+
+        if (agent != null && agent.isOnNavMesh)
+        {
+            agent.isStopped = true;
+            agent.ResetPath();
+            agent.velocity = Vector3.zero;
+            agent.updateRotation = false;
+        }
+
+        // Ép sang Idle state
+        isMoving = false;
+        if (animator != null)
+        {
+            animator.CrossFade(idleHash, 0.05f);
         }
     }
 
@@ -281,6 +305,9 @@ public class AutoNPCWander : MonoBehaviour
                 agent.ResetPath();
                 agent.velocity = Vector3.zero;
                 agent.updateRotation = false;
+                
+                // Mở khóa và kích hoạt ngay các bệ tương tác xung quanh khi vừa cập bến trạm
+                UnlockNearbyInteractObjects();
             }
 
             PlayAnimation(false);
@@ -471,21 +498,7 @@ public class AutoNPCWander : MonoBehaviour
         PausePatrol(FindPlayer());
     }
 
-    public void PausePatrol(Transform targetPlayer = null)
-    {
-        isInteracting = true;
-        playerTransform = targetPlayer != null ? targetPlayer : FindPlayer();
-
-        if (agent != null && agent.isOnNavMesh)
-        {
-            agent.isStopped = true;
-            agent.ResetPath();
-            agent.velocity = Vector3.zero;
-            agent.updateRotation = false;
-        }
-
-        PlayAnimation(false);
-    }
+    
 
     public void ResumePatrol()
     {

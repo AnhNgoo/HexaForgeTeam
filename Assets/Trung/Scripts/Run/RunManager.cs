@@ -79,6 +79,8 @@ public class RunManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            transform.SetParent(null);
+            DontDestroyOnLoad(gameObject);
 
             if (sessionSelectedFinalBossPool != PoolType.None)
             {
