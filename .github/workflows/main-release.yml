@@ -43,6 +43,19 @@ jobs:
           docker system prune -af || true
           df -h
 
+      - name: Increase file descriptor limit
+        shell: bash
+        run: |
+          echo "Current limits:"
+          ulimit -n
+          ulimit -a
+
+          echo "Increasing open file limit..."
+          ulimit -n 1048576
+
+          echo "New limit:"
+          ulimit -n
+
       # ========================================
       # CHECKOUT
       # ========================================
