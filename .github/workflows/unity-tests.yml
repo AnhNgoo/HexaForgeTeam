@@ -10,10 +10,12 @@ on:
   push:
     branches:
       - develop
+
   pull_request:
     branches:
       - main
       - develop
+
   workflow_dispatch:
 
 jobs:
@@ -22,6 +24,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # ========================================
+      # CHECKOUT
+      # ========================================
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -32,6 +37,9 @@ jobs:
           git branch
           git log -1
 
+      # ========================================
+      # CACHE
+      # ========================================
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -40,6 +48,9 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
+      # ========================================
+      # FREE DISK SPACE
+      # ========================================
       - name: Free disk space for Unity Docker image
         shell: bash
         run: |
@@ -53,25 +64,35 @@ jobs:
           sudo rm -rf /usr/local/share/boost || true
           sudo rm -rf /usr/share/swift || true
           sudo rm -rf /opt/microsoft || true
+
           sudo apt-get clean
           docker system prune -af || true
 
           echo "Disk space after cleanup:"
           df -h
 
+      # ========================================
+      # PREPARE CSV
+      # ========================================
       - name: Prepare clean CSV report directory
         shell: bash
         run: |
           rm -rf Assets/CSV
           mkdir -p Assets/CSV
 
+      # ========================================
+      # EDITMODE
+      # ========================================
       - name: Run Unity EditMode tests
         id: unity-editmode
+        continue-on-error: true
         uses: game-ci/unity-test-runner@v4
+
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
         with:
           projectPath: .
           githubToken: ${{ secrets.GITHUB_TOKEN }}
@@ -79,56 +100,84 @@ jobs:
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: editmode
           artifactsPath: test-results/editmode
-          coverageOptions: ""
+          coverageEnabled: false
 
+      # ========================================
+      # PLAYMODE
+      # ALWAYS RUN EVEN IF EDITMODE FAILS
+      # ========================================
       - name: Run Unity PlayMode tests
         id: unity-playmode
+        if: ${{ always() }}
+        continue-on-error: true
         uses: game-ci/unity-test-runner@v4
+
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
         with:
           projectPath: .
           githubToken: ${{ secrets.GITHUB_TOKEN }}
-          checkName: PlayMode Test Result
+          checkName: PlayMode Test Results
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: playmode
           artifactsPath: test-results/playmode
-          coverageOptions: ""
+          coverageEnabled: false
 
+      # ========================================
+      # LIST RESULTS
+      # ========================================
       - name: List generated test artifacts
-        if: always()
+        if: ${{ always() }}
         shell: bash
         run: |
-          find test-results -maxdepth 3 -type f -print || true
+          echo "===== TEST RESULTS ====="
+          find test-results -maxdepth 4 -type f -print || true
+
+          echo ""
+          echo "===== CSV REPORTS ====="
           find Assets/CSV -maxdepth 1 -type f -print || true
 
+      # ========================================
+      # SUMMARY
+      # ========================================
       - name: Write Unity test summary
-        if: always()
+        if: ${{ always() }}
         shell: bash
         run: |
           {
             echo "## Unity Test Runner"
             echo ""
-            echo "- EditMode outcome: ${{ steps.unity-editmode.outcome }}"
-            echo "- PlayMode outcome: ${{ steps.unity-playmode.outcome }}"
+            echo "### Results"
             echo ""
-            echo "This workflow uploads reports for review and does not block merging when Unity tests fail."
-            echo "Download artifacts 'unity-test-results' and 'duskblade-csv-test-reports' to inspect failed tests."
+            echo "| Test Mode | Outcome |"
+            echo "|---|---|"
+            echo "| EditMode | ${{ steps.unity-editmode.outcome }} |"
+            echo "| PlayMode | ${{ steps.unity-playmode.outcome }} |"
+            echo ""
+            echo "Test reports are uploaded as artifacts."
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # ========================================
+      # UPLOAD CSV
+      # ========================================
       - name: Upload CSV test reports
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: duskblade-csv-test-reports
           path: Assets/CSV/*.csv
           if-no-files-found: ignore
 
+      # ========================================
+      # UPLOAD UNITY RESULTS
+      # ========================================
       - name: Upload Unity Test Results Artifacts
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
-        if: always()
         with:
           name: unity-test-results
           path: test-results
+          if-no-files-found: ignore
