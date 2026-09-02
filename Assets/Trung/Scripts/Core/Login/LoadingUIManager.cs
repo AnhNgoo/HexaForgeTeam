@@ -18,9 +18,8 @@ public class LoadingUIManager : MonoBehaviour
     [SerializeField][Range(0.1f, 3f)] private float fillSpeed = 0.8f;
     [SerializeField] private float handleRotationSpeed = 360f;
 
-    [Header("Loading Tips Database")]
-    [SerializeField]
-    private List<string> loadingTips = new List<string>()
+    // ✅ TIPS 2 NGÔN NGỮ — hardcode, KHÔNG [SerializeField] → scene không thể ghi đè
+    private static readonly string[] TipsEN = new string[]
     {
         "Sharpening weapons... Steel meets darkness in the trials ahead.",
         "Lyra is weaving ancient Arcane glyphs. Do not interrupt her incantations.",
@@ -44,6 +43,34 @@ public class LoadingUIManager : MonoBehaviour
         "Gold earned inside dungeons is temporary, but Gems and Shards remain forever.",
         "Cleanse corrupted altars to gain temporary blessings before facing the domain Boss."
     };
+
+    private static readonly string[] TipsVI = new string[]
+    {
+        "Đang mài sắc vũ khí... Lưỡi thép sẽ chạm bóng tối trong thử thách phía trước.",
+        "Lyra đang kết dệt những phù văn Arcane cổ xưa. Đừng làm gián đoạn lời chú của cô ấy.",
+        "Kael khẳng định né đòn dễ hơn đỡ đòn. Hãy học thật kỹ nhịp điệu của anh ấy.",
+        "Ares tụ hội cơn cuồng nộ. Khi máu thấp, đòn đánh của anh ta càng thêm chí mạng.",
+        "Elara chưa từng trượt mục tiêu từ trong bóng tối. Giữ khoảng cách và thả diều.",
+        "Chuyển hóa phụ tố rune tiêu tốn những Mảnh quý giá. Hãy hoạch định lối build cuối game thật khôn ngoan!",
+        "Mọi rune rơi ra từ hầm ngục đều ẩn chứa sức mạnh nguyên tố tiềm tàng.",
+        "Trang bị các rune cùng nguyên tố sẽ đánh thức những nội tại cộng hưởng đáng gờm.",
+        "Bậc Cược càng cao càng khiến kẻ địch mạnh lên khủng khiếp, nhưng phần thưởng Gem cũng khổng lồ.",
+        "Chết trong lượt Cược bậc cao sẽ mất trắng tiền cược. Bị áp đảo thì hãy rút lui!",
+        "Quản lý thể lực là chìa khóa: chạy nhanh và né đòn bừa bãi sẽ khiến bạn không còn gì để phòng thủ.",
+        "Kẻ địch tinh anh có lớp siêu giáp lì lợm. Hãy phá thế thủ của chúng trước khi tung combo.",
+        "Đánh bại The Earthshaker sẽ mở khóa lãnh địa cấm của The DarkMage.",
+        "Trùng lặp gacha sẽ tự động chuyển hóa thành Mảnh và Tinh thể quý giá.",
+        "Để ý các vạch chỉ báo đỏ trên mặt đất để né những chiêu AoE hủy diệt của boss.",
+        "Năng lượng không hồi phục tức thì. Hãy uống thuốc hoặc canh hồi chiêu thật cẩn thận.",
+        "Trang bị Rune phòng thủ có thể biến pháp sư mỏng manh thành chiến pháp sư kiên cường.",
+        "Boss sẽ rơi vào trạng thái cuồng nộ khi máu thấp. Hãy dành kỹ năng cuối cho giai đoạn cuối!",
+        "Vùng an toàn thu hẹp dần ở những tầng sâu. Hãy ở trong ranh giới để sống sót.",
+        "Vàng kiếm trong hầm ngục chỉ là tạm thời, nhưng Gem và Mảnh thì còn mãi mãi.",
+        "Thanh tẩy những bàn thờ bị tha hóa để nhận phước lành tạm thời trước khi đối đầu Boss lãnh địa."
+    };
+
+    // ✅ Helper dịch
+    private string T(string text) => SettingsLocalizationData.Translate(text);
 
     private void Awake()
     {
@@ -115,15 +142,21 @@ public class LoadingUIManager : MonoBehaviour
             formattedName = $"JOURNEYING TO: {cleanName}";
         }
 
-        destinationText.SetTextSafe(formattedName);
+        destinationText.SetTextSafe(T(formattedName));   // ✅ DỊCH
     }
 
     public void ShowRandomTip()
     {
-        if (loadingTipText == null || loadingTips == null || loadingTips.Count == 0) return;
+        if (loadingTipText == null || TipsEN.Length == 0) return;
 
-        int randomIndex = Random.Range(0, loadingTips.Count);
-        loadingTipText.SetTextSafe($"<color=#FFA500><b>TIP:</b></color> {loadingTips[randomIndex]}");
+        // ✅ Chọn ngôn ngữ trực tiếp — không phụ thuộc Entries, không phụ thuộc scene
+        bool vi = SettingsLocalizationData.IsVietnamesePublic();
+        int i = Random.Range(0, TipsEN.Length);
+
+        string label = vi ? "MẸO" : "TIP";
+        string tip = vi ? TipsVI[i] : TipsEN[i];
+
+        loadingTipText.SetTextSafe($"<color=#FFA500><b>{label}:</b></color> {tip}");
     }
 
     public IEnumerator TrackProgressRoutine(AsyncOperation targetSceneLoad, bool hasEventNotify = true, float minDuration = 6.0f)
@@ -157,6 +190,7 @@ public class LoadingUIManager : MonoBehaviour
         while (progressSlider.value < 1f)
         {
             progressSlider.value = Mathf.MoveTowards(progressSlider.value, 1f, Time.unscaledDeltaTime * fillSpeed);
+
             yield return null;
         }
 
