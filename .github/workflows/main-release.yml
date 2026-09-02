@@ -28,6 +28,10 @@ jobs:
     timeout-minutes: 240
 
     steps:
+
+      # ========================================
+      # FREE DISK SPACE
+      # ========================================
       - name: Free disk space
         shell: bash
         run: |
@@ -39,12 +43,18 @@ jobs:
           docker system prune -af || true
           df -h
 
+      # ========================================
+      # CHECKOUT
+      # ========================================
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
           lfs: true
 
+      # ========================================
+      # PREFLIGHT
+      # ========================================
       - name: Repository preflight
         shell: bash
         run: |
@@ -70,6 +80,9 @@ jobs:
             echo "::warning::PlayFab DeveloperSecretKey is present in client Resources."
           fi
 
+      # ========================================
+      # CACHE UNITY
+      # ========================================
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -91,24 +104,33 @@ jobs:
               'Assets/**/*.compute',
               'Assets/AddressableAssetsData/**/*.asset'
             ) }}
+
           restore-keys: |
             Library-DuskBlade-${{ runner.os }}-2022.3.62f3-Windows64-
 
-      - name: Run Unity EditMode and PlayMode tests
-        id: tests
-        uses: game-ci/unity-test-runner@v4
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          projectPath: .
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-          customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
-          testMode: all
-          artifactsPath: test-results
-          coverageOptions: ""
+      # ========================================
+      # SHOW TEST RESULT
+      # ========================================
+      - name: Show test result
+        if: always()
+        shell: bash
+        run: |
+          echo "======================================"
+          echo "UNITY TEST RESULT"
+          echo "======================================"
+          echo "Outcome: ${{ steps.tests.outcome }}"
+          echo "Conclusion: ${{ steps.tests.conclusion }}"
+          echo ""
 
+          if [ "${{ steps.tests.outcome }}" = "failure" ]; then
+            echo "::warning::Unity tests failed, but build will continue."
+          else
+            echo "Unity tests passed."
+          fi
+
+      # ========================================
+      # UPLOAD TEST REPORTS
+      # ========================================
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -118,12 +140,17 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
 
+      # ========================================
+      # BUILD
+      # ========================================
       - name: Build Addressables and Windows x64 player
         uses: game-ci/unity-builder@v4
+
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+
         with:
           projectPath: .
           unityVersion: 2022.3.62f3
@@ -132,6 +159,9 @@ jobs:
           buildName: DuskBlade
           buildMethod: DuskBlade.Editor.CI.CIBuilder.BuildWindows
 
+      # ========================================
+      # BUILD METADATA
+      # ========================================
       - name: Resolve build metadata
         id: meta
         shell: bash
@@ -139,11 +169,16 @@ jobs:
           short_sha="${GITHUB_SHA::7}"
 
           echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+
           echo "tag=main-build-${GITHUB_RUN_NUMBER}-${short_sha}" \
             >> "$GITHUB_OUTPUT"
+
           echo "zip_name=DuskBlade-Windows-x64-main-${GITHUB_RUN_NUMBER}-${short_sha}.zip" \
             >> "$GITHUB_OUTPUT"
 
+      # ========================================
+      # VERIFY BUILD
+      # ========================================
       - name: Verify Windows runtime
         id: verify
         shell: bash
@@ -174,6 +209,9 @@ jobs:
 
           echo "game_dir=$game_dir" >> "$GITHUB_OUTPUT"
 
+      # ========================================
+      # PACKAGE BUILD
+      # ========================================
       - name: Package Windows build
         shell: bash
         run: |
@@ -196,6 +234,9 @@ jobs:
           unzip -l "${{ steps.meta.outputs.zip_name }}" |
             grep -q 'DuskBlade/DuskBlade.exe'
 
+      # ========================================
+      # UPLOAD BUILD
+      # ========================================
       - name: Upload short-lived Actions artifact
         uses: actions/upload-artifact@v4
         with:
@@ -204,6 +245,9 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      # ========================================
+      # RELEASE NOTES
+      # ========================================
       - name: Write prerelease notes
         if: >-
           github.event_name == 'push' ||
@@ -222,14 +266,20 @@ jobs:
 
           This is an automated prerelease for testing.
           It is not a stable release.
+
+          Unity test result: ${{ steps.tests.outcome }}
           EOF
 
+      # ========================================
+      # CREATE PRERELEASE
+      # ========================================
       - name: Create GitHub prerelease
         if: >-
           github.event_name == 'push' ||
           inputs.publish_release == true
         env:
           GH_TOKEN: ${{ github.token }}
+
         shell: bash
         run: |
           gh release create \

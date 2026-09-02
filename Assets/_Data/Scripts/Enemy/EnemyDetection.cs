@@ -208,6 +208,12 @@ public class EnemyDetection : MonoBehaviour
 
         if (!CanEngageTarget(attacker))
         {
+            if (currentTarget == attacker)
+            {
+                lastKnownTargetPosition = attacker.position;
+                _lastTimeTargetVisible = Time.time;
+                return;
+            }
             LoseTargetAndResetToDefaultState();
             return;
         }
