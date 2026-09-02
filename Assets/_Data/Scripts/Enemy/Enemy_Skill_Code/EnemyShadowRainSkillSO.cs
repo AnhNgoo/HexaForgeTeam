@@ -263,8 +263,6 @@ public class EnemyShadowRainSkillSO : EnemyAttackSkillSO
             context.RuntimeDamageMultiplier
         );
 
-        hitbox?.EnableHitBox();
-
         float elapsed = 0f;
 
         while (elapsed < fallDuration)
@@ -294,6 +292,8 @@ public class EnemyShadowRainSkillSO : EnemyAttackSkillSO
             return;
 
         strike.transform.position = landingPosition;
+
+        hitbox?.EnableHitBox();
 
         await UniTask.Delay(
             System.TimeSpan.FromSeconds(groundDuration)

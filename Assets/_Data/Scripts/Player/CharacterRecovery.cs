@@ -20,7 +20,6 @@ public class CharacterRecovery : MonoBehaviour
     {
         this.character = character;
         AddBottle(startRecoveryBottle); // Khởi tạo số lượng bình hồi máu ban đầu
-        CurrentMaxRecoveryBottle = 0;
         EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
     }
 
@@ -33,8 +32,9 @@ public class CharacterRecovery : MonoBehaviour
     public void AddBottle(int amount = 1)
     {
         currentRecoveryBottle = Mathf.Min(currentRecoveryBottle + amount, maxRecoveryBottle);
-        CurrentMaxRecoveryBottle = currentRecoveryBottle > CurrentMaxRecoveryBottle ? currentRecoveryBottle : CurrentMaxRecoveryBottle;
         EventManager.Notify(GameEvent.OnUpdateRecoveryBottle, currentRecoveryBottle);
+
+        CurrentMaxRecoveryBottle = currentRecoveryBottle;
     }
 
     public void ResetBottle()

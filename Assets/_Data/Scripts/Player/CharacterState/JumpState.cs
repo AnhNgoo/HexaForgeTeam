@@ -16,6 +16,7 @@ public class JumpState : ICharacterState
     {
         character.CharacterAnimation.CrossFade("Jump", 0.1f);
         character.CharacterMovement.Jump();
+        character.CharacterSound.Play(character.CharacterSound.jumpSoundEffect);
         CheckJumped();
     }
 

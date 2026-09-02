@@ -175,6 +175,8 @@ public class RunGameplayController : MonoBehaviour
 
         MonstersKilled = NormalKilled + EliteKilled + BossKilled + FinalBossKilled;
 
+        GameEventManager.TriggerRunCompleted(isVictory);
+
         if (RunResultSummary.Instance != null)
         {
             RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);

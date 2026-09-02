@@ -25,6 +25,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterLevel))]
 [RequireComponent(typeof(CharacterGoldFalling))]
 [RequireComponent(typeof(CharacterRelic))]
+[RequireComponent(typeof(CharacterSound))]
 public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 {
     [Header("Character Data")]
@@ -88,6 +89,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public CharacterGoldFalling CharacterGoldFalling => characterGoldFalling;
     [SerializeField] protected CharacterRelic characterRelic;
     public CharacterRelic CharacterRelic => characterRelic;
+    [SerializeField] protected CharacterSound characterSound;
+    public CharacterSound CharacterSound => characterSound;
 
     [Header("Character Effect General")]
     [SerializeField] protected GameObject effectPoints;
@@ -112,9 +115,70 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     public GhostEffect GhostEffect { get; set; }
     public DissolveEffect DissolveEffect { get; set; }
     public bool IsHitStateActive { get; set; } = false;
+    private readonly HashSet<WaterVolume> waterVolumes = new HashSet<WaterVolume>();
+    private WaterVolume currentWaterVolume;
     public bool CanBeAttacked { get; set; } = true; // Có thể bị tấn công, bên enemy sẽ kiểm tra biến này trước khi tấn công, nếu false thì không thể tấn công nhân vật này
 
     public PoolType PoolType => characterData?.characterPoolType ?? PoolType.None;
+
+    #region Swimming
+    public float WaterLevel
+    {
+        get
+        {
+            return currentWaterVolume != null ? currentWaterVolume.SurfaceLevel : float.NaN;
+        }
+    }
+
+    public virtual bool IsBodyBelowWaterLevel()
+    {
+        float waterLevel = WaterLevel;
+        if (float.IsNaN(waterLevel) || float.IsInfinity(waterLevel))
+            return false;
+
+        float bodyHeight = 1.5f;
+        Renderer visualRenderer = characterVisual != null ? characterVisual.GetComponent<Renderer>() : null;
+        if (visualRenderer != null)
+            bodyHeight = Mathf.Max(visualRenderer.bounds.size.y, 1.5f);
+
+        float bodyCenterY = transform.position.y + (bodyHeight * 0.5f);
+        return bodyCenterY < waterLevel;
+    }
+
+    public virtual bool IsSwimmingCandidate()
+    {
+        return currentWaterVolume != null && IsBodyBelowWaterLevel();
+    }
+
+    #endregion
+
+    private void OnTriggerEnter(Collider other)
+    {
+        WaterVolume waterVolume = other.GetComponentInParent<WaterVolume>();
+        if (waterVolume == null)
+            return;
+
+        waterVolumes.Add(waterVolume);
+        currentWaterVolume = waterVolume;
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        WaterVolume waterVolume = other.GetComponentInParent<WaterVolume>();
+        if (waterVolume == null)
+            return;
+
+        waterVolumes.Remove(waterVolume);
+        if (currentWaterVolume == waterVolume)
+        {
+            currentWaterVolume = null;
+            foreach (WaterVolume remainingVolume in waterVolumes)
+            {
+                currentWaterVolume = remainingVolume;
+                break;
+            }
+        }
+    }
 
     protected override void LoadComponent()
     {
@@ -158,6 +222,8 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             characterGoldFalling = GetComponent<CharacterGoldFalling>();
         if (characterRelic == null)
             characterRelic = GetComponent<CharacterRelic>();
+        if (characterSound == null)
+            characterSound = GetComponent<CharacterSound>();
         if (dustEffect == null)
             dustEffect = transform.Find("DustEffect")?.GetComponent<ParticleSystem>();
         LoadEffectPoints();
@@ -223,7 +289,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             WeaponInventorySystem.Instance?.Init(characterWeapon);
             WeaponInventorySystem.Instance.AddWeapon(characterData.weaponData);
             InteractionManager.Instance?.Init(this.transform);
-            CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+            TrySetCamera();
             EventManager.Notify(GameEvent.OnPlayerSpawned, transform);
         }
         catch (Exception e)
@@ -262,6 +328,14 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         CharacterInput.ClearInput();
     }
 
+    private async void TrySetCamera()
+    {
+        if (CameraManager.Instance == null)
+        {
+            await UniTask.WaitUntil(() => CameraManager.Instance != null);
+        }
+        CameraManager.Instance.SetCamera(CameraType.Normal, transform, transform);
+    }
     #endregion
 
     protected virtual void Update()
@@ -592,22 +666,22 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
     public virtual void ChangeWeapon(InputAction.CallbackContext context)
     {
-        Debug.Log("Change Weapon Input Detected");
-        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu && UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
+        if (UIManager.Instance.CurrentMenuType != MenuType.GameplayMenu &&
+             UIManager.Instance.CurrentMenuType != MenuType.DefaultLobbyInputMenu)
             return;
-        Debug.Log("Change Weapon Input Detected and Passed Menu Check");
+
         Vector2 scrollDelta = context.ReadValue<Vector2>();
         float scrollY = scrollDelta.y;
 
         if (scrollY > 0f)
         {
             if (CharacterInput.IsChangingWeapon ||
+            CharacterInput.LockInput ||
              WeaponInventorySystem.Instance.CheckWeaponInSlots() == false ||
              characterCombat.IsAttacking ||
              characterSkill.IsUsingSkill
              ) return;
 
-            Debug.Log("Change Weapon Input Detected and Passed All Checks - Changing Weapon");
             StateController.ChangeState(new ChangeWeaponState(this));
         }
     }
@@ -630,7 +704,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             dustEffect.Stop();
             isDustEffectPlaying = false;
         }
-
     }
 
     #endregion

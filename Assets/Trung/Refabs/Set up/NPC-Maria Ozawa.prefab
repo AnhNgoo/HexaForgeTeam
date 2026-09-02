@@ -888,10 +888,13 @@ GameObject:
   m_Component:
   - component: {fileID: 1145831552005542948}
   - component: {fileID: 8054845494453884069}
-  - component: {fileID: 4050644994110219199}
   - component: {fileID: 1891001881521319599}
+  - component: {fileID: 4050644994110219199}
   - component: {fileID: 3987266990164486653}
   - component: {fileID: 687024235150909923}
+  - component: {fileID: 2039524825008865370}
+  - component: {fileID: 3503133646555273242}
+  - component: {fileID: 5283350849703857850}
   m_Layer: 0
   m_Name: NPC-Maria Ozawa
   m_TagString: Untagged
@@ -934,7 +937,7 @@ Animator:
   m_GameObject: {fileID: 5845505767768153189}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: b29b2128ad71ad649baeac918d2d5a2e, type: 2}
-  m_Controller: {fileID: 9100000, guid: ad6d7441e5d634a42a55579a7f20d4d1, type: 2}
+  m_Controller: {fileID: 9100000, guid: 189766bd798ec82408a06f4dcd370efb, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -945,6 +948,27 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!135 &1891001881521319599
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5845505767768153189}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 2.5
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!136 &4050644994110219199
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -967,27 +991,6 @@ CapsuleCollider:
   m_Radius: 0.5
   m_Height: 3
   m_Direction: 1
-  m_Center: {x: 0, y: 1, z: 0}
---- !u!135 &1891001881521319599
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5845505767768153189}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 2.5
   m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &3987266990164486653
 MonoBehaviour:
@@ -1022,11 +1025,123 @@ MonoBehaviour:
   dialogueData:
     npcName: Maria Ozawa
     dialogues:
-    - "Ch\xE0o c\u01B0ng <3\n"
+    - The magical ley lines beneath the sanctuary have been behaving strangely today...
+      An ancient, slumbering presence is definitely stirring.
+    - I'm deciphering the ancient manuscripts to see if there's any way to suppress
+      the rift's dark energy.
     choices:
+    - choiceText: Quest
+      action: 0
+      menuType: 0
     - choiceText: Bye
       action: 2
       menuType: 0
+--- !u!195 &2039524825008865370
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5845505767768153189}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 3.5
+  m_Acceleration: 8
+  avoidancePriority: 50
+  m_AngularSpeed: 120
+  m_StoppingDistance: 0
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 0
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
+--- !u!114 &3503133646555273242
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5845505767768153189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8d943c2999f34a4ca8564e02a7640a7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isStationary: 0
+  keyRestPoints:
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  - pointName: POI
+    pointTransform: {fileID: 0}
+    restDuration: 5
+  wanderRadius: 12
+  minTravelDistance: 7
+  minRandomRestTime: 3
+  maxRandomRestTime: 6
+  moveSpeed: 2.2
+  questMoveSpeed: 4.5
+  rotationSpeed: 360
+  restTurnSpeed: 5
+  interactTurnSpeed: 10
+  acceleration: 6
+  stoppingDistance: 0.4
+  animator: {fileID: 8054845494453884069}
+  idleStateName: Idle
+  walkStateName: Walk
+  transitionDuration: 0.15
+--- !u!114 &5283350849703857850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5845505767768153189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8de8cdd9198a8047a4de9b1e30a9d60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  questStationPoint: {fileID: 0}
+  worldNameTag: {fileID: 3855388950362258014}
+  firstIntroQuestDialogues:
+  - speaker: 0
+    text: Looking for a fight? If you want to hone your combat skills, this training
+      ground is always open.
+  - speaker: 1
+    text: Understood! I'll drop by when I'm ready to test my abilities.
+  assignedQuests:
+  - {fileID: 0}
 --- !u!1 &6046234507805742997
 GameObject:
   m_ObjectHideFlags: 0
@@ -1866,3 +1981,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 7636752503445731056, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
   m_PrefabInstance: {fileID: 8692293347958258231}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &3855388950362258014 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5557491889869160553, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
+  m_PrefabInstance: {fileID: 8692293347958258231}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5655f054dcce3db43b8aaabc7b990d7a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

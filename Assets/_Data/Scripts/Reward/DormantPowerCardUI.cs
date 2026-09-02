@@ -32,7 +32,7 @@ public class DormantPowerCardUI : LoadComponents
         rewardIcon.enabled = reward.DisplayIcon != null;
         rewardTypeText.text = reward.TypeLabel;
         rewardNameText.text = reward.DisplayName;
-        rarityText.text = reward.DisplayRarity.ToString();
+        rarityText.text = reward.RarityLabel;
 
         Color rarityColor = GetRarityColor(reward.DisplayRarity);
         rarityBorder.color = rarityColor;

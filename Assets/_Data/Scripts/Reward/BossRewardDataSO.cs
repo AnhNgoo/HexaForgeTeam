@@ -35,32 +35,87 @@ public class BossRewardDataSO : ScriptableObject
     [Min(0f)]
     [SerializeField] private float percentageValue;
 
+    [Header("Localization")]
+    [SerializeField] private string rewardNameKey;
+    [SerializeField] private string rewardDescriptionKey;
+
     public BossRewardType RewardType => rewardType;
     public float PercentageValue => percentageValue;
 
     public bool IsConfigured => rewardType == BossRewardType.Weapon ? weapon != null : percentageValue > 0f;
 
-    public string DisplayName => rewardType == BossRewardType.Weapon && weapon != null ? weapon.itemName : rewardName;
+    public string DisplayName
+    {
+        get
+        {
+            string fallback = rewardType == BossRewardType.Weapon && weapon != null ? weapon.itemName : rewardName;
+            return LocalizationText.Get(rewardNameKey, fallback);
+        }
+    }
 
     public Sprite DisplayIcon => rewardType == BossRewardType.Weapon && weapon != null ? weapon.itemIcon : rewardIcon;
 
-    public string DisplayDescription => rewardType == BossRewardType.Weapon && weapon != null ? weapon.itemDescription : rewardDescription;
+    public string DisplayDescription
+    {
+        get
+        {
+            string fallback = rewardType == BossRewardType.Weapon && weapon != null ? weapon.itemDescription : rewardDescription;
+            return LocalizationText.Get(rewardDescriptionKey, fallback);
+        }
+    }
 
     public ItemRarity DisplayRarity => rewardType == BossRewardType.Weapon && weapon != null ? weapon.rarity : rarity;
 
     public string TypeLabel => rewardType switch
     {
-        BossRewardType.Weapon => "Vũ khí",
-        BossRewardType.MaxHealth => "Sinh lực tối đa",
-        BossRewardType.Damage => "Sát thương",
-        BossRewardType.Defense => "Phòng thủ",
-        BossRewardType.Stamina => "Thể lực tối đa",
-        BossRewardType.MoveSpeed => "Tốc độ di chuyển",
-        BossRewardType.MaxMP => "Năng lượng tối đa",
-        BossRewardType.PoisonDamage => "Sát thương độc",
-        BossRewardType.StaminaRegen => "Hồi thể lực",
-        BossRewardType.MPRegen => "Hồi năng lượng",
+        BossRewardType.Weapon =>
+            LocalizationText.Get("ui.reward.type.weapon", "Weapon"),
+
+        BossRewardType.MaxHealth =>
+            LocalizationText.Get("ui.reward.type.max_health", "Max Health"),
+
+        BossRewardType.Damage =>
+            LocalizationText.Get("ui.reward.type.damage", "Damage"),
+
+        BossRewardType.Defense =>
+            LocalizationText.Get("ui.reward.type.defense", "Defense"),
+
+        BossRewardType.Stamina =>
+            LocalizationText.Get("ui.reward.type.stamina", "Stamina"),
+
+        BossRewardType.MoveSpeed =>
+            LocalizationText.Get("ui.reward.type.move_speed", "Move Speed"),
+
+        BossRewardType.MaxMP =>
+            LocalizationText.Get("ui.reward.type.max_mp", "Max MP"),
+
+        BossRewardType.PoisonDamage =>
+            LocalizationText.Get("ui.reward.type.poison_damage", "Poison Damage"),
+
+        BossRewardType.StaminaRegen =>
+            LocalizationText.Get("ui.reward.type.stamina_regen", "Stamina Regeneration"),
+
+        BossRewardType.MPRegen =>
+            LocalizationText.Get("ui.reward.type.mp_regen", "MP Regeneration"),
+
         _ => rewardType.ToString()
+    };
+
+    public string RarityLabel => DisplayRarity switch
+    {
+        ItemRarity.Common =>
+            LocalizationText.Get("ui.rarity.common", "Common"),
+
+        ItemRarity.Uncommon =>
+            LocalizationText.Get("ui.rarity.uncommon", "Uncommon"),
+
+        ItemRarity.Rare =>
+            LocalizationText.Get("ui.rarity.rare", "Rare"),
+
+        ItemRarity.Legendary =>
+            LocalizationText.Get("ui.rarity.legendary", "Legendary"),
+
+        _ => DisplayRarity.ToString()
     };
 
     public string UniqueKey => rewardType == BossRewardType.Weapon && weapon != null ? $"Weapon:{weapon.name}" : $"Stat:{rewardType}";

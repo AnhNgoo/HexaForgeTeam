@@ -2,6 +2,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.EventSystems;
 
 public class UITooltipPanel : MonoBehaviour
 {
@@ -46,6 +47,12 @@ public class UITooltipPanel : MonoBehaviour
     {
         if (tooltipRoot != null && tooltipRoot.activeInHierarchy)
         {
+            if (EventSystem.current == null || !EventSystem.current.IsPointerOverGameObject())
+            {
+                HideTooltip();
+                return;
+            }
+
             UpdatePositionAndPivot();
         }
     }
@@ -128,5 +135,10 @@ public class UITooltipPanel : MonoBehaviour
         float offsetY = pivotY == 1f ? -cursorOffset.y : cursorOffset.y;
 
         containerRect.position = mousePos + new Vector2(offsetX, offsetY);
+    }
+
+    private void OnDisable()
+    {
+        HideTooltip();
     }
 }

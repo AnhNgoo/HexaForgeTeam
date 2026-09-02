@@ -200,7 +200,7 @@ MonoBehaviour:
   spawnDistance: 45
   despawnDistance: 45
   enemiesInCamp:
-  - enemyType: 1001
+  - enemyType: 1102
     spawnPoint: {fileID: 1832756880}
     isPatroller: 0
     isDead: 0
@@ -208,7 +208,7 @@ MonoBehaviour:
     spawnedEnemyObject: {fileID: 0}
     enemyInstance: {fileID: 0}
   spawnPointsParent: {fileID: 0}
-  defaultEnemyType: 1
+  defaultEnemyType: 50
   defaultIsPatroller: 0
   showSpawnPointsGizmos: 1
   enemyGizmoDataList:
@@ -484,67 +484,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &637614101
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 168181222711479808, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_Name
-      value: Enemy_TheBrute
-      objectReference: {fileID: 0}
-    - target: {fileID: 168181222711479808, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5956835499839497210, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 649d526189ff7ac4ab9b226f89c8f097, type: 3}
 --- !u!1 &697455724
 GameObject:
   m_ObjectHideFlags: 0
@@ -1093,7 +1032,7 @@ Transform:
   m_GameObject: {fileID: 1326366036}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 43.15, y: 1, z: 0}
+  m_LocalPosition: {x: 29.8, y: 1, z: 4.7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1200,4 +1139,3 @@ SceneRoots:
   - {fileID: 557059371}
   - {fileID: 734683582}
   - {fileID: 328194638}
-  - {fileID: 637614101}

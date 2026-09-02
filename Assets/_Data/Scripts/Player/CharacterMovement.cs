@@ -18,7 +18,7 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private float runSpeedMultiplier = 1f;
 
     [Header("Sprint Settings")]
-    [SerializeField] private float sprintSpeedMultiplier = 1.3f;
+    [SerializeField] private float sprintSpeedMultiplier = 2f;
 
     [Header("Dodge Settings")]
     [SerializeField] private float dodgeSpeedMultiplier = 1f;
@@ -38,6 +38,9 @@ public class CharacterMovement : LoadComponents
     [SerializeField] private float fallThreshold = -50f;
     public float FallThreshold => fallThreshold;
     public bool JumpLanding { get; set; } = false;
+    [Header("Swimming Settings")]
+    [SerializeField] private float multiplierSwimming = 1.5f;
+    public float MultiplierSwimming => multiplierSwimming;
 
     [Header("KnockBack Settings")]
     [SerializeField] private float knockBackForce = 10f;
@@ -176,6 +179,16 @@ public class CharacterMovement : LoadComponents
         Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, sprintSpeedMultiplier);
     }
 
+    public void Swim(Vector2 direction, float moveSpeed)
+    {
+        if (Time.time < _movementLockedUntil)
+        {
+            Stop();
+            return;
+        }
+        Movement(new Vector3(direction.x, 0, direction.y), moveSpeed, multiplierSwimming);
+    }
+
     public async void Dodge(Vector2 direction, float moveSpeed)
     {
         if (Time.time < _movementLockedUntil)
@@ -256,6 +269,16 @@ public class CharacterMovement : LoadComponents
     public void Stop()
     {
         CurrentMove = Vector3.zero;
+    }
+
+    public void SetSwimmingState(bool isSwimming)
+    {
+        UseGravity = !isSwimming;
+        if (isSwimming)
+        {
+            verticalVelocity = 0f;
+            CurrentMove = new Vector3(CurrentMove.x, 0f, CurrentMove.z);
+        }
     }
 
     private void CheckGrounded()

@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 77e7e114724ec234f9108d3323199aa4, type: 3}
   m_Name: Bee
   m_EditorClassIdentifier: 
-  maxHealth: 350
-  damage: 150
-  maxDefense: 5
-  maxPoise: 20
+  maxHealth: 500
+  damage: 300
+  maxDefense: 10
+  maxPoise: 60
   moveSpeed: 30
   patrolSpeed: 15
-  staggerDuration: 0.5
+  staggerDuration: 0.6
   detectRange: 10
   loseTargetRange: 15
   povAngle: 90
@@ -28,8 +28,11 @@ MonoBehaviour:
   recoveryTurnSpeed: 720
   attackFacingAngle: 35
   combatAwarenessDuration: 2
-  minGoldReward: 30
-  maxGoldReward: 70
+  minGoldReward: 40
+  maxGoldReward: 50
   isBoss: 0
+  bossCategory: 0
+  bossRewardTable: {fileID: 0}
+  bossDisplayName: 
   maxLeashDistance: 20
   roamRadius: 5

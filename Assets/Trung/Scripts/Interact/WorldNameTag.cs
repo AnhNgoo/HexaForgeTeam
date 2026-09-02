@@ -11,8 +11,10 @@ public class WorldNameTag : MonoBehaviour
     [Header("Quest Status Icon UI")]
     [SerializeField] private GameObject questIconRoot;
     [SerializeField] private Image questStatusImage;
-    [SerializeField] private Sprite newQuestIcon;      // Icon dấu !
-    [SerializeField] private Sprite claimQuestIcon;    // Icon dấu ?
+    [SerializeField] private Sprite newQuestIcon;
+    [SerializeField] private Sprite followQuestIcon;
+    [SerializeField] private Sprite claimQuestIcon;
+    [SerializeField] private Sprite gambleQuestIcon;
 
     private Camera targetCamera;
     private Transform camTransform;
@@ -52,7 +54,6 @@ public class WorldNameTag : MonoBehaviour
             if (camTransform == null) return;
         }
 
-        // Ép mặt trước của Canvas luôn hướng thẳng vuông góc về phía Camera (chống Backface Culling)
         transform.rotation = Quaternion.LookRotation(transform.position - camTransform.position);
     }
 
@@ -65,17 +66,29 @@ public class WorldNameTag : MonoBehaviour
         }
     }
 
-    public void UpdateQuestIcon(QuestState state)
+    public void UpdateQuestIcon(QuestState state, bool isGuiding = false, bool isGamble = false)
     {
         if (questIconRoot == null || questStatusImage == null) return;
 
-        if (state == QuestState.NotStarted && newQuestIcon != null)
+        if (isGamble && state == QuestState.InProgress && gambleQuestIcon != null)
+        {
+            questStatusImage.sprite = gambleQuestIcon;
+            questStatusImage.enabled = true;
+            questIconRoot.SetActive(true);
+            EnsureVisibleHierarchy(questIconRoot);
+        }
+        else if (state == QuestState.NotStarted && newQuestIcon != null)
         {
             questStatusImage.sprite = newQuestIcon;
             questStatusImage.enabled = true;
             questIconRoot.SetActive(true);
-
-            // Cưỡng chế hiển thị
+            EnsureVisibleHierarchy(questIconRoot);
+        }
+        else if (state == QuestState.InProgress && isGuiding && followQuestIcon != null)
+        {
+            questStatusImage.sprite = followQuestIcon;
+            questStatusImage.enabled = true;
+            questIconRoot.SetActive(true);
             EnsureVisibleHierarchy(questIconRoot);
         }
         else if (state == QuestState.CanClaim && claimQuestIcon != null)
@@ -83,8 +96,6 @@ public class WorldNameTag : MonoBehaviour
             questStatusImage.sprite = claimQuestIcon;
             questStatusImage.enabled = true;
             questIconRoot.SetActive(true);
-
-            // Cưỡng chế hiển thị
             EnsureVisibleHierarchy(questIconRoot);
         }
         else
@@ -101,7 +112,7 @@ public class WorldNameTag : MonoBehaviour
         {
             canvas.enabled = true;
             canvas.overrideSorting = true;
-            canvas.sortingOrder = 50; // Đẩy layer lên cao nhất để không bị model/tường đè
+            canvas.sortingOrder = 50;
         }
     }
 
@@ -112,14 +123,4 @@ public class WorldNameTag : MonoBehaviour
             questIconRoot.SetActive(false);
         }
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (nameText != null)
-        {
-            nameText.SetTextSafe(displayName);
-        }
-    }
-#endif
 }
