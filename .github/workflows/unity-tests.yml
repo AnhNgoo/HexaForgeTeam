@@ -12,18 +12,12 @@ env:
 on:
   push:
     branches:
-      - main
       - develop
-      - demofromphuocbranch
-      - testrunner
-      - feat/testrunner
-
   pull_request:
     branches:
       - main
       - develop
-      - testrunner
-      - feat/testrunner
+  workflow_dispatch:
 
 jobs:
   test:
