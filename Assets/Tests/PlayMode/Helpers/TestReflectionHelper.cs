@@ -17,6 +17,7 @@ namespace DuskBlade.Tests
 
             try
             {
+                Type requestedType = ResolveType(className);
                 Component[] components = root.GetComponentsInChildren<Component>(true);
                 foreach (Component component in components)
                 {
@@ -27,6 +28,11 @@ namespace DuskBlade.Tests
 
                     Type type = component.GetType();
                     if (type.Name == className || type.FullName == className)
+                    {
+                        return component;
+                    }
+
+                    if (requestedType != null && requestedType.IsAssignableFrom(type))
                     {
                         return component;
                     }
@@ -181,6 +187,39 @@ namespace DuskBlade.Tests
                 }
 
                 type = type.BaseType;
+            }
+
+            return null;
+        }
+
+        private static Type ResolveType(string className)
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type type = assembly.GetType(className);
+                if (type != null)
+                {
+                    return type;
+                }
+
+                Type[] types;
+                try
+                {
+                    types = assembly.GetTypes();
+                }
+                catch (ReflectionTypeLoadException exception)
+                {
+                    types = exception.Types;
+                }
+
+                foreach (Type candidate in types)
+                {
+                    if (candidate != null &&
+                        (candidate.Name == className || candidate.FullName == className))
+                    {
+                        return candidate;
+                    }
+                }
             }
 
             return null;
