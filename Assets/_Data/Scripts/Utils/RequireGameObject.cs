@@ -14,6 +14,7 @@ public class RequireGameObject : MonoBehaviour
 {
     [SerializeField] private List<GameObject> requiredGameObjects;
 
+#if UNITY_EDITOR
     [Button("Setup Required GameObjects")]
     private void SetupRequiredGameObjects()
     {
@@ -28,4 +29,5 @@ public class RequireGameObject : MonoBehaviour
             instantiatedObj.name = obj.name;
         }
     }
+#endif
 }

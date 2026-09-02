@@ -11,9 +11,10 @@ public class WorldNameTag : MonoBehaviour
     [Header("Quest Status Icon UI")]
     [SerializeField] private GameObject questIconRoot;
     [SerializeField] private Image questStatusImage;
-    [SerializeField] private Sprite newQuestIcon;      // Icon dấu !
-    [SerializeField] private Sprite followQuestIcon;   // Icon Dẫn đường / Mũi tên / Đi theo
-    [SerializeField] private Sprite claimQuestIcon;    // Icon dấu ?
+    [SerializeField] private Sprite newQuestIcon;
+    [SerializeField] private Sprite followQuestIcon;
+    [SerializeField] private Sprite claimQuestIcon;
+    [SerializeField] private Sprite gambleQuestIcon;
 
     private Camera targetCamera;
     private Transform camTransform;
@@ -65,11 +66,18 @@ public class WorldNameTag : MonoBehaviour
         }
     }
 
-    public void UpdateQuestIcon(QuestState state, bool isGuiding = false)
+    public void UpdateQuestIcon(QuestState state, bool isGuiding = false, bool isGamble = false)
     {
         if (questIconRoot == null || questStatusImage == null) return;
 
-        if (state == QuestState.NotStarted && newQuestIcon != null)
+        if (isGamble && state == QuestState.InProgress && gambleQuestIcon != null)
+        {
+            questStatusImage.sprite = gambleQuestIcon;
+            questStatusImage.enabled = true;
+            questIconRoot.SetActive(true);
+            EnsureVisibleHierarchy(questIconRoot);
+        }
+        else if (state == QuestState.NotStarted && newQuestIcon != null)
         {
             questStatusImage.sprite = newQuestIcon;
             questStatusImage.enabled = true;
@@ -115,14 +123,4 @@ public class WorldNameTag : MonoBehaviour
             questIconRoot.SetActive(false);
         }
     }
-
-#if UNITY_EDITOR
-    private void OnValidate()
-    {
-        if (nameText != null)
-        {
-            nameText.SetTextSafe(displayName);
-        }
-    }
-#endif
 }

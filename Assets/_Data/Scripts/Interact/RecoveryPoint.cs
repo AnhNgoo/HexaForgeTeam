@@ -32,10 +32,17 @@ public class RecoveryPoint : InteractBase
         InteractionManager.Instance?.UnregisterInteractable(this);
         ObjectPooling.Instance.SpawnFromPool(PoolType.ReceiveRecoveryBottleEffect, transform.position + Vector3.up * 0.21f, Quaternion.identity, transform);
         character?.CharacterRecovery?.AddBottle(recoveryAmount);
+        Hide(1f);
     }
 
     public override void ResetInteraction()
     {
         isUsed = false;
+    }
+
+    private async void Hide(float delay)
+    {
+        await System.Threading.Tasks.Task.Delay((int)(delay * 1000));
+        gameObject.SetActive(false);
     }
 }
