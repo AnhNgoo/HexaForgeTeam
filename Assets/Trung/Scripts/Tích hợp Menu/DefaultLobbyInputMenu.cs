@@ -151,7 +151,7 @@ public class DefaultLobbyInputMenu : MenuBase
         }
     }
 
-    public void ShowConfirmPopup()
+        public void ShowConfirmPopup()
     {
         if (confirmPopupRoot != null)
         {
@@ -162,7 +162,9 @@ public class DefaultLobbyInputMenu : MenuBase
 
         if (txtConfirmMessage != null)
         {
-            txtConfirmMessage.text = "Are you sure you want to <b><color=#FFCC00>Skip Tutorial</color></b>?\n\nAll basic mechanics will be fully unlocked and all milestone rewards will be claimed immediately.";
+            txtConfirmMessage.text = SettingsLocalizationData.IsVietnamesePublic()
+                ? "Bạn có chắc muốn <b><color=#FFCC00>Bỏ qua Hướng dẫn</color></b> không?\n\nTất cả các cơ chế cơ bản sẽ được mở khóa hoàn toàn và toàn bộ phần thưởng cột mốc sẽ được nhận ngay lập tức."
+                : "Are you sure you want to <b><color=#FFCC00>Skip Tutorial</color></b>?\n\nAll basic mechanics will be fully unlocked and all milestone rewards will be claimed immediately.";
         }
 
         // Hiện con trỏ chuột và mở khóa để click nút
