@@ -3,7 +3,7 @@ using System.Collections.Generic;
 [System.Serializable]
 public class GameSaveData
 {
-    public int gem = 3000;
+    public int gem = 300; // Cân bằng: Đổi từ 3000 về 300 cho khởi đầu chuẩn
     public int accountLevel = 1;
     public int accountExp = 0;
     public int lifetimeGemEarned = 0;
@@ -19,7 +19,7 @@ public class GameSaveData
 
     public GameSaveData()
     {
-        gem = 3000;
+        gem = 300;
         accountLevel = 1;
         accountExp = 0;
         lifetimeGemEarned = 0;

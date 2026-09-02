@@ -87,6 +87,10 @@ public class InteractV2 : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
+
+        // Tự động kiểm tra lại điều kiện unlock ngay khi người chơi vừa chạm trigger
+        CheckFeatureUnlockStatus();
+
         if (!IsFeatureUnlocked()) return;
 
         if (InteractManagerV2.Instance != null)
@@ -98,13 +102,19 @@ public class InteractV2 : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
         if (!other.CompareTag(playerTag) && !other.gameObject.name.Contains("Player")) return;
+
+        // Nếu đứng chờ sẵn ở bệ, liên tục kiểm tra nếu quest vừa hoàn tất hoặc vừa mở khóa
         if (!IsFeatureUnlocked())
         {
-            if (InteractManagerV2.Instance != null)
+            CheckFeatureUnlockStatus();
+            if (!IsFeatureUnlocked())
             {
-                InteractManagerV2.Instance.Unregister(this);
+                if (InteractManagerV2.Instance != null)
+                {
+                    InteractManagerV2.Instance.Unregister(this);
+                }
+                return;
             }
-            return;
         }
 
         if (InteractManagerV2.Instance != null)

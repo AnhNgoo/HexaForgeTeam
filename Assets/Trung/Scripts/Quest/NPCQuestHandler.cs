@@ -306,11 +306,12 @@ public class NPCQuestHandler : MonoBehaviour
                     new DialogueLine(SpeakerType.NPC, "Care to double those shiny gems in your pouch? One roll of fate, all or nothing!")
                 };
 
+            // Chuẩn hóa action về CloseDialogue để tương thích 100% với DialogueUI.ExecuteChoice()
             List<DialogueChoice> gambleChoices = new List<DialogueChoice>
             {
+                new DialogueChoice { choiceText = "Bet 50 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
                 new DialogueChoice { choiceText = "Bet 100 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
-                new DialogueChoice { choiceText = "Bet 300 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
-                new DialogueChoice { choiceText = "Bet 1000 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
+                new DialogueChoice { choiceText = "Bet 250 Gems", action = DialogueAction.CloseDialogue, menuType = MenuType.None },
                 new DialogueChoice { choiceText = "Walk Away", action = DialogueAction.CloseDialogue, menuType = MenuType.None }
             };
 
