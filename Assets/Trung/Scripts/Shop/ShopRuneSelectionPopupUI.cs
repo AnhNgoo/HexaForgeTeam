@@ -399,10 +399,12 @@ public class ShopRuneSelectionPopupUI : MonoBehaviour
     {
         List<RuneStatType> pool = new List<RuneStatType>()
         {
-            RuneStatType.HP, RuneStatType.HPPercent, RuneStatType.MP, RuneStatType.MPPercent,
-            RuneStatType.Stamina, RuneStatType.StaminaPercent, RuneStatType.ATK, RuneStatType.ATKPercent,
-            RuneStatType.DEF, RuneStatType.DEFPercent, RuneStatType.CritChance, RuneStatType.CritDamage,
-            RuneStatType.ArmorPenetration, RuneStatType.StaminaRegen
+            RuneStatType.HP, RuneStatType.HPPercent,
+            RuneStatType.MP, RuneStatType.MPPercent, RuneStatType.MPRegen,
+            RuneStatType.Stamina, RuneStatType.StaminaPercent, RuneStatType.StaminaRegen,
+            RuneStatType.ATK, RuneStatType.ATKPercent,
+            RuneStatType.DEF, RuneStatType.DEFPercent,
+            RuneStatType.Speed, RuneStatType.PoisonDamage
         };
 
         for (int i = pool.Count - 1; i >= 0; i--)
@@ -426,10 +428,10 @@ public class ShopRuneSelectionPopupUI : MonoBehaviour
             case RuneStatType.StaminaPercent: return GetValueByRarity(rarity, 3f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
             case RuneStatType.ATKPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
             case RuneStatType.DEFPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
-            case RuneStatType.CritChance: return GetValueByRarity(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 18f);
-            case RuneStatType.CritDamage: return GetValueByRarity(rarity, 4f, 8f, 8f, 15f, 15f, 25f, 25f, 40f);
-            case RuneStatType.ArmorPenetration: return GetValueByRarity(rarity, 2f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
             case RuneStatType.StaminaRegen: return GetValueByRarity(rarity, 3f, 6f, 6f, 10f, 10f, 18f, 18f, 30f);
+            case RuneStatType.MPRegen: return GetValueByRarity(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 16f);
+            case RuneStatType.Speed: return GetValueByRarity(rarity, 0.2f, 0.5f, 0.5f, 0.9f, 0.9f, 1.4f, 1.4f, 2.2f);
+            case RuneStatType.PoisonDamage: return GetValueByRarity(rarity, 2f, 5f, 5f, 10f, 10f, 20f, 20f, 35f);
         }
         return 1f;
     }

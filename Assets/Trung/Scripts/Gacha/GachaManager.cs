@@ -11,14 +11,9 @@ public class GachaManager : MonoBehaviour
     [SerializeField] [Range(0, 100)] private int epicRate = 8;
     [SerializeField] [Range(0, 100)] private int legendaryRate = 2;
 
-    [Header("Cost Config Per Roll (Balanced 30 Levels)")]
-    [SerializeField] private int gemCostPerRoll = 150;
-    [SerializeField] private int gemCostMultiRoll = 1350;
+    [Header("Cost Config Per Roll")]
+    [SerializeField] private int gemCostPerRoll = 120;
     [SerializeField] private string ticketItemID = "GACHA_TICKET_01";
-
-    [Header("Pity Guarantee System")]
-    [SerializeField] private int pityLegendaryThreshold = 60;
-    private int currentPityCount = 0;
 
     [Header("Inventory Protection Config")]
     [SerializeField] private int maxInventorySlots = 100;
@@ -29,15 +24,9 @@ public class GachaManager : MonoBehaviour
     private int totalCardCount;
     private bool isRollActive = false;
 
-    public int SingleRollCost => gemCostPerRoll;
-    public int MultiRollCost => gemCostMultiRoll;
-    public int CurrentPityCount => currentPityCount;
-    public int PityThreshold => pityLegendaryThreshold;
-
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        currentPityCount = PlayerPrefs.GetInt("GACHA_PITY_COUNT", 0);
     }
 
     public bool IsRollActive() => isRollActive;
@@ -76,7 +65,7 @@ public class GachaManager : MonoBehaviour
         {
             if (amount == 10 && ticketsToUse == 0)
             {
-                requiredGem = gemCostMultiRoll;
+                requiredGem = 1080;
             }
             else
             {
@@ -128,24 +117,7 @@ public class GachaManager : MonoBehaviour
 
         for (int i = 0; i < amount; i++)
         {
-            currentPityCount++;
-
-            RuneRarity chosenRarity;
-            if (currentPityCount >= pityLegendaryThreshold)
-            {
-                chosenRarity = RuneRarity.Legendary;
-                currentPityCount = 0;
-            }
-            else
-            {
-                chosenRarity = RandomRuneRarity();
-                if (chosenRarity == RuneRarity.Legendary)
-                {
-                    currentPityCount = 0;
-                }
-            }
-
-            RuneData rune = GenerateRandomRuneWithRarity(chosenRarity);
+            RuneData rune = GenerateRandomRune();
             rolledRunesData.Add(rune);
 
             if (rune.runeRarity > highestRarityInThisRoll)
@@ -161,9 +133,6 @@ public class GachaManager : MonoBehaviour
                 if (rune.runeRarity == RuneRarity.Legendary) AchievementManager.Instance.AddLegendaryProgress(1);
             }
         }
-
-        PlayerPrefs.SetInt("GACHA_PITY_COUNT", currentPityCount);
-        PlayerPrefs.Save();
 
         GameEventManager.TriggerGachaRolled(amount);
 
@@ -255,17 +224,17 @@ public class GachaManager : MonoBehaviour
             GachaUI.Instance.RefreshCostUI();
         }
     }
-
     public void ReRoll()
     {
         if (lastRollAmount <= 0) return;
         Roll(lastRollAmount);
     }
 
-    private RuneData GenerateRandomRuneWithRarity(RuneRarity rarity)
+    private RuneData GenerateRandomRune()
     {
         RuneColor runeColor = RandomRuneColor();
-        RuneData rune = new RuneData(runeColor, rarity);
+        RuneRarity runeRarity = RandomRuneRarity();
+        RuneData rune = new RuneData(runeColor, runeRarity);
         AssignRuneLore(rune);
         GenerateAffixes(rune);
         return rune;
@@ -323,10 +292,12 @@ public class GachaManager : MonoBehaviour
     {
         List<RuneStatType> pool = new List<RuneStatType>()
         {
-            RuneStatType.HP, RuneStatType.HPPercent, RuneStatType.MP, RuneStatType.MPPercent,
-            RuneStatType.Stamina, RuneStatType.StaminaPercent, RuneStatType.ATK, RuneStatType.ATKPercent,
-            RuneStatType.DEF, RuneStatType.DEFPercent, RuneStatType.CritChance, RuneStatType.CritDamage,
-            RuneStatType.ArmorPenetration, RuneStatType.StaminaRegen
+            RuneStatType.HP, RuneStatType.HPPercent,
+            RuneStatType.MP, RuneStatType.MPPercent, RuneStatType.MPRegen,
+            RuneStatType.Stamina, RuneStatType.StaminaPercent, RuneStatType.StaminaRegen,
+            RuneStatType.ATK, RuneStatType.ATKPercent,
+            RuneStatType.DEF, RuneStatType.DEFPercent,
+            RuneStatType.Speed, RuneStatType.PoisonDamage
         };
 
         for (int i = pool.Count - 1; i >= 0; i--)
@@ -350,10 +321,10 @@ public class GachaManager : MonoBehaviour
             case RuneStatType.StaminaPercent: return GetValueByRarity(rarity, 3f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
             case RuneStatType.ATKPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
             case RuneStatType.DEFPercent: return GetValueByRarity(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
-            case RuneStatType.CritChance: return GetValueByRarity(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 18f);
-            case RuneStatType.CritDamage: return GetValueByRarity(rarity, 4f, 8f, 8f, 15f, 15f, 25f, 25f, 40f);
-            case RuneStatType.ArmorPenetration: return GetValueByRarity(rarity, 2f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
             case RuneStatType.StaminaRegen: return GetValueByRarity(rarity, 3f, 6f, 6f, 10f, 10f, 18f, 18f, 30f);
+            case RuneStatType.MPRegen: return GetValueByRarity(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 16f);
+            case RuneStatType.Speed: return GetValueByRarity(rarity, 0.2f, 0.5f, 0.5f, 0.9f, 0.9f, 1.4f, 1.4f, 2.2f);
+            case RuneStatType.PoisonDamage: return GetValueByRarity(rarity, 2f, 5f, 5f, 10f, 10f, 20f, 20f, 35f);
         }
         return 1f;
     }

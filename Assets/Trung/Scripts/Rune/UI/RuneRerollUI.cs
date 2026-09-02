@@ -327,11 +327,14 @@ public class RuneRerollUI : MonoBehaviour
     private RuneStatType GetRandomStatPool()
     {
         List<RuneStatType> validPool = new List<RuneStatType>();
-        for (int i = 0; i < 14; i++)
-        {
-            RuneStatType type = (RuneStatType)i;
-            bool isAlreadyOwned = false;
+        RuneStatType[] allTypes = (RuneStatType[])System.Enum.GetValues(typeof(RuneStatType));
 
+        for (int i = 0; i < allTypes.Length; i++)
+        {
+            RuneStatType type = allTypes[i];
+            if (type == RuneStatType.AllStats) continue;
+
+            bool isAlreadyOwned = false;
             if (targetRuneData != null)
             {
                 for (int j = 0; j < targetRuneData.affixes.Count; j++)
@@ -356,7 +359,7 @@ public class RuneRerollUI : MonoBehaviour
             return validPool[Random.Range(0, validPool.Count)];
         }
 
-        return (RuneStatType)Random.Range(0, 14);
+        return RuneStatType.HP;
     }
 
     private float GenerateNewValueByRarity(RuneRarity rarity, RuneStatType stat)
@@ -373,10 +376,10 @@ public class RuneRerollUI : MonoBehaviour
             case RuneStatType.StaminaPercent: return GetVal(rarity, 3f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
             case RuneStatType.ATKPercent: return GetVal(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
             case RuneStatType.DEFPercent: return GetVal(rarity, 2f, 4f, 4f, 7f, 7f, 12f, 12f, 18f);
-            case RuneStatType.CritChance: return GetVal(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 18f);
-            case RuneStatType.CritDamage: return GetVal(rarity, 4f, 8f, 8f, 15f, 15f, 25f, 25f, 40f);
-            case RuneStatType.ArmorPenetration: return GetVal(rarity, 2f, 5f, 5f, 9f, 9f, 15f, 15f, 25f);
             case RuneStatType.StaminaRegen: return GetVal(rarity, 3f, 6f, 6f, 10f, 10f, 18f, 18f, 30f);
+            case RuneStatType.MPRegen: return GetVal(rarity, 1f, 3f, 3f, 6f, 6f, 10f, 10f, 16f);
+            case RuneStatType.Speed: return GetVal(rarity, 0.2f, 0.5f, 0.5f, 0.9f, 0.9f, 1.4f, 1.4f, 2.2f);
+            case RuneStatType.PoisonDamage: return GetVal(rarity, 2f, 5f, 5f, 10f, 10f, 20f, 20f, 35f);
         }
         return 1f;
     }
@@ -400,11 +403,13 @@ public class RuneRerollUI : MonoBehaviour
         statTargetDropdown.options.Clear();
         availableDropdownStats.Clear();
 
-        for (int i = 0; i < 14; i++)
+        RuneStatType[] allTypes = (RuneStatType[])System.Enum.GetValues(typeof(RuneStatType));
+        for (int i = 0; i < allTypes.Length; i++)
         {
-            RuneStatType candidateStat = (RuneStatType)i;
-            bool isAlreadyOwnedOnRune = false;
+            RuneStatType candidateStat = allTypes[i];
+            if (candidateStat == RuneStatType.AllStats) continue;
 
+            bool isAlreadyOwnedOnRune = false;
             if (targetRuneData != null)
             {
                 for (int j = 0; j < targetRuneData.affixes.Count; j++)
@@ -441,9 +446,11 @@ public class RuneRerollUI : MonoBehaviour
     {
         switch (statType)
         {
-            case RuneStatType.HPPercent: case RuneStatType.MPPercent: case RuneStatType.StaminaPercent:
-            case RuneStatType.ATKPercent: case RuneStatType.DEFPercent: case RuneStatType.CritChance:
-            case RuneStatType.CritDamage: case RuneStatType.ArmorPenetration: case RuneStatType.StaminaRegen:
+            case RuneStatType.HPPercent:
+            case RuneStatType.MPPercent:
+            case RuneStatType.StaminaPercent:
+            case RuneStatType.ATKPercent:
+            case RuneStatType.DEFPercent:
                 return true;
         }
         return false;
@@ -457,16 +464,16 @@ public class RuneRerollUI : MonoBehaviour
             case RuneStatType.HPPercent: return "HP Modifier";
             case RuneStatType.MP: return "Max MP";
             case RuneStatType.MPPercent: return "MP Modifier";
+            case RuneStatType.MPRegen: return "MP Regeneration";
             case RuneStatType.Stamina: return "Stamina Cap";
             case RuneStatType.StaminaPercent: return "Stamina Modifier";
+            case RuneStatType.StaminaRegen: return "Stamina Regeneration";
             case RuneStatType.ATK: return "Attack Power";
             case RuneStatType.ATKPercent: return "Attack Modifier";
             case RuneStatType.DEF: return "Defense Rating";
             case RuneStatType.DEFPercent: return "Defense Modifier";
-            case RuneStatType.CritChance: return "Critical Chance";
-            case RuneStatType.CritDamage: return "Critical Damage";
-            case RuneStatType.ArmorPenetration: return "Armor Penetration";
-            case RuneStatType.StaminaRegen: return "Stamina Regeneration";
+            case RuneStatType.Speed: return "Movement Speed";
+            case RuneStatType.PoisonDamage: return "Poison Damage";
             case RuneStatType.AllStats: return "All Attributes";
         }
         return "Unknown Stat";

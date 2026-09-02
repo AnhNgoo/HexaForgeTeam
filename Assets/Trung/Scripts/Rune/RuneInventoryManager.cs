@@ -19,10 +19,10 @@ public class RuneInventoryManager : MonoBehaviour
     [SerializeField] private float maxStaminaPercent = 28f;
     [SerializeField] private float maxATKPercent = 24f;
     [SerializeField] private float maxDEFPercent = 24f;
-    [SerializeField] private float maxCritChance = 38f;
-    [SerializeField] private float maxCritDamage = 90f;
-    [SerializeField] private float maxArmorPenetration = 28f;
     [SerializeField] private float maxStaminaRegen = 45f;
+    [SerializeField] private float maxMPRegen = 25f;
+    [SerializeField] private float maxSpeed = 3f;
+    [SerializeField] private float maxPoisonDamage = 50f;
 
     private float lastSaveTime = -99f;
 
@@ -61,34 +61,7 @@ public class RuneInventoryManager : MonoBehaviour
         SaveRunes();
     }
 
-    #region Dismantle System (Balanced 30 Levels)
-
-    public static void GetDismantleReward(RuneRarity rarity, out int gemReward, out int shardReward)
-    {
-        switch (rarity)
-        {
-            case RuneRarity.Common:
-                gemReward = 2;
-                shardReward = 5;
-                break;
-            case RuneRarity.Rare:
-                gemReward = 5;
-                shardReward = 15;
-                break;
-            case RuneRarity.Epic:
-                gemReward = 15;
-                shardReward = 40;
-                break;
-            case RuneRarity.Legendary:
-                gemReward = 40;
-                shardReward = 100;
-                break;
-            default:
-                gemReward = 1;
-                shardReward = 2;
-                break;
-        }
-    }
+    #region Dismantle System (Chuẩn GDD)
 
     public void DismantleRunes(List<string> runeIDsToDismantle)
     {
@@ -102,9 +75,28 @@ public class RuneInventoryManager : MonoBehaviour
         {
             if (runeIDsToDismantle.Contains(runes[i].runeID))
             {
-                GetDismantleReward(runes[i].runeRarity, out int g, out int s);
-                totalGemsGained += g;
-                totalShardsGained += s;
+                RuneRarity rarity = runes[i].runeRarity;
+
+                // Tỷ lệ hoàn trả Gem & Shard theo GDD
+                switch (rarity)
+                {
+                    case RuneRarity.Common:
+                        totalGemsGained += 10;
+                        totalShardsGained += 50;
+                        break;
+                    case RuneRarity.Rare:
+                        totalGemsGained += 25;
+                        totalShardsGained += 150;
+                        break;
+                    case RuneRarity.Epic:
+                        totalGemsGained += 60;
+                        totalShardsGained += 400;
+                        break;
+                    case RuneRarity.Legendary:
+                        totalGemsGained += 150;
+                        totalShardsGained += 1000;
+                        break;
+                }
 
                 runes.RemoveAt(i);
                 countDismantled++;
@@ -143,7 +135,6 @@ public class RuneInventoryManager : MonoBehaviour
     }
 
     #endregion
-
 
     #region Equip
 
@@ -351,10 +342,10 @@ public class RuneInventoryManager : MonoBehaviour
         ClampStat(stats, RuneStatType.StaminaPercent, maxStaminaPercent);
         ClampStat(stats, RuneStatType.ATKPercent, maxATKPercent);
         ClampStat(stats, RuneStatType.DEFPercent, maxDEFPercent);
-        ClampStat(stats, RuneStatType.CritChance, maxCritChance);
-        ClampStat(stats, RuneStatType.CritDamage, maxCritDamage);
-        ClampStat(stats, RuneStatType.ArmorPenetration, maxArmorPenetration);
         ClampStat(stats, RuneStatType.StaminaRegen, maxStaminaRegen);
+        ClampStat(stats, RuneStatType.MPRegen, maxMPRegen);
+        ClampStat(stats, RuneStatType.Speed, maxSpeed);
+        ClampStat(stats, RuneStatType.PoisonDamage, maxPoisonDamage);
     }
 
     private void ClampStat(Dictionary<RuneStatType, float> stats, RuneStatType statType, float maxValue)
@@ -377,10 +368,10 @@ public class RuneInventoryManager : MonoBehaviour
             case RuneStatType.StaminaPercent: return maxStaminaPercent;
             case RuneStatType.ATKPercent: return maxATKPercent;
             case RuneStatType.DEFPercent: return maxDEFPercent;
-            case RuneStatType.CritChance: return maxCritChance;
-            case RuneStatType.CritDamage: return maxCritDamage;
-            case RuneStatType.ArmorPenetration: return maxArmorPenetration;
             case RuneStatType.StaminaRegen: return maxStaminaRegen;
+            case RuneStatType.MPRegen: return maxMPRegen;
+            case RuneStatType.Speed: return maxSpeed;
+            case RuneStatType.PoisonDamage: return maxPoisonDamage;
         }
         return 0f;
     }
@@ -437,5 +428,4 @@ public class RuneInventoryManager : MonoBehaviour
             SaveRunes();
         }
     }
-    
 }

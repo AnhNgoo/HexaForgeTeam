@@ -144,9 +144,6 @@ public class GachaUI : MonoBehaviour
     {
         if (infoPanelRoot == null) return;
 
-        int pityCount = GachaManager.Instance != null ? GachaManager.Instance.CurrentPityCount : 0;
-        int pityTarget = GachaManager.Instance != null ? GachaManager.Instance.PityThreshold : 60;
-
         if (infoRatesText != null)
         {
             infoRatesText.text = 
@@ -155,8 +152,6 @@ public class GachaUI : MonoBehaviour
                 "<color=#3399FF>• Rare:</color> <color=#00FFCC><b>25%</b></color> (2 Affixes)\n" +
                 "<color=#B266FF>• Epic:</color> <color=#00FFCC><b>8%</b></color> (3 Affixes)\n" +
                 "<color=#FF9900>• Legendary:</color> <color=#00FFCC><b>2%</b></color> (4 Affixes)\n\n" +
-                $"<b>Legendary Pity:</b> <color=#FFD700>{pityCount} / {pityTarget}</color>\n" +
-                "<i>(Guaranteed Legendary at maximum pity)</i>\n\n" +
                 "<i>Duplicated runes can be dismantled for Shards & Gems.</i>";
         }
 
@@ -214,9 +209,6 @@ public class GachaUI : MonoBehaviour
             ownedTickets = InventoryItemManager.Instance.GetItemQuantity("GACHA_TICKET_01");
         }
 
-        int singleCost = GachaManager.Instance != null ? GachaManager.Instance.SingleRollCost : 150;
-        int multiCost = GachaManager.Instance != null ? GachaManager.Instance.MultiRollCost : 1350;
-
         if (cost1DisplayUI != null)
         {
             List<CostData> costs1 = new List<CostData>();
@@ -226,7 +218,7 @@ public class GachaUI : MonoBehaviour
             }
             else
             {
-                costs1.Add(new CostData("GEM", singleCost));
+                costs1.Add(new CostData("GEM", 120));
             }
             cost1DisplayUI.SetupCost(costs1);
         }
@@ -244,7 +236,7 @@ public class GachaUI : MonoBehaviour
 
             if (missingRolls > 0)
             {
-                int gemNeeded = (ticketsToUse == 0) ? multiCost : (missingRolls * singleCost);
+                int gemNeeded = (ticketsToUse == 0) ? 1080 : (missingRolls * 120);
                 costs10.Add(new CostData("GEM", gemNeeded));
             }
 

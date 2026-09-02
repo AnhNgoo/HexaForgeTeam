@@ -326,7 +326,15 @@ public class RuneDetailInfoPanel : MonoBehaviour
     {
         if (currentData == null) return;
 
-        RuneInventoryManager.GetDismantleReward(currentData.runeRarity, out int refundGem, out int shardReward);
+        int refundGem = 30;
+        int shardReward = 50;
+
+        switch (currentData.runeRarity)
+        {
+            case RuneRarity.Rare: refundGem = 80; shardReward = 150; break;
+            case RuneRarity.Epic: refundGem = 200; shardReward = 400; break;
+            case RuneRarity.Legendary: refundGem = 600; shardReward = 1000; break;
+        }
 
         CharacterType[] allChars = (CharacterType[])System.Enum.GetValues(typeof(CharacterType));
         foreach (CharacterType charType in allChars)
@@ -352,11 +360,6 @@ public class RuneDetailInfoPanel : MonoBehaviour
         if (RuneShardManager.Instance != null && shardReward > 0)
         {
             RuneShardManager.Instance.AddShards(shardReward);
-        }
-
-        if (AchievementManager.Instance != null)
-        {
-            AchievementManager.Instance.AddDismantleProgress(1);
         }
 
         if (RuneInventoryManager.Instance != null)
@@ -386,6 +389,7 @@ public class RuneDetailInfoPanel : MonoBehaviour
             LobbyNotifyManager.Instance.ShowNotify($"Dismantled Rune! Recovered {refundGem} Gems & {shardReward} Shards.", Color.green);
         }
     }
+
     private void UpdateRuneImageVisual(RuneData runeData)
     {
         if (targetRuneImage == null) return;
@@ -429,9 +433,11 @@ public class RuneDetailInfoPanel : MonoBehaviour
     {
         switch (statType)
         {
-            case RuneStatType.HPPercent: case RuneStatType.MPPercent: case RuneStatType.StaminaPercent:
-            case RuneStatType.ATKPercent: case RuneStatType.DEFPercent: case RuneStatType.CritChance:
-            case RuneStatType.CritDamage: case RuneStatType.ArmorPenetration: case RuneStatType.StaminaRegen:
+            case RuneStatType.HPPercent:
+            case RuneStatType.MPPercent:
+            case RuneStatType.StaminaPercent:
+            case RuneStatType.ATKPercent:
+            case RuneStatType.DEFPercent:
                 return true;
         }
         return false;
@@ -445,16 +451,16 @@ public class RuneDetailInfoPanel : MonoBehaviour
             case RuneStatType.HPPercent: return "HP Modifier";
             case RuneStatType.MP: return "Max MP";
             case RuneStatType.MPPercent: return "MP Modifier";
+            case RuneStatType.MPRegen: return "MP Regeneration";
             case RuneStatType.Stamina: return "Stamina Cap";
             case RuneStatType.StaminaPercent: return "Stamina Modifier";
+            case RuneStatType.StaminaRegen: return "Stamina Regeneration";
             case RuneStatType.ATK: return "Attack Power";
             case RuneStatType.ATKPercent: return "Attack Modifier";
             case RuneStatType.DEF: return "Defense Rating";
             case RuneStatType.DEFPercent: return "Defense Modifier";
-            case RuneStatType.CritChance: return "Critical Chance";
-            case RuneStatType.CritDamage: return "Critical Damage";
-            case RuneStatType.ArmorPenetration: return "Armor Penetration";
-            case RuneStatType.StaminaRegen: return "Stamina Regeneration";
+            case RuneStatType.Speed: return "Movement Speed";
+            case RuneStatType.PoisonDamage: return "Poison Damage";
             case RuneStatType.AllStats: return "All Attributes";
         }
         return "Unknown Stat";
