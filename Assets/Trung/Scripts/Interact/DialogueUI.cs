@@ -57,6 +57,15 @@ public class DialogueUI : MonoBehaviour
         allChoices = new List<ChoiceTabItem>() { choice1Tab, choice2Tab, choice3Tab, choice4Tab };
         InitTabHoverTriggers();
 
+        // ✅ DialogueUI tự dịch bằng T() → CẤM AutoTranslateUI ghi đè lên typewriter
+        AutoTranslateUI.IgnoreText(dialogueText);
+        AutoTranslateUI.IgnoreText(npcNameText);
+        for (int i = 0; i < allChoices.Count; i++)
+        {
+            if (allChoices[i] != null)
+                AutoTranslateUI.IgnoreText(allChoices[i].text);
+        }
+
         if (root != null) root.SetActive(false);
     }
 
@@ -272,8 +281,13 @@ public class DialogueUI : MonoBehaviour
             }
         }
 
-        targetFullText = line.text;
+        targetFullText = T(line.text);
         typewriterRoutine = StartCoroutine(TypewriterRoutine(targetFullText));
+    }
+
+    private string T(string text)
+    {
+        return SettingsLocalizationData.Translate(text);
     }
 
     private IEnumerator TypewriterRoutine(string fullText)
@@ -422,7 +436,7 @@ public class DialogueUI : MonoBehaviour
         }
     }
 
-    private void SetupTabChoice(ChoiceTabItem tab, int index)
+        private void SetupTabChoice(ChoiceTabItem tab, int index)
     {
         if (tab == null || tab.button == null) return;
 
@@ -449,23 +463,25 @@ public class DialogueUI : MonoBehaviour
         bool isQuestChoice = choice.choiceText.IndexOf("Quest", System.StringComparison.OrdinalIgnoreCase) >= 0 ||
                              choice.choiceText.IndexOf("Reward", System.StringComparison.OrdinalIgnoreCase) >= 0;
 
+        string translatedChoice = T(choice.choiceText);
+
         if (tab.text != null)
         {
             if (isUnlocked)
             {
                 if (isQuestChoice)
                 {
-                    tab.text.SetTextSafe($"<color=#FFCC00>{choice.choiceText}</color>");
+                    tab.text.SetTextSafe($"<color=#FFCC00>{translatedChoice}</color>");
                 }
                 else
                 {
-                    tab.text.SetTextSafe(choice.choiceText);
+                    tab.text.SetTextSafe(translatedChoice);
                     tab.text.color = Color.white;
                 }
             }
             else
             {
-                tab.text.SetTextSafe($"{choice.choiceText} <color=#888888>(Locked)</color>");
+                tab.text.SetTextSafe($"{translatedChoice} <color=#888888>({T("Locked")})</color>");
                 tab.text.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
             }
         }
