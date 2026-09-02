@@ -149,7 +149,7 @@ Transform:
   m_GameObject: {fileID: 583247}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -35000, z: 0}
+  m_LocalPosition: {x: 0, y: -34995, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -191,7 +191,7 @@ MonoBehaviour:
   m_IsGlobal: 0
   priority: 3
   blendDistance: 0
-  weight: 1
+  weight: 0
   sharedProfile: {fileID: 11400000, guid: eab86dbbf9117fb4f9a54b786b342118, type: 2}
 --- !u!1 &2112835
 GameObject:
@@ -10461,7 +10461,7 @@ MonoBehaviour:
   RenderPipeline: 2
   m_weatherSystemExists: 0
   m_startingUnderwater: 1
-  m_seaLevel: 0.5
+  m_seaLevel: 1
   m_playerCamera: {fileID: 0}
   m_underwaterParticles: {fileID: 407162540}
   m_horizonObject: {fileID: 905313836}
@@ -10910,7 +10910,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &546001965
 Transform:
   m_ObjectHideFlags: 0
@@ -10924,7 +10924,6 @@ Transform:
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 1
   m_Children:
-  - {fileID: 2006313898}
   - {fileID: 533266448}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -18616,7 +18615,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1401220443
 Transform:
   m_ObjectHideFlags: 0
@@ -24515,7 +24514,6 @@ GameObject:
   - component: {fileID: 2006313898}
   - component: {fileID: 2006313901}
   - component: {fileID: 2006313900}
-  - component: {fileID: 2006313899}
   m_Layer: 6
   m_Name: Water Surface
   m_TagString: Untagged
@@ -24532,288 +24530,14 @@ Transform:
   m_GameObject: {fileID: 2006313897}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1234861465}
   - {fileID: 1401220443}
-  m_Father: {fileID: 546001965}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2006313899
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2006313897}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 121c7ad962667ca409c1cefbc44c67f9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_infiniteMode: 1
-  m_autoUpdateMode: 0
-  SceneConditionsData:
-    m_sunColor: {r: 0, g: 0, b: 0, a: 0}
-    m_sunIntensity: 0
-    m_sunDirection: {x: 0, y: 0, z: 0}
-    m_hour: 0
-    m_minute: 0
-  m_disableAllReflections: 1
-  m_autoRefresh: 1
-  m_ignoreSceneConditions: 1
-  m_refreshRate: 0.5
-  m_layersHasBeenSet: 1
-  RenderPipeline: 2
-  m_waterProfile: {fileID: 0}
-  m_waterProfileValues:
-    m_typeOfWater: Deep Blue Ocean
-    m_profileRename: 
-    m_userCustomProfile: 0
-    m_postProcessProfileBuiltIn: {fileID: 11400000, guid: 621882b688d3a034a8377536e9c0ef66, type: 2}
-    m_postProcessingProfileGUIDBuiltIn: 621882b688d3a034a8377536e9c0ef66
-    m_directToCamera: 0
-    m_postProcessProfileURP: {fileID: 11400000, guid: eab86dbbf9117fb4f9a54b786b342118, type: 2}
-    m_postProcessingProfileGUIDURP: eab86dbbf9117fb4f9a54b786b342118
-    m_postProcessingProfileGUIDHDRP: aba43adbffd9e0840b1c05267e0f8aa4
-    m_underwaterFogGradient:
-      serializedVersion: 2
-      key0: {r: 0.6543699, g: 0.8018868, b: 0.7716725, a: 1}
-      key1: {r: 0.4672481, g: 0.7924528, b: 0.7247019, a: 1}
-      key2: {r: 0.11213957, g: 0.30798066, b: 0.5283019, a: 1}
-      key3: {r: 0.047058824, g: 0.13725491, b: 0.22745098, a: 0}
-      key4: {r: 0, g: 0, b: 0, a: 0}
-      key5: {r: 0, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 0
-      ctime1: 13002
-      ctime2: 36913
-      ctime3: 65535
-      ctime4: 0
-      ctime5: 0
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 32768
-      atime2: 65535
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_ColorSpace: -1
-      m_NumColorKeys: 4
-      m_NumAlphaKeys: 3
-    m_underwaterFogColor: {r: 0.23371306, g: 0.36069658, b: 0.49056602, a: 1}
-    m_underwaterFogDepth: 100
-    m_underwaterFogDistance: 75
-    m_underwaterNearFogDistance: -4
-    m_underwaterFogDensity: 0.055
-    m_constUnderwaterPostExposure: 0.3
-    m_gradientUnderwaterPostExposure:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: -0.25
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      - serializedVersion: 3
-        time: 0.5
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1
-        value: -0.25
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 0
-        weightedMode: 0
-        inWeight: 0
-        outWeight: 0
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-    m_constUnderwaterColorFilter: {r: 1, g: 1, b: 1, a: 1}
-    m_gradientUnderwaterColorFilter:
-      serializedVersion: 2
-      key0: {r: 0.6020381, g: 0.7090592, b: 0.7830189, a: 1}
-      key1: {r: 0.9339623, g: 0.84083223, b: 0.7885814, a: 1}
-      key2: {r: 1, g: 1, b: 1, a: 0}
-      key3: {r: 0.9372549, g: 0.84313726, b: 0.7921569, a: 0}
-      key4: {r: 0.6039216, g: 0.70980394, b: 0.78431374, a: 0}
-      key5: {r: 0, g: 0, b: 0, a: 0}
-      key6: {r: 0, g: 0, b: 0, a: 0}
-      key7: {r: 0, g: 0, b: 0, a: 0}
-      ctime0: 6554
-      ctime1: 16384
-      ctime2: 31760
-      ctime3: 49151
-      ctime4: 58982
-      ctime5: 0
-      ctime6: 0
-      ctime7: 0
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_ColorSpace: -1
-      m_NumColorKeys: 5
-      m_NumAlphaKeys: 2
-    m_colorDepthRamp: {fileID: 2800000, guid: 963c350b718c6414e96f8c5692f060b1, type: 3}
-    m_normalLayer0: {fileID: 2800000, guid: bde6cb2e213a1a84a9a579bfd2ac765e, type: 3}
-    m_normalLayer1: {fileID: 2800000, guid: ba8b90b254eca554697a571d28aa6b1c, type: 3}
-    m_fadeNormal: {fileID: 2800000, guid: ba8b90b254eca554697a571d28aa6b1c, type: 3}
-    m_foamTexture: {fileID: 2800000, guid: 27682bc3f6c60ee41a1ac2d0bdb3f696, type: 3}
-    m_foamAlphaRamp: {fileID: 2800000, guid: 25c5404bd86c64615a27ddad4d9d0b19, type: 3}
-    m_renderTexture: {fileID: 0}
-    m_foamBubbleTexture: {fileID: 2800000, guid: e65a4cfa3d384d045aac1320a51c9c1c, type: 3}
-    m_waterGradient:
-      serializedVersion: 2
-      key0: {r: 0.9882353, g: 0.99215686, b: 0.9882353, a: 1}
-      key1: {r: 0.70980394, g: 0.7921569, b: 0.7254902, a: 1}
-      key2: {r: 0.4509804, g: 0.6039216, b: 0.48235294, a: 0}
-      key3: {r: 0.1764706, g: 0.38039216, b: 0.2901961, a: 0}
-      key4: {r: 0.14117648, g: 0.33333334, b: 0.2901961, a: 0}
-      key5: {r: 0.105882354, g: 0.2627451, b: 0.2901961, a: 0}
-      key6: {r: 0.101960786, g: 0.23137255, b: 0.2901961, a: 0}
-      key7: {r: 0.09019608, g: 0.19215687, b: 0.2901961, a: 0}
-      ctime0: 0
-      ctime1: 9830
-      ctime2: 19661
-      ctime3: 29491
-      ctime4: 39321
-      ctime5: 49151
-      ctime6: 58982
-      ctime7: 65535
-      atime0: 0
-      atime1: 65535
-      atime2: 0
-      atime3: 0
-      atime4: 0
-      atime5: 0
-      atime6: 0
-      atime7: 0
-      m_Mode: 0
-      m_ColorSpace: -1
-      m_NumColorKeys: 8
-      m_NumAlphaKeys: 2
-    m_gradientTextureResolution: 128
-    m_foamTiling: 256
-    m_waterTiling: 512
-    m_shorelineMovement: 0.1
-    m_waveCount: 128
-    m_waveSpeed: 12.5
-    m_waveSize: 0.1
-    m_transparentDistance: 0.1
-    m_foamDistance: 1
-    m_reflectionDistortion: 1
-    m_reflectionStrength: 0.65
-    m_specularColor: {r: 0.46226418, g: 0.46226418, b: 0.46226418, a: 1}
-    m_metallic: 0.2
-    m_smoothness: 0.8
-    m_normalStrength0: 0.4
-    m_normalStrength1: 0.6
-    m_fadeNormalStrength: 0.4
-    m_fadeStart: 50
-    m_fadeDistance: 300
-    m_foamBubbleScale: 0.2
-    m_foamBubbleTiling: 1536
-    m_foamStrength: 2
-    m_foamBubblesStrength: 0.8
-    m_foamEdge: 0.25
-    m_foamMoveSpeed: 0.3
-  m_player: {fileID: 0}
-  m_RenderCamera: {fileID: 0}
-  m_gameCamera: {fileID: 0}
-  m_RenderPath: 0
-  m_waterMaterialInstances:
-  - {fileID: 2100000, guid: 003f45c94730b9f498051fd22ebb0c87, type: 2}
-  m_currentGradient:
-    serializedVersion: 2
-    key0: {r: 0.9882353, g: 0.99215686, b: 0.9882353, a: 1}
-    key1: {r: 0.70980394, g: 0.7921569, b: 0.7254902, a: 1}
-    key2: {r: 0.4509804, g: 0.6039216, b: 0.48235294, a: 0}
-    key3: {r: 0.1764706, g: 0.38039216, b: 0.2901961, a: 0}
-    key4: {r: 0.14117648, g: 0.33333334, b: 0.2901961, a: 0}
-    key5: {r: 0.105882354, g: 0.2627451, b: 0.2901961, a: 0}
-    key6: {r: 0.101960786, g: 0.23137255, b: 0.2901961, a: 0}
-    key7: {r: 0.09019608, g: 0.19215687, b: 0.2901961, a: 0}
-    ctime0: 0
-    ctime1: 9830
-    ctime2: 19661
-    ctime3: 29491
-    ctime4: 39321
-    ctime5: 49151
-    ctime6: 58982
-    ctime7: 65535
-    atime0: 0
-    atime1: 65535
-    atime2: 0
-    atime3: 0
-    atime4: 0
-    atime5: 0
-    atime6: 0
-    atime7: 0
-    m_Mode: 0
-    m_ColorSpace: -1
-    m_NumColorKeys: 8
-    m_NumAlphaKeys: 2
-  m_waterTexture: {fileID: 2800000, guid: 963c350b718c6414e96f8c5692f060b1, type: 3}
-  m_currentWaterTexture: {fileID: 2800000, guid: 963c350b718c6414e96f8c5692f060b1, type: 3}
-  m_requestDepthTextureGeneration: 0
-  SunLight: {fileID: 0}
-  m_minSurfaceLight: 0.5
-  m_maxSurfaceLight: 2
-  m_updatingSeaLevel: 0
-  m_seaLevel: 0.5
-  m_planarReflections: {fileID: 1401220444}
-  m_weatherSystemPresent: 0
-  m_ableToRender: 1
-  m_sceneProfileExists: 0
-  m_reflectionTexture: {fileID: 0}
-  m_reflectionCamera: {fileID: 0}
-  m_gaiaSession: {fileID: 0}
-  m_underwaterFX: {fileID: 533266451}
-  m_waterMaterial: {fileID: 2100000, guid: 003f45c94730b9f498051fd22ebb0c87, type: 2}
-  m_rendererPresent: 1
-  renderSize: -2
-  refractionEnabled: 1
-  directionAngle: 0
-  m_height: 0
-  m_gizmoSize: 0.1
-  m_Size: {x: 15000, y: 30, z: 15000}
-  m_meshDensity: {x: 1, y: 1}
-  m_MeshType: 1
-  m_customWaterMesh: {fileID: 0}
-  m_clipPlaneOffset: 2000
-  m_reflectedLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_useCustomRenderDistance: 1
-  m_enableLayerDistances: 0
-  m_customRenderDistances: []
-  m_customRenderDistance: 2000
-  m_reflectionTextureResolution: 1024
-  m_meshRenderer: {fileID: 2006313900}
-  m_meshFilter: {fileID: 2006313901}
 --- !u!23 &2006313900
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -25909,6 +25633,7 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 656207770}
+  - {fileID: 2006313898}
   - {fileID: 546001965}
   - {fileID: 1954029843}
   - {fileID: 1264039509}

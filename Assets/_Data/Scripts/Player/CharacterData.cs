@@ -34,7 +34,7 @@ public class CharacterStats
 public enum CharacterTypes
 {
     None = 0,
-    Physical = 1,
+    PhysicalMelee = 1,
     Magical = 2
 }
 
