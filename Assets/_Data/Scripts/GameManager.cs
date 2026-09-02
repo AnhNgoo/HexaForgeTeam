@@ -96,6 +96,7 @@ public class GameManager : Singleton<GameManager>
 
         PlayerManager.Instance?.SpawnCharacterInLobby();
         PlayerManager.Instance.CurrentCharacterBase.CharacterInput.LockInput = false;
+        PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = false;
     }
 
     private void InitInRun()
@@ -119,6 +120,7 @@ public class GameManager : Singleton<GameManager>
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false);
         }
         PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
+        PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = true;
     }
 
     private void InitInBoss()
@@ -132,6 +134,7 @@ public class GameManager : Singleton<GameManager>
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss, limitRespawnAttempts: true);
 
         PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
+        PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = true;
     }
 
     private void HandlePlayerSpawned(object data)

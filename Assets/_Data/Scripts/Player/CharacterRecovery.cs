@@ -15,6 +15,7 @@ public class CharacterRecovery : MonoBehaviour
     private CharacterBase character;
     // Số lượng bình máu tối đa đã nhặt hiện tại
     public int CurrentMaxRecoveryBottle { get; private set; } = 0;
+    public bool AllowRecovery { get; set; } = true;
 
     public void Init(CharacterBase character)
     {
