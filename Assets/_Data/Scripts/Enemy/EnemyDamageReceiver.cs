@@ -67,7 +67,16 @@ public class EnemyDamageReceiver : MonoBehaviour
     {
         if (attacker == null) return;
 
-        if (_enemyBase.Detection.CurrentTarget == null)
-            _enemyBase.Detection.ReportDamageHit(attacker);
+        CharacterBase attackerCharacter =
+            attacker.GetComponentInParent<CharacterBase>();
+
+        if (attackerCharacter == null)
+            attackerCharacter = PlayerManager.Instance?.CurrentCharacterBase;
+
+        if (attackerCharacter == null) return;
+
+        _enemyBase.Detection.ReportDamageHit(
+            attackerCharacter.transform
+        );
     }
 }
