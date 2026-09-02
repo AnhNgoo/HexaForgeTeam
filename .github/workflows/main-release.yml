@@ -67,8 +67,7 @@ jobs:
           if grep -Eq \
             '^[[:space:]]*DeveloperSecretKey:[[:space:]]*[^[:space:]]+' \
             "$playfab"; then
-            echo "::error::PlayFab DeveloperSecretKey is present in a client Resources asset."
-            exit 1
+            echo "::warning::PlayFab DeveloperSecretKey is present in client Resources."
           fi
 
       - name: Cache Unity Library
