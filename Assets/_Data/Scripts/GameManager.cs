@@ -120,7 +120,10 @@ public class GameManager : Singleton<GameManager>
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false);
         }
         PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
-        PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = true;
+        if (PlayerManager.Instance?.CurrentCharacterBase?.CharacterRecovery != null)
+        {
+            PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = true;
+        }
     }
 
     private void InitInBoss()
