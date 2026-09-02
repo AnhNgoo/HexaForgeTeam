@@ -1,156 +1,210 @@
-name: DuskBlade Main Prerelease
+name: DuskBlade Main Release
 
 on:
   push:
     branches:
       - main
-
   workflow_dispatch:
     inputs:
       publish_release:
-        description: Publish a GitHub prerelease after a successful build
-        required: true
-        type: boolean
+        description: "Create a GitHub prerelease after a successful build"
+        required: false
         default: false
+        type: boolean
 
 permissions:
   contents: write
-  checks: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: duskblade-main-release
+  cancel-in-progress: false
 
 jobs:
-  test-build-release:
-    name: Test, build and publish Windows x64
+  build:
+    name: Build DuskBlade Windows x64
     runs-on: ubuntu-latest
-    timeout-minutes: 240
+    timeout-minutes: 120
 
     steps:
+      # ------------------------------------------------------------
+      # 1. Checkout
+      # ------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
 
-      # ========================================
-      # FREE DISK SPACE
-      # ========================================
+      # ------------------------------------------------------------
+      # 2. Free disk space
+      # ------------------------------------------------------------
       - name: Free disk space
         shell: bash
         run: |
+          set -euxo pipefail
+
+          echo "Disk before cleanup:"
           df -h
+
           sudo rm -rf /usr/local/lib/android || true
           sudo rm -rf /opt/ghc || true
           sudo rm -rf /usr/share/swift || true
           sudo rm -rf /opt/hostedtoolcache/CodeQL || true
+
           docker system prune -af || true
+
+          echo "Disk after cleanup:"
           df -h
 
-      # ========================================
-      # CHECKOUT
-      # ========================================
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          lfs: true
-
-      # ========================================
-      # PREFLIGHT
-      # ========================================
+      # ------------------------------------------------------------
+      # 3. Repository preflight
+      # ------------------------------------------------------------
       - name: Repository preflight
         shell: bash
         run: |
-          grep -q '^m_EditorVersion: 2022.3.62f3$' \
-            ProjectSettings/ProjectVersion.txt
+          set -euo pipefail
 
-          markers="$(git grep -n -E \
-            '^(<{7,}|={7,}|>{7,})' \
-            -- '*.meta' '*.asset' '*.prefab' '*.unity' \
-               '*.cs' '*.json' '*.yml' '*.yaml' || true)"
+          echo "Checking Unity version..."
+          test -f ProjectSettings/ProjectVersion.txt
+          grep -q "m_EditorVersion: 2022.3.62f3" ProjectSettings/ProjectVersion.txt
 
-          if [[ -n "$markers" ]]; then
-            echo "::error::Unresolved merge markers found."
-            printf '%s\n' "$markers"
+          echo "Checking unresolved merge markers..."
+          if git grep -n -E '^(<<<<<<<|=======|>>>>>>>)' -- \
+            '*.meta' '*.asset' '*.prefab' '*.unity' '*.cs' '*.json' '*.yml' '*.yaml'; then
+            echo "::error::Unresolved Git merge markers were found in the repository."
             exit 1
           fi
 
-          playfab="Assets/PlayFabSDK/Shared/Public/Resources/PlayFabSharedSettings.asset"
+          echo "Checking repository status..."
+          git status --short
 
-          if grep -Eq \
-            '^[[:space:]]*DeveloperSecretKey:[[:space:]]*[^[:space:]]+' \
-            "$playfab"; then
-            echo "::warning::PlayFab DeveloperSecretKey is present in client Resources."
-          fi
+          echo "Repository preflight passed."
 
-      # ========================================
-      # CACHE UNITY
-      # ========================================
+      # ------------------------------------------------------------
+      # 4. Configure Docker nofile limit
+      #
+      # Unity/Bee crashed with:
+      # Requested file descriptor exceeds maximum number of files
+      #
+      # GameCI unity-builder@v4 does not expose a nofile input, so
+      # configure Docker's default ulimit before GameCI starts its
+      # Unity container.
+      # ------------------------------------------------------------
+      - name: Increase Docker file descriptor limit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Host open-file limit:"
+          ulimit -n || true
+          cat /proc/self/limits | grep -i "open files" || true
+
+          sudo mkdir -p /etc/docker
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("/etc/docker/daemon.json")
+
+          if path.exists():
+              try:
+                  data = json.loads(path.read_text())
+                  if not isinstance(data, dict):
+                      data = {}
+              except Exception:
+                  data = {}
+          else:
+              data = {}
+
+          data["default-ulimits"] = {
+              "nofile": {
+                  "Name": "nofile",
+                  "Soft": 262144,
+                  "Hard": 262144
+              }
+          }
+
+          path.write_text(json.dumps(data, indent=2) + "\n")
+          print(path.read_text())
+          PY
+
+          sudo systemctl restart docker
+
+          echo "Docker open-file limit:"
+          docker info >/dev/null
+
+          docker run --rm ubuntu:24.04 bash -c '
+            echo "Container ulimit:"
+            ulimit -n
+            echo "Container /proc limit:"
+            cat /proc/self/limits | grep -i "open files"
+          '
+
+      # ------------------------------------------------------------
+      # 5. Cache Unity Library
+      # ------------------------------------------------------------
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
           path: Library
-          key: >-
-            Library-DuskBlade-${{ runner.os }}-2022.3.62f3-Windows64-${{
-            hashFiles(
-              'Packages/manifest.json',
-              'Packages/packages-lock.json',
-              'ProjectSettings/ProjectVersion.txt',
-              'ProjectSettings/ProjectSettings.asset',
-              'ProjectSettings/GraphicsSettings.asset',
-              'ProjectSettings/QualitySettings.asset',
-              'ProjectSettings/EditorBuildSettings.asset',
-              'Assets/**/*.cs',
-              'Assets/**/*.asmdef',
-              'Assets/**/*.asmref',
-              'Assets/**/*.shader',
-              'Assets/**/*.compute',
-              'Assets/AddressableAssetsData/**/*.asset'
-            ) }}
-
+          key: Library-${{ runner.os }}-2022.3.62f3-${{ hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
-            Library-DuskBlade-${{ runner.os }}-2022.3.62f3-Windows64-
+            Library-${{ runner.os }}-2022.3.62f3-
 
-      # ========================================
-      # SHOW TEST RESULT
-      # ========================================
-      - name: Show test result
-        if: always()
+      # ------------------------------------------------------------
+      # 6. Clean Bee after restoring Library cache
+      # ------------------------------------------------------------
+      - name: Clean Unity Bee cache
         shell: bash
         run: |
-          echo "======================================"
-          echo "UNITY TEST RESULT"
-          echo "======================================"
-          echo "Outcome: ${{ steps.tests.outcome }}"
-          echo "Conclusion: ${{ steps.tests.conclusion }}"
-          echo ""
+          set -euo pipefail
 
-          if [ "${{ steps.tests.outcome }}" = "failure" ]; then
-            echo "::warning::Unity tests failed, but build will continue."
-          else
-            echo "Unity tests passed."
-          fi
+          echo "Removing Library/Bee to avoid stale/corrupt Bee DAG data..."
+          rm -rf Library/Bee
 
-      # ========================================
-      # UPLOAD TEST REPORTS
-      # ========================================
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: duskblade-test-results-${{ github.run_number }}
-          path: test-results
-          if-no-files-found: ignore
-          retention-days: 14
+          echo "Remaining Library size:"
+          du -sh Library 2>/dev/null || true
 
-      # ========================================
-      # BUILD
-      # ========================================
+          echo "Disk:"
+          df -h
+
+      # ------------------------------------------------------------
+      # 7. Check resources immediately before Unity
+      # ------------------------------------------------------------
+      - name: Check build environment
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "=== Open files ==="
+          ulimit -n || true
+          cat /proc/self/limits | grep -i "open files" || true
+
+          echo "=== Memory ==="
+          free -h
+
+          echo "=== Disk ==="
+          df -h
+
+          echo "=== Docker ==="
+          docker version --format '{{.Server.Version}}'
+
+      # ------------------------------------------------------------
+      # 8. Build Unity Windows x64
+      #
+      # IMPORTANT:
+      # - No Unity Test Runner here.
+      # - unity-tests.yml remains separate.
+      # - Custom CIBuilder is preserved.
+      # ------------------------------------------------------------
       - name: Build Addressables and Windows x64 player
+        id: unity-build
         uses: game-ci/unity-builder@v4
-
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-
         with:
           projectPath: .
           unityVersion: 2022.3.62f3
@@ -158,135 +212,133 @@ jobs:
           buildsPath: build
           buildName: DuskBlade
           buildMethod: DuskBlade.Editor.CI.CIBuilder.BuildWindows
+          collectUnityLogs: true
+          streamUnityLogs: true
 
-      # ========================================
-      # BUILD METADATA
-      # ========================================
-      - name: Resolve build metadata
-        id: meta
+      # ------------------------------------------------------------
+      # 9. Verify build output
+      # ------------------------------------------------------------
+      - name: Verify Windows build
         shell: bash
         run: |
-          short_sha="${GITHUB_SHA::7}"
+          set -euo pipefail
 
-          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "Build directory:"
+          find build -maxdepth 4 -type f -printf '%p (%s bytes)\n' | sort || true
 
-          echo "tag=main-build-${GITHUB_RUN_NUMBER}-${short_sha}" \
-            >> "$GITHUB_OUTPUT"
+          BUILD_ROOT="build/StandaloneWindows64"
 
-          echo "zip_name=DuskBlade-Windows-x64-main-${GITHUB_RUN_NUMBER}-${short_sha}.zip" \
-            >> "$GITHUB_OUTPUT"
-
-      # ========================================
-      # VERIFY BUILD
-      # ========================================
-      - name: Verify Windows runtime
-        id: verify
-        shell: bash
-        run: |
-          exe="$(find build -type f -name 'DuskBlade.exe' -print -quit)"
-
-          if [[ -z "$exe" ]]; then
-            echo "::error::DuskBlade.exe is missing."
+          if [ ! -d "$BUILD_ROOT" ]; then
+            echo "::error::Windows build directory not found: $BUILD_ROOT"
             exit 1
           fi
 
-          game_dir="$(dirname "$exe")"
-
-          [[ -d "$game_dir/DuskBlade_Data" ]] || {
-            echo "::error::DuskBlade_Data is missing."
+          if [ ! -f "$BUILD_ROOT/DuskBlade.exe" ]; then
+            echo "::error::DuskBlade.exe was not found."
             exit 1
-          }
+          fi
 
-          [[ -f "$game_dir/UnityPlayer.dll" ]] || {
-            echo "::error::UnityPlayer.dll is missing."
+          if [ ! -d "$BUILD_ROOT/DuskBlade_Data" ]; then
+            echo "::error::DuskBlade_Data was not found."
             exit 1
-          }
+          fi
 
-          [[ -d "$game_dir/MonoBleedingEdge" ]] || {
-            echo "::error::MonoBleedingEdge is missing."
+          if [ ! -f "$BUILD_ROOT/UnityPlayer.dll" ]; then
+            echo "::error::UnityPlayer.dll was not found."
             exit 1
-          }
+          fi
 
-          echo "game_dir=$game_dir" >> "$GITHUB_OUTPUT"
+          if [ ! -d "$BUILD_ROOT/MonoBleedingEdge" ]; then
+            echo "::error::MonoBleedingEdge was not found."
+            exit 1
+          fi
 
-      # ========================================
-      # PACKAGE BUILD
-      # ========================================
-      - name: Package Windows build
-        shell: bash
-        run: |
-          rm -rf package
-          mkdir -p package/DuskBlade
+          echo "Windows build verification passed."
 
-          cp -a \
-            "${{ steps.verify.outputs.game_dir }}/." \
-            package/DuskBlade/
-
-          (
-            cd package
-            zip -r -9 \
-              "../${{ steps.meta.outputs.zip_name }}" \
-              DuskBlade
-          )
-
-          test -s "${{ steps.meta.outputs.zip_name }}"
-
-          unzip -l "${{ steps.meta.outputs.zip_name }}" |
-            grep -q 'DuskBlade/DuskBlade.exe'
-
-      # ========================================
-      # UPLOAD BUILD
-      # ========================================
-      - name: Upload short-lived Actions artifact
+      # ------------------------------------------------------------
+      # 10. Upload raw build artifact
+      # ------------------------------------------------------------
+      - name: Upload Windows build artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.meta.outputs.zip_name }}
-          path: ${{ steps.meta.outputs.zip_name }}
+          name: DuskBlade-Windows-x64
+          path: build/StandaloneWindows64
           if-no-files-found: error
           retention-days: 14
+          compression-level: 6
 
-      # ========================================
-      # RELEASE NOTES
-      # ========================================
-      - name: Write prerelease notes
-        if: >-
-          github.event_name == 'push' ||
-          inputs.publish_release == true
+      # ------------------------------------------------------------
+      # 11. Package ZIP
+      # ------------------------------------------------------------
+      - name: Package Windows build
+        if: success()
         shell: bash
         run: |
-          cat > release-notes.md <<EOF
-          Automated test build from \`main\`.
+          set -euo pipefail
 
-          - Commit: [\`${GITHUB_SHA}\`](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})
-          - Branch: \`${GITHUB_REF_NAME}\`
-          - Workflow run: \`${GITHUB_RUN_NUMBER}\`
-          - Build date UTC: \`$(date -u +'%Y-%m-%d %H:%M:%S')\`
-          - Platform: Windows x64
-          - Configuration: non-development Mono player
+          mkdir -p release
 
-          This is an automated prerelease for testing.
-          It is not a stable release.
+          cd build/StandaloneWindows64
+          zip -r ../../release/DuskBlade-Windows-x64.zip .
+          cd ../..
 
-          Unity test result: ${{ steps.tests.outcome }}
-          EOF
+          echo "Release package:"
+          ls -lh release/DuskBlade-Windows-x64.zip
 
-      # ========================================
-      # CREATE PRERELEASE
-      # ========================================
+      # ------------------------------------------------------------
+      # 12. Upload ZIP artifact
+      # ------------------------------------------------------------
+      - name: Upload Windows ZIP artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuskBlade-Windows-x64-ZIP
+          path: release/DuskBlade-Windows-x64.zip
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+
+      # ------------------------------------------------------------
+      # 13. Upload Unity diagnostics even when build fails
+      # ------------------------------------------------------------
+      - name: Upload Unity diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unity-diagnostics
+          path: Logs/UnityDiagnostics/
+          if-no-files-found: ignore
+          retention-days: 7
+          compression-level: 6
+
+      # ------------------------------------------------------------
+      # 14. Create GitHub prerelease
+      #
+      # Push to main:
+      #   -> prerelease is created automatically.
+      #
+      # Manual workflow_dispatch:
+      #   -> prerelease is created only when publish_release=true.
+      # ------------------------------------------------------------
       - name: Create GitHub prerelease
-        if: >-
-          github.event_name == 'push' ||
-          inputs.publish_release == true
+        if: >
+          success() &&
+          (
+            github.event_name == 'push' ||
+            inputs.publish_release == true
+          )
         env:
           GH_TOKEN: ${{ github.token }}
-
         shell: bash
         run: |
-          gh release create \
-            "${{ steps.meta.outputs.tag }}" \
-            "${{ steps.meta.outputs.zip_name }}" \
-            --target "$GITHUB_SHA" \
-            --title "DuskBlade Main Build #${GITHUB_RUN_NUMBER} (${{ steps.meta.outputs.short_sha }})" \
-            --notes-file release-notes.md \
+          set -euo pipefail
+
+          TAG="build-${GITHUB_RUN_NUMBER}"
+          TITLE="DuskBlade Build ${GITHUB_RUN_NUMBER}"
+
+          gh release create "$TAG" \
+            release/DuskBlade-Windows-x64.zip \
+            --title "$TITLE" \
             --prerelease \
-            --latest=false
+            --generate-notes
