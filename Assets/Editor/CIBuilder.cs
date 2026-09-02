@@ -193,23 +193,24 @@ namespace DuskBlade.Editor.CI
                 string builder =
                     settings.ActivePlayerDataBuilder == null
                         ? "null"
-                        : settings.ActivePlayerDataBuilder
-                            .GetType()
-                            .FullName;
+                        : settings.ActivePlayerDataBuilder.GetType().FullName;
 
                 throw new BuildFailedException(
                     "Addressables active builder must be Packed Mode. " +
                     $"Actual={builder}");
             }
 
+            // CI builds Addressables explicitly before BuildPipeline.BuildPlayer().
+            // Prevent Unity from trying to build them again with the Player.
             if (settings.BuildAddressablesWithPlayerBuild !=
-                AddressableAssetSettings.PlayerBuildOption
-                    .DoNotBuildWithPlayer)
+                AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer)
             {
-                throw new BuildFailedException(
-                    "This CI script builds Addressables explicitly. " +
-                    "Set Build Addressables With Player Build to " +
+                Debug.LogWarning(
+                    "[CI] Forcing Build Addressables With Player Build = " +
                     "Do Not Build With Player.");
+
+                settings.BuildAddressablesWithPlayerBuild =
+                    AddressableAssetSettings.PlayerBuildOption.DoNotBuildWithPlayer;
             }
 
             if (settings.BuildRemoteCatalog)
@@ -219,8 +220,7 @@ namespace DuskBlade.Editor.CI
                     "This Windows release expects local Addressables.");
             }
 
-            Debug.Log(
-                "[CI] Building Addressables with Packed Mode.");
+            Debug.Log("[CI] Building Addressables with Packed Mode.");
 
             AddressableAssetSettings.BuildPlayerContent(
                 out AddressablesPlayerBuildResult result);

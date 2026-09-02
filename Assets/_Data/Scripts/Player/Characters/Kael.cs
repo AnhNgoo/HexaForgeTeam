@@ -110,7 +110,7 @@ public class Kael : CharacterMelee
         characterAnimation.Init(kaelGiantVisual);
         kaelGiantVisual.SetActive(true);
         characterVisual.SetActive(false);
-        characterStat.SetStatsForSkill(characterSkill.Skill1Data); // Cập nhật chỉ số cho hình dạng khổng lồ
+        characterStat.SetStatsForSkill(characterSkill.Skill2Data); // Cập nhật chỉ số cho hình dạng khổng lồ
     }
 
     public virtual void NormalForm()
