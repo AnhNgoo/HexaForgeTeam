@@ -114,18 +114,33 @@ public class DormantPowerInteractable : InteractBase
 
     private bool ClaimReward(BossRewardDataSO reward)
     {
-        if (isClaimed || reward == null || character == null)
+        if (isClaimed || reward == null)
             return false;
 
-        if (!reward.Grant(character))
+        CharacterBase target =
+            PlayerManager.Instance?.CurrentCharacterBase;
+
+        if (target == null)
+            target = character;
+
+        if (target == null)
         {
-            Debug.LogWarning($"Không thể nhận reward {reward.name}.");
+            Debug.LogError(
+                "Dormant Power: Không tìm thấy Player nhận reward."
+            );
+            return false;
+        }
+
+        if (!reward.Grant(target))
+        {
+            Debug.LogWarning(
+                $"Không thể nhận reward {reward.name}."
+            );
             return false;
         }
 
         return CompleteClaim();
     }
-
     private void PlayVfx(PoolType poolType)
     {
         if (poolType == PoolType.None || ObjectPooling.Instance == null)

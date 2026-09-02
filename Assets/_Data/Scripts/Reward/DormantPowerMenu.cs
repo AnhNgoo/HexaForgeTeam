@@ -35,7 +35,6 @@ public class DormantPowerMenu : MenuBase
 
         if (menuData?.Rewards == null)
         {
-            Debug.LogWarning("DormantPowerMenu thiếu reward data.");
             return;
         }
 
