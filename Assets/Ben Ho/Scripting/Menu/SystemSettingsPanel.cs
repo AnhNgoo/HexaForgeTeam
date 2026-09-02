@@ -63,6 +63,9 @@ public class SystemSettingsPanel : MonoBehaviour
         AddEvents();
         UpdateDynamicTabLabels();
         ShowPage(defaultPage);
+
+        if (AutoTranslateUI.Instance != null)
+            AutoTranslateUI.Instance.ScanAndApply();
     }
 
     public void Close()
