@@ -316,6 +316,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         characterLockTarget?.ForceUnlockTarget();
         GoldManager.Instance?.ResetGold();
         DissolveEffect?.ResetDefaultMaterial();
+        InteractionManager.Instance?.ClearInteractableObjects();
     }
 
     public void OnSpawnFromPool()

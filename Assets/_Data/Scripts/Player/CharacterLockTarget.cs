@@ -108,6 +108,7 @@ public class CharacterLockTarget : LoadComponents
             CameraManager.Instance?.SetCamera(CameraType.LockTarget, followTarget, lookAtTarget);
 
             lockTargetMarker = ObjectPooling.Instance?.SpawnFromPool(PoolType.LockTargetMarker, lookAtTarget.position, Quaternion.identity, lookAtTarget);
+            lockTargetMarker.transform.localScale = Vector3.one;
             IsLockingTarget = true;
             return;
         }
