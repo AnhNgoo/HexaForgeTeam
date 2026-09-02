@@ -4,13 +4,17 @@ using UnityEngine;
 
 public class PickUpWeapon : InteractBase, IPoolable
 {
+    [SerializeField] private float lifeTime = 60f; // Thời gian sống của vũ khí sau khi rơi ra khỏi rương
     [SerializeField] private WeaponData weaponData;
     private WeaponData runtimeWeaponData;
     private WeaponData CurrentWeaponData => runtimeWeaponData != null ? runtimeWeaponData : weaponData;
+
     [Header("Set Pool Type trùng tên với tên prefab")]
     [SerializeField] private PoolType poolType;
     public PoolType PoolType => poolType;
     public override string InteractionName => "Pick Up Weapon";
+    private IEnumerator lifeTimeCoroutine;
+
     public void Initialize(WeaponData data)
     {
         runtimeWeaponData = data;
@@ -45,10 +49,27 @@ public class PickUpWeapon : InteractBase, IPoolable
     public void OnSpawnFromPool()
     {
         ResetInteraction();
+        EventManager.Subscribe(GameEvent.OnPlayerDeath, ReturnToPoolOnCharacterDeath);
+        EventManager.Subscribe(GameEvent.OnLoadingComplete, ReturnToPoolOnCharacterDeath);
+        if (lifeTimeCoroutine != null)
+        {
+            StopCoroutine(lifeTimeCoroutine);
+            lifeTimeCoroutine = null;
+        }
+        lifeTimeCoroutine = LifeTimeCoroutine();
+        StartCoroutine(lifeTimeCoroutine);
     }
 
     public void OnReturnToPool()
     {
+        if (lifeTimeCoroutine != null)
+        {
+            StopCoroutine(lifeTimeCoroutine);
+            lifeTimeCoroutine = null;
+        }
+
+        EventManager.Unsubscribe(GameEvent.OnPlayerDeath, ReturnToPoolOnCharacterDeath);
+        EventManager.Unsubscribe(GameEvent.OnLoadingComplete, ReturnToPoolOnCharacterDeath);
         ResetInteraction();
         runtimeWeaponData = null;
     }
@@ -60,5 +81,19 @@ public class PickUpWeapon : InteractBase, IPoolable
 
         playerInRange = false;
         character = null;
+    }
+
+    // trả về pool khi nhân vật về khi loading xong hoặc khi nhân vật chết
+    private void ReturnToPoolOnCharacterDeath(object data = null)
+    {
+        InteractionManager.Instance?.UnregisterInteractable(this);
+        ObjectPooling.Instance.ReturnToPool(PoolType, gameObject);
+    }
+
+    private IEnumerator LifeTimeCoroutine()
+    {
+        yield return new WaitForSeconds(lifeTime);
+        InteractionManager.Instance?.UnregisterInteractable(this);
+        ObjectPooling.Instance.ReturnToPool(PoolType, gameObject);
     }
 }

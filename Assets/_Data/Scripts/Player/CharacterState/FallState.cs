@@ -32,6 +32,12 @@ public class FallState : ICharacterState
             return;
         }
 
+        if (character.IsSwimmingCandidate())
+        {
+            character.StateController.ChangeState(new SwimmingState(character));
+            return;
+        }
+
         float speed = character.CharacterStat.finalStats.speed;
 
         Vector3 rotationDirection = new Vector3(character.CharacterMovement.MoveDirection.x,
