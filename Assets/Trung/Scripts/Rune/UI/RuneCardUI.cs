@@ -480,16 +480,16 @@ public class RuneCardUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandler
             case RuneStatType.HPPercent: return "HP%";
             case RuneStatType.MP: return "MP";
             case RuneStatType.MPPercent: return "MP%";
+            case RuneStatType.MPRegen: return "MP REG";
             case RuneStatType.Stamina: return "STA";
             case RuneStatType.StaminaPercent: return "STA%";
+            case RuneStatType.StaminaRegen: return "STA REG";
             case RuneStatType.ATK: return "ATK";
             case RuneStatType.ATKPercent: return "ATK%";
             case RuneStatType.DEF: return "DEF";
             case RuneStatType.DEFPercent: return "DEF%";
-            case RuneStatType.CritChance: return "CRIT";
-            case RuneStatType.CritDamage: return "CRIT DMG";
-            case RuneStatType.ArmorPenetration: return "ARM PEN";
-            case RuneStatType.StaminaRegen: return "STA REG";
+            case RuneStatType.Speed: return "SPD";
+            case RuneStatType.PoisonDamage: return "POISON";
             case RuneStatType.AllStats: return "ALL STAT";
         }
         return "UNKNOWN";

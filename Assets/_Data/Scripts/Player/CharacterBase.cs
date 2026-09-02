@@ -130,18 +130,19 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         }
     }
 
+    public bool IsInWaterVolume => currentWaterVolume != null;
+
     public virtual bool IsBodyBelowWaterLevel()
     {
         float waterLevel = WaterLevel;
         if (float.IsNaN(waterLevel) || float.IsInfinity(waterLevel))
             return false;
 
-        float bodyHeight = 1.5f;
-        Renderer visualRenderer = characterVisual != null ? characterVisual.GetComponent<Renderer>() : null;
-        if (visualRenderer != null)
-            bodyHeight = Mathf.Max(visualRenderer.bounds.size.y, 1.5f);
+        CharacterController controller = characterMovement != null ? characterMovement.CC : null;
+        float bodyCenterY = controller != null
+            ? transform.TransformPoint(controller.center).y
+            : transform.position.y + 0.75f;
 
-        float bodyCenterY = transform.position.y + (bodyHeight * 0.5f);
         return bodyCenterY < waterLevel;
     }
 
@@ -309,7 +310,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         characterHealth?.ResetHealth();
         characterStamina?.ResetStamina();
         characterMP?.ResetMP();
-        characterRecovery?.ResetRecovery();
+        // characterRecovery?.ResetRecovery();
         characterCombat?.ResetCombo();
         CanBeAttacked = true;
         IsHitStateActive = false;
@@ -484,7 +485,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
 
     protected virtual bool CheckStaminaAndMPForAttack()
     {
-        if (characterData.characterTypes == CharacterTypes.Physical ||
+        if (characterData.characterTypes == CharacterTypes.PhysicalMelee ||
             characterWeapon.CurrentWeapon == null) // Nếu là nhân vật vật lý hoặc không cầm vũ khí thì kiểm tra stamina
         {
             if (!characterStamina.HasEnoughStamina(characterData.staminaCost.attackCost))
@@ -560,7 +561,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             characterMP.SubtractMP(cost);
             return true;
         }
-        else if (characterType == CharacterTypes.Physical)
+        else if (characterType == CharacterTypes.PhysicalMelee)
         {
             if (!characterStamina.HasEnoughStamina(cost))
                 return false;

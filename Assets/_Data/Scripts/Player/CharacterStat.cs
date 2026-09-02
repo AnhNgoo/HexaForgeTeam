@@ -16,6 +16,7 @@ public class CharacterStat : MonoBehaviour
     public CharacterStats levelStats { get; set; } = new CharacterStats();
     public CharacterStats finalStats { get; set; } = new CharacterStats();
     private CharacterBase characterBase;
+    private float cachedCurrentHealth;
 
     public void Init(CharacterBase CharacterBase, CharacterStats characterStats)
     {
@@ -148,9 +149,11 @@ public class CharacterStat : MonoBehaviour
         finalStats.mp += skillData.skillStats.characterStatsBonus.mp;
         finalStats.mpRegen += skillData.skillStats.characterStatsBonus.mpRegen;
 
+        cachedCurrentHealth = characterBase.CharacterHealth.CurrentHealth; // Lưu lại máu hiện tại trước khi dùng skill
         characterBase.CharacterHealth.SetMaxHealth(finalStats.maxHealth);
         characterBase.CharacterStamina.SetMaxStamina(finalStats.stamina);
         characterBase.CharacterMP.SetMaxMP(finalStats.mp);
+
     }
 
     public void ResetStatsAfterSkill()
@@ -159,6 +162,7 @@ public class CharacterStat : MonoBehaviour
         characterBase.CharacterHealth.SetMaxHealth(finalStats.maxHealth, false);
         characterBase.CharacterStamina.SetMaxStamina(finalStats.stamina);
         characterBase.CharacterMP.SetMaxMP(finalStats.mp);
+        characterBase.CharacterHealth.SetCurrentHealth(cachedCurrentHealth);
     }
 
     /// <summary>

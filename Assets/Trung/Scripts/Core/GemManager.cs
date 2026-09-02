@@ -6,7 +6,7 @@ public class GemManager : MonoBehaviour
     public static GemManager Instance;
 
     [Header("Gem")]
-    [SerializeField] private int currentGem = 3000;
+    [SerializeField] private int currentGem = 300;
 
     [Header("UI")]
     [SerializeField] private TMP_Text gemText;
