@@ -23,8 +23,6 @@ public class EarthRages : CharacterSkillBase
         character.CharacterSkill.CanUseSkill2 = false;
         EventManager.Notify(GameEvent.OnUpdateCooldownSkill2, skillData.skillStats.cooldown);
 
-        character.CharacterCinematic.PlayCinematic();
-
         character.CharacterAnimation.CrossFade("Skill_2_1", 0.1f);
         ObjectPooling.Instance?.SpawnFromPool(kael.auraEffect_3,
                                             kael.bottomEffectPoint.transform.position,
