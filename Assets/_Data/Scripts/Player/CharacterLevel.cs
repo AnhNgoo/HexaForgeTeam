@@ -38,7 +38,9 @@ public class CharacterLevel : LoadComponents
             currentLevel++;
             CharacterStats levelStats = CalculateLevelUpStats(currentLevel); // Tính toán các chỉ số tăng lên dựa trên cấp độ hiện tại
             characterBase.CharacterStat.SetLevelStats(levelStats);
+            Debug.Log($"CharacterLevel: LevelUp called. CurrentLevel={currentLevel}, MaxLevel={maxLevel}");
             EventManager.Notify(GameEvent.OnUpdateLevel, currentLevel);
+            Debug.Log($"CharacterLevel: LevelUp completed. CurrentLevel={currentLevel}, MaxLevel={maxLevel}");
         }
         else
         {
