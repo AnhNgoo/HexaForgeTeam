@@ -14,11 +14,20 @@ public class InteractionManager : Singleton<InteractionManager>
     public void Init(Transform player)
     {
         playerTransform = player;
+        ClearInteractableObjects();
     }
 
     private void Update()
     {
         UpdateClosestInteraction();
+    }
+
+    public void ClearInteractableObjects()
+    {
+        interactableObjects.Clear();
+        currentClosestInteraction = null;
+        previousClosestInteraction = null;
+        EventManager.Notify(GameEvent.OnHidePickUpItemPanel);
     }
     public void RegisterInteractable(InteractBase interactable)
     {
