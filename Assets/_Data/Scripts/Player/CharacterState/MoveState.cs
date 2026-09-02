@@ -40,7 +40,11 @@ public class MoveState : ICharacterState
             return;
         }
 
-        if (character.CharacterInput.HealthRecovery && character.CharacterRecovery.CurrentRecoveryBottle > 0 && !character.CharacterInput.IsHealthRecovering && !character.IsHealthRecoveryInterrupted)
+        if (character.CharacterInput.HealthRecovery &&
+             character.CharacterRecovery.CurrentRecoveryBottle > 0 &&
+             !character.CharacterInput.IsHealthRecovering &&
+             !character.IsHealthRecoveryInterrupted &&
+             character.CharacterRecovery.AllowRecovery)
         {
             character.StateController.ChangeState(new HealthRecoveryState(character));
             return;
