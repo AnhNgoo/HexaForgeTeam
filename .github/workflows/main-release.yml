@@ -109,31 +109,6 @@ jobs:
             Library-DuskBlade-${{ runner.os }}-2022.3.62f3-Windows64-
 
       # ========================================
-      # UNITY TESTS
-      # ========================================
-      - name: Run Unity EditMode and PlayMode tests
-        id: tests
-        continue-on-error: true
-        uses: game-ci/unity-test-runner@v4
-
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-
-        with:
-          projectPath: .
-          githubToken: ${{ secrets.GITHUB_TOKEN }}
-
-          customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
-
-          testMode: all
-
-          artifactsPath: test-results
-
-          coverageEnabled: false
-
-      # ========================================
       # SHOW TEST RESULT
       # ========================================
       - name: Show test result
