@@ -43,19 +43,10 @@ public class LogoutMenu : MonoBehaviour
 
     private void CheckContextState()
     {
-        if (GameManager.Instance != null)
-        {
-            isInLobby = (GameManager.Instance.MapType == MapType.Lobby);
-        }
-        else
-        {
-            string activeScene = SceneManager.GetActiveScene().name;
-            isInLobby = activeScene.IndexOf("Lobby", System.StringComparison.OrdinalIgnoreCase) >= 0;
-        }
-
         if (btnLogoutText != null)
         {
-            btnLogoutText.text = isInLobby ? "Confirm" : "Return Lobby";
+            // Nút bấm xác nhận luôn hiển thị là Xác nhận
+            btnLogoutText.text = "Confirm";
         }
     }
 
@@ -90,12 +81,11 @@ public class LogoutMenu : MonoBehaviour
     public void ShowConfirmation()
     {
         CheckContextState();
-
         if (descriptionText != null)
         {
-            descriptionText.text = isInLobby ? logoutConfirmationMessage : returnLobbyConfirmationMessage;
+            // Luôn hiện câu hỏi xác nhận đăng xuất
+            descriptionText.text = logoutConfirmationMessage;
         }
-
         if (confirmationRoot != null)
             confirmationRoot.SetActive(true);
     }

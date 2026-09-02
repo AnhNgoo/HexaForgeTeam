@@ -11,6 +11,13 @@ public class AchievementToastUI : MonoBehaviour
     [SerializeField] private TMP_Text DescriptionText;
     [SerializeField] private float showDuration = 3f;
 
+    [Header("Audio SFX")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip toastSFX;
+
+    [Header("Slide Animation Settings")]
+    [SerializeField] private float slideDistanceX = 450f; // Khoảng cách trượt từ bên phải vào
+
     private CanvasGroup canvasGroup;
     private RectTransform rectTransform;
     private Vector2 originalPosition;
@@ -29,6 +36,16 @@ public class AchievementToastUI : MonoBehaviour
 
             VisualRoot.SetActive(false);
         }
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+        audioSource.playOnAwake = false;
     }
 
     public void ShowToast(string title, string description)
@@ -55,38 +72,54 @@ public class AchievementToastUI : MonoBehaviour
             {
                 VisualRoot.SetActive(true);
 
+                // Phát âm thanh khi Toast xuất hiện
+                PlaySFX(toastSFX);
+
+                // Setup vị trí bắt đầu lệch về bên phải (Right -> Left)
                 if (rectTransform != null)
                 {
-                    rectTransform.anchoredPosition = originalPosition + new Vector2(0f, 100f);
+                    rectTransform.DOKill();
+                    rectTransform.anchoredPosition = originalPosition + new Vector2(slideDistanceX, 0f);
                     rectTransform.DOAnchorPos(originalPosition, 0.4f).SetEase(Ease.OutBack).SetUpdate(true);
                 }
 
                 if (canvasGroup != null)
                 {
+                    canvasGroup.DOKill();
                     canvasGroup.alpha = 0f;
-                    canvasGroup.DOFade(1f, 0.3f).SetUpdate(true);
+                    canvasGroup.DOFade(1f, 0.25f).SetUpdate(true);
                 }
 
-                VisualRoot.transform.localScale = Vector3.one * 0.8f;
+                VisualRoot.transform.DOKill();
+                VisualRoot.transform.localScale = Vector3.one * 0.9f;
                 VisualRoot.transform.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
 
                 yield return new WaitForSecondsRealtime(showDuration);
 
+                // Trượt tiếp sang trái hoặc thu về khi biến mất
                 if (rectTransform != null)
                 {
-                    rectTransform.DOAnchorPos(originalPosition + new Vector2(0f, 60f), 0.3f).SetEase(Ease.InQuad).SetUpdate(true);
+                    rectTransform.DOAnchorPos(originalPosition - new Vector2(60f, 0f), 0.25f).SetEase(Ease.InQuad).SetUpdate(true);
                 }
 
                 if (canvasGroup != null)
                 {
-                    canvasGroup.DOFade(0f, 0.3f).SetEase(Ease.InQuad).SetUpdate(true);
+                    canvasGroup.DOFade(0f, 0.25f).SetEase(Ease.InQuad).SetUpdate(true);
                 }
 
-                yield return new WaitForSecondsRealtime(0.35f);
+                yield return new WaitForSecondsRealtime(0.26f);
                 VisualRoot.SetActive(false);
             }
         }
 
         isShowing = false;
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 }

@@ -37,7 +37,11 @@ public class JumpState : ICharacterState
             character.StateController.ChangeState(new IdleState(character));
             return;
         }
-
+        if (character.IsSwimmingCandidate())
+        {
+            character.StateController.ChangeState(new SwimmingState(character));
+            return;
+        }
 
         if (character.CharacterInput.Dodge) // Trừ stamina trong hàm Dodge()
         {

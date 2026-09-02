@@ -31,23 +31,42 @@ public class SwimmingState : ICharacterState
 
     public void Update()
     {
+        bool isInWater = character.IsInWaterVolume;
         bool isUnderWater = character.IsSwimmingCandidate();
         bool isOnGround = character.CharacterMovement.IsGrounded;
 
-        if (!isUnderWater && isOnGround)
+        if (!isInWater || (isOnGround && !isUnderWater))
         {
             if (character.CharacterInput.MoveInput != Vector2.zero)
             {
-                character.StateController.ChangeState(new MoveState(character));
+                if (isOnGround)
+                {
+                    character.StateController.ChangeState(new MoveState(character));
+                }
+                else
+                {
+                    character.StateController.ChangeState(new FallState(character));
+                }
+            }
+            else if (isOnGround)
+            {
+                character.StateController.ChangeState(new IdleState(character));
             }
             else
             {
-                character.StateController.ChangeState(new IdleState(character));
+                character.StateController.ChangeState(new FallState(character));
             }
             return;
         }
 
-        float targetY = character.WaterLevel - 0.65f;
+        float waterLevel = character.WaterLevel;
+        if (float.IsNaN(waterLevel) || float.IsInfinity(waterLevel))
+        {
+            character.StateController.ChangeState(new FallState(character));
+            return;
+        }
+
+        float targetY = waterLevel - 0.65f;
         Vector3 pos = character.transform.position;
         pos.y = Mathf.Lerp(pos.y, targetY, Time.deltaTime * 8f);
         character.transform.position = pos;

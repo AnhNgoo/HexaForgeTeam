@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 #if UNITY_EDITOR
 using Sirenix.OdinInspector;
 #endif
@@ -168,7 +169,7 @@ public class RunGameplayController : MonoBehaviour
         UnregisterAllTrackedEnemies();
     }
 
-    public void TriggerEndRun(bool isVictory)
+    public async void TriggerEndRun(bool isVictory)
     {
         if (this == null) return;
         StopAllCoroutines();
@@ -177,6 +178,7 @@ public class RunGameplayController : MonoBehaviour
 
         GameEventManager.TriggerRunCompleted(isVictory);
 
+        await UniTask.Delay(3000);
         if (RunResultSummary.Instance != null)
         {
             RunResultSummary.Instance.DisplaySummary(NormalKilled, EliteKilled, BossKilled, FinalBossKilled, isVictory);

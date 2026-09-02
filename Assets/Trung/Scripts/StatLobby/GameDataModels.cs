@@ -105,26 +105,25 @@ public class LobbyStatData
     public float HPPercent;
     public float MP;
     public float MPPercent;
+    public float MPRegen;
     public float Stamina;
     public float StaminaPercent;
+    public float StaminaRegen;
     public float ATK;
     public float ATKPercent;
     public float DEF;
     public float DEFPercent;
-    public float CritChance;
-    public float CritDamage;
-    public float ArmorPenetration;
-    public float StaminaRegen;
+    public float Speed;
+    public float PoisonDamage;
 
     public void Reset()
     {
         HP = 0; HPPercent = 0;
-        MP = 0; MPPercent = 0;
-        Stamina = 0; StaminaPercent = 0;
+        MP = 0; MPPercent = 0; MPRegen = 0;
+        Stamina = 0; StaminaPercent = 0; StaminaRegen = 0;
         ATK = 0; ATKPercent = 0;
         DEF = 0; DEFPercent = 0;
-        CritChance = 0; CritDamage = 0;
-        ArmorPenetration = 0; StaminaRegen = 0;
+        Speed = 0; PoisonDamage = 0;
     }
 }
 

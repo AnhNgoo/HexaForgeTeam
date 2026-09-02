@@ -38,10 +38,10 @@ public class InteractItemUIV2 : MonoBehaviour
             return;
         }
 
-        if (interactText != null)
+                if (interactText != null)
         {
             interactText.SetTextSafe(
-                interact.InteractText);
+                SettingsLocalizationData.Translate(interact.InteractText));
 
             interactText.color =
                 selected

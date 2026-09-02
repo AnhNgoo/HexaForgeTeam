@@ -85,26 +85,26 @@ public class LobbyStatManager : MonoBehaviour
                 case RuneStatType.HPPercent: runeData.HPPercent += stat.Value; break;
                 case RuneStatType.MP: runeData.MP += stat.Value; break;
                 case RuneStatType.MPPercent: runeData.MPPercent += stat.Value; break;
+                case RuneStatType.MPRegen: runeData.MPRegen += stat.Value; break;
                 case RuneStatType.Stamina: runeData.Stamina += stat.Value; break;
                 case RuneStatType.StaminaPercent: runeData.StaminaPercent += stat.Value; break;
+                case RuneStatType.StaminaRegen: runeData.StaminaRegen += stat.Value; break;
                 case RuneStatType.ATK: runeData.ATK += stat.Value; break;
                 case RuneStatType.ATKPercent: runeData.ATKPercent += stat.Value; break;
                 case RuneStatType.DEF: runeData.DEF += stat.Value; break;
                 case RuneStatType.DEFPercent: runeData.DEFPercent += stat.Value; break;
-                case RuneStatType.CritChance: runeData.CritChance += stat.Value; break;
-                case RuneStatType.CritDamage: runeData.CritDamage += stat.Value; break;
-                case RuneStatType.ArmorPenetration: runeData.ArmorPenetration += stat.Value; break;
-                case RuneStatType.StaminaRegen: runeData.StaminaRegen += stat.Value; break;
+                case RuneStatType.Speed: runeData.Speed += stat.Value; break;
+                case RuneStatType.PoisonDamage: runeData.PoisonDamage += stat.Value; break;
                 case RuneStatType.AllStats:
                     runeData.HP += stat.Value;
                     runeData.MP += stat.Value;
+                    runeData.MPRegen += stat.Value;
                     runeData.Stamina += stat.Value;
+                    runeData.StaminaRegen += stat.Value;
                     runeData.ATK += stat.Value;
                     runeData.DEF += stat.Value;
-                    runeData.CritChance += stat.Value;
-                    runeData.CritDamage += stat.Value;
-                    runeData.ArmorPenetration += stat.Value;
-                    runeData.StaminaRegen += stat.Value;
+                    runeData.Speed += stat.Value;
+                    runeData.PoisonDamage += stat.Value;
                     break;
             }
         }
@@ -168,17 +168,15 @@ public class LobbyStatManager : MonoBehaviour
         LobbyStatData runeData = currentCombinedStats.runeBonusStats;
         LobbyStatData accountLevelData = currentCombinedStats.levelBonusStats;
 
-        // Tổng HP = Rune HP + Account Level HP + (% HP từ Rune)
         stats.maxHealth = runeData.HP + accountLevelData.HP + (baseHp * (runeData.HPPercent / 100f));
-        
-        // Tổng ATK/Damage = Rune ATK + Account Level ATK + (% ATK từ Rune)
         stats.damage = runeData.ATK + accountLevelData.ATK + (baseAtk * (runeData.ATKPercent / 100f));
-
-        // Các chỉ số Rune còn lại
-        stats.mp = runeData.MP + (baseMp * (runeData.MPPercent / 100f));
-        stats.stamina = runeData.Stamina + (baseSta * (runeData.StaminaPercent / 100f));
         stats.defense = runeData.DEF + (baseDef * (runeData.DEFPercent / 100f));
+        stats.mp = runeData.MP + (baseMp * (runeData.MPPercent / 100f));
+        stats.mpRegen = runeData.MPRegen;
+        stats.stamina = runeData.Stamina + (baseSta * (runeData.StaminaPercent / 100f));
         stats.staminaRegen = runeData.StaminaRegen;
+        stats.speed = runeData.Speed;
+        stats.poisonDamage = runeData.PoisonDamage;
 
         return stats;
     }
@@ -192,9 +190,9 @@ public class LobbyStatManager : MonoBehaviour
 
         Debug.Log(
             $"===== LOBBY BONUS [{currentCombinedStats.targetCharacter}] =====\n" +
-            $"[ACCOUNT LEVEL BONUS] HP +{lv.HP} | ATK +{lv.ATK}\n" +
-            $"[RUNE BONUS] HP +{rune.HP} ({rune.HPPercent}%) | ATK +{rune.ATK} ({rune.ATKPercent}%) | DEF +{rune.DEF} ({rune.DEFPercent}%)\n" +
-            $"[COMBAT STATS] Crit Chance +{rune.CritChance}% | Crit DMG +{rune.CritDamage}% | Armor Pen +{rune.ArmorPenetration}%"
+            $"[ACCOUNT LEVEL] HP +{lv.HP} | ATK +{lv.ATK}\n" +
+            $"[RUNE BONUS] HP +{rune.HP} ({rune.HPPercent}%) | MP +{rune.MP} ({rune.MPPercent}%) | STA +{rune.Stamina} ({rune.StaminaPercent}%)\n" +
+            $"[COMBAT STATS] ATK +{rune.ATK} ({rune.ATKPercent}%) | DEF +{rune.DEF} ({rune.DEFPercent}%) | SPD +{rune.Speed} | POISON +{rune.PoisonDamage}"
         );
     }
 }

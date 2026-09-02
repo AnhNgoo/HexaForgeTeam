@@ -57,13 +57,21 @@ public class AccountLevelManager : MonoBehaviour
         List<CostData> rewards = new List<CostData>();
         string unlockText = "";
 
-        // ===== 1. CÂN BẰNG PHẦN THƯỞNG GEM & ITEM THEO CỘT MỐC =====
-        int gemReward = 50 + (accountData.level * 20); // Phân bổ Gems tăng dần nhẹ nhàng
+        // ===== 1. CÂN BẰNG PHẦN THƯỞNG GEM & SHARD (CHU KỲ 30 LEVEL) =====
+        int gemReward = 40 + (accountData.level * 15); 
+        int shardReward = 20 + (accountData.level * 10);
+
         rewards.Add(new CostData("GEM", gemReward));
+        rewards.Add(new CostData("RUNE_SHARD", shardReward));
 
         if (GemManager.Instance != null)
         {
             GemManager.Instance.AddGem(gemReward);
+        }
+
+        if (RuneShardManager.Instance != null)
+        {
+            RuneShardManager.Instance.AddShards(shardReward);
         }
 
         // Tặng Vé Gacha mỗi 5 Level
@@ -88,9 +96,11 @@ public class AccountLevelManager : MonoBehaviour
         else if (accountData.level == 30)
         {
             rewards.Add(new CostData("REROLL_SCROLL_01", 2));
+            rewards.Add(new CostData("GACHA_TICKET_01", 3));
             if (InventoryItemManager.Instance != null)
             {
                 InventoryItemManager.Instance.AddItem("REROLL_SCROLL_01", "Reroll Scroll", 2);
+                InventoryItemManager.Instance.AddItem("GACHA_TICKET_01", "Gacha Ticket", 3);
             }
         }
 
@@ -126,7 +136,8 @@ public class AccountLevelManager : MonoBehaviour
 
     private int GetRequiredExp(int level)
     {
-        return 100 + ((level - 1) * 50);
+        if (level <= 1) return 150;
+        return 150 + Mathf.RoundToInt(60f * Mathf.Pow(level - 1, 1.42f));
     }
 
     private void UpdateUI()

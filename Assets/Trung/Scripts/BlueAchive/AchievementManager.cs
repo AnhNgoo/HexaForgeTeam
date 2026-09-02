@@ -94,39 +94,44 @@ public class AchievementManager : MonoBehaviour
     {
         if (achievements.Count > 0) return;
 
-        achievements.Add(new AchievementData(Lvl2ID, "New Traveler", "Reach Account Level 2", 2, 100, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
-        achievements.Add(new AchievementData(Lvl5ID, "First Steps", "Reach Account Level 5", 5, 250, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
-        achievements.Add(new AchievementData(Lvl10ID, "Rising Hero", "Reach Account Level 10", 10, 500, 0, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
-        achievements.Add(new AchievementData(Lvl15ID, "Seasoned Warrior", "Reach Account Level 15", 15, 750, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Lvl20ID, "Veteran Adventurer", "Reach Account Level 20", 20, 1000, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 2) }));
-        achievements.Add(new AchievementData(Lvl25ID, "Grand Commander", "Reach Account Level 25", 25, 1500, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 2) }));
-        achievements.Add(new AchievementData(Lvl30ID, "Legend of the Realm", "Reach Account Level 30", 30, 2000, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 3), new CostData("REROLL_SCROLL_01", 2) }));
+        // MILESTONE: CẤP ĐỘ TÀI KHOẢN (Lv 2 - 30)
+        achievements.Add(new AchievementData(Lvl2ID, "New Traveler", "Reach Account Level 2", 2, 60, 30, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Lvl5ID, "First Steps", "Reach Account Level 5", 5, 120, 60, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Lvl10ID, "Rising Hero", "Reach Account Level 10", 10, 250, 150, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
+        achievements.Add(new AchievementData(Lvl15ID, "Seasoned Warrior", "Reach Account Level 15", 15, 350, 250, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Lvl20ID, "Veteran Adventurer", "Reach Account Level 20", 20, 500, 400, new List<CostData> { new CostData("GACHA_TICKET_01", 2) }));
+        achievements.Add(new AchievementData(Lvl25ID, "Grand Commander", "Reach Account Level 25", 25, 750, 600, new List<CostData> { new CostData("FUSION_CHARM_01", 2) }));
+        achievements.Add(new AchievementData(Lvl30ID, "Legend of the Realm", "Reach Account Level 30", 30, 1200, 1000, new List<CostData> { new CostData("GACHA_TICKET_01", 3), new CostData("REROLL_SCROLL_01", 2) }));
 
-        achievements.Add(new AchievementData(Roll1ID, "First Fortune", "Roll 1 Time", 1, 60, 50));
-        achievements.Add(new AchievementData(Roll10ID, "First Gambler", "Roll 10 Times", 10, 200, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
-        achievements.Add(new AchievementData(Roll30ID, "Lucky Seeker", "Roll 30 Times", 30, 500, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 2) }));
-        achievements.Add(new AchievementData(Roll50ID, "Rune Enthusiast", "Roll 50 Times", 50, 800, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Roll100ID, "Master Summoner", "Roll 100 Times", 100, 1500, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 3) }));
-        achievements.Add(new AchievementData(Legendary1ID, "Golden Touch", "Obtain 1 Legendary Rune", 1, 300, 0, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
-        achievements.Add(new AchievementData(Legendary5ID, "Rune Hunter", "Obtain 5 Legendary Runes", 5, 1000, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Legendary10ID, "Mythic Collector", "Obtain 10 Legendary Runes", 10, 2000, 0, new List<CostData> { new CostData("REROLL_SCROLL_01", 2) }));
+        // MILESTONE: TRIỆU HỒI GACHA
+        achievements.Add(new AchievementData(Roll1ID, "First Fortune", "Roll 1 Time", 1, 50, 30));
+        achievements.Add(new AchievementData(Roll10ID, "First Gambler", "Roll 10 Times", 10, 120, 80, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Roll30ID, "Lucky Seeker", "Roll 30 Times", 30, 250, 150, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Roll50ID, "Rune Enthusiast", "Roll 50 Times", 50, 400, 250, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Roll100ID, "Master Summoner", "Roll 100 Times", 100, 800, 500, new List<CostData> { new CostData("GACHA_TICKET_01", 2) }));
+        achievements.Add(new AchievementData(Legendary1ID, "Golden Touch", "Obtain 1 Legendary Rune", 1, 200, 100, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
+        achievements.Add(new AchievementData(Legendary5ID, "Rune Hunter", "Obtain 5 Legendary Runes", 5, 500, 300, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Legendary10ID, "Mythic Collector", "Obtain 10 Legendary Runes", 10, 1000, 600, new List<CostData> { new CostData("REROLL_SCROLL_01", 2) }));
 
-        achievements.Add(new AchievementData(Kill20ID, "First Blood", "Defeat 20 Monsters", 20, 100, 100));
-        achievements.Add(new AchievementData(Kill100ID, "Monster Slayer", "Defeat 100 Monsters", 100, 300, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
-        achievements.Add(new AchievementData(Kill300ID, "Dungeon Cleaner", "Defeat 300 Monsters", 300, 600, 0, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
-        achievements.Add(new AchievementData(Kill500ID, "Executioner", "Defeat 500 Monsters", 500, 1000, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Kill1000ID, "Fiend Nemesis", "Defeat 1,000 Monsters", 1000, 2000, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 2) }));
-        achievements.Add(new AchievementData(Boss1ID, "Boss Crusher", "Defeat 1 Boss", 1, 200, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
-        achievements.Add(new AchievementData(Boss5ID, "Boss Hunter", "Defeat 5 Bosses", 5, 800, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Boss10ID, "Dungeon Dominator", "Defeat 10 Bosses", 10, 1800, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 2) }));
+        // MILESTONE: TIÊU DIỆT QUÁI & BOSS
+        achievements.Add(new AchievementData(Kill20ID, "First Blood", "Defeat 20 Monsters", 20, 50, 40));
+        achievements.Add(new AchievementData(Kill100ID, "Monster Slayer", "Defeat 100 Monsters", 100, 150, 80, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Kill300ID, "Dungeon Cleaner", "Defeat 300 Monsters", 300, 300, 150, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
+        achievements.Add(new AchievementData(Kill500ID, "Executioner", "Defeat 500 Monsters", 500, 500, 250, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Kill1000ID, "Fiend Nemesis", "Defeat 1,000 Monsters", 1000, 1000, 500, new List<CostData> { new CostData("GACHA_TICKET_01", 2) }));
+        achievements.Add(new AchievementData(Boss1ID, "Boss Crusher", "Defeat 1 Boss", 1, 100, 60, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Boss5ID, "Boss Hunter", "Defeat 5 Bosses", 5, 350, 200, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Boss10ID, "Dungeon Dominator", "Defeat 10 Bosses", 10, 800, 450, new List<CostData> { new CostData("FUSION_CHARM_01", 2) }));
 
-        achievements.Add(new AchievementData(Fuse1ID, "Alchemist Apprentice", "Fuse Runes 1 Time", 1, 200, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Fuse5ID, "Forge Enthusiast", "Fuse Runes 5 Times", 5, 600, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
-        achievements.Add(new AchievementData(Fuse10ID, "Master Transmuter", "Fuse Runes 10 Times", 10, 1200, 0, new List<CostData> { new CostData("FUSION_CHARM_01", 2) }));
-        achievements.Add(new AchievementData(EquipFull3ID, "Power Unleashed", "Equip 3 Runes on a Hero", 3, 300, 0, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
-        achievements.Add(new AchievementData(Reroll1ID, "Affinities Tinkerer", "Reroll Rune Affix 1 Time", 1, 150, 0, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
-        achievements.Add(new AchievementData(Dismantle10ID, "Scrap Recycler", "Dismantle 10 Runes", 10, 250, 300));
+        // MILESTONE: TÍNH NĂNG RUNE (FUSION, REROLL, DISMANTLE)
+        achievements.Add(new AchievementData(Fuse1ID, "Alchemist Apprentice", "Fuse Runes 1 Time", 1, 80, 50, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Fuse5ID, "Forge Enthusiast", "Fuse Runes 5 Times", 5, 250, 150, new List<CostData> { new CostData("FUSION_CHARM_01", 1) }));
+        achievements.Add(new AchievementData(Fuse10ID, "Master Transmuter", "Fuse Runes 10 Times", 10, 600, 350, new List<CostData> { new CostData("FUSION_CHARM_01", 2) }));
+        achievements.Add(new AchievementData(EquipFull3ID, "Power Unleashed", "Equip 3 Runes on a Hero", 3, 150, 100, new List<CostData> { new CostData("GACHA_TICKET_01", 1) }));
+        achievements.Add(new AchievementData(Reroll1ID, "Affinities Tinkerer", "Reroll Rune Affix 1 Time", 1, 100, 60, new List<CostData> { new CostData("REROLL_SCROLL_01", 1) }));
+        achievements.Add(new AchievementData(Dismantle10ID, "Scrap Recycler", "Dismantle 10 Runes", 10, 120, 150));
 
+        // MASTER ACHIEVEMENT
         achievements.Add(new AchievementData(MasterAchievementID, "Master of Achievements", "Complete all other achievements", 1, 0, 0));
     }
 
