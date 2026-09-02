@@ -28,7 +28,6 @@ public static class GraphicsRuntimeSettings
     private const float DefaultBrightness = 0.5f;
     private const float DefaultContrast = 0.5f;
     private const float DefaultSaturation = 0.5f;
-    private const float DefaultFieldOfView = 60f;
     private const float MotionBlurIntensity = 0.35f;
     private const float ChromaticAberrationIntensity = 0.25f;
 
@@ -56,7 +55,6 @@ public static class GraphicsRuntimeSettings
             PlayerPrefs.GetFloat("Graphics.Brightness", DefaultBrightness),
             PlayerPrefs.GetFloat("Graphics.Contrast", DefaultContrast),
             PlayerPrefs.GetFloat("Graphics.Saturation", DefaultSaturation),
-            PlayerPrefs.GetFloat("Graphics.FieldOfView", DefaultFieldOfView),
             PlayerPrefs.GetInt("Graphics.MotionBlur", 0) == 1,
             PlayerPrefs.GetInt("Graphics.ChromaticAberration", 0) == 1,
             PlayerPrefs.GetInt("Graphics.Sharpening", 0) > 0,
@@ -67,13 +65,12 @@ public static class GraphicsRuntimeSettings
         float brightness,
         float contrast,
         float saturation,
-        float fieldOfView,
         bool enableMotionBlur,
         bool enableChromaticAberration,
         bool enableFidelityFx,
         Camera preferredCamera = null)
     {
-        ApplyCamera(preferredCamera, fieldOfView);
+        ApplyCamera(preferredCamera);
         ApplyVolumes(
             brightness,
             contrast,
@@ -83,14 +80,12 @@ public static class GraphicsRuntimeSettings
         ApplyUpscaling(enableFidelityFx);
     }
 
-    private static void ApplyCamera(Camera preferredCamera, float fieldOfView)
+    private static void ApplyCamera(Camera preferredCamera)
     {
         Camera camera = preferredCamera != null ? preferredCamera : Camera.main;
 
         if (camera == null)
             return;
-
-        camera.fieldOfView = Mathf.Clamp(fieldOfView, 40f, 120f);
 
         UniversalAdditionalCameraData cameraData =
             camera.GetUniversalAdditionalCameraData();
@@ -195,7 +190,6 @@ public class GraphicsMenu : MenuBase
     [SerializeField] private Slider sliderBrightness;
     [SerializeField] private Slider sliderContrast;
     [SerializeField] private Slider sliderSaturation;
-    [SerializeField] private Slider sliderFieldOfView;
 
     [Header("Optional Runtime Targets")]
     [SerializeField] private Camera targetCamera;
@@ -208,7 +202,7 @@ public class GraphicsMenu : MenuBase
     [SerializeField] private SystemSettingsPanel systemSettingsPanel;
 
     [Header("Selector Values")]
-    [SerializeField] private int[] frameRates = { 30, 60, 120, 144, 165, 240, -1 };
+    [SerializeField] private int[] frameRates = { 30, 60, 120, 144, 165, 240, -1 }; // -1 đại diện cho Unlimited
     [SerializeField] private string[] displayModes = { "Full Screen", "Borderless", "Windowed" };
     [SerializeField] private string[] sharpeningModes = { "Off", "Fidelity FX" };
 
@@ -339,7 +333,6 @@ public class GraphicsMenu : MenuBase
         AddSlider(sliderBrightness);
         AddSlider(sliderContrast);
         AddSlider(sliderSaturation);
-        AddSlider(sliderFieldOfView);
 
         AddButton(tabs?.btnAudio, OpenAudioTab);
         AddButton(tabs?.btnGraphics, OpenGraphicsTab);
@@ -375,7 +368,6 @@ public class GraphicsMenu : MenuBase
         RemoveSlider(sliderBrightness);
         RemoveSlider(sliderContrast);
         RemoveSlider(sliderSaturation);
-        RemoveSlider(sliderFieldOfView);
 
         RemoveButton(tabs?.btnAudio, OpenAudioTab);
         RemoveButton(tabs?.btnGraphics, OpenGraphicsTab);
@@ -408,7 +400,6 @@ public class GraphicsMenu : MenuBase
         SetSlider(sliderBrightness, PlayerPrefs.GetFloat("Graphics.Brightness", 0.5f));
         SetSlider(sliderContrast, PlayerPrefs.GetFloat("Graphics.Contrast", 0.5f));
         SetSlider(sliderSaturation, PlayerPrefs.GetFloat("Graphics.Saturation", 0.5f));
-        SetSlider(sliderFieldOfView, PlayerPrefs.GetFloat("Graphics.FieldOfView", 60f));
 
         RefreshSelectors();
     }
@@ -426,7 +417,6 @@ public class GraphicsMenu : MenuBase
         SaveSlider("Graphics.Brightness", sliderBrightness);
         SaveSlider("Graphics.Contrast", sliderContrast);
         SaveSlider("Graphics.Saturation", sliderSaturation);
-        SaveSlider("Graphics.FieldOfView", sliderFieldOfView);
 
         if (dropdownResolution != null && dropdownResolution.value >= 0 && dropdownResolution.value < resolutions.Count)
         {
@@ -469,7 +459,6 @@ public class GraphicsMenu : MenuBase
             GetSliderValue(sliderBrightness, 0.5f),
             GetSliderValue(sliderContrast, 0.5f),
             GetSliderValue(sliderSaturation, 0.5f),
-            GetSliderValue(sliderFieldOfView, 60f),
             toggleMotionBlur != null && toggleMotionBlur.isOn,
             toggleChromaticAberration != null && toggleChromaticAberration.isOn,
             sharpeningIndex > 0,
@@ -481,7 +470,6 @@ public class GraphicsMenu : MenuBase
         ConfigureSlider(sliderBrightness, 0f, 1f);
         ConfigureSlider(sliderContrast, 0f, 1f);
         ConfigureSlider(sliderSaturation, 0f, 1f);
-        ConfigureSlider(sliderFieldOfView, 40f, 120f);
     }
 
     private static void ConfigureSlider(Slider slider, float minValue, float maxValue)

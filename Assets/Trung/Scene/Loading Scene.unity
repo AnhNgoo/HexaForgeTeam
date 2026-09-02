@@ -568,19 +568,6 @@ MonoBehaviour:
   loadingTipText: {fileID: 1448008690}
   fillSpeed: 0.7
   handleRotationSpeed: 360
-  loadingTips:
-  - Sharpening Ares's axe... Hopefully it does not break this time.
-  - Lyra is memorizing three more ancient spells.
-  - Kael claims that dodging is easier than blocking. Do not trust him.
-  - The ultimate relic contains +99,999 to all stats... Have you found it yet?
-  - Transmuting rune affixes (Reroll) costs a lot of Shards. Think twice!
-  - If you lose the battle, it is definitely your keyboard's fault.
-  - Every rune dropped from the dungeon has a soul. Do not dismantle them recklessly.
-  - Cleaning up previous monsters' debris to make room for you...
-  - Did you know? Equipping matching elemental runes unlocks powerful bonuses.
-  - Origin of Creation is the legendary rune that proves your absolute conquest.
-  - The dungeon portals are unstable. Enter at your own risk!
-  - Dismantling high-rarity runes refunds both Gems and Rune Shards.
 --- !u!4 &668157040
 Transform:
   m_ObjectHideFlags: 0
@@ -868,7 +855,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1146410688}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 81.39425}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -876,7 +863,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -0.00048828125, y: 141.5}
+  m_AnchoredPosition: {x: 0, y: 120}
   m_SizeDelta: {x: 260, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1146410690
@@ -926,8 +913,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 34
-  m_fontSizeBase: 34
+  m_fontSize: 36
+  m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1116,13 +1103,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 24
-  m_fontSizeBase: 24
+  m_fontSize: 26
+  m_fontSizeBase: 26
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1185,6 +1172,67 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 895.543, y: 477.63977}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1001 &1536207159
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2833209443864627451, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: scanInterval
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3223065644005864372, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_Name
+      value: LocalizationManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3435571422297839723, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2d014b56d3d1921468e3c9bd34243200, type: 3}
 --- !u!1 &1546372945
 GameObject:
   m_ObjectHideFlags: 0
@@ -1660,3 +1708,4 @@ SceneRoots:
   - {fileID: 1861631232}
   - {fileID: 668157040}
   - {fileID: 1782018170}
+  - {fileID: 1536207159}

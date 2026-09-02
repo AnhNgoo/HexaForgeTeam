@@ -161,6 +161,10 @@ public class UIManager : Singleton<UIManager>
             CurrentMenu.Open(data);
 
         CurrentMenuType = CurrentMenu.menuType;
+
+        // ✅ Dịch ngay cùng frame khi menu mở
+        if (AutoTranslateUI.Instance != null)
+            AutoTranslateUI.Instance.ScanAndApply();
     }
 
     //Đóng tất cả menu

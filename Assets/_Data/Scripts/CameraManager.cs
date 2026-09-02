@@ -35,6 +35,16 @@ public class CameraManager : Singleton<CameraManager>
         public bool syncRotationFromPrevious = true;
     }
 
+    protected override void Awake()
+    {
+        base.Awake();
+
+        if (Instance != this)
+            return;
+
+        LoadComponent();
+    }
+
     protected override void LoadComponent()
     {
         base.LoadComponent();
@@ -73,7 +83,7 @@ public class CameraManager : Singleton<CameraManager>
     private void SetupCamera(CameraRig camera, Transform followTarget, Transform lookAtTarget)
     {
         if (camera == null) return;
-        if (camera.virtualCamera != null || lookAtTarget != null || followTarget != null)
+        if (camera.virtualCamera != null && (lookAtTarget != null || followTarget != null))
         {
             camera.virtualCamera.Follow = followTarget;
             camera.virtualCamera.LookAt = lookAtTarget;
