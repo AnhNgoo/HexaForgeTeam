@@ -7,23 +7,16 @@ permissions:
   actions: read
 
 env:
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
 
 on:
   push:
     branches:
-      - main
       - develop
-      - demofromphuocbranch
-      - testrunner
-      - feat/testrunner
-
   pull_request:
     branches:
       - main
       - develop
-      - testrunner
-      - feat/testrunner
+  workflow_dispatch:
 
 jobs:
   test:
@@ -35,12 +28,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           lfs: true
-          
+
       - name: Show branch
         run: |
           git branch
           git log -1
-            
+
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -76,7 +69,6 @@ jobs:
 
       - name: Run Unity EditMode tests
         id: unity-editmode
-        continue-on-error: true
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -89,11 +81,10 @@ jobs:
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: editmode
           artifactsPath: test-results/editmode
-          coverageOptions: ''
+          coverageOptions: ""
 
       - name: Run Unity PlayMode tests
         id: unity-playmode
-        continue-on-error: true
         uses: game-ci/unity-test-runner@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -106,7 +97,7 @@ jobs:
           customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
           testMode: playmode
           artifactsPath: test-results/playmode
-          coverageOptions: ''
+          coverageOptions: ""
 
       - name: List generated test artifacts
         if: always()
