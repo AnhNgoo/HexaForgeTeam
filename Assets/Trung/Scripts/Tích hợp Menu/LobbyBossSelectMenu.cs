@@ -39,10 +39,10 @@ public class LobbyBossSelectMenu : MenuBase
     [SerializeField] private Slider wagerSlider;
     [SerializeField] private TMP_Text txtSelectedWagerInfo;
 
-    [Header("Wager Costs & Multipliers Config (Balanced)")]
+    [Header("Wager Costs & Multipliers Config")]
     [SerializeField] private int costTier1 = 50;
     [SerializeField] private int costTier2 = 150;
-    [SerializeField] private int costTier3 = 300;
+    [SerializeField] private int costTier3 = 400;
 
     [Header("Run Buff Toggles & Item Count Displays")]
     [SerializeField] private GameObject buffGroupRoot;
@@ -241,9 +241,10 @@ public class LobbyBossSelectMenu : MenuBase
               .SetUpdate(true);
     }
 
-    private void OnWagerSliderChanged(float value)
+        private void OnWagerSliderChanged(float value)
     {
         currentTierIndex = Mathf.RoundToInt(value);
+        bool isVI = SettingsLocalizationData.IsVietnamesePublic();
 
         switch (currentTierIndex)
         {
@@ -252,10 +253,13 @@ public class LobbyBossSelectMenu : MenuBase
                 selectedMultiplier = 1.0f;
                 if (txtSelectedWagerInfo != null)
                 {
-                    txtSelectedWagerInfo.text =
-                        "<b>Tier: <color=#00FF00>Standard (Safe)</color></b> | Bet: <color=#00FFFF>" + costTier1 + " Gems</color> (x1.0)\n" +
-                        "<color=#00FF00>• Benefits:</color> Standard combat, resources kept intact.\n" +
-                        "<color=#FF5555>• Note:</color> No secondary buffs allowed.";
+                    txtSelectedWagerInfo.text = isVI
+                        ? $"<b>Cấp: <color=#00FF00>Tiêu chuẩn (An toàn)</color></b> | Cược: <color=#00FFFF>{costTier1} Ngọc</color> (x1.0)\n" +
+                          "<color=#00FF00>• Lợi ích:</color> Chiến đấu tiêu chuẩn, giữ nguyên toàn bộ tài nguyên.\n" +
+                          "<color=#FF5555>• Lưu ý:</color> Không được dùng buff phụ trợ."
+                        : "<b>Tier: <color=#00FF00>Standard (Safe)</color></b> | Bet: <color=#00FFFF>" + costTier1 + " Gems</color> (x1.0)\n" +
+                          "<color=#00FF00>• Benefits:</color> Standard combat, resources kept intact.\n" +
+                          "<color=#FF5555>• Note:</color> No secondary buffs allowed.";
                 }
                 break;
 
@@ -264,22 +268,28 @@ public class LobbyBossSelectMenu : MenuBase
                 selectedMultiplier = 1.5f;
                 if (txtSelectedWagerInfo != null)
                 {
-                    txtSelectedWagerInfo.text =
-                        "<b>Tier: <color=#FFFF00>Risky (Challenge)</color></b> | Bet: <color=#00FFFF>" + costTier2 + " Gems</color> (x1.5)\n" +
-                        "<color=#00FF00>• Benefits:</color> EXP & Resource gains +50%.\n" +
-                        "<color=#00FFFF>• Buffs:</color> Gold Boost & Phoenix Charm available.";
+                    txtSelectedWagerInfo.text = isVI
+                        ? $"<b>Cấp: <color=#FFFF00>Mạo hiểm (Thử thách)</color></b> | Cược: <color=#00FFFF>{costTier2} Ngọc</color> (x1.5)\n" +
+                          "<color=#00FF00>• Lợi ích:</color> Tăng +50% EXP & Tài nguyên nhận được.\n" +
+                          "<color=#00FFFF>• Buff:</color> Mở khóa Mèo May Mắn & Bùa Phượng Hoàng."
+                        : "<b>Tier: <color=#FFFF00>Risky (Challenge)</color></b> | Bet: <color=#00FFFF>" + costTier2 + " Gems</color> (x1.5)\n" +
+                          "<color=#00FF00>• Benefits:</color> EXP & Resource gains +50%.\n" +
+                          "<color=#00FFFF>• Buffs:</color> Gold Boost & Phoenix Charm available.";
                 }
                 break;
 
             case 2:
                 selectedWagerAmount = costTier3;
-                selectedMultiplier = 2.2f; // Điều chỉnh từ 2.5 xuống 2.2
+                selectedMultiplier = 2.5f;
                 if (txtSelectedWagerInfo != null)
                 {
-                    txtSelectedWagerInfo.text =
-                        "<b>Tier: <color=#FF3333>Nightmare (Hardcore)</color></b> | Bet: <color=#00FFFF>" + costTier3 + " Gems</color> (x2.2)\n" +
-                        "<color=#00FF00>• Benefits:</color> Massive rewards (x2.2) & Rune Shards.\n" +
-                        "<color=#00FFFF>• Buffs:</color> All 3 Combat Elixirs unlocked!";
+                    txtSelectedWagerInfo.text = isVI
+                        ? $"<b>Cấp: <color=#FF3333>Ác mộng (Hardcore)</color></b> | Cược: <color=#00FFFF>{costTier3} Ngọc</color> (x2.5)\n" +
+                          "<color=#00FF00>• Lợi ích:</color> Thưởng cực lớn (x2.5) & Mảnh Đá Rune.\n" +
+                          "<color=#00FFFF>• Buff:</color> Mở khóa toàn bộ 3 loại Dược Phẩm Chiến Đấu!"
+                        : "<b>Tier: <color=#FF3333>Nightmare (Hardcore)</color></b> | Bet: <color=#00FFFF>" + costTier3 + " Gems</color> (x2.5)\n" +
+                          "<color=#00FF00>• Benefits:</color> Massive rewards (x2.5) & Rune Shards.\n" +
+                          "<color=#00FFFF>• Buffs:</color> All 3 Combat Elixirs unlocked!";
                 }
                 break;
         }
