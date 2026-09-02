@@ -111,6 +111,7 @@ public class EnemyLaserBarrageSkillSO : EnemyAttackSkillSO
                 laserHitbox.EnableHitBox();
             }
 
+            int previousSweepIndex = 0;
             float elapsed = 0f;
 
             while (elapsed < barrageDuration)
@@ -120,14 +121,25 @@ public class EnemyLaserBarrageSkillSO : EnemyAttackSkillSO
 
                 elapsed += Time.deltaTime;
 
-                float normalized =
-                    Mathf.Clamp01(elapsed / barrageDuration);
+                float normalized = Mathf.Clamp01(elapsed / barrageDuration);
 
-                float sweep =
-                    Mathf.PingPong(
-                        normalized * sweepCount,
-                        1f
-                    );
+                int currentSweepIndex = Mathf.Min(
+    sweepCount - 1,
+    Mathf.FloorToInt(normalized * sweepCount)
+);
+
+                if (laserHitbox != null &&
+                    currentSweepIndex != previousSweepIndex)
+                {
+                    laserHitbox.DisableHitBox();
+                    laserHitbox.Initialize(enemy, context.AttackData, context.RuntimeDamageMultiplier);
+                    laserHitbox.EnableHitBox();
+
+                    previousSweepIndex = currentSweepIndex;
+                }
+
+
+                float sweep = Mathf.PingPong(normalized * sweepCount, 1f);
 
                 float currentAngle = Mathf.Lerp(
                     -sweepAngle * 0.5f,

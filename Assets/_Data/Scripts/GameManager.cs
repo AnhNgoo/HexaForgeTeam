@@ -48,6 +48,10 @@ public class GameManager : Singleton<GameManager>
         EventManager.Unsubscribe(GameEvent.OnPlayerSpawned, HandlePlayerSpawned);
     }
 
+    public void StartRun()
+    {
+        PlayerManager.Instance.CurrentCharacterBase.CharacterInput.LockInput = true;
+    }
     private void OpenMenuAfterLoadingComplete()
     {
         if (UIManager.Instance == null) return;
@@ -91,6 +95,7 @@ public class GameManager : Singleton<GameManager>
         }
 
         PlayerManager.Instance?.SpawnCharacterInLobby();
+        PlayerManager.Instance.CurrentCharacterBase.CharacterInput.LockInput = false;
     }
 
     private void InitInRun()
@@ -113,6 +118,7 @@ public class GameManager : Singleton<GameManager>
         {
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: 0, limitRespawnAttempts: false);
         }
+        PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
     }
 
     private void InitInBoss()
@@ -124,6 +130,8 @@ public class GameManager : Singleton<GameManager>
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss + PlayerManager.Instance.BonusRespawnAttemptsInBoss, limitRespawnAttempts: true);
         else
             PlayerManager.Instance.SetMaxRespawnAttempts(maxAttempts: PlayerManager.Instance.MaxRespawnAttemptsInBoss, limitRespawnAttempts: true);
+
+        PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
     }
 
     private void HandlePlayerSpawned(object data)

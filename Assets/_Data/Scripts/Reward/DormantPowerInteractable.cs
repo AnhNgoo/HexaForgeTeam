@@ -19,7 +19,7 @@ public class DormantPowerInteractable : InteractBase
     private List<BossRewardDataSO> rolledRewards = new();
     private bool isClaimed;
 
-    public override string InteractionName => "Nhận Dormant Power";
+    public override string InteractionName => LocalizationText.Get("ui.reward.interact", "Receive Dormant Power");
 
     public void Initialize(BossRewardTableSO table)
     {

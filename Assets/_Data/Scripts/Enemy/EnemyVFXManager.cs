@@ -10,7 +10,7 @@ public class EnemyVFXManager : MonoBehaviour
     [SerializeField] private Transform _footAnchor; // Điểm neo để gắn hiệu ứng khi bị đánh trúng, có thể được thiết lập trong Inspector để xác định vị trí gắn hiệu ứng khi Enemy bị đánh trúng
     [Header("VFX Settings")]
     [SerializeField] private float _staggerHitReactDuration = 0.5f; // Thời gian hiển thị hiệu ứng phản ứng khi bị đánh trúng trong trạng thái stagger, có thể được thiết lập trong Inspector để điều chỉnh thời gian hiển thị hiệu ứng phản ứng khi bị đánh trúng trong trạng thái stagger
-    [SerializeField] private PoolType _staggerVFX = PoolType.None; // Loại VFX để sử dụng khi bị đánh trúng trong trạng thái stagger, có thể được thiết lập trong Inspector để chọn loại VFX phù hợp với hiệu ứng phản ứng khi bị đánh trúng trong trạng thái stagger
+    [SerializeField] private PoolType _staggerVFX = PoolType.Stun_Loop; // Mặc định mọi enemy đều hiển thị Stun_Loop khi vỡ poise
     [SerializeField] private Vector3 _staggerVFXOffset = new Vector3(0f, 0.5f, 0f); // Offset để điều chỉnh vị trí spawn của VFX khi bị đánh trúng trong trạng thái stagger, có thể được thiết lập trong Inspector để điều chỉnh vị trí spawn của VFX khi Enemy bị đánh trúng trong trạng thái stagger
     [SerializeField] private Vector3 _staggerVFXEuler; // Euler angles để điều chỉnh rotation của VFX khi bị đánh trúng trong trạng thái stagger, có thể được thiết lập trong Inspector để điều chỉnh rotation của VFX khi Enemy bị đánh trúng trong trạng thái stagger
     [SerializeField] private float _staggerVFXScale = 1f; // Scale để điều chỉnh kích thước của VFX khi bị đánh trúng trong trạng thái stagger, có thể được thiết lập trong Inspector để điều chỉnh kích thước của VFX khi Enemy bị đánh trúng trong trạng thái stagger
@@ -21,6 +21,11 @@ public class EnemyVFXManager : MonoBehaviour
     public void Initialize(EnemyBase enemyBase)
     {
         _enemyBase = enemyBase; // Lưu reference đến EnemyBase để sử dụng sau này, có thể dùng để truy cập các thành phần khác của Enemy khi cần thiết
+
+        // Các prefab enemy cũ đã serialize giá trị None. Nâng chúng lên
+        // Stun_Loop lúc runtime để enemy hiện tại và enemy mới có cùng hành vi.
+        if (_staggerVFX == PoolType.None)
+            _staggerVFX = PoolType.Stun_Loop;
 
         if (_chestAnchor == null) _chestAnchor = transform; // Nếu không có chestAnchor được thiết lập thì sử dụng transform của Enemy làm điểm neo mặc định để đảm bảo rằng hiệu ứng sẽ được gắn vào Enemy một cách chính xác khi bị đánh trúng
         if (_headAnchor == null) _headAnchor = transform; // Nếu không có headAnchor được thiết lập thì sử dụng transform của Enemy làm điểm neo mặc định để đảm bảo rằng hiệu ứng sẽ được gắn vào Enemy một cách chính xác khi bị đánh trúng
@@ -43,18 +48,28 @@ public class EnemyVFXManager : MonoBehaviour
     public void PlayStaggerVFX()
     {
         if (_enemyBase == null || _enemyBase.Data == null) return;
-        if (_staggerVFX == PoolType.None) return;
 
         StopStaggerVFX();
+
+        ObjectPooling objectPooling = ObjectPooling.GetOrFindInstance();
+        if (objectPooling == null)
+        {
+            Debug.LogWarning($"{gameObject.name}: không thể hiển thị stagger VFX vì không tìm thấy ObjectPooling.", this);
+            return;
+        }
 
         Transform anchor = _headAnchor != null ? _headAnchor : transform;
 
         Vector3 position = anchor.position + anchor.TransformDirection(_staggerVFXOffset);
         Quaternion rotation = anchor.rotation * Quaternion.Euler(_staggerVFXEuler);
 
-        _staggerVFXInstance = ObjectPooling.Instance.SpawnFromPool(_staggerVFX, position, rotation);
+        _staggerVFXInstance = objectPooling.SpawnFromPool(_staggerVFX, position, rotation);
 
-        if (_staggerVFXInstance == null) return;
+        if (_staggerVFXInstance == null)
+        {
+            Debug.LogWarning($"{gameObject.name}: pool {_staggerVFX} không tồn tại hoặc đã đạt giới hạn.", this);
+            return;
+        }
 
         _staggerVFXInstance.transform.SetParent(anchor);
         _staggerVFXInstance.transform.localPosition = _staggerVFXOffset;
@@ -67,7 +82,7 @@ public class EnemyVFXManager : MonoBehaviour
         if (_staggerVFXInstance == null) return;
 
         _staggerVFXInstance.transform.SetParent(null);
-        if (_staggerVFX != PoolType.None)
+        if (_staggerVFX != PoolType.None && ObjectPooling.Instance != null)
         {
             ObjectPooling.Instance.ReturnToPool(_staggerVFX, _staggerVFXInstance);
         }

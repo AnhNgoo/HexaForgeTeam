@@ -4901,7 +4901,8 @@ GameObject:
   - component: {fileID: 2607184467005568375}
   - component: {fileID: -8759425826186554283}
   - component: {fileID: 2376862618679465368}
-  - component: {fileID: 7462868725457193688}
+  - component: {fileID: 4925395019207991726}
+  - component: {fileID: 2829313166326479775}
   m_Layer: 0
   m_Name: VFX_Lightning_Projectile
   m_TagString: Untagged
@@ -9842,23 +9843,60 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d34be991218add24f8e6bfc7daf0942d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  poolType: 0
+  poolType: 3013
   effectType: 0
   effectDuration: 1.5
   isHoming: 0
   homingTurnSpeed: 240
+  maxHomingTurnSpeed: 900
+  closeRangeTurnFactor: 1.25
   homingDuration: 4
   homingTargetHeight: 0.5
---- !u!114 &7462868725457193688
-MonoBehaviour:
+--- !u!135 &4925395019207991726
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4748681987041982144}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 269c9644778c03148851d34bc085cab3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _vfxPoolType: 3013
+  serializedVersion: 3
+  m_Radius: 0.75
+  m_Center: {x: 0, y: 0, z: -0.5}
+--- !u!54 &2829313166326479775
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4748681987041982144}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0

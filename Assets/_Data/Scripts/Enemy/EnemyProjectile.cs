@@ -21,6 +21,9 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
     [Header("Optional Homing")]
     [SerializeField] private bool isHoming;
     [SerializeField, Min(0f)] private float homingTurnSpeed = 240f;
+    [SerializeField, Min(0f)] private float maxHomingTurnSpeed = 900f;
+
+    [SerializeField, Min(1f)] private float closeRangeTurnFactor = 1.25f;
     [SerializeField, Min(0f)] private float homingDuration = 4f;
     [SerializeField] private float homingTargetHeight = 0.5f;
 
@@ -73,12 +76,13 @@ public class EnemyProjectile : MonoBehaviour, IPoolable
 
         if (isHoming && _homingTarget != null && Time.time < _homingEndTime)
         {
-            Vector3 desiredDirection = _homingTarget.position + Vector3.up * homingTargetHeight - transform.position;
-
-            if (desiredDirection.sqrMagnitude > 0.001f)
+            Vector3 toTarget = _homingTarget.position + Vector3.up * homingTargetHeight - transform.position;
+            float distance = toTarget.magnitude;
+            if (distance > 0.001f)
             {
-                _direction = Vector3.RotateTowards(_direction, desiredDirection.normalized, homingTurnSpeed * Mathf.Deg2Rad * Time.deltaTime, 0f).normalized;
-
+                float requiredTurnSpeed = (_speed / Mathf.Max(distance, 0.1f)) * Mathf.Rad2Deg * closeRangeTurnFactor;
+                float effectiveTurnSpeed = Mathf.Clamp(requiredTurnSpeed, homingTurnSpeed, Mathf.Max(homingTurnSpeed, maxHomingTurnSpeed));
+                _direction = Vector3.RotateTowards(_direction, toTarget / distance, effectiveTurnSpeed * Mathf.Deg2Rad * Time.deltaTime, 0f).normalized;
                 transform.forward = _direction;
             }
         }

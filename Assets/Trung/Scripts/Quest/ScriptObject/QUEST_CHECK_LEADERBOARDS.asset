@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_CHECK_LEADERBOARDS
+  m_EditorClassIdentifier: 
+  questID: QUEST_CHECK_LEADERBOARDS
+  questTitle: Hall of Fame
+  questDescription: 'Talk to Trung to unlock and view the global Leaderboard rankings.
+
+'
+  questType: 0
+  requiredAccountLevel: 1
+  requiredPrerequisiteQuestID: QUEST_CHECK_ACHIEVEMENTS
+  targetProgress: 1
+  targetStationPointName: 
+  npcName: Trung
+  notStartedDialogues:
+  - speaker: 0
+    text: Beyond personal achievements, you can also compete with warriors worldwide.
+  - speaker: 1
+    text: Is there a global ranking system?
+  - speaker: 0
+    text: Indeed! Open the Leaderboard panel to inspect the top-ranked adventurers.
+  inProgressDialogues:
+  - speaker: 0
+    text: Inspect the Leaderboard rankings to see who sits at the apex.
+  canClaimDialogues:
+  - speaker: 1
+    text: The competition is fierce! I need to keep growing stronger.
+  - speaker: 0
+    text: That's the spirit of a true champion. Take this reward, and make your name
+      known across the realm!
+  completedDialogues:
+  - speaker: 0
+    text: Climb higher in the rankings and make our sanctuary proud.
+  rewardGem: 300
+  rewardShard: 100
+  rewardExp: 150
+  rewardItems: []

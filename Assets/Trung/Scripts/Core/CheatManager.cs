@@ -1,5 +1,6 @@
 using UnityEngine;
 using Sirenix.OdinInspector;
+
 public class CheatManager : MonoBehaviour
 {
     public static CheatManager Instance;
@@ -60,6 +61,7 @@ public class CheatManager : MonoBehaviour
     }
 
     #region Hack Functions
+
     [Button("Hack Gems +5,000")]
     public void HackGems()
     {
@@ -107,17 +109,30 @@ public class CheatManager : MonoBehaviour
         }
     }
 
-    [Button("Hack Skip All Achievements")]
-    public void HackSkipAllAchievements()
+    [Button("Hack Skip All Quests & Achievements")]
+    public void HackSkipAllQuestsAndAchievements()
     {
+        // 1. Hoàn thành toàn bộ Quest và mở khóa toàn bộ cơ chế/panel trong Lobby
+        if (QuestManager.Instance != null)
+        {
+            QuestManager.Instance.SkipAllQuests();
+        }
+        else
+        {
+            Debug.LogError("[CHEAT] QuestManager instance not found in current scene context.");
+        }
+
+        // 2. Mở khóa toàn bộ Achievements
         if (AchievementManager.Instance != null)
         {
             AchievementManager.Instance.HackUnlockAllAchievements();
         }
         else
         {
-            Debug.LogError("[CHEAT] AchievementManager target instance not found.");
+            Debug.LogError("[CHEAT] AchievementManager target instance not found in current scene context.");
         }
+
+        Debug.Log("<color=#00FF00><b>[CHEAT]</b> Command executed: Skipped all Quests and unlocked all Achievements successfully!</color>");
     }
 
     [Button("Hack Add Kills and Runs")]

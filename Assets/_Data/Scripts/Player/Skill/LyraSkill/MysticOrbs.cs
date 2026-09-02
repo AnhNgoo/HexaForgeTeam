@@ -62,7 +62,7 @@ public class MysticOrbs : CharacterSkillBase
         isAttacking = true;
         RotateAround();
         SpawnProjectiles();
-        character.CanBeAttacked = true;
+
         GameObject lyraAuraSkill_2_3 = ObjectPooling.Instance?.SpawnFromPool(lyra.lyraAuraSkill_2_3,
                                               lyra.middleEffectPoint.transform.position,
                                               lyra.middleEffectPoint.transform.rotation,
@@ -96,6 +96,7 @@ public class MysticOrbs : CharacterSkillBase
         character.StateController.ChangeState(new IdleState(character));
         character.CharacterWeapon.RetrieveWeapon();
         character.CharacterSkill.IsUsingSkill2 = false;
+        character.CanBeAttacked = true;
     }
 
     public void CancelSkillDelay()

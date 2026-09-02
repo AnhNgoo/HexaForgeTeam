@@ -449,11 +449,11 @@ GameObject:
   m_Component:
   - component: {fileID: 395754648199860109}
   - component: {fileID: 9102391572382050643}
+  - component: {fileID: 3688014074770342082}
   - component: {fileID: 7159046999495124305}
   - component: {fileID: 4071564325501919644}
   - component: {fileID: 2774913299791827037}
   - component: {fileID: 2051811336041447576}
-  - component: {fileID: 3688014074770342082}
   - component: {fileID: 144520692886120981}
   - component: {fileID: 3634217395938252328}
   m_Layer: 0
@@ -471,7 +471,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2869959741364763482}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -11.332153, y: -9.675232, z: -6.6089153}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -508,6 +508,27 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!135 &3688014074770342082
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2869959741364763482}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 2.5
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!136 &7159046999495124305
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -633,27 +654,6 @@ MonoBehaviour:
   playerTag: Player
   openPanel: 0
   menuType: 0
---- !u!135 &3688014074770342082
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2869959741364763482}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 2.5
-  m_Center: {x: 0, y: 1, z: 0}
 --- !u!114 &144520692886120981
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -667,9 +667,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialogueData:
-    npcName: Khoa
+    npcName: ThuKhoa
     dialogues:
-    - "B\u1ED1 m\xE0y l\xE0 th\u1EE7 khoa n\xE8 con cho\n"
+    - Rune power is volatile. If you don't fuse and reinforce your engraved stones
+      regularly, your combat efficiency will drop drastically.
+    - "Drop by the workshop before every expedition\u2014proper maintenance is what
+      keeps you alive out there."
     choices:
     - choiceText: Quest
       action: 0
@@ -1797,11 +1800,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3544034642323472135, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
       propertyPath: m_text
-      value: Tran Suy Anh Khoa
+      value: Thu Khoa
       objectReference: {fileID: 0}
     - target: {fileID: 5557491889869160553, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
       propertyPath: displayName
-      value: Tran Suy Anh Khoa
+      value: Thu Khoa
       objectReference: {fileID: 0}
     - target: {fileID: 7636752503445731056, guid: c05d799d1bc9e91478a9d70d79b13ca3, type: 3}
       propertyPath: m_LocalPosition.x

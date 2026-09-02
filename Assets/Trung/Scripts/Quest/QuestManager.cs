@@ -7,9 +7,14 @@ public class QuestManager : MonoBehaviour
     public static QuestManager Instance;
 
     public const string TALK_ALL_QUEST_ID = "QUEST_TUTORIAL_TALK_ALL";
+    public const string GAMBLE_QUEST_ID = "QUEST_GAMBLE_BET";
 
     [Header("Quest Database Reference")]
     [SerializeField] private QuestDatabaseSO questDatabase;
+
+    [Header("Gamble Wager Config")]
+    [Range(0, 100)] [SerializeField] private int gambleDoubleChance = 40; // 40% an x2
+    [Range(0, 100)] [SerializeField] private int gambleTripleChance = 10; // 10% an x3
 
     private List<QuestData> quests = new List<QuestData>();
     private List<string> talkedNPCsInQuest = new List<string>();
@@ -38,6 +43,7 @@ public class QuestManager : MonoBehaviour
         GameEventManager.OnGachaRolled += HandleGachaRolled;
         GameEventManager.OnEnemyKilled += HandleEnemyKilled;
         GameEventManager.OnTutorialCompleted += HandleTutorialCompleted;
+        GameEventManager.OnRunCompleted += HandleRunCompleted;
     }
 
     private void OnDisable()
@@ -45,6 +51,7 @@ public class QuestManager : MonoBehaviour
         GameEventManager.OnGachaRolled -= HandleGachaRolled;
         GameEventManager.OnEnemyKilled -= HandleEnemyKilled;
         GameEventManager.OnTutorialCompleted -= HandleTutorialCompleted;
+        GameEventManager.OnRunCompleted -= HandleRunCompleted;
     }
 
     public bool IsTalkQuestActive()
@@ -146,6 +153,12 @@ public class QuestManager : MonoBehaviour
                 talkedNPCsInQuest.Clear();
             }
 
+            if (LobbyNotifyManager.Instance != null)
+            {
+                string title = questSO != null ? questSO.questTitle : quest.title;
+                LobbyNotifyManager.Instance.ShowNotify($"Quest Accepted: {title}", new Color(1f, 0.85f, 0.2f));
+            }
+
             SaveQuests();
             OnQuestUpdated?.Invoke();
         }
@@ -164,6 +177,16 @@ public class QuestManager : MonoBehaviour
             }
 
             quest.AddProgress(amount);
+
+            if (quest.state == QuestState.CanClaim)
+            {
+                if (LobbyNotifyManager.Instance != null)
+                {
+                    string title = questSO != null ? questSO.questTitle : quest.title;
+                    LobbyNotifyManager.Instance.ShowNotify($"Quest Completed: {title}! Return to NPC for reward.", Color.cyan);
+                }
+            }
+
             SaveQuests();
             OnQuestUpdated?.Invoke();
         }
@@ -210,6 +233,12 @@ public class QuestManager : MonoBehaviour
             }
         }
 
+        if (LobbyNotifyManager.Instance != null)
+        {
+            string title = questSO != null ? questSO.questTitle : quest.title;
+            LobbyNotifyManager.Instance.ShowNotify($"Reward Claimed for [{title}]!", Color.green);
+        }
+
         SaveQuests();
         OnQuestUpdated?.Invoke();
     }
@@ -237,6 +266,10 @@ public class QuestManager : MonoBehaviour
                     questSO.rewardShard,
                     questSO.rewardItems
                 );
+                if (questSO.questID == GAMBLE_QUEST_ID)
+                {
+                    newQuest.state = QuestState.Completed;
+                }
                 syncedList.Add(newQuest);
             }
             else
@@ -278,6 +311,7 @@ public class QuestManager : MonoBehaviour
         SyncFromDatabase();
         SaveQuests();
     }
+
     public bool IsMenuUnlocked(MenuType menuType)
     {
         switch (menuType)
@@ -295,12 +329,237 @@ public class QuestManager : MonoBehaviour
                 return runeQuest != null && runeQuest.state != QuestState.NotStarted;
 
             case MenuType.LobbyCharacterMenu:
-                // Mở khóa Select Character khi đã nhận hoặc hoàn thành Quest 5
                 QuestData charQuest = GetQuest("QUEST_SELECT_CHARACTER");
                 return charQuest != null && charQuest.state != QuestState.NotStarted;
 
+            case MenuType.LobbyBossSelectMenu:
+                QuestData bossQuest = GetQuest("QUEST_EXPEDITION_TRIAL");
+                return bossQuest != null && bossQuest.state != QuestState.NotStarted;
+
+            case MenuType.LobbyAchievementMenu:
+                QuestData achQuest = GetQuest("QUEST_CHECK_ACHIEVEMENTS");
+                return achQuest != null && achQuest.state != QuestState.NotStarted;
+
+            case MenuType.LobbyLeaderboardMenu:
+                QuestData leadQuest = GetQuest("QUEST_CHECK_LEADERBOARDS");
+                return leadQuest != null && leadQuest.state != QuestState.NotStarted;
+
             default:
                 return true;
+        }
+    }
+
+    private void HandleRunCompleted(bool isVictory)
+    {
+        AddQuestProgress("QUEST_EXPEDITION_TRIAL", 1);
+
+        QuestData gambleQuest = GetQuest(GAMBLE_QUEST_ID);
+        if (gambleQuest != null)
+        {
+            gambleQuest.state = QuestState.InProgress;
+            gambleQuest.currentProgress = 0;
+            SaveQuests();
+            OnQuestUpdated?.Invoke();
+        }
+    }
+
+    public void ExecuteGambleBet(int betAmount)
+    {
+        if (GemManager.Instance == null) return;
+
+        int currentGems = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+            ? SaveLoadManager.Instance.SaveData.gem
+            : 0;
+
+        if (currentGems < betAmount)
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify("Not enough Gems to place this wager!", Color.red);
+            }
+            return;
+        }
+
+        GemManager.Instance.SpendGem(betAmount);
+
+        int roll = UnityEngine.Random.Range(1, 101);
+
+        if (roll <= gambleTripleChance)
+        {
+            int wonAmount = betAmount * 3;
+            GemManager.Instance.AddGem(wonAmount);
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"JACKPOT! You won {wonAmount} Gems! (x3 Multiplier)", Color.yellow);
+            }
+        }
+        else if (roll <= gambleTripleChance + gambleDoubleChance)
+        {
+            int wonAmount = betAmount * 2;
+            GemManager.Instance.AddGem(wonAmount);
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"LUCKY! You won {wonAmount} Gems! (x2 Multiplier)", Color.green);
+            }
+        }
+        else
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"LOST! The Smuggler took all {betAmount} Gems. Try again next run!", Color.red);
+            }
+        }
+
+        QuestData gambleQuest = GetQuest(GAMBLE_QUEST_ID);
+        if (gambleQuest != null)
+        {
+            gambleQuest.state = QuestState.Completed;
+            SaveQuests();
+            OnQuestUpdated?.Invoke();
+        }
+    }
+
+    public void SkipAllQuests()
+    {
+        if (quests == null || quests.Count == 0)
+        {
+            SyncFromDatabase();
+        }
+
+        for (int i = 0; i < quests.Count; i++)
+        {
+            QuestData qData = quests[i];
+            if (qData == null) continue;
+
+            QuestSO qSO = GetQuestSO(qData.questID);
+            int target = qSO != null ? qSO.targetProgress : qData.targetProgress;
+
+            qData.state = QuestState.Completed;
+            qData.currentProgress = target;
+        }
+
+        SaveQuests();
+        RefreshInteractsInScene();
+        OnQuestUpdated?.Invoke();
+
+        if (LobbyNotifyManager.Instance != null)
+        {
+            LobbyNotifyManager.Instance.ShowNotify("All Quests & Features Fully Unlocked!", Color.green);
+        }
+    }
+
+    public bool AreSpecificQuestsCompleted(List<QuestSO> questList)
+    {
+        if (questList == null || questList.Count == 0) return true;
+
+        for (int i = 0; i < questList.Count; i++)
+        {
+            QuestSO so = questList[i];
+            if (so == null || string.IsNullOrEmpty(so.questID)) continue;
+
+            QuestData data = GetQuest(so.questID);
+            if (data == null || data.state != QuestState.Completed)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void SkipAndClaimSpecificQuests(List<QuestSO> questList)
+    {
+        if (questList == null || questList.Count == 0) return;
+
+        if (quests == null || quests.Count == 0)
+        {
+            SyncFromDatabase();
+        }
+
+        int totalGems = 0;
+        int totalShards = 0;
+        int totalExp = 0;
+
+        for (int i = 0; i < questList.Count; i++)
+        {
+            QuestSO qSO = questList[i];
+            if (qSO == null || string.IsNullOrEmpty(qSO.questID)) continue;
+
+            QuestData qData = GetQuest(qSO.questID);
+            if (qData == null)
+            {
+                qData = new QuestData(
+                    qSO.questID,
+                    qSO.questTitle,
+                    qSO.questDescription,
+                    qSO.questType,
+                    qSO.targetProgress,
+                    qSO.rewardGem,
+                    qSO.rewardShard,
+                    qSO.rewardItems
+                );
+                quests.Add(qData);
+            }
+
+            if (qData.state != QuestState.Completed)
+            {
+                totalGems += qSO.rewardGem;
+                totalShards += qSO.rewardShard;
+                totalExp += qSO.rewardExp;
+
+                if (qSO.rewardItems != null && InventoryItemManager.Instance != null)
+                {
+                    for (int j = 0; j < qSO.rewardItems.Count; j++)
+                    {
+                        var item = qSO.rewardItems[j];
+                        if (item != null && !string.IsNullOrEmpty(item.itemID) && item.amount > 0)
+                        {
+                            InventoryItemManager.Instance.AddItem(item.itemID, item.itemID, item.amount);
+                        }
+                    }
+                }
+            }
+
+            qData.state = QuestState.Completed;
+            qData.currentProgress = qSO.targetProgress;
+        }
+
+        if (totalGems > 0 && GemManager.Instance != null)
+        {
+            GemManager.Instance.AddGem(totalGems);
+        }
+        if (totalShards > 0 && RuneShardManager.Instance != null)
+        {
+            RuneShardManager.Instance.AddShards(totalShards);
+        }
+        if (totalExp > 0 && AccountLevelManager.Instance != null)
+        {
+            AccountLevelManager.Instance.AddExp(totalExp);
+        }
+
+        SaveQuests();
+        RefreshInteractsInScene();
+        OnQuestUpdated?.Invoke();
+
+        if (LobbyNotifyManager.Instance != null)
+        {
+            LobbyNotifyManager.Instance.ShowNotify($"Tutorial Skipped! +{totalGems} Gems, +{totalShards} Shards", Color.green);
+        }
+    }
+
+    private void RefreshInteractsInScene()
+    {
+        InteractV2[] allInteracts = FindObjectsByType<InteractV2>(FindObjectsSortMode.None);
+        for (int i = 0; i < allInteracts.Length; i++)
+        {
+            if (allInteracts[i] != null)
+            {
+                allInteracts[i].CheckFeatureUnlockStatus();
+            }
+        }
+
+        if (InteractManagerV2.Instance != null)
+        {
+            InteractManagerV2.Instance.RescanNearbyInteracts();
         }
     }
 }

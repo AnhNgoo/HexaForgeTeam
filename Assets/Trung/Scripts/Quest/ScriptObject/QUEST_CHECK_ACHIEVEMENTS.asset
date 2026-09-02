@@ -1,0 +1,47 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc712a657a1e6234498f073ebd167d4c, type: 3}
+  m_Name: QUEST_CHECK_ACHIEVEMENTS
+  m_EditorClassIdentifier: 
+  questID: QUEST_CHECK_ACHIEVEMENTS
+  questTitle: Record of Valour
+  questDescription: Talk to Trung to unlock and inspect the Achievement records.
+  questType: 0
+  requiredAccountLevel: 1
+  requiredPrerequisiteQuestID: QUEST_EXPEDITION_TRIAL
+  targetProgress: 1
+  targetStationPointName: 
+  npcName: Trung
+  notStartedDialogues:
+  - speaker: 0
+    text: I see you've survived your first expedition! It's time to track your heroic
+      milestones.
+  - speaker: 1
+    text: Where can I see what milestones I've achieved?
+  - speaker: 0
+    text: Open the Achievement panel from my menu to claim your milestone rewards.
+  inProgressDialogues:
+  - speaker: 0
+    text: Check the Achievement list to see what feats you have accomplished.
+  canClaimDialogues:
+  - speaker: 0
+    text: I've checked the achievements. There are many goals to pursue!
+  - speaker: 0
+    text: Keep completing them as you venture deeper. Here is your reward for this
+      milestone.
+  completedDialogues:
+  - speaker: 0
+    text: Check back often to claim more achievement rewards as you progress.
+  rewardGem: 300
+  rewardShard: 100
+  rewardExp: 150
+  rewardItems: []

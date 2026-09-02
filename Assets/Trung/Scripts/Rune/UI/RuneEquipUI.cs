@@ -6,6 +6,12 @@ using System.Collections.Generic;
 
 public class RuneEquipUI : MonoBehaviour
 {
+    [Header("Popup Select Character Build")]
+    [SerializeField] private GameObject selectCharBuildPanel;
+    [SerializeField] private Button mainCharButton;
+    [SerializeField] private Image mainCharAvatarImage;
+    [SerializeField] private Button outsideOverlayButton; // Nút bấm tàng hình phủ toàn màn hình để click ra ngoài là tắt popup
+
     [Header("Equip Slots")]
     [SerializeField] private Image slot1Image;
     [SerializeField] private Image slot2Image;
@@ -19,6 +25,12 @@ public class RuneEquipUI : MonoBehaviour
     [SerializeField] private GameObject lyraButtonObj;
     [SerializeField] private GameObject aresButtonObj;
     [SerializeField] private GameObject elaraButtonObj;
+
+    [Header("Character Avatars")]
+    [SerializeField] private Sprite kaelAvatarSprite;
+    [SerializeField] private Sprite lyraAvatarSprite;
+    [SerializeField] private Sprite aresAvatarSprite;
+    [SerializeField] private Sprite elaraAvatarSprite;
 
     [Header("Coming Soon Config")]
     [SerializeField] private List<CharacterType> comingSoonCharacters = new List<CharacterType>()
@@ -61,6 +73,18 @@ public class RuneEquipUI : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+
+        if (mainCharButton != null)
+        {
+            mainCharButton.onClick.RemoveAllListeners();
+            mainCharButton.onClick.AddListener(ToggleSelectCharBuildPanel);
+        }
+
+        if (outsideOverlayButton != null)
+        {
+            outsideOverlayButton.onClick.RemoveAllListeners();
+            outsideOverlayButton.onClick.AddListener(CloseSelectCharBuildPanel);
+        }
     }
 
     private void OnEnable()
@@ -75,12 +99,41 @@ public class RuneEquipUI : MonoBehaviour
             viewingCharacter = CharacterType.Kael;
         }
 
+        CloseSelectCharBuildPanel();
         RefreshEquipUI();
+    }
+
+    public void ToggleSelectCharBuildPanel()
+    {
+        if (selectCharBuildPanel != null)
+        {
+            bool isActive = selectCharBuildPanel.activeSelf;
+            SetSelectCharBuildPanelActive(!isActive);
+        }
+    }
+
+    public void CloseSelectCharBuildPanel()
+    {
+        SetSelectCharBuildPanelActive(false);
+    }
+
+    private void SetSelectCharBuildPanelActive(bool active)
+    {
+        if (selectCharBuildPanel != null)
+        {
+            selectCharBuildPanel.SetActive(active);
+        }
+
+        if (outsideOverlayButton != null)
+        {
+            outsideOverlayButton.gameObject.SetActive(active);
+        }
     }
 
     public void RefreshEquipUI()
     {
         ResetSlots();
+        UpdateMainCharAvatar();
 
         if (RuneInventoryManager.Instance == null)
         {
@@ -167,6 +220,27 @@ public class RuneEquipUI : MonoBehaviour
         RefreshTotalStatText();
     }
 
+    private void UpdateMainCharAvatar()
+    {
+        if (mainCharAvatarImage == null) return;
+
+        switch (viewingCharacter)
+        {
+            case CharacterType.Kael:
+                if (kaelAvatarSprite != null) mainCharAvatarImage.sprite = kaelAvatarSprite;
+                break;
+            case CharacterType.Lyra:
+                if (lyraAvatarSprite != null) mainCharAvatarImage.sprite = lyraAvatarSprite;
+                break;
+            case CharacterType.Ares:
+                if (aresAvatarSprite != null) mainCharAvatarImage.sprite = aresAvatarSprite;
+                break;
+            case CharacterType.Elara:
+                if (elaraAvatarSprite != null) mainCharAvatarImage.sprite = elaraAvatarSprite;
+                break;
+        }
+    }
+
     #region Button Alpha, Lock & Coming Soon States
 
     private void UpdateCharacterButtonsState()
@@ -241,6 +315,10 @@ public class RuneEquipUI : MonoBehaviour
         }
 
         viewingCharacter = type;
+
+        // Đóng popup sau khi chọn tướng xong
+        CloseSelectCharBuildPanel();
+
         RefreshEquipUI();
 
         if (RuneInventoryUI.Instance != null) RuneInventoryUI.Instance.RefreshInventory();

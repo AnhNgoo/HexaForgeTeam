@@ -975,6 +975,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   attackArsenal:
   - {fileID: 11400000, guid: 414b3c13cbaa09349978e5f12665553d, type: 2}
+  meleeAttackSoundOverride: {fileID: 0}
+  meleeAttackSoundVolume: 1
+  rangedAttackSoundOverride: {fileID: 0}
+  rangedAttackSoundVolume: 1
   attackVFXSpawnPoints:
   - attackData: {fileID: 11400000, guid: 414b3c13cbaa09349978e5f12665553d, type: 2}
     spawnPoints:
@@ -1088,7 +1092,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _lootPrefab: {fileID: 0}
-  bossLoot: []
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 0
+  groundOffset: 0.2
 --- !u!114 &4365138284051641130
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1105,10 +1112,10 @@ MonoBehaviour:
   _headAnchor: {fileID: 0}
   _footAnchor: {fileID: 0}
   _staggerHitReactDuration: 0.5
-  _staggerVFX: 0
-  _staggerVFXOffset: {x: 0, y: 0.5, z: 0}
+  _staggerVFX: 60
+  _staggerVFXOffset: {x: 0, y: 1, z: 0}
   _staggerVFXEuler: {x: 0, y: 0, z: 0}
-  _staggerVFXScale: 1
+  _staggerVFXScale: 0.7
 --- !u!114 &4791893352025962759
 MonoBehaviour:
   m_ObjectHideFlags: 0
