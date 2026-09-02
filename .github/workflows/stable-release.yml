@@ -1,0 +1,232 @@
+name: DuskBlade Stable Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  checks: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test-build-release:
+    name: Test, build and publish stable Windows x64
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Free disk space
+        shell: bash
+        run: |
+          df -h
+          sudo rm -rf /usr/local/lib/android || true
+          sudo rm -rf /opt/ghc || true
+          sudo rm -rf /usr/share/swift || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || true
+          docker system prune -af || true
+          df -h
+
+      - name: Checkout release tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          lfs: true
+
+      - name: Resolve stable metadata
+        id: meta
+        shell: bash
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag must match vX.Y.Z exactly."
+            exit 1
+          fi
+
+          version="${GITHUB_REF_NAME#v}"
+          short_sha="${GITHUB_SHA::7}"
+
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "zip_name=DuskBlade-Windows-x64-${GITHUB_REF_NAME}.zip" \
+            >> "$GITHUB_OUTPUT"
+
+      - name: Repository preflight
+        shell: bash
+        run: |
+          grep -q '^m_EditorVersion: 2022.3.62f3$' \
+            ProjectSettings/ProjectVersion.txt
+
+          markers="$(git grep -n -E \
+            '^(<{7,}|={7,}|>{7,})' \
+            -- '*.meta' '*.asset' '*.prefab' '*.unity' \
+               '*.cs' '*.json' '*.yml' '*.yaml' || true)"
+
+          if [[ -n "$markers" ]]; then
+            echo "::error::Unresolved merge markers found."
+            printf '%s\n' "$markers"
+            exit 1
+          fi
+
+          playfab="Assets/PlayFabSDK/Shared/Public/Resources/PlayFabSharedSettings.asset"
+
+          if grep -Eq \
+            '^[[:space:]]*DeveloperSecretKey:[[:space:]]*[^[:space:]]+' \
+            "$playfab"; then
+            echo "::warning::PlayFab DeveloperSecretKey is present in client Resources."
+          fi
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: >-
+            Library-DuskBlade-${{ runner.os }}-2022.3.62f3-Windows64-${{
+            hashFiles(
+              'Packages/manifest.json',
+              'Packages/packages-lock.json',
+              'ProjectSettings/ProjectVersion.txt',
+              'ProjectSettings/ProjectSettings.asset',
+              'ProjectSettings/GraphicsSettings.asset',
+              'ProjectSettings/QualitySettings.asset',
+              'ProjectSettings/EditorBuildSettings.asset',
+              'Assets/**/*.cs',
+              'Assets/**/*.asmdef',
+              'Assets/**/*.asmref',
+              'Assets/**/*.shader',
+              'Assets/**/*.compute',
+              'Assets/AddressableAssetsData/**/*.asset'
+            ) }}
+          restore-keys: |
+            Library-DuskBlade-${{ runner.os }}-2022.3.62f3-Windows64-
+
+      - name: Run Unity EditMode and PlayMode tests
+        id: tests
+        uses: game-ci/unity-test-runner@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          customImage: unityci/editor:ubuntu-2022.3.62f3-base-3
+          testMode: all
+          artifactsPath: test-results
+          coverageOptions: ""
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: duskblade-stable-test-results-${{ github.ref_name }}
+          path: test-results
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Build Addressables and Windows x64 player
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          unityVersion: 2022.3.62f3
+          targetPlatform: StandaloneWindows64
+          buildsPath: build
+          buildName: DuskBlade
+          buildMethod: DuskBlade.Editor.CI.CIBuilder.BuildWindows
+          customParameters: >-
+            -releaseVersion ${{ steps.meta.outputs.version }}
+
+      - name: Verify Windows runtime
+        id: verify
+        shell: bash
+        run: |
+          exe="$(find build -type f -name 'DuskBlade.exe' -print -quit)"
+
+          if [[ -z "$exe" ]]; then
+            echo "::error::DuskBlade.exe is missing."
+            exit 1
+          fi
+
+          game_dir="$(dirname "$exe")"
+
+          [[ -d "$game_dir/DuskBlade_Data" ]] || {
+            echo "::error::DuskBlade_Data is missing."
+            exit 1
+          }
+
+          [[ -f "$game_dir/UnityPlayer.dll" ]] || {
+            echo "::error::UnityPlayer.dll is missing."
+            exit 1
+          }
+
+          [[ -d "$game_dir/MonoBleedingEdge" ]] || {
+            echo "::error::MonoBleedingEdge is missing."
+            exit 1
+          }
+
+          echo "game_dir=$game_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Package Windows build
+        shell: bash
+        run: |
+          rm -rf package
+          mkdir -p package/DuskBlade
+
+          cp -a \
+            "${{ steps.verify.outputs.game_dir }}/." \
+            package/DuskBlade/
+
+          (
+            cd package
+            zip -r -9 \
+              "../${{ steps.meta.outputs.zip_name }}" \
+              DuskBlade
+          )
+
+          test -s "${{ steps.meta.outputs.zip_name }}"
+
+          unzip -l "${{ steps.meta.outputs.zip_name }}" |
+            grep -q 'DuskBlade/DuskBlade.exe'
+
+      - name: Upload stable Actions artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.zip_name }}
+          path: ${{ steps.meta.outputs.zip_name }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Write stable release notes
+        shell: bash
+        run: |
+          cat > release-notes.md <<EOF
+          Stable DuskBlade Windows release.
+
+          - Version: \`${GITHUB_REF_NAME}\`
+          - Commit: [\`${GITHUB_SHA}\`](https://github.com/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA})
+          - Build date UTC: \`$(date -u +'%Y-%m-%d %H:%M:%S')\`
+          - Platform: Windows x64
+          - Configuration: non-development Mono player
+
+          Download the ZIP, extract it, then run \`DuskBlade.exe\`.
+          EOF
+
+      - name: Create stable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create \
+            "$GITHUB_REF_NAME" \
+            "${{ steps.meta.outputs.zip_name }}" \
+            --verify-tag \
+            --title "DuskBlade $GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --latest

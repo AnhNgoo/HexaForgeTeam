@@ -1,92 +1,112 @@
 #if UNITY_EDITOR
 using System;
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 // ============================================================
-//  AssetCaptureRenderer.cs  –  HexaForge 3D to 2D Asset Capture
+//  AssetCaptureRenderer.cs  -  HexaForge 3D to 2D Asset Capture
 //
-//  v2 – uses PreviewRenderUtility for URP-compatible rendering.
+//  v3 - Active Scene approach (fixes URP pink materials).
 //
-//  Root cause of blank preview: EditorSceneManager.NewPreviewScene()
-//  cameras are NOT rendered by URP when calling camera.Render()
-//  directly.  PreviewRenderUtility has internal Unity plumbing that
-//  properly triggers the SRP render pipeline.
+//  ROOT CAUSE of pink materials:
+//    PreviewRenderUtility creates an isolated "preview scene".
+//    URP 14.x (Unity 2022.3) does NOT render cameras in preview
+//    scenes properly via camera.Render() - materials appear pink.
 //
-//  Architecture:
-//    • PRU manages its own isolated preview scene automatically
-//    • PRU.lights[0/1] = Main / Fill  (built-in)
-//    • rimLightGO added manually to PRU's scene = Rim
-//    • DrawPreview() must be called inside OnGUI (Repaint event)
-//    • RenderToTexture2D() uses BeginStaticPreview for export
+//  FIX:
+//    Create the capture camera and all objects in the ACTIVE scene
+//    (not a preview scene) with HideFlags.HideAndDontSave.
+//    URP always processes cameras that live in the active scene,
+//    so URP shaders and Shader Graph materials render correctly.
+//
+//  ISOLATION:
+//    - All capture objects are moved to Layer 31 (rarely used).
+//    - Camera cullingMask = 1 << 31  (only sees capture objects).
+//    - During RenderIsolated(): scene lights and cameras are
+//      temporarily patched to EXCLUDE layer 31, then restored.
+//    - SceneVisibilityManager hides the prefab from Scene view.
 // ============================================================
 
 namespace HexaForge.AssetCapture
 {
     public class AssetCaptureRenderer : IDisposable
     {
-        // ── PreviewRenderUtility ──────────────────────────────────────
+        // Layer used for capture objects. Layer 31 is almost always
+        // unused in game projects. If yours is occupied we fall back
+        // to scanning for any free layer in Initialize().
+        private const int DEFAULT_CAPTURE_LAYER = 31;
+        private int _captureLayer = DEFAULT_CAPTURE_LAYER;
 
-        private PreviewRenderUtility _pru;
+        // ── Scene objects (active scene, HideAndDontSave) ─────────────
 
-        // ── Preview scene objects ─────────────────────────────────────
+        private GameObject _cameraGO;
+        private Camera     _camera;
+
+        private GameObject _mainLightGO, _fillLightGO, _rimLightGO;
+        private Light      _mainLight,   _fillLight,   _rimLight;
 
         private GameObject _prefabInstance;
-        private GameObject _rimLightGO;
-        private Light      _rimLight;
+
+        // ── Render Textures ───────────────────────────────────────────
+
+        private RenderTexture _previewRT;
+        private RenderTexture _adjustedRT;
 
         // ── State ─────────────────────────────────────────────────────
 
         private bool _isInitialized;
         private bool _needsRender = true;
 
-        public bool      IsDirty        => _needsRender;
-        public bool      HasPrefab      => _prefabInstance != null;
+        public bool       IsDirty        => _needsRender;
+        public bool       HasPrefab      => _prefabInstance != null;
         public GameObject PrefabInstance => _prefabInstance;
 
-        // ── Setup / Teardown ──────────────────────────────────────────
+        // ── Init / Cleanup ────────────────────────────────────────────
 
-        /// <summary>Initialise the PreviewRenderUtility and rim light.</summary>
         public void Initialize()
         {
             if (_isInitialized) return;
 
-            // true = render full scene in the preview scene
-            // true = allow HDR (good for URP)
-            _pru = new PreviewRenderUtility(true, true);
-            _pru.camera.nearClipPlane = 0.01f;
-            _pru.camera.farClipPlane  = 2000f;
-            _pru.camera.clearFlags    = CameraClearFlags.SolidColor;
-            _pru.camera.backgroundColor = new Color(0, 0, 0, 0);
+            // Find a free layer for capture isolation
+            _captureLayer = FindFreeLayer();
 
-            // PRU provides _pru.lights[0] and [1] (main & fill).
-            // Add a 3rd rim light manually in PRU's own scene.
-            Scene pruScene = _pru.camera.gameObject.scene;
-            _rimLightGO = new GameObject("AC_RimLight") { hideFlags = HideFlags.HideAndDontSave };
-            SceneManager.MoveGameObjectToScene(_rimLightGO, pruScene);
-            _rimLight         = _rimLightGO.AddComponent<Light>();
-            _rimLight.type    = LightType.Directional;
-            _rimLight.enabled = false;
+            // Camera lives in the ACTIVE scene so URP recognises it
+            _cameraGO = new GameObject("__AC_Camera") { hideFlags = HideFlags.HideAndDontSave };
+            _camera = _cameraGO.AddComponent<Camera>();
+            _camera.enabled         = false;
+            _camera.cullingMask     = 1 << _captureLayer;
+            _camera.clearFlags      = CameraClearFlags.SolidColor;
+            _camera.backgroundColor = Color.clear;
+            _camera.nearClipPlane   = 0.01f;
+            _camera.farClipPlane    = 2000f;
+
+            // Add UniversalAdditionalCameraData so URP uses the correct renderer
+            EnsureUrpCameraData(_camera);
+
+            // 3 directional lights, all on _captureLayer only
+            _mainLightGO = CreateDirectionalLight("__AC_MainLight", _captureLayer, out _mainLight);
+            _fillLightGO = CreateDirectionalLight("__AC_FillLight", _captureLayer, out _fillLight);
+            _rimLightGO  = CreateDirectionalLight("__AC_RimLight",  _captureLayer, out _rimLight);
 
             _isInitialized = true;
             _needsRender   = true;
         }
 
-        /// <summary>Destroy all preview resources. Safe to call multiple times.</summary>
         public void Cleanup()
         {
             UnloadPrefab();
 
-            if (_rimLightGO != null)
-            {
-                UnityEngine.Object.DestroyImmediate(_rimLightGO);
-                _rimLightGO = null;
-                _rimLight   = null;
-            }
+            DestroyGO(ref _rimLightGO);
+            DestroyGO(ref _fillLightGO);
+            DestroyGO(ref _mainLightGO);
+            _rimLight = _fillLight = _mainLight = null;
 
-            _pru?.Cleanup();   // closes PRU's internal preview scene
-            _pru = null;
+            DestroyGO(ref _cameraGO);
+            _camera = null;
+
+            ReleaseRT(ref _previewRT);
+            ReleaseRT(ref _adjustedRT);
 
             AssetCaptureImageAdjust.Cleanup();
             _isInitialized = false;
@@ -94,29 +114,28 @@ namespace HexaForge.AssetCapture
 
         public void Dispose() => Cleanup();
 
-        // ── Prefab Management ─────────────────────────────────────────
+        // ── Prefab ────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Instantiates <paramref name="prefab"/> into the PRU preview scene.
-        /// The original prefab is never modified.
-        /// </summary>
         public void LoadPrefab(GameObject prefab,
-                               ACObjectSettings     objSettings,
+                               ACObjectSettings      objSettings,
                                ACAutoFramingSettings framing,
                                AssetCaptureCameraController camCtrl)
         {
             if (!_isInitialized) Initialize();
-
             UnloadPrefab();
             if (prefab == null) return;
 
             _prefabInstance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
             _prefabInstance.hideFlags = HideFlags.HideAndDontSave;
-            SceneManager.MoveGameObjectToScene(_prefabInstance, _pru.camera.gameObject.scene);
+
+            // Move to capture layer so ONLY our camera sees it
+            SetLayerRecursively(_prefabInstance, _captureLayer);
+
+            // Hide from Scene view viewport to avoid visual clutter
+            SceneVisibilityManager.instance.Hide(_prefabInstance, true);
 
             ApplyObjectTransform(objSettings);
 
-            // Auto-framing: calculate bounds AFTER transform applied
             if (framing != null && (framing.autoCenter || framing.autoFit))
             {
                 Bounds bounds = AssetCaptureUtility.CalculateBounds(_prefabInstance);
@@ -127,17 +146,14 @@ namespace HexaForge.AssetCapture
             MarkDirty();
         }
 
-        /// <summary>Destroys the current prefab instance. Original asset is untouched.</summary>
         public void UnloadPrefab()
         {
-            if (_prefabInstance != null)
-            {
-                UnityEngine.Object.DestroyImmediate(_prefabInstance);
-                _prefabInstance = null;
-            }
+            if (_prefabInstance == null) return;
+            try { SceneVisibilityManager.instance.Show(_prefabInstance, true); } catch { }
+            UnityEngine.Object.DestroyImmediate(_prefabInstance);
+            _prefabInstance = null;
         }
 
-        /// <summary>Applies position/rotation/scale to the loaded prefab instance.</summary>
         public void ApplyObjectTransform(ACObjectSettings s)
         {
             if (_prefabInstance == null || s == null) return;
@@ -149,75 +165,42 @@ namespace HexaForge.AssetCapture
 
         public void MarkDirty() => _needsRender = true;
 
-        // ── Preview Rendering ─────────────────────────────────────────
+        // ── Preview (called from OnGUI / Repaint) ─────────────────────
 
-        /// <summary>
-        /// Renders the preview scene and draws it into <paramref name="rect"/>.
-        ///
-        /// MUST be called inside an OnGUI context during EventType.Repaint.
-        /// PreviewRenderUtility.BeginPreview / EndPreview handle URP rendering
-        /// correctly; do not call camera.Render() directly for URP projects.
-        /// </summary>
         public void DrawPreview(Rect rect,
                                 ACCameraSettings      cam,
                                 ACBackgroundSettings  bg,
                                 ACLightingSettings    lighting,
                                 ACImageAdjustSettings adjust)
         {
-            if (!_isInitialized || _pru == null) return;
+            if (!_isInitialized || _camera == null) return;
             if (Event.current.type != EventType.Repaint) return;
 
-            int w = Mathf.Max(1, Mathf.RoundToInt(rect.width));
-            int h = Mathf.Max(1, Mathf.RoundToInt(rect.height));
+            int w = Mathf.Max(1, (int)rect.width);
+            int h = Mathf.Max(1, (int)rect.height);
 
-            // 1. Open preview context
-            _pru.BeginPreview(rect, GUIStyle.none);
-
-            // 2. Configure camera, lights, ambient
-            ConfigureCamera(_pru.camera, cam, bg);
+            _previewRT = EnsureRT(_previewRT, w, h);
+            ConfigureCamera(_camera, cam, bg);
             ConfigureLights(lighting);
-            _pru.ambientColor = lighting != null
-                ? lighting.ambientColor * lighting.ambientIntensity
-                : Color.black;
 
-            // 3. Render (PRU internally triggers URP SRP pipeline)
-            _pru.Render();
+            // Render into _previewRT with full scene isolation
+            RenderIsolated(_previewRT);
 
-            // 4. Draw result
-            bool needsAdjust = adjust != null && !adjust.IsIdentity;
-            if (needsAdjust)
+            // Apply image adjustment
+            RenderTexture displayRT = _previewRT;
+            if (adjust != null && !adjust.IsIdentity)
             {
-                // Intercept the rendered RT, apply adjustment, draw manually
-                RenderTexture srcRT = _pru.camera.targetTexture;
-                if (srcRT != null)
-                {
-                    var adjRT = RenderTexture.GetTemporary(w, h, 0, RenderTextureFormat.ARGB32);
-                    AssetCaptureImageAdjust.Apply(srcRT, adjRT, adjust);
-                    _pru.EndPreview();
-                    GUI.DrawTexture(rect, adjRT, ScaleMode.StretchToFill, true);
-                    RenderTexture.ReleaseTemporary(adjRT);
-                }
-                else
-                {
-                    _pru.EndAndDrawPreview(rect);
-                }
-            }
-            else
-            {
-                // Standard path: EndAndDrawPreview handles alpha-blending
-                _pru.EndAndDrawPreview(rect);
+                _adjustedRT = EnsureRT(_adjustedRT, w, h);
+                AssetCaptureImageAdjust.Apply(_previewRT, _adjustedRT, adjust);
+                displayRT = _adjustedRT;
             }
 
+            GUI.DrawTexture(rect, displayRT, ScaleMode.StretchToFill, true);
             _needsRender = false;
         }
 
-        // ── Export Rendering ──────────────────────────────────────────
+        // ── Export ────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Renders at the export resolution and returns a new Texture2D.
-        /// Can be called outside of OnGUI.
-        /// Caller must DestroyImmediate the returned texture when done.
-        /// </summary>
         public Texture2D RenderToTexture2D(ACCameraSettings      cam,
                                             ACBackgroundSettings  bg,
                                             ACLightingSettings    lighting,
@@ -225,78 +208,115 @@ namespace HexaForge.AssetCapture
                                             int width, int height,
                                             bool transparent)
         {
-            if (!_isInitialized || _pru == null) return null;
+            if (!_isInitialized || _camera == null) return null;
 
-            // ── IMPORTANT ──────────────────────────────────────────────
-            // Do NOT use BeginStaticPreview / EndStaticPreview.
-            // EndStaticPreview() composites the result onto a solid grey
-            // background, which destroys the alpha channel.
-            //
-            // Instead: BeginPreview(GUIStyle.none) creates an ARGB32 RT,
-            // we read pixels manually before EndPreview() to keep alpha.
-            // ──────────────────────────────────────────────────────────
+            var exportRT = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+            exportRT.Create();
 
-            _pru.BeginPreview(new Rect(0, 0, width, height), GUIStyle.none);
+            ACBackgroundSettings exportBg = transparent
+                ? new ACBackgroundSettings { transparentBackground = true }
+                : bg;
 
-            // Force transparent clear when exporting with transparency
-            ACBackgroundSettings exportBg = bg;
-            if (transparent)
-            {
-                exportBg = new ACBackgroundSettings { transparentBackground = true };
-            }
-
-            ConfigureCamera(_pru.camera, cam, exportBg);
+            ConfigureCamera(_camera, cam, exportBg);
             ConfigureLights(lighting);
-            _pru.ambientColor = lighting != null
-                ? lighting.ambientColor * lighting.ambientIntensity
-                : Color.black;
+            RenderIsolated(exportRT);
 
-            _pru.Render();
-
-            // ── Read pixels from the camera RT (before EndPreview resets it) ──
-            RenderTexture srcRT = _pru.camera.targetTexture;
-            Texture2D result = null;
-
-            if (srcRT != null)
+            // Apply adjustment
+            RenderTexture finalRT = exportRT;
+            RenderTexture tempRT  = null;
+            if (adjust != null && !adjust.IsIdentity)
             {
-                // Apply image adjustment to a temp RT if needed
-                RenderTexture finalRT  = srcRT;
-                RenderTexture tempRT   = null;
-
-                if (adjust != null && !adjust.IsIdentity)
-                {
-                    tempRT  = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
-                    AssetCaptureImageAdjust.Apply(srcRT, tempRT, adjust);
-                    finalRT = tempRT;
-                }
-
-                // Read pixels (preserves alpha for transparent exports)
-                RenderTexture prevActive = RenderTexture.active;
-                RenderTexture.active = finalRT;
-
-                TextureFormat fmt = transparent ? TextureFormat.ARGB32 : TextureFormat.RGB24;
-                result = new Texture2D(width, height, fmt, false);
-                result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-                result.Apply();
-
-                RenderTexture.active = prevActive;
-
-                if (tempRT != null)
-                    RenderTexture.ReleaseTemporary(tempRT);
+                tempRT  = RenderTexture.GetTemporary(width, height, 0, RenderTextureFormat.ARGB32);
+                AssetCaptureImageAdjust.Apply(exportRT, tempRT, adjust);
+                finalRT = tempRT;
             }
 
-            _pru.EndPreview();
+            // Read pixels (preserves alpha)
+            var prevActive = RenderTexture.active;
+            RenderTexture.active = finalRT;
+            TextureFormat fmt = transparent ? TextureFormat.ARGB32 : TextureFormat.RGB24;
+            var result = new Texture2D(width, height, fmt, false);
+            result.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            result.Apply();
+            RenderTexture.active = prevActive;
+
+            if (tempRT != null) RenderTexture.ReleaseTemporary(tempRT);
+            exportRT.Release();
+            UnityEngine.Object.DestroyImmediate(exportRT);
 
             return result;
         }
 
+        // ── Isolated Render ───────────────────────────────────────────
+
+        /// <summary>
+        /// Renders _camera to <paramref name="target"/> while:
+        ///   1. Scene lights temporarily exclude _captureLayer (no bleed-in).
+        ///   2. Scene cameras temporarily exclude _captureLayer (no bleed-out).
+        /// All masks are restored after rendering.
+        /// </summary>
+        private void RenderIsolated(RenderTexture target)
+        {
+            int captureBit = 1 << _captureLayer;
+
+            // ── Patch scene lights ────────────────────────────────────
+            var allLights       = UnityEngine.Object.FindObjectsOfType<Light>();
+            var savedLightMasks = new Dictionary<Light, int>(allLights.Length);
+            foreach (var l in allLights)
+            {
+                if (l == _mainLight || l == _fillLight || l == _rimLight) continue;
+                savedLightMasks[l] = l.cullingMask;
+                l.cullingMask = l.cullingMask & ~captureBit;
+            }
+
+            // ── Patch scene cameras ───────────────────────────────────
+            var allCameras    = UnityEngine.Object.FindObjectsOfType<Camera>();
+            var savedCamMasks = new Dictionary<Camera, int>(allCameras.Length);
+            foreach (var c in allCameras)
+            {
+                if (c == _camera) continue;
+                savedCamMasks[c] = c.cullingMask;
+                c.cullingMask = c.cullingMask & ~captureBit;
+            }
+
+            // ── Render ────────────────────────────────────────────────
+            _camera.targetTexture = target;
+            _camera.Render();   // URP processes this correctly (camera in active scene)
+            _camera.targetTexture = null;
+
+            // ── Restore ───────────────────────────────────────────────
+            foreach (var kvp in savedLightMasks)
+                if (kvp.Key != null) kvp.Key.cullingMask = kvp.Value;
+
+            foreach (var kvp in savedCamMasks)
+                if (kvp.Key != null) kvp.Key.cullingMask = kvp.Value;
+        }
 
         // ── Private Helpers ───────────────────────────────────────────
+
+        private static int FindFreeLayer()
+        {
+            for (int i = 31; i >= 8; i--)
+                if (string.IsNullOrEmpty(LayerMask.LayerToName(i)))
+                    return i;
+            Debug.LogWarning("[AssetCapture] No free layer found. Defaulting to layer 31.");
+            return DEFAULT_CAPTURE_LAYER;
+        }
+
+        private static GameObject CreateDirectionalLight(string name, int layer, out Light light)
+        {
+            var go = new GameObject(name) { hideFlags = HideFlags.HideAndDontSave };
+            light             = go.AddComponent<Light>();
+            light.type        = LightType.Directional;
+            light.cullingMask = 1 << layer;
+            light.shadows     = LightShadows.None;
+            light.enabled     = false;
+            return go;
+        }
 
         private static void ConfigureCamera(Camera cam, ACCameraSettings s, ACBackgroundSettings bg)
         {
             if (cam == null || s == null) return;
-
             cam.orthographic     = s.projection == ACProjection.Orthographic;
             cam.fieldOfView      = s.fieldOfView;
             cam.orthographicSize = s.orthographicSize;
@@ -304,51 +324,89 @@ namespace HexaForge.AssetCapture
             cam.farClipPlane     = 2000f;
             cam.transform.position    = s.position;
             cam.transform.eulerAngles = s.eulerRotation;
-
             cam.clearFlags = CameraClearFlags.SolidColor;
-            if (bg != null)
-            {
-                cam.backgroundColor = bg.transparentBackground
-                    ? new Color(0f, 0f, 0f, 0f)
-                    : new Color(bg.backgroundColor.r, bg.backgroundColor.g,
-                                bg.backgroundColor.b, 1f);
-            }
-            else
-            {
-                cam.backgroundColor = new Color(0f, 0f, 0f, 0f);
-            }
+            cam.backgroundColor = (bg != null && !bg.transparentBackground)
+                ? new Color(bg.backgroundColor.r, bg.backgroundColor.g, bg.backgroundColor.b, 1f)
+                : Color.clear;
         }
 
         private void ConfigureLights(ACLightingSettings s)
         {
-            if (_pru == null || s == null) return;
+            if (s == null) return;
+            ApplyLightSettings(_mainLight, _mainLightGO, s.mainLight);
+            ApplyLightSettings(_fillLight, _fillLightGO, s.fillLight);
+            ApplyLightSettings(_rimLight,  _rimLightGO,  s.rimLight);
+        }
 
-            // Built-in PRU lights
-            if (_pru.lights.Length > 0) ApplyToPRULight(_pru.lights[0], s.mainLight);
-            if (_pru.lights.Length > 1) ApplyToPRULight(_pru.lights[1], s.fillLight);
+        private void ApplyLightSettings(Light light, GameObject go, ACLightSettings s)
+        {
+            if (light == null || go == null || s == null) return;
+            go.SetActive(s.enabled);
+            if (!s.enabled) return;
+            light.color              = s.color;
+            light.intensity          = s.intensity;
+            light.shadows            = LightShadows.None;
+            light.cullingMask        = 1 << _captureLayer;
+            go.transform.eulerAngles = s.rotation;
+        }
 
-            // Manual rim light
-            if (_rimLight != null && _rimLightGO != null)
+        private static void EnsureUrpCameraData(Camera cam)
+        {
+            if (cam == null) return;
+            Type urpDataType =
+                Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, Unity.RenderPipelines.Universal.Runtime") ??
+                Type.GetType("UnityEngine.Rendering.Universal.UniversalAdditionalCameraData, UnityEngine.Rendering.Universal");
+            if (urpDataType == null) return;
+
+            Component cameraData = cam.gameObject.GetComponent(urpDataType);
+            if (cameraData == null)
+                cameraData = cam.gameObject.AddComponent(urpDataType);
+            if (cameraData == null) return;
+
+            try
             {
-                _rimLightGO.SetActive(s.rimLight.enabled);
-                if (s.rimLight.enabled)
-                {
-                    _rimLight.color               = s.rimLight.color;
-                    _rimLight.intensity           = s.rimLight.intensity;
-                    _rimLightGO.transform.eulerAngles = s.rimLight.rotation;
-                }
+                urpDataType.GetProperty("renderType")?.SetValue(cameraData, 0);           // Base
+                urpDataType.GetProperty("renderPostProcessing")?.SetValue(cameraData, false);
+                urpDataType.GetProperty("antialiasing")?.SetValue(cameraData, 0);         // None
+                urpDataType.GetProperty("depthPrimingMode")?.SetValue(cameraData, 0);     // Disabled
+                urpDataType.GetProperty("stopNaN")?.SetValue(cameraData, false);
+                urpDataType.GetProperty("dithering")?.SetValue(cameraData, false);
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning("[AssetCapture] URP camera config: " + ex.Message);
             }
         }
 
-        private static void ApplyToPRULight(Light light, ACLightSettings s)
+        private static void SetLayerRecursively(GameObject go, int layer)
         {
-            if (light == null || s == null) return;
-            light.enabled = s.enabled;
-            if (!s.enabled) return;
-            light.type               = LightType.Directional;
-            light.color              = s.color;
-            light.intensity          = s.intensity;
-            light.transform.eulerAngles = s.rotation;
+            go.layer = layer;
+            foreach (Transform child in go.transform)
+                SetLayerRecursively(child.gameObject, layer);
+        }
+
+        private static RenderTexture EnsureRT(RenderTexture rt, int w, int h)
+        {
+            if (rt != null && rt.IsCreated() && rt.width == w && rt.height == h) return rt;
+            if (rt != null) { rt.Release(); UnityEngine.Object.DestroyImmediate(rt); }
+            var newRT = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32);
+            newRT.Create();
+            return newRT;
+        }
+
+        private static void ReleaseRT(ref RenderTexture rt)
+        {
+            if (rt == null) return;
+            rt.Release();
+            UnityEngine.Object.DestroyImmediate(rt);
+            rt = null;
+        }
+
+        private static void DestroyGO(ref GameObject go)
+        {
+            if (go == null) return;
+            UnityEngine.Object.DestroyImmediate(go);
+            go = null;
         }
     }
 }

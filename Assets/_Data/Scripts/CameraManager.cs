@@ -80,22 +80,27 @@ public class CameraManager : Singleton<CameraManager>
         SetupCamera(targetCamera, followTarget, lookAtTarget);
     }
 
-    private void SetupCamera(CameraRig camera, Transform followTarget, Transform lookAtTarget)
+    private void SetupCamera(
+        CameraRig camera,
+        Transform followTarget,
+        Transform lookAtTarget)
     {
-        if (camera == null) return;
-        if (camera.virtualCamera != null && (lookAtTarget != null || followTarget != null))
+        if (camera == null || camera.virtualCamera == null)
         {
-            camera.virtualCamera.Follow = followTarget;
-            camera.virtualCamera.LookAt = lookAtTarget;
+            Debug.LogError(
+                $"[{nameof(CameraManager)}] Camera rig hoặc Virtual Camera bị thiếu."
+            );
+            return;
         }
+
+        camera.virtualCamera.Follow = followTarget;
+        camera.virtualCamera.LookAt = lookAtTarget;
+
         if (avoidObstacleForCamera != null)
-        {
             avoidObstacleForCamera.Init(camera.virtualCamera);
-        }
+
         if (cameraShake != null)
-        {
             cameraShake.SetImpulseSource(camera.impulseSource);
-        }
     }
 
     // Thêm camera rig mới vào danh sách và xây dựng lại lookup
