@@ -1,13 +1,9 @@
 name: Unity Test Runner
-
 permissions:
   contents: read
   checks: write
   pull-requests: write
   actions: read
-
-env:
-
 on:
   push:
     branches:
@@ -17,23 +13,19 @@ on:
       - main
       - develop
   workflow_dispatch:
-
 jobs:
   test:
     name: Run Unity Tests
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           lfs: true
-
       - name: Show branch
         run: |
           git branch
           git log -1
-
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
@@ -41,13 +33,11 @@ jobs:
           key: Library-${{ runner.os }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ runner.os }}-
-
       - name: Free disk space for Unity Docker image
         shell: bash
         run: |
           echo "Disk space before cleanup:"
           df -h
-
           sudo rm -rf /usr/local/lib/android || true
           sudo rm -rf /usr/share/dotnet || true
           sudo rm -rf /opt/ghc || true
@@ -57,16 +47,13 @@ jobs:
           sudo rm -rf /opt/microsoft || true
           sudo apt-get clean
           docker system prune -af || true
-
           echo "Disk space after cleanup:"
           df -h
-
       - name: Prepare clean CSV report directory
         shell: bash
         run: |
           rm -rf Assets/CSV
           mkdir -p Assets/CSV
-
       - name: Run Unity EditMode tests
         id: unity-editmode
         uses: game-ci/unity-test-runner@v4
@@ -82,7 +69,6 @@ jobs:
           testMode: editmode
           artifactsPath: test-results/editmode
           coverageOptions: ""
-
       - name: Run Unity PlayMode tests
         id: unity-playmode
         uses: game-ci/unity-test-runner@v4
@@ -98,14 +84,12 @@ jobs:
           testMode: playmode
           artifactsPath: test-results/playmode
           coverageOptions: ""
-
       - name: List generated test artifacts
         if: always()
         shell: bash
         run: |
           find test-results -maxdepth 3 -type f -print || true
           find Assets/CSV -maxdepth 1 -type f -print || true
-
       - name: Write Unity test summary
         if: always()
         shell: bash
@@ -119,7 +103,6 @@ jobs:
             echo "This workflow uploads reports for review and does not block merging when Unity tests fail."
             echo "Download artifacts 'unity-test-results' and 'duskblade-csv-test-reports' to inspect failed tests."
           } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Upload CSV test reports
         uses: actions/upload-artifact@v4
         if: always()
@@ -127,7 +110,6 @@ jobs:
           name: duskblade-csv-test-reports
           path: Assets/CSV/*.csv
           if-no-files-found: ignore
-
       - name: Upload Unity Test Results Artifacts
         uses: actions/upload-artifact@v4
         if: always()
