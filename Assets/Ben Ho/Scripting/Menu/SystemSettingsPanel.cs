@@ -65,7 +65,7 @@ public class SystemSettingsPanel : MonoBehaviour
         ShowPage(defaultPage);
 
         if (AutoTranslateUI.Instance != null)
-            AutoTranslateUI.Instance.ScanAndApply();
+            AutoTranslateUI.Instance.ScanAndApplyInstant();
     }
 
     public void Close()
@@ -93,7 +93,9 @@ public class SystemSettingsPanel : MonoBehaviour
 
         if (logoutLabel != null)
         {
-            logoutLabel.text = isInLobby ? "Logout" : "Return Lobby";
+            // Trong Lobby là Logout (Đăng xuất), trong Trận là Return to Lobby (Quay lại Sảnh chờ)
+            string labelKey = isInLobby ? "Logout" : "Return to Lobby";
+            logoutLabel.text = SettingsLocalizationData.Translate(labelKey);
         }
     }
 

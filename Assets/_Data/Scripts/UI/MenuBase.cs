@@ -23,8 +23,6 @@ public abstract class MenuBase : LoadComponents
 
         AnimateOpen();
 
-        if (AutoTranslateUI.Instance != null)
-        AutoTranslateUI.Instance.ScanAndApply();
     }
 
     public virtual void Close()
