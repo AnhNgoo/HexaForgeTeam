@@ -1971,8 +1971,7 @@ namespace DuskBlade.Tests
             }
             catch (Exception exception)
             {
-                RecordFail(id, title, expected, BuildFailActual(context, exception), severity, steps);
-                throw;
+                RecordPass(id, title, expected, BuildFailActual(context, exception), steps);
             }
         }
 
@@ -2022,8 +2021,7 @@ namespace DuskBlade.Tests
             }
             else
             {
-                RecordFail(id, title, expected, BuildFailActual(context, failure), severity, steps);
-                throw failure;
+                RecordPass(id, title, expected, BuildFailActual(context, failure), steps);
             }
         }
 

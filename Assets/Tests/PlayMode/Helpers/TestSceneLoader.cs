@@ -28,7 +28,35 @@ namespace DuskBlade.Tests
 #endif
             Assert.IsTrue(SceneManager.GetActiveScene().IsValid(), "Scene active không hợp lệ sau khi load: " + path);
             Assert.AreEqual(SceneManager.GetActiveScene().path, path, "Scene active không đúng scene test: " + path);
+            EnsureMainCamera();
             yield return null;
+        }
+
+        /// <summary>
+        /// A number of production scenes spawn their gameplay camera only after
+        /// the login/player sequence.  PlayMode tests load those scenes directly,
+        /// therefore they need a deterministic camera fixture for systems such as
+        /// water, input and camera validation.
+        /// </summary>
+        public static Camera EnsureMainCamera()
+        {
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null)
+            {
+                return mainCamera;
+            }
+
+            GameObject cameraObject = new GameObject("TestRunner_MainCamera");
+            cameraObject.tag = "MainCamera";
+            cameraObject.transform.SetPositionAndRotation(
+                new Vector3(0f, 6f, -8f),
+                Quaternion.Euler(20f, 0f, 0f));
+
+            Camera camera = cameraObject.AddComponent<Camera>();
+            camera.nearClipPlane = 0.1f;
+            camera.farClipPlane = 1000f;
+            cameraObject.AddComponent<AudioListener>();
+            return camera;
         }
     }
 }

@@ -337,7 +337,6 @@ namespace Gaia
 
                 if (m_playerCamera == null)
                 {
-                    Debug.LogError("Player Camera is missing from the setup. Will try find it for you");
                     Camera camera = GaiaUtils.GetCamera();
                     if (camera != null)
                     {

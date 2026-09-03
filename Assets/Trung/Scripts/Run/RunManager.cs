@@ -320,104 +320,207 @@ public class RunManager : MonoBehaviour
     }
 
     private IEnumerator LoadSceneCoroutine()
+{
+    if (UIManager.Instance != null)
     {
-        if (UIManager.Instance != null)
+        UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
+    }
+
+    yield return StartCoroutine(UnloadAllOldGameplayScenes());
+
+    string loadingSceneName = GameSceneData.Instance != null
+        ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
+        : "Loading Scene";
+
+    // Load Loading Scene
+    AsyncOperation loadLoading =
+        SceneManager.LoadSceneAsync(
+            loadingSceneName,
+            LoadSceneMode.Additive
+        );
+
+    while (!loadLoading.isDone)
+        yield return null;
+
+    yield return new WaitForSecondsRealtime(0.05f);
+
+    if (LoadingUIManager.Instance != null)
+    {
+        LoadingUIManager.Instance.SetDestinationName(gameplaySceneName);
+    }
+
+    // Load gameplay scene nhưng CHƯA activate
+    AsyncOperation load =
+        SceneManager.LoadSceneAsync(
+            gameplaySceneName,
+            LoadSceneMode.Additive
+        );
+
+    load.allowSceneActivation = false;
+
+    float duration = Random.Range(5.0f, 7.0f);
+
+    if (LoadingUIManager.Instance != null)
+    {
+        yield return StartCoroutine(
+            LoadingUIManager.Instance.TrackProgressRoutine(
+                load,
+                false,
+                duration
+            )
+        );
+    }
+
+    // ============================================================
+    // QUAN TRỌNG:
+    // Lấy PLAYER THẬT trước khi activate gameplay scene.
+    // ============================================================
+
+    CharacterBase charBase = null;
+
+    if (PlayerManager.Instance != null)
+    {
+        // Ưu tiên CurrentCharacterBase vì đây chính là
+        // Kael/Lyra thật mà PlayerManager đang quản lý.
+        charBase = PlayerManager.Instance.CurrentCharacterBase;
+
+        // Fallback nếu CurrentCharacterBase chưa được set.
+        if (charBase == null)
         {
-            UIManager.Instance.ChangeMenu(MenuType.LoadingMenu);
+            charBase =
+                PlayerManager.Instance
+                    .GetComponentInChildren<CharacterBase>(true);
+        }
+    }
+
+    // Nếu Player thật tồn tại thì chuẩn bị đưa nó vào gameplay scene.
+    if (charBase != null)
+    {
+        GameObject playerObject = charBase.gameObject;
+
+        playerObject.transform.SetParent(null, true);
+
+        if (!playerObject.CompareTag("Player"))
+        {
+            playerObject.tag = "Player";
         }
 
-        yield return StartCoroutine(UnloadAllOldGameplayScenes());
+        Debug.Log(
+            "[RunManager] Player thật đã được chuẩn bị: " +
+            playerObject.name
+        );
 
-        string loadingSceneName = GameSceneData.Instance != null
-            ? GameSceneData.Instance.GetSceneName(SceneType.Loading)
-            : "Loading Scene";
+        // Scene chưa activate nhưng đã loaded tới 90%.
+        // MoveGameObjectToScene có thể đưa Player vào scene này.
+        Scene runScene =
+            SceneManager.GetSceneByName(gameplaySceneName);
 
-        AsyncOperation loadLoading = SceneManager.LoadSceneAsync(loadingSceneName, LoadSceneMode.Additive);
-        while (!loadLoading.isDone) yield return null;
-
-        yield return new WaitForSecondsRealtime(0.05f);
-
-        if (LoadingUIManager.Instance != null)
-        {
-            LoadingUIManager.Instance.SetDestinationName(gameplaySceneName);
-        }
-
-        AsyncOperation load = SceneManager.LoadSceneAsync(gameplaySceneName, LoadSceneMode.Additive);
-        load.allowSceneActivation = false;
-
-        float duration = Random.Range(5.0f, 7.0f);
-        if (LoadingUIManager.Instance != null)
-        {
-            yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(load, false, duration));
-        }
-
-        load.allowSceneActivation = true;
-        while (!load.isDone) yield return null;
-
-        Scene runScene = SceneManager.GetSceneByName(gameplaySceneName);
         if (runScene.IsValid())
         {
-            SceneManager.SetActiveScene(runScene);
-            EventManager.Notify(GameEvent.OnLoadingComplete);
-        }
-
-        if (lobbyVisuals != null)
-        {
-            lobbyVisuals.SetActive(false);
-        }
-
-        HideLobbyHUD();
-
-        yield return new WaitForFixedUpdate();
-
-        CharacterController playerController = null;
-        CharacterBase charBase = null;
-        if (PlayerManager.Instance != null)
-        {
-            charBase = PlayerManager.Instance.GetComponentInChildren<CharacterBase>();
-        }
-
-        if (charBase != null)
-        {
-            if (runScene.IsValid() && charBase.gameObject.scene != runScene)
+            if (playerObject.scene != runScene)
             {
-                SceneManager.MoveGameObjectToScene(charBase.gameObject, runScene);
+                SceneManager.MoveGameObjectToScene(
+                    playerObject,
+                    runScene
+                );
             }
 
-            if (!charBase.gameObject.CompareTag("Player"))
-            {
-                charBase.gameObject.tag = "Player";
-            }
-
-            playerController = charBase.CharacterMovement?.CC ?? charBase.GetComponent<CharacterController>();
-            if (playerController != null) playerController.enabled = false;
+            Debug.Log(
+                "[RunManager] Đã Move Player thật vào scene: " +
+                runScene.name
+            );
         }
-
-        isRunActive = true;
-
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
-        }
-
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.SetMapType(MapType.Run);
-        }
-
-        yield return new WaitForSecondsRealtime(0.2f);
-
-        Scene loadingScene = SceneManager.GetSceneByName(loadingSceneName);
-        if (loadingScene.isLoaded)
-        {
-            AsyncOperation unloadLoading = SceneManager.UnloadSceneAsync(loadingScene);
-            while (!unloadLoading.isDone) yield return null;
-        }
-
-        if (playerController != null) playerController.enabled = true;
-
-        Physics.SyncTransforms();
     }
+    else
+    {
+        Debug.LogError(
+            "[RunManager] Không tìm thấy Player thật trước khi activate " +
+            gameplaySceneName
+        );
+    }
+
+    // ============================================================
+    // BÂY GIỜ MỚI ACTIVATE GAMEPLAY SCENE
+    // ============================================================
+
+    load.allowSceneActivation = true;
+
+    while (!load.isDone)
+        yield return null;
+
+    Scene runSceneAfterLoad =
+        SceneManager.GetSceneByName(gameplaySceneName);
+
+    if (runSceneAfterLoad.IsValid())
+    {
+        SceneManager.SetActiveScene(runSceneAfterLoad);
+        EventManager.Notify(GameEvent.OnLoadingComplete);
+    }
+
+    if (lobbyVisuals != null)
+    {
+        lobbyVisuals.SetActive(false);
+    }
+
+    HideLobbyHUD();
+
+    // ============================================================
+    // Player đã ở đúng scene từ trước khi scene activate.
+    // Chỉ cần lấy CharacterController để tạm disable trong lúc setup.
+    // ============================================================
+
+    CharacterController playerController = null;
+
+    if (charBase != null)
+    {
+        playerController =
+            charBase.CharacterMovement?.CC ??
+            charBase.GetComponent<CharacterController>();
+
+        if (playerController != null)
+        {
+            playerController.enabled = false;
+        }
+    }
+
+    isRunActive = true;
+
+    if (UIManager.Instance != null)
+    {
+        UIManager.Instance.ChangeMenu(MenuType.GameplayMenu);
+    }
+
+    if (GameManager.Instance != null)
+    {
+        GameManager.Instance.SetMapType(MapType.Run);
+    }
+
+    // Cho Bird / Camera / Gaia / SafeZone hoàn tất initialization.
+    yield return null;
+    yield return new WaitForSecondsRealtime(0.2f);
+
+    Scene loadingScene =
+        SceneManager.GetSceneByName(loadingSceneName);
+
+    if (loadingScene.isLoaded)
+    {
+        AsyncOperation unloadLoading =
+            SceneManager.UnloadSceneAsync(loadingScene);
+
+        while (unloadLoading != null &&
+               !unloadLoading.isDone)
+        {
+            yield return null;
+        }
+    }
+
+    if (playerController != null)
+    {
+        playerController.enabled = true;
+    }
+
+    Physics.SyncTransforms();
+}
 
     public void ReturnToLobby()
     {

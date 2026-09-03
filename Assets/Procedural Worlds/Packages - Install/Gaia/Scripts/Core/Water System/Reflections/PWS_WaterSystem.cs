@@ -1295,7 +1295,10 @@ namespace Gaia
                 return true;
             }
 
-            Debug.LogWarning("Water System: The player was null or no camera was found in your scene.");
+            // Scene loading is asynchronous.  The player camera can be created
+            // a frame after this component is enabled, so leave initialization
+            // pending and let the next update resolve it instead of reporting a
+            // false configuration warning.
             return false;
         }
 
