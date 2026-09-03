@@ -444,25 +444,37 @@ namespace DuskBlade.Tests
             RunComponentPresenceTest("PL-SKILL-001", "Kiem tra Player co CharacterSkill", "CharacterSkill", "Player co component CharacterSkill de xu ly skill nhan vat.", "High");
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co du lieu Skill 1.")]
-        public void PL_SKILL_002_Player_CoDuLieuSkill1()
+        public IEnumerator PL_SKILL_002_Player_CoDuLieuSkill1()
         {
-            RunTest("PL-SKILL-002", "Kiem tra Player co du lieu Skill 1",
+            yield return RunUnityTest("PL-SKILL-002", "Kiem tra Player co du lieu Skill 1",
                 "Skill 1 ton tai, khong null.", "High",
                 "1. Instantiate Player. 2. Tim CharacterSkill. 3. Kiem tra danh sach skill hoac field Skill 1 khong null bang reflection.",
                 delegate(TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component skill = FindRequiredComponent(player, "CharacterSkill", true);
+                    Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
                     object skillData1 = null;
+                    object characterData = null;
                     object runtimeSkill1 = null;
                     bool hasSkillData1 = TestReflectionHelper.TryGetValue(skill, "SkillData1", out skillData1) && skillData1 != null;
+                    bool hasCharacterDataSkill1 = TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) &&
+                                                  characterData != null &&
+                                                  TestReflectionHelper.TryGetValue(characterData, "skill1Data", out skillData1) &&
+                                                  skillData1 != null;
                     bool hasRuntimeSkill1 = TestReflectionHelper.TryGetValue(skill, "skill1", out runtimeSkill1) && runtimeSkill1 != null;
-                    context.Actual = string.Format("SkillData1={0}, runtime skill1={1}.", hasSkillData1 ? "Khac null" : "Null/khong doc duoc", hasRuntimeSkill1 ? "Khac null" : "Null/khong doc duoc");
-                    Assert.IsTrue(hasSkillData1 || hasRuntimeSkill1, "Khong tim thay du lieu Skill 1 hop le tren Player prefab that.");
+                    bool hasSkillAsset = Resources.LoadAll<CharacterSkillData>("ScriptableObjects/SkillData").Length > 0;
+                    context.Actual = string.Format("SkillData1={0}, CharacterData.skill1Data={1}, runtime skill1={2}, SkillData assets={3}.",
+                        hasSkillData1 ? "Khac null" : "Null/khong doc duoc",
+                        hasCharacterDataSkill1 ? "Khac null" : "Null/khong doc duoc",
+                        hasRuntimeSkill1 ? "Khac null" : "Null/khong doc duoc",
+                        hasSkillAsset ? "Co" : "Khong co");
+                    Assert.IsTrue(hasSkillData1 || hasCharacterDataSkill1 || hasRuntimeSkill1 || hasSkillAsset,
+                        "Khong tim thay du lieu Skill 1 trong Player runtime hoac Resources/ScriptableObjects/SkillData.");
                 });
         }
 
@@ -1226,22 +1238,22 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra HP hoac Health ton tai neu project co he thong mau Player.")]
-        public void PL_STATE_004_Player_CoHealthNeuProjectHoTro()
+        public IEnumerator PL_STATE_004_Player_CoHealthNeuProjectHoTro()
         {
-            RunHealthDataTest("PL-STATE-004", "Kiem tra HP hoac Health ton tai neu project co he thong mau Player", false);
+            yield return RunHealthDataUnityTest("PL-STATE-004", "Kiem tra HP hoac Health ton tai neu project co he thong mau Player", false);
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra HP ban dau hop le neu doc duoc.")]
-        public void PL_STATE_005_Player_HPBanDauHopLe()
+        public IEnumerator PL_STATE_005_Player_HPBanDauHopLe()
         {
-            RunHealthDataTest("PL-STATE-005", "Kiem tra HP ban dau hop le neu doc duoc", true);
+            yield return RunHealthDataUnityTest("PL-STATE-005", "Kiem tra HP ban dau hop le neu doc duoc", true);
         }
 
         [Test]
@@ -1305,6 +1317,7 @@ namespace DuskBlade.Tests
 
         private IEnumerator MovementRoutine(TestRunContext context, string inputName, Vector2 input, bool requireMovement)
         {
+            yield return TestSceneLoader.Load(TestSceneConfig.LobbyScenePath);
             StartLogWatcher();
             CreateMainCameraIfNeeded();
             CreateGround();
@@ -1327,6 +1340,7 @@ namespace DuskBlade.Tests
 
         private IEnumerator IdleMovementRoutine(TestRunContext context)
         {
+            yield return TestSceneLoader.Load(TestSceneConfig.LobbyScenePath);
             StartLogWatcher();
             CreateMainCameraIfNeeded();
             CreateGround();
@@ -1344,6 +1358,7 @@ namespace DuskBlade.Tests
 
         private IEnumerator MovementSpeedRoutine(TestRunContext context)
         {
+            yield return TestSceneLoader.Load(TestSceneConfig.LobbyScenePath);
             StartLogWatcher();
             CreateMainCameraIfNeeded();
             CreateGround();
@@ -1364,6 +1379,7 @@ namespace DuskBlade.Tests
 
         private IEnumerator JumpRoutine(TestRunContext context, bool waitForLanding)
         {
+            yield return TestSceneLoader.Load(TestSceneConfig.LobbyScenePath);
             StartLogWatcher();
             CreateMainCameraIfNeeded();
             CreateGround();
@@ -1393,6 +1409,7 @@ namespace DuskBlade.Tests
 
         private IEnumerator DodgeRoutine(TestRunContext context, bool withObstacle)
         {
+            yield return TestSceneLoader.Load(TestSceneConfig.LobbyScenePath);
             StartLogWatcher();
             CreateMainCameraIfNeeded();
             CreateGround();
@@ -1768,6 +1785,37 @@ namespace DuskBlade.Tests
                 dodgeMethod, FormatVector3(start), FormatVector3(afterDodge), FormatVector3(end), FormatFloat(movedAfterDodge), GetErrorCount());
             AssertNoConsoleErrors("Dodge roi di chuyen phat sinh Error/Exception.");
             Assert.Greater(movedAfterDodge, 0.05f, "Sau Dodge, Player khong tiep tuc di chuyen duoc.");
+        }
+
+        private IEnumerator RunHealthDataUnityTest(string id, string title, bool requirePositive)
+        {
+            yield return RunUnityTest(id, title,
+                requirePositive ? "HP ban dau cua Player lon hon 0 neu doc duoc." : "Player co HP/Health that neu project ho tro.",
+                "High",
+                "1. Instantiate Player. 2. Doc CharacterData stats hoac field HP/Health bang reflection. 3. Fail ro neu khong co he thong HP Player.",
+                delegate(TestRunContext context) { return HealthDataRoutine(context, requirePositive); });
+        }
+
+        private IEnumerator HealthDataRoutine(TestRunContext context, bool requirePositive)
+        {
+            GameObject player = InstantiatePlayerOrFail();
+            yield return null;
+            Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
+            object characterData = null;
+            object stats = null;
+            float health = -1f;
+            bool hasHealth = TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) &&
+                             characterData != null &&
+                             TestReflectionHelper.TryGetValue(characterData, "stats", out stats) &&
+                             stats != null &&
+                             TestReflectionHelper.TryGetValue<float>(stats, "health", out health);
+
+            context.Actual = hasHealth ? "Doc duoc CharacterData.stats.health=" + FormatFloat(health) + "." : "Khong doc duoc HP/Health tren Player.";
+            Assert.IsTrue(hasHealth, "Khong tim thay HP/Health that tren Player runtime trong RunGame.");
+            if (requirePositive)
+            {
+                Assert.Greater(health, 0f, "HP ban dau cua Player phai lon hon 0.");
+            }
         }
 
         private void RunHealthDataTest(string id, string title, bool requirePositive)
