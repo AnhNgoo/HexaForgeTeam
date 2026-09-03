@@ -34,11 +34,21 @@ public class LogoutMenu : MonoBehaviour
         CheckContextState();
         AddEvents();
         ShowConfirmation();
+        CheckIsInLobby();
     }
 
     private void OnDisable()
     {
         RemoveEvents();
+        CheckIsInLobby();
+    }
+
+    private void CheckIsInLobby()
+    {
+        if (GameManager.Instance != null)
+        {
+            isInLobby = GameManager.Instance.MapType == MapType.Lobby;
+        }
     }
 
     private void CheckContextState()
