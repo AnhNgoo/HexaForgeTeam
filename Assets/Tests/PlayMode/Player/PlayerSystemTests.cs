@@ -45,7 +45,7 @@ namespace DuskBlade.Tests
                 "Player duoc tao thanh cong, khong bi null va khong phat sinh loi khi Instantiate.",
                 "High",
                 "1. Load Player prefab that. 2. Instantiate Player vao scene test. 3. Kiem tra Player khac null. 4. Cho vai frame va kiem tra khong co loi Console.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return PlayerInstantiateRoutine(context);
                 });
@@ -60,7 +60,7 @@ namespace DuskBlade.Tests
             RunTest("PL-002", "Kiem tra Player khong bi Missing Script",
                 "Player va cac object con khong co component bi Missing Script.", "High",
                 "1. Instantiate Player. 2. Duyet component cua Player va object con. 3. Kiem tra khong co component null.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Transform[] children = player.GetComponentsInChildren<Transform>(true);
@@ -92,7 +92,7 @@ namespace DuskBlade.Tests
             RunTest("PL-003", "Kiem tra Player khong bi vo hinh",
                 "Player co Renderer hoac SkinnedMeshRenderer dang bat.", "High",
                 "1. Instantiate Player. 2. Tim Renderer trong Player va object con. 3. Kiem tra co it nhat mot Renderer enabled.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Renderer[] renderers = player.GetComponentsInChildren<Renderer>(true);
@@ -119,7 +119,7 @@ namespace DuskBlade.Tests
             RunTest("PL-004", "Kiem tra Player khong bi loi material",
                 "Renderer cua Player co material hop le, khong null.", "Medium",
                 "1. Instantiate Player. 2. Duyet Renderer. 3. Kiem tra sharedMaterials khong null.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Renderer[] renderers = player.GetComponentsInChildren<Renderer>(true);
@@ -189,7 +189,7 @@ namespace DuskBlade.Tests
             RunTest("PL-008", "Kiem tra Player co Collider hoac CharacterController",
                 "Player co thanh phan va cham de khong xuyen map hoac xuyen object.", "High",
                 "1. Instantiate Player. 2. Tim Collider hoac CharacterController. 3. Kiem tra ton tai it nhat mot component hop le.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Collider[] colliders = player.GetComponentsInChildren<Collider>(true);
@@ -208,7 +208,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-009", "Kiem tra Player khong roi xuyen nen sau khi spawn",
                 "Player dung on dinh sau khi spawn, khong roi xuong duoi map.", "High",
                 "1. Tao ground collider. 2. Spawn Player tren mat dat. 3. Ghi nhan Y ban dau. 4. Cho 1 giay. 5. Kiem tra Y khong giam bat thuong.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return GroundStabilityRoutine(context);
                 });
@@ -268,7 +268,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-MOVE-006", "Kiem tra Player dung khi khong co input",
                 "Khi khong co input, Player khong tu troi qua xa.", "Medium",
                 "1. Spawn Player. 2. Ghi nhan vi tri dau. 3. Khong truyen input. 4. Cho 1 giay. 5. Kiem tra do lech khong vuot nguong.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return IdleMovementRoutine(context);
                 });
@@ -283,7 +283,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-MOVE-007", "Kiem tra toc do di chuyen Player hop le",
                 "Quang duong Player di chuyen trong thoi gian test nam trong nguong hop ly.", "Medium",
                 "1. Spawn Player. 2. Goi input tien. 3. Tinh quang duong va toc do. 4. Kiem tra toc do > 0 va khong qua cao bat thuong.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return MovementSpeedRoutine(context);
                 });
@@ -298,7 +298,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-JUMP-001", "Kiem tra Player Jump duoc",
                 "Khi goi Jump/input Jump, vi tri Y tang hoac state Jump duoc kich hoat.", "Medium",
                 "1. Spawn Player tren ground. 2. Ghi nhan Y ban dau. 3. Goi method Jump. 4. Cho vai frame. 5. Kiem tra Y cao nhat.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return JumpRoutine(context, false);
                 });
@@ -313,7 +313,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-JUMP-002", "Kiem tra Player roi xuong lai mat dat sau khi Jump",
                 "Sau khi Jump, Player tro lai gan mat dat, khong bi treo tren khong.", "Medium",
                 "1. Spawn Player tren ground. 2. Goi Jump. 3. Cho du thoi gian roi xuong. 4. Kiem tra Y cuoi khong cao bat thuong.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return JumpRoutine(context, true);
                 });
@@ -328,7 +328,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-DODGE-001", "Kiem tra Player Dodge duoc",
                 "Khi goi Dodge/input Dodge, Player thay doi vi tri hoac chuyen state Dodge hop le.", "Medium",
                 "1. Spawn Player. 2. Ghi nhan vi tri dau. 3. Goi method Dodge. 4. Cho vai frame. 5. Kiem tra vi tri thay doi.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return DodgeRoutine(context, false);
                 });
@@ -343,7 +343,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-DODGE-002", "Kiem tra Player khong Dodge xuyen vat can",
                 "Khi Dodge ve phia collider vat can, Player khong xuyen qua vat can.", "High",
                 "1. Tao vat can collider. 2. Spawn Player gan vat can. 3. Goi Dodge ve huong vat can. 4. Cho vai frame. 5. Kiem tra Player khong vuot qua vat can.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return DodgeRoutine(context, true);
                 });
@@ -376,7 +376,7 @@ namespace DuskBlade.Tests
             RunTest("PL-ACT-003", "Kiem tra Player co CharacterWeapon",
                 "Player co component hoac du lieu vu khi hop le de tan cong.", "Medium",
                 "1. Instantiate Player. 2. Tim CharacterWeapon hoac object vu khi tren Player. 3. Kiem tra reference hop le neu co.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component weapon = FindRequiredComponent(player, "CharacterWeapon", false);
@@ -396,7 +396,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-ACT-004", "Kiem tra Player goi duoc hanh dong Attack",
                 "Khi goi Attack, Player xu ly lenh tan cong va khong phat sinh loi.", "High",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = InvokeAttack(player);
                     context.Actual = "Method Attack goi duoc: " + method + ", loi Console se duoc kiem tra sau khi cho frame.";
@@ -411,7 +411,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-ACT-005", "Kiem tra Attack khi dang Jump khong gay loi",
                 "Goi Attack trong luc Jump khong gay Error/Exception va khong ket state.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string jumpMethod = InvokeJump(player);
                     string attackMethod = InvokeAttack(player);
@@ -427,7 +427,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-ACT-006", "Kiem tra Attack khi dang Dodge khong gay loi",
                 "Goi Attack trong luc Dodge khong gay Error/Exception va khong ket state.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string dodgeMethod = InvokeDodge(player, new Vector2(0f, 1f));
                     string attackMethod = InvokeAttack(player);
@@ -453,7 +453,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-SKILL-002", "Kiem tra Player co du lieu Skill 1",
                 "Skill 1 ton tai, khong null.", "High",
                 "1. Instantiate Player. 2. Tim CharacterSkill. 3. Kiem tra danh sach skill hoac field Skill 1 khong null bang reflection.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component skill = FindRequiredComponent(player, "CharacterSkill", true);
@@ -467,7 +467,22 @@ namespace DuskBlade.Tests
                                                   TestReflectionHelper.TryGetValue(characterData, "skill1Data", out skillData1) &&
                                                   skillData1 != null;
                     bool hasRuntimeSkill1 = TestReflectionHelper.TryGetValue(skill, "skill1", out runtimeSkill1) && runtimeSkill1 != null;
-                    bool hasSkillAsset = Resources.LoadAll<CharacterSkillData>("ScriptableObjects/SkillData").Length > 0;
+                    bool hasSkillAsset = false;
+
+                    ScriptableObject[] skillAssets =
+                        Resources.LoadAll<ScriptableObject>(
+                            "ScriptableObjects/SkillData"
+                        );
+
+                    foreach (ScriptableObject asset in skillAssets)
+                    {
+                        if (asset != null &&
+                            asset.GetType().Name == "CharacterSkillData")
+                        {
+                            hasSkillAsset = true;
+                            break;
+                        }
+                    }
                     context.Actual = string.Format("SkillData1={0}, CharacterData.skill1Data={1}, runtime skill1={2}, SkillData assets={3}.",
                         hasSkillData1 ? "Khac null" : "Null/khong doc duoc",
                         hasCharacterDataSkill1 ? "Khac null" : "Null/khong doc duoc",
@@ -475,6 +490,7 @@ namespace DuskBlade.Tests
                         hasSkillAsset ? "Co" : "Khong co");
                     Assert.IsTrue(hasSkillData1 || hasCharacterDataSkill1 || hasRuntimeSkill1 || hasSkillAsset,
                         "Khong tim thay du lieu Skill 1 trong Player runtime hoac Resources/ScriptableObjects/SkillData.");
+                    return null;
                 });
         }
 
@@ -486,7 +502,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-SKILL-003", "Kiem tra Player kich hoat duoc Skill 1",
                 "Goi Skill 1 khong loi, co state/effect/logic tuong ung neu doc duoc.", "High",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = InvokeSkill1(player);
                     context.Actual = "Method Skill 1 goi duoc: " + method + ".";
@@ -501,7 +517,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-SKILL-004", "Kiem tra Skill 1 khong spam lien tuc ngoai thiet ke",
                 "Skill 1 co cooldown/dieu kien hoac khong gay loi khi goi lien tuc.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = string.Empty;
                     for (int i = 0; i < 5; i++)
@@ -531,7 +547,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-LOCK-002", "Kiem tra Player lock duoc Enemy trong pham vi",
                 "Khi co Enemy trong pham vi, Player gan target hop le.", "Medium",
                 "1. Spawn Player. 2. Spawn Enemy prefab that. 3. Goi logic lock target. 4. Kiem tra target hoac khong co loi.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return LockTargetRoutine(context, true, false, false);
                 });
@@ -546,7 +562,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-LOCK-003", "Kiem tra Player khong lock khi khong co Enemy",
                 "Khi khong co Enemy, lock target khong gay loi va khong gan target sai.", "Medium",
                 "1. Spawn Player. 2. Khong spawn Enemy. 3. Goi logic lock target. 4. Kiem tra khong co Error/Exception.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return LockTargetRoutine(context, false, false, false);
                 });
@@ -561,7 +577,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-LOCK-004", "Kiem tra Player di chuyen khi dang lock target",
                 "Khi lock Enemy, Player van di chuyen duoc bang W/A/S/D, khong ket input.", "Medium",
                 "1. Spawn Player. 2. Spawn Enemy. 3. Goi lock target. 4. Goi input W. 5. Kiem tra Player thay doi vi tri.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return LockTargetRoutine(context, true, true, false);
                 });
@@ -576,7 +592,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-LOCK-005", "Kiem tra Player xoay huong hop le khi dang lock target",
                 "Khi lock target, Player hoac huong nhin xoay ve Enemy dung logic thiet ke.", "Medium",
                 "1. Spawn Player. 2. Spawn Enemy. 3. Goi lock target. 4. Cho vai frame. 5. Kiem tra rotation/huong toi Enemy neu doc duoc.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return LockTargetRoutine(context, true, false, true);
                 });
@@ -591,7 +607,7 @@ namespace DuskBlade.Tests
             RunTest("PL-REF-001", "Kiem tra Player co Animator reference hop le",
                 "Neu Player co/yeu cau Animator thi Animator va RuntimeAnimatorController khong null.", "Medium",
                 "1. Instantiate Player. 2. Tim Animator. 3. Neu Animator ton tai thi kiem tra runtimeAnimatorController khac null.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Animator[] animators = player.GetComponentsInChildren<Animator>(true);
@@ -619,7 +635,7 @@ namespace DuskBlade.Tests
             RunTest("PL-REF-002", "Kiem tra Player co Audio reference hop le neu co",
                 "Neu Player co AudioSource thi AudioSource va AudioClip/reference can thiet khong null neu component yeu cau.", "Low",
                 "1. Instantiate Player. 2. Tim AudioSource. 3. Kiem tra AudioClip/reference neu co.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     AudioSource[] audioSources = player.GetComponentsInChildren<AudioSource>(true);
@@ -676,7 +692,7 @@ namespace DuskBlade.Tests
             RunTest("PL-010", "Kiem tra Player prefab that ton tai trong project",
                 "Player prefab that ton tai va duoc TestPrefabFinder tim thay.", "High",
                 "1. Goi TestPrefabFinder.FindPlayerPrefab. 2. Kiem tra prefab khac null.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject prefab = TestPrefabFinder.FindPlayerPrefab();
                     context.Actual = prefab != null ? "Tim thay Player prefab: " + prefab.name + "." : "Khong tim thay Player prefab that.";
@@ -693,7 +709,7 @@ namespace DuskBlade.Tests
             RunTest("PL-011", "Kiem tra Player co Transform hop le",
                 "Player co Transform hop le, position/rotation/scale khong NaN hoac Infinity.", "High",
                 "1. Instantiate Player. 2. Doc Transform. 3. Kiem tra position, rotation, scale hop le.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     context.Actual = string.Format("Position={0}, rotation={1}, scale={2}.", FormatVector3(player.transform.position), player.transform.rotation.eulerAngles, FormatVector3(player.transform.localScale));
@@ -712,7 +728,7 @@ namespace DuskBlade.Tests
             RunTest("PL-012", "Kiem tra Player scale hop le, khong bang 0",
                 "Player scale tren cac truc lon hon 0 va khong bi am bat thuong.", "High",
                 "1. Instantiate Player. 2. Doc localScale. 3. Kiem tra x/y/z lon hon 0.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Vector3 scale = player.transform.localScale;
@@ -732,7 +748,7 @@ namespace DuskBlade.Tests
             RunTest("PL-013", "Kiem tra Player active sau khi spawn",
                 "Player instance activeInHierarchy sau khi Instantiate.", "High",
                 "1. Instantiate Player. 2. Kiem tra activeSelf va activeInHierarchy.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     context.Actual = string.Format("activeSelf={0}, activeInHierarchy={1}.", player.activeSelf, player.activeInHierarchy);
@@ -750,7 +766,7 @@ namespace DuskBlade.Tests
             RunTest("PL-014", "Kiem tra Player co CharacterData hoac du lieu nhan vat hop le",
                 "CharacterData ton tai va stats co gia tri hop le.", "High",
                 "1. Instantiate Player. 2. Tim CharacterBase. 3. Doc CharacterData/stats bang reflection. 4. Kiem tra health/speed/stamina hop le neu doc duoc.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
@@ -777,7 +793,7 @@ namespace DuskBlade.Tests
             RunTest("PL-015", "Kiem tra Player co Kael neu prefab la Kael",
                 "Neu prefab ten Kael hoac co visual Kael thi component Kael ton tai.", "Medium",
                 "1. Instantiate Player. 2. Kiem tra ten prefab/visual. 3. Neu la Kael thi tim component Kael.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     bool looksLikeKael = player.name.IndexOf("Kael", StringComparison.OrdinalIgnoreCase) >= 0 || FindChildContains(player.transform, "Kael") != null;
@@ -799,7 +815,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-016", "Kiem tra StateController cua Player duoc khoi tao sau Start",
                 "Neu project dung StateController thi stateController khac null sau Start.", "Medium",
                 "1. Spawn Player. 2. Cho Start chay. 3. Doc StateController bang reflection.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return StateControllerRoutine(context, false);
                 });
@@ -814,7 +830,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-017", "Kiem tra Player state ban dau khong null neu doc duoc",
                 "StateController co currentState hop le sau khi Player Start.", "Medium",
                 "1. Spawn Player. 2. Cho Start chay. 3. Doc currentState bang reflection.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return StateControllerRoutine(context, true);
                 });
@@ -829,7 +845,7 @@ namespace DuskBlade.Tests
             RunTest("PL-018", "Kiem tra CharacterController cua Player co cau hinh hop le",
                 "CharacterController neu co thi radius/height/skinWidth lon hon 0.", "Medium",
                 "1. Instantiate Player. 2. Tim CharacterController. 3. Kiem tra radius, height, skinWidth.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     CharacterController controller = player.GetComponentInChildren<CharacterController>(true);
@@ -859,7 +875,7 @@ namespace DuskBlade.Tests
             RunTest("PL-020", "Kiem tra Player co effect point co ban",
                 "Player co EffectPoints hoac cac point danh/skill neu component yeu cau.", "Low",
                 "1. Instantiate Player. 2. Tim EffectPoints va cac child point quan trong. 3. Ghi nhan so point tim thay.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Transform effectRoot = FindChildContains(player.transform, "EffectPoints");
@@ -883,7 +899,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-MOVE-008", "Kiem tra Player doi huong lien tuc khong gay loi",
                 "Player xu ly chuyen huong W/A/S/D lien tuc khong Error/Exception va khong ket.", "Medium",
                 "1. Spawn Player. 2. Goi W/A/S/D lien tuc. 3. Kiem tra khong loi Console va vi tri hop le.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return DirectionChangeRoutine(context);
                 });
@@ -896,7 +912,7 @@ namespace DuskBlade.Tests
         public IEnumerator PL_MOVE_009_Player_PositionFiniteSauMovement()
         {
             yield return RunFiniteAfterActionRoutine("PL-MOVE-009", "Kiem tra vi tri Player khong NaN hoac Infinity sau movement", "Movement", "Medium",
-                delegate(GameObject player)
+                delegate (GameObject player)
                 {
                     InvokeMovement(FindRequiredComponent(player, "CharacterMovement", true), new Vector2(0f, 1f), DefaultMoveSpeed);
                 });
@@ -911,7 +927,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-MOVE-010", "Kiem tra MoveDirection cua Player khong NaN hoac Infinity",
                 "CharacterMovement.MoveDirection hop le sau khi set input.", "Medium",
                 "1. Spawn Player. 2. Goi SetMoveDirection/Run. 3. Doc MoveDirection bang reflection.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return MoveDirectionFiniteRoutine(context);
                 });
@@ -943,7 +959,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-ACT-007", "Kiem tra Attack khi dang di chuyen khong gay loi",
                 "Attack trong luc Player dang di chuyen khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     InvokeMovement(FindRequiredComponent(player, "CharacterMovement", true), new Vector2(0f, 1f), DefaultMoveSpeed);
                     string attackMethod = InvokeAttack(player);
@@ -959,7 +975,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionWithEnemyNoConsoleErrorTest("PL-ACT-008", "Kiem tra Attack khi dang lock target khong gay loi",
                 "Attack khi Player dang lock target khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string lockMethod = InvokeLockTarget(player);
                     string attackMethod = InvokeAttack(player);
@@ -975,7 +991,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-ACT-009", "Kiem tra Attack nhieu lan lien tiep khong lam ket state",
                 "Goi Attack nhieu lan khong gay Error/Exception va khong lam Player inactive.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = string.Empty;
                     for (int i = 0; i < 5; i++)
@@ -996,7 +1012,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-ACT-010", "Kiem tra Attack khi khong co Enemy khong gay loi",
                 "Attack khong co Enemy trong scene khong gay Error/Exception.", "High",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = InvokeAttack(player);
                     context.Actual = "Khong spawn Enemy, method Attack=" + method + ".";
@@ -1011,7 +1027,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionWithEnemyNoConsoleErrorTest("PL-ACT-011", "Kiem tra Attack khi co nhieu Enemy gan do khong gay loi",
                 "Attack khi co nhieu Enemy gan khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = InvokeAttack(player);
                     context.Actual = "Da spawn 3 Enemy gan Player, method Attack=" + method + ".";
@@ -1026,7 +1042,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-SKILL-005", "Kiem tra Skill 1 khi dang di chuyen khong gay loi",
                 "Skill 1 trong luc Player dang di chuyen khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     InvokeMovement(FindRequiredComponent(player, "CharacterMovement", true), new Vector2(0f, 1f), DefaultMoveSpeed);
                     string method = InvokeSkill1(player);
@@ -1042,7 +1058,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-SKILL-006", "Kiem tra Skill 1 khi dang Jump khong gay loi",
                 "Skill 1 khi dang Jump khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string jumpMethod = InvokeJump(player);
                     string skillMethod = InvokeSkill1(player);
@@ -1058,7 +1074,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-SKILL-007", "Kiem tra Skill 1 khi dang Dodge khong gay loi",
                 "Skill 1 khi dang Dodge khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string dodgeMethod = InvokeDodge(player, new Vector2(0f, 1f));
                     string skillMethod = InvokeSkill1(player);
@@ -1074,7 +1090,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionWithEnemyNoConsoleErrorTest("PL-SKILL-008", "Kiem tra Skill 1 khi dang lock target khong gay loi",
                 "Skill 1 khi Player dang lock target khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string lockMethod = InvokeLockTarget(player);
                     string skillMethod = InvokeSkill1(player);
@@ -1089,7 +1105,7 @@ namespace DuskBlade.Tests
         public IEnumerator PL_SKILL_009_Skill1_PositionFinite()
         {
             yield return RunFiniteAfterActionRoutine("PL-SKILL-009", "Kiem tra Skill 1 khong lam Player bi NaN hoac Infinity position", "Skill 1", "Medium",
-                delegate(GameObject player)
+                delegate (GameObject player)
                 {
                     InvokeSkill1(player);
                 });
@@ -1103,7 +1119,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-SKILL-010", "Kiem tra Skill 1 khong lam Player bien mat hoac disable bat thuong",
                 "Sau khi goi Skill 1, Player van active va con Renderer enabled.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = InvokeSkill1(player);
                     int enabledRenderers = CountEnabledRenderers(player);
@@ -1121,7 +1137,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionWithEnemyNoConsoleErrorTest("PL-LOCK-006", "Kiem tra goi lock target hai lan co the huy lock hoac khong gay loi",
                 "Toggle lock target hai lan khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     object before = ReadTarget(player);
                     string method1 = InvokeLockTarget(player);
@@ -1141,7 +1157,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-LOCK-007", "Kiem tra Enemy bi disable thi lock target khong gay loi",
                 "Khi Enemy target bi disable, Player khong giu target loi va khong Error/Exception.", "Medium",
                 "1. Spawn Player va Enemy. 2. Lock target. 3. Disable Enemy. 4. Goi lock lai va kiem tra Console.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return DisabledEnemyLockRoutine(context);
                 });
@@ -1155,7 +1171,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionWithEnemyNoConsoleErrorTest("PL-LOCK-008", "Kiem tra nhieu Enemy trong pham vi thi lock target khong gay loi",
                 "Khi co nhieu Enemy trong pham vi, lock target chon target hop le hoac khong phat sinh loi.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = InvokeLockTarget(player);
                     object target = ReadTarget(player);
@@ -1171,7 +1187,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-LOCK-009", "Kiem tra khong co Enemy ma goi lock nhieu lan khong loi Console",
                 "Goi lock target nhieu lan khi khong co Enemy khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = string.Empty;
                     for (int i = 0; i < 5; i++)
@@ -1192,7 +1208,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-STATE-001", "Kiem tra sau Dodge Player van tiep tuc di chuyen duoc",
                 "Sau Dodge, Player van co the di chuyen va khong ket state.", "Medium",
                 "1. Spawn Player. 2. Goi Dodge. 3. Cho ket thuc Dodge. 4. Goi movement W. 5. Kiem tra vi tri thay doi.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return DodgeThenMoveRoutine(context);
                 });
@@ -1206,7 +1222,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-STATE-002", "Kiem tra Jump nhieu lan khong gay Error hoac Exception",
                 "Goi Jump nhieu lan lien tiep khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = string.Empty;
                     for (int i = 0; i < 3; i++)
@@ -1226,7 +1242,7 @@ namespace DuskBlade.Tests
         {
             yield return RunActionNoConsoleErrorTest("PL-STATE-003", "Kiem tra Dodge nhieu lan khong gay Error hoac Exception",
                 "Goi Dodge nhieu lan lien tiep khong gay Error/Exception.", "Medium",
-                delegate(GameObject player, TestRunContext context)
+                delegate (GameObject player, TestRunContext context)
                 {
                     string method = string.Empty;
                     for (int i = 0; i < 3; i++)
@@ -1265,7 +1281,7 @@ namespace DuskBlade.Tests
             RunTest("PL-STATE-006", "Kiem tra he thong Death cua Player ton tai neu project ho tro",
                 "Neu project co HP/Death thi co method hoac state death that de xu ly Player chet.", "High",
                 "1. Instantiate Player. 2. Tim method/field lien quan Death/Dead/Die. 3. Fail ro neu project chua co he thong Death Player.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component[] components = player.GetComponentsInChildren<Component>(true);
@@ -1309,7 +1325,7 @@ namespace DuskBlade.Tests
                 "Khi co input " + inputName + ", Player di chuyen dung huong hoac thay doi vi tri hop le.",
                 severity,
                 "1. Spawn Player. 2. Ghi nhan vi tri ban dau. 3. Goi method di chuyen that cua CharacterMovement bang reflection. 4. Cho 1 giay. 5. Kiem tra vi tri Player thay doi.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return MovementRoutine(context, inputName, input, requireMovement);
                 });
@@ -1445,7 +1461,7 @@ namespace DuskBlade.Tests
         {
             yield return RunUnityTest(id, title, expected, severity,
                 "1. Spawn Player. 2. Goi logic that bang reflection neu co. 3. Cho vai frame. 4. Kiem tra khong co Error/Exception.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return ActionNoConsoleErrorRoutine(context, action);
                 });
@@ -1531,7 +1547,7 @@ namespace DuskBlade.Tests
         {
             yield return RunUnityTest(id, title, expected, severity,
                 "1. Spawn Player. 2. Spawn Enemy that neu can. 3. Goi logic co ban. 4. Cho vai frame. 5. Kiem tra khong co Error/Exception.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return SummaryRoutine(context, enemyCount);
                 });
@@ -1648,7 +1664,7 @@ namespace DuskBlade.Tests
                 checkTeleport ? "Player khong teleport bat thuong sau va cham vat can." : "Scale va rotation Player on dinh sau va cham vat can.",
                 "Medium",
                 "1. Tao ground va obstacle. 2. Spawn Player. 3. Cho Player di chuyen ve vat can. 4. Kiem tra vi tri/scale/rotation hop le.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return CollisionStabilityRoutine(context, checkTeleport);
                 });
@@ -1696,7 +1712,7 @@ namespace DuskBlade.Tests
             yield return RunUnityTest(id, title,
                 actionName + " khong lam position Player bi NaN hoac Infinity.", severity,
                 "1. Spawn Player. 2. Goi action that. 3. Cho vai frame. 4. Kiem tra position hop le va khong co Error/Exception.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return FiniteAfterActionRoutine(context, actionName, action);
                 });
@@ -1722,7 +1738,7 @@ namespace DuskBlade.Tests
         {
             yield return RunUnityTest(id, title, expected, severity,
                 "1. Spawn Player. 2. Spawn Enemy prefab that. 3. Goi logic that bang reflection. 4. Cho vai frame. 5. Kiem tra khong co Error/Exception.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     return ActionWithEnemyNoConsoleErrorRoutine(context, action, enemyCount);
                 });
@@ -1793,7 +1809,7 @@ namespace DuskBlade.Tests
                 requirePositive ? "HP ban dau cua Player lon hon 0 neu doc duoc." : "Player co HP/Health that neu project ho tro.",
                 "High",
                 "1. Instantiate Player. 2. Doc CharacterData stats hoac field HP/Health bang reflection. 3. Fail ro neu khong co he thong HP Player.",
-                delegate(TestRunContext context) { return HealthDataRoutine(context, requirePositive); });
+                delegate (TestRunContext context) { return HealthDataRoutine(context, requirePositive); });
         }
 
         private IEnumerator HealthDataRoutine(TestRunContext context, bool requirePositive)
@@ -1824,7 +1840,7 @@ namespace DuskBlade.Tests
                 requirePositive ? "HP ban dau cua Player lon hon 0 neu doc duoc." : "Player co HP/Health that neu project ho tro.",
                 "High",
                 "1. Instantiate Player. 2. Doc CharacterData stats hoac field HP/Health bang reflection. 3. Fail ro neu khong co he thong HP Player.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
@@ -1850,7 +1866,7 @@ namespace DuskBlade.Tests
         {
             RunTest(id, title, expected, severity,
                 "1. Instantiate Player. 2. Tim component " + componentName + ". 3. Kiem tra component khac null.",
-                delegate(TestRunContext context)
+                delegate (TestRunContext context)
                 {
                     GameObject player = InstantiatePlayerOrFail();
                     Component component = FindRequiredComponent(player, componentName, false);
