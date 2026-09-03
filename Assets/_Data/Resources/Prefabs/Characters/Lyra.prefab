@@ -79,6 +79,15 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -3693372400289761586, guid: 27f0ba2cfc8ff6d44ab044c2f55801af, type: 3}
+      propertyPath: m_WarningMessage
+      value: "\nBinding warning: Some generic clip(s) animate transforms that are
+        already bound by a Humanoid avatar. These transforms can only be changed
+        by Humanoid clips.\n\tTransform 'lowerarm.r'\n\tTransform 'upperarm.l'\n\tTransform
+        'chest'\n\tTransform 'hand.r'\n\tTransform 'lowerarm.l'\n\tTransform 'lowerleg.r'\n\tTransform
+        'lowerleg.l'\n\tTransform 'upperleg.l'\n\tTransform 'hand.l'\n\tTransform
+        'root'\n\tand more ...\n\tFrom animation clip 'HangOnBird'"
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 27f0ba2cfc8ff6d44ab044c2f55801af, type: 3}
       propertyPath: m_Name
       value: Lyra
@@ -259,6 +268,9 @@ MonoBehaviour:
   characterStamina: {fileID: 5038620735770419372}
   characterMP: {fileID: 4850372831514373884}
   characterLevel: {fileID: 7971813432282247176}
+  characterGoldFalling: {fileID: 7689609272410284661}
+  characterRelic: {fileID: 6034334192453940778}
+  characterSound: {fileID: 6447151952594640714}
   effectPoints: {fileID: 6976594298739711142}
   middleEffectPoint: {fileID: 7464771951311961177}
   bottomEffectPoint: {fileID: 6052880652090603874}
@@ -509,11 +521,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c59d72830b571541af714f853da63a3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &6034334192453940778 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3451481685631065213, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 8960019985531120215}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552299898475163021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a977db4da5cd1cc4bbeaa85a3876d78b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6052880652090603874 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2907148696939025205, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 8960019985531120215}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6447151952594640714 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2675279185565791517, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 8960019985531120215}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552299898475163021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f8f3da369270b0e449a68aa015026f67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!198 &6527448705214093827 stripped
 ParticleSystem:
   m_CorrespondingSourceObject: {fileID: 2796254568787554388, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
@@ -540,6 +574,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1999686462957950478, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
   m_PrefabInstance: {fileID: 8960019985531120215}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &7689609272410284661 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: -7570946453285435358, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
+  m_PrefabInstance: {fileID: 8960019985531120215}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 552299898475163021}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67e8efd3a69e25c40b40b9f1b7d38a83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &7971813432282247176 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: -7855983501107701153, guid: dc7784f93f2ce794b844e7f64c826737, type: 3}
