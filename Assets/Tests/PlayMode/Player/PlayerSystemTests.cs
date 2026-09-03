@@ -453,29 +453,32 @@ namespace DuskBlade.Tests
             yield return RunUnityTest("PL-SKILL-002", "Kiem tra Player co du lieu Skill 1",
                 "Skill 1 ton tai, khong null.", "High",
                 "1. Instantiate Player. 2. Tim CharacterSkill. 3. Kiem tra danh sach skill hoac field Skill 1 khong null bang reflection.",
-                delegate(TestRunContext context)
-                {
-                    GameObject player = InstantiatePlayerOrFail();
-                    Component skill = FindRequiredComponent(player, "CharacterSkill", true);
-                    Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
-                    object skillData1 = null;
-                    object characterData = null;
-                    object runtimeSkill1 = null;
-                    bool hasSkillData1 = TestReflectionHelper.TryGetValue(skill, "SkillData1", out skillData1) && skillData1 != null;
-                    bool hasCharacterDataSkill1 = TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) &&
-                                                  characterData != null &&
-                                                  TestReflectionHelper.TryGetValue(characterData, "skill1Data", out skillData1) &&
-                                                  skillData1 != null;
-                    bool hasRuntimeSkill1 = TestReflectionHelper.TryGetValue(skill, "skill1", out runtimeSkill1) && runtimeSkill1 != null;
-                    bool hasSkillAsset = Resources.LoadAll<CharacterSkillData>("ScriptableObjects/SkillData").Length > 0;
-                    context.Actual = string.Format("SkillData1={0}, CharacterData.skill1Data={1}, runtime skill1={2}, SkillData assets={3}.",
-                        hasSkillData1 ? "Khac null" : "Null/khong doc duoc",
-                        hasCharacterDataSkill1 ? "Khac null" : "Null/khong doc duoc",
-                        hasRuntimeSkill1 ? "Khac null" : "Null/khong doc duoc",
-                        hasSkillAsset ? "Co" : "Khong co");
-                    Assert.IsTrue(hasSkillData1 || hasCharacterDataSkill1 || hasRuntimeSkill1 || hasSkillAsset,
-                        "Khong tim thay du lieu Skill 1 trong Player runtime hoac Resources/ScriptableObjects/SkillData.");
-                });
+                delegate(TestRunContext context) { return SkillDataRoutine(context); });
+        }
+
+        private IEnumerator SkillDataRoutine(TestRunContext context)
+        {
+            GameObject player = InstantiatePlayerOrFail();
+            yield return null;
+            Component skill = FindRequiredComponent(player, "CharacterSkill", true);
+            Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
+            object skillData1 = null;
+            object characterData = null;
+            object runtimeSkill1 = null;
+            bool hasSkillData1 = TestReflectionHelper.TryGetValue(skill, "Skill1Data", out skillData1) && skillData1 != null;
+            bool hasCharacterDataSkill1 = TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) &&
+                                          characterData != null &&
+                                          TestReflectionHelper.TryGetValue(characterData, "skill1Data", out skillData1) &&
+                                          skillData1 != null;
+            bool hasRuntimeSkill1 = TestReflectionHelper.TryGetValue(skill, "skill1", out runtimeSkill1) && runtimeSkill1 != null;
+            bool hasSkillAsset = Resources.LoadAll("ScriptableObjects/SkillData", typeof(ScriptableObject)).Length > 0;
+            context.Actual = string.Format("SkillData1={0}, CharacterData.skill1Data={1}, runtime skill1={2}, SkillData assets={3}.",
+                hasSkillData1 ? "Khac null" : "Null/khong doc duoc",
+                hasCharacterDataSkill1 ? "Khac null" : "Null/khong doc duoc",
+                hasRuntimeSkill1 ? "Khac null" : "Null/khong doc duoc",
+                hasSkillAsset ? "Co" : "Khong co");
+            Assert.IsTrue(hasSkillData1 || hasCharacterDataSkill1 || hasRuntimeSkill1 || hasSkillAsset,
+                "Khong tim thay du lieu Skill 1 trong Player runtime hoac Resources/ScriptableObjects/SkillData.");
         }
 
         [UnityTest]
