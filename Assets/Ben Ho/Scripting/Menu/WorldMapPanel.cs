@@ -469,6 +469,16 @@ public class WorldMapPanel : MonoBehaviour,
             return;
         }
 
+
+        // Vòng bo ban đầu bao trùm toàn bản đồ, chưa cần hiển thị trên UI.
+        if (!manager.IsTutorialMode &&
+            manager.CurrentPhaseIndex == 0 &&
+            !safeZone.IsShrinking)
+        {
+            HideSafeZoneVisuals();
+            return;
+        }
+
         float worldWidth =
             Mathf.Max(worldMaxXZ.x - worldMinXZ.x, 1f);
 
