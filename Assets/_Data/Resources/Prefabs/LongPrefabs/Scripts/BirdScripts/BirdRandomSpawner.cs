@@ -1,16 +1,19 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class BirdRandomSpawner : MonoBehaviour
 {
     [System.Serializable]
-    private class BirdRoute
+    private sealed class BirdRoute
     {
         [Tooltip("Vị trí chim xuất hiện.")]
-        public Transform spawnPoint;
+        public Transform spawnPoint = null;
 
         [Tooltip("Điểm chim bay tới.")]
-        public Transform destination;
+        public Transform destination = null;
+
+        public bool IsValid => spawnPoint != null && destination != null;
     }
 
     [Header("Bird")]
@@ -32,220 +35,140 @@ public class BirdRandomSpawner : MonoBehaviour
 
     private IEnumerator Start()
     {
-        if (!ValidateSpawner())
+        if (!TrySelectRoute(out BirdRoute route))
             yield break;
 
-        BirdRoute selectedRoute = SelectRandomRoute();
-
-        if (selectedRoute == null)
-        {
-            Debug.LogError(
-                "BirdRandomSpawner không tìm thấy route hợp lệ!",
-                this
-            );
-
-            yield break;
-        }
-
-        // Spawn chim.
-        spawnedBird = Instantiate(
-            birdPrefab,
-            selectedRoute.spawnPoint.position,
-            selectedRoute.spawnPoint.rotation
-        );
+        SpawnBird(route);
 
         if (spawnedBird == null)
-        {
-            Debug.LogError(
-                "Không thể spawn Bird Prefab!",
-                this
-            );
-
             yield break;
-        }
 
-        // Phải gán destination ngay sau khi spawn,
-        // trước khi gọi GrabPlayer.
-        spawnedBird.SetupRoute(
-            selectedRoute.destination
-        );
+        yield return WaitForPlayerReady();
 
-        if (showDebugLog)
-        {
-            Debug.Log(
-                $"Đã spawn chim tại route {selectedRouteIndex + 1}: " +
-                $"{selectedRoute.spawnPoint.name} -> " +
-                $"{selectedRoute.destination.name}",
-                spawnedBird
-            );
-        }
-
-        // Tìm player sau khi chim và route đã sẵn sàng.
-        yield return FindPlayerRoutine();
-
-        if (player == null)
-        {
-            Debug.LogError(
-                $"Không tìm thấy Player sau " +
-                $"{findPlayerTimeout} giây!",
-                this
-            );
-
+        if (player == null || player.StateController == null)
             yield break;
-        }
 
-        // Đợi CharacterBase khởi tạo StateController.
-        float stateTimer = 0f;
-
-        while (player.StateController == null &&
-               stateTimer < findPlayerTimeout)
-        {
-            stateTimer += Time.unscaledDeltaTime;
-            yield return null;
-        }
-
-        if (player.StateController == null)
-        {
-            Debug.LogError(
-                "Player đã tồn tại nhưng StateController chưa được khởi tạo!",
-                player
-            );
-
-            yield break;
-        }
-
-        if (showDebugLog)
-        {
-            Debug.Log(
-                $"Đã tìm thấy Player {player.name}. " +
-                $"Đưa player lên chim {spawnedBird.name}.",
-                player
-            );
-        }
-
-        // Đợi thêm một frame để CharacterBase.Start()
-        // và các component player hoàn thành khởi tạo.
+        // Cho CharacterBase.Start và các component liên quan hoàn tất trong frame hiện tại.
         yield return null;
 
-        spawnedBird.GrabPlayer(player);
+        if (spawnedBird != null)
+            spawnedBird.GrabPlayer(player);
     }
 
-    private bool ValidateSpawner()
+    private bool TrySelectRoute(out BirdRoute selectedRoute)
     {
+        selectedRoute = null;
+
         if (birdPrefab == null)
         {
-            Debug.LogError(
-                "BirdRandomSpawner chưa được gán Bird Prefab!",
-                this
-            );
-
+            Debug.LogError("BirdRandomSpawner chưa được gán Bird Prefab.", this);
             return false;
         }
 
         if (routes == null || routes.Length == 0)
         {
-            Debug.LogError(
-                "BirdRandomSpawner chưa có route!",
-                this
-            );
-
+            Debug.LogError("BirdRandomSpawner chưa có route.", this);
             return false;
         }
 
+        List<int> validIndexes = new List<int>();
+
+        for (int i = 0; i < routes.Length; i++)
+        {
+            if (routes[i] != null && routes[i].IsValid)
+                validIndexes.Add(i);
+        }
+
+        if (validIndexes.Count == 0)
+        {
+            Debug.LogError("BirdRandomSpawner không có route hợp lệ.", this);
+            return false;
+        }
+
+        selectedRouteIndex = validIndexes[Random.Range(0, validIndexes.Count)];
+        selectedRoute = routes[selectedRouteIndex];
         return true;
     }
 
-    private BirdRoute SelectRandomRoute()
+    private void SpawnBird(BirdRoute route)
     {
-        int validRouteCount = 0;
+        spawnedBird = Instantiate(
+            birdPrefab,
+            route.spawnPoint.position,
+            route.spawnPoint.rotation
+        );
 
-        for (int i = 0; i < routes.Length; i++)
+        if (spawnedBird == null)
         {
-            if (IsRouteValid(routes[i]))
-                validRouteCount++;
+            Debug.LogError("BirdRandomSpawner không thể spawn Bird Prefab.", this);
+            return;
         }
 
-        if (validRouteCount == 0)
-            return null;
+        spawnedBird.SetupRoute(route.destination);
 
-        int randomValidIndex =
-            Random.Range(0, validRouteCount);
-
-        int validIndex = 0;
-
-        for (int i = 0; i < routes.Length; i++)
+        if (showDebugLog)
         {
-            if (!IsRouteValid(routes[i]))
-                continue;
-
-            if (validIndex == randomValidIndex)
-            {
-                selectedRouteIndex = i;
-                return routes[i];
-            }
-
-            validIndex++;
+            Debug.Log(
+                $"Bird route {selectedRouteIndex + 1}: " +
+                $"{route.spawnPoint.name} -> {route.destination.name}",
+                spawnedBird
+            );
         }
-
-        return null;
     }
 
-    private IEnumerator FindPlayerRoutine()
+    private IEnumerator WaitForPlayerReady()
     {
-        float timer = 0f;
+        float elapsed = 0f;
 
-        while (player == null &&
-               timer < findPlayerTimeout)
+        while (elapsed < findPlayerTimeout)
         {
-            GameObject playerObject = null;
-
-            try
-            {
-                playerObject =
-                    GameObject.FindGameObjectWithTag(playerTag);
-            }
-            catch (UnityException)
-            {
-                Debug.LogError(
-                    $"Tag \"{playerTag}\" chưa tồn tại. " +
-                    "Hãy tạo tag Player và gắn cho player.",
-                    this
-                );
-
-                yield break;
-            }
-
-            if (playerObject != null)
-            {
-                player =
-                    playerObject.GetComponent<CharacterBase>();
-
-                if (player == null)
-                {
-                    player =
-                        playerObject.GetComponentInChildren<CharacterBase>();
-                }
-
-                if (player == null)
-                {
-                    player =
-                        playerObject.GetComponentInParent<CharacterBase>();
-                }
-            }
-
             if (player == null)
             {
-                timer += Time.unscaledDeltaTime;
-                yield return null;
+                GameObject playerObject;
+
+                try
+                {
+                    playerObject = GameObject.FindGameObjectWithTag(playerTag);
+                }
+                catch (UnityException)
+                {
+                    Debug.LogError(
+                        $"Tag \"{playerTag}\" chưa tồn tại. Hãy tạo tag và gắn cho Player.",
+                        this
+                    );
+                    yield break;
+                }
+
+                player = FindCharacterBase(playerObject);
             }
+
+            if (player != null && player.StateController != null)
+                yield break;
+
+            elapsed += Time.unscaledDeltaTime;
+            yield return null;
         }
+
+        Debug.LogError(
+            $"BirdRandomSpawner không tìm thấy Player sẵn sàng sau {findPlayerTimeout:0.##} giây.",
+            this
+        );
     }
 
-    private bool IsRouteValid(BirdRoute route)
+    private static CharacterBase FindCharacterBase(GameObject playerObject)
     {
-        return route != null &&
-               route.spawnPoint != null &&
-               route.destination != null;
+        if (playerObject == null)
+            return null;
+
+        CharacterBase foundPlayer = playerObject.GetComponent<CharacterBase>();
+
+        if (foundPlayer == null)
+            foundPlayer = playerObject.GetComponentInChildren<CharacterBase>();
+
+        if (foundPlayer == null)
+            foundPlayer = playerObject.GetComponentInParent<CharacterBase>();
+
+        return foundPlayer;
     }
 
     private void OnDrawGizmosSelected()
@@ -257,40 +180,23 @@ public class BirdRandomSpawner : MonoBehaviour
         {
             BirdRoute route = routes[i];
 
-            if (!IsRouteValid(route))
+            if (route == null || !route.IsValid)
                 continue;
 
             Gizmos.color = GetRouteColor(i);
-
-            Gizmos.DrawWireSphere(
-                route.spawnPoint.position,
-                0.4f
-            );
-
-            Gizmos.DrawWireSphere(
-                route.destination.position,
-                0.4f
-            );
-
-            Gizmos.DrawLine(
-                route.spawnPoint.position,
-                route.destination.position
-            );
+            Gizmos.DrawWireSphere(route.spawnPoint.position, 0.4f);
+            Gizmos.DrawWireSphere(route.destination.position, 0.4f);
+            Gizmos.DrawLine(route.spawnPoint.position, route.destination.position);
         }
     }
 
-    private Color GetRouteColor(int index)
+    private static Color GetRouteColor(int index)
     {
         switch (index % 3)
         {
-            case 0:
-                return Color.red;
-
-            case 1:
-                return Color.green;
-
-            default:
-                return Color.blue;
+            case 0: return Color.red;
+            case 1: return Color.green;
+            default: return Color.blue;
         }
     }
 }
