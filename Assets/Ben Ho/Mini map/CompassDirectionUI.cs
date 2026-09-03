@@ -12,6 +12,7 @@ public class CompassDirectionUI : MonoBehaviour
     [SerializeField] private RectTransform directionLine;
     [SerializeField] private RectTransform playerDirectionMarker;
     [SerializeField] private RectTransform directionPingMarker;
+    [SerializeField] private bool useMainCameraHeading = true;
 
     [Header("Cardinal Directions")]
     [SerializeField] private TMP_Text northText;
@@ -45,8 +46,12 @@ public class CompassDirectionUI : MonoBehaviour
         if (player == null || directionLine == null)
             return;
 
-        Transform directionTarget =
-            headingSource != null ? headingSource : player;
+        Transform directionTarget = player;
+
+        if (useMainCameraHeading && Camera.main != null)
+            directionTarget = Camera.main.transform;
+        else if (headingSource != null)
+            directionTarget = headingSource;
 
         float headingAngle = directionTarget.eulerAngles.y;
 
@@ -186,8 +191,5 @@ public class CompassDirectionUI : MonoBehaviour
             if (character != null)
                 player = character.transform;
         }
-
-        if (headingSource == null)
-            headingSource = player;
     }
 }

@@ -35,6 +35,8 @@ public class WorldMapPanel : MonoBehaviour,
     [SerializeField] private RawImage mapRawImage;
     [SerializeField] private RectTransform markerRoot;
     [SerializeField] private RectTransform playerMarker;
+    [SerializeField] private RectTransform safeZoneRing;
+    [SerializeField] private Image safeZoneOutsideOverlay;
 
     [Header("Fallback Bounds (Nếu Scene không có SceneMapConfig)")]
     [SerializeField] private BoundsSource boundsSource = BoundsSource.Renderers;
@@ -104,6 +106,7 @@ public class WorldMapPanel : MonoBehaviour,
         CacheMarkerBaseScale(pingMarker);
 
         EnsureRectMaskOnParent();
+        HideSafeZoneVisuals();
     }
 
     private void OnEnable()
@@ -139,6 +142,7 @@ public class WorldMapPanel : MonoBehaviour,
         if (!gameObject.activeSelf) return;
 
         UpdatePlayerMarker();
+        UpdateSafeZoneRing();
         UpdateCurrentArea();
         RefreshPingMarker();
     }
@@ -181,6 +185,7 @@ public class WorldMapPanel : MonoBehaviour,
         }
 
         BuildMarkers();
+        UpdateSafeZoneRing();
         UpdateMarkerScales();
         UpdatePlayerMarker();
         UpdateCurrentArea();
@@ -322,18 +327,24 @@ public class WorldMapPanel : MonoBehaviour,
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (hasDragged) return;
+        if (hasDragged)
+            return;
 
-        if (ClickedLocationMarker(eventData)) return;
+        if (ClickedLocationMarker(eventData))
+            return;
 
-        if (leftClickToPing && eventData.button == PointerEventData.InputButton.Left)
+        if (leftClickToPing &&
+            eventData.button == PointerEventData.InputButton.Left)
         {
             SetPingFromScreen(eventData);
             return;
         }
 
-        if (rightClickToClearPing && eventData.button == PointerEventData.InputButton.Right)
+        if (rightClickToClearPing &&
+            eventData.button == PointerEventData.InputButton.Right)
+        {
             ClearPing();
+        }
     }
 
     // ==================== MARKERS & PLAYER ====================
@@ -403,7 +414,8 @@ public class WorldMapPanel : MonoBehaviour,
 
         playerMarker.gameObject.SetActive(true);
         playerMarker.anchoredPosition = WorldToMapPosition(player.position);
-        playerMarker.localEulerAngles = new Vector3(0f, 0f, -player.eulerAngles.y);
+        Transform heading = Camera.main != null ? Camera.main.transform : player;
+        playerMarker.localEulerAngles = new Vector3(0f, 0f, -heading.eulerAngles.y);
         playerMarker.SetAsLastSibling();
     }
 
@@ -436,6 +448,85 @@ public class WorldMapPanel : MonoBehaviour,
         float safeZoom = Mathf.Max(currentZoom, Mathf.Epsilon);
         float scaleDivisor = inheritsMapScale ? safeZoom : 1f;
         marker.localScale = baseScale / scaleDivisor;
+    }
+
+    private void UpdateSafeZoneRing()
+    {
+        if (mapContent == null)
+        {
+            HideSafeZoneVisuals();
+            return;
+        }
+
+        SafeZoneManager manager = SafeZoneManager.Instance;
+        SafeZone safeZone = manager != null ? manager.SafeZone : null;
+
+        if (safeZone == null ||
+            safeZone.CurrentRadii.x <= 0f ||
+            safeZone.CurrentRadii.y <= 0f)
+        {
+            HideSafeZoneVisuals();
+            return;
+        }
+
+        float worldWidth =
+            Mathf.Max(worldMaxXZ.x - worldMinXZ.x, 1f);
+
+        float worldHeight =
+            Mathf.Max(worldMaxXZ.y - worldMinXZ.y, 1f);
+
+        Rect mapRect = mapContent.rect;
+        Vector2 radii = safeZone.CurrentRadii;
+
+        Vector2 centerOnMap =
+            WorldToMapPosition(safeZone.CurrentCenterPoint);
+
+        if (safeZoneOutsideOverlay != null)
+        {
+            Vector2 centerUV = new Vector2(
+                centerOnMap.x / mapRect.width + mapContent.pivot.x,
+                centerOnMap.y / mapRect.height + mapContent.pivot.y
+            );
+
+            Vector2 radiiUV = new Vector2(
+                radii.x / worldWidth,
+                radii.y / worldHeight
+            );
+
+            safeZoneOutsideOverlay.gameObject.SetActive(true);
+
+            Material material = safeZoneOutsideOverlay.material;
+
+            if (material != null)
+            {
+                material.SetVector("_ZoneCenter", centerUV);
+                material.SetVector("_ZoneRadii", radiiUV);
+            }
+
+            safeZoneOutsideOverlay.transform.SetAsFirstSibling();
+        }
+
+        if (safeZoneRing != null)
+        {
+            safeZoneRing.gameObject.SetActive(true);
+            safeZoneRing.anchoredPosition = centerOnMap;
+
+            safeZoneRing.sizeDelta = new Vector2(
+                radii.x * 2f / worldWidth * mapRect.width,
+                radii.y * 2f / worldHeight * mapRect.height
+            );
+
+            safeZoneRing.SetSiblingIndex(1);
+        }
+    }
+
+    private void HideSafeZoneVisuals()
+    {
+        if (safeZoneRing != null)
+            safeZoneRing.gameObject.SetActive(false);
+
+        if (safeZoneOutsideOverlay != null)
+            safeZoneOutsideOverlay.gameObject.SetActive(false);
     }
 
     public Vector2 WorldToMapPosition(Vector3 worldPosition)
@@ -623,7 +714,7 @@ public class WorldMapPanel : MonoBehaviour,
         }
     }
 
-        private void FindPlayerIfMissing()
+    private void FindPlayerIfMissing()
     {
         if (player != null && player.gameObject.activeInHierarchy) return;
 

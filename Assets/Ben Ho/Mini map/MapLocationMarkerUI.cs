@@ -44,16 +44,19 @@ public class MapLocationMarkerUI : MonoBehaviour,
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        selected = !selected;
-        SetSelected(selected);
-
-        if (owner == null)
+        if (eventData.button != PointerEventData.InputButton.Left)
             return;
 
-        if (selected)
+        if (location == null)
+            return;
+
+        MapPingService.SetPing(location.worldPosition);
+
+        selected = true;
+        SetSelected(true);
+
+        if (owner != null)
             owner.ShowInfo(location);
-        else
-            owner.HideInfo();
     }
 
     private void SetSelected(bool value)
