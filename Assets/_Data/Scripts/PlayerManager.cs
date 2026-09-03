@@ -252,7 +252,12 @@ public class PlayerManager : Singleton<PlayerManager>
         currentCharacter.characterData = characterData;
 
         if (GameManager.Instance.MapType == MapType.Lobby)
+        {
             currentCharacterBase.CharacterSkill.LockUseSkill(true, true);
+            currentCharacterBase.CharacterInput.LockInput = false;
+            currentCharacterBase.CharacterRecovery.AllowRecovery = false;
+        }
+
     }
 
     private void ClearCurrentCharacter(object data = null)

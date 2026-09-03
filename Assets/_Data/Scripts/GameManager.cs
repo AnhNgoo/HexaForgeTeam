@@ -103,8 +103,6 @@ public class GameManager : Singleton<GameManager>
         }
 
         PlayerManager.Instance?.SpawnCharacterInLobby();
-        PlayerManager.Instance.CurrentCharacterBase.CharacterInput.LockInput = false;
-        PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = false;
     }
 
     private void InitInRun()
