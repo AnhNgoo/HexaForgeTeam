@@ -367,13 +367,10 @@ public class GameplayMenu : MenuBase
     //SECTION Level
     private void UpdateLevel(object obj)
     {
-        Debug.Log($"GameplayMenu: UpdateLevel called with obj={obj}");
         if (obj is not int level)
             return;
-        Debug.Log($"GameplayMenu: UpdateLevel called with level={level}");
         if (txt_Level != null)
         {
-            Debug.Log($"GameplayMenu: Updating level text to {level}");
             txt_Level.text = level.ToString();
             txt_Level.transform.DOPunchScale(Vector3.one * 0.5f, 0.5f, 10, 1f).SetEase(Ease.OutElastic);
             txt_Level.DOBlendableColor(Color.yellow, 0.5f)
