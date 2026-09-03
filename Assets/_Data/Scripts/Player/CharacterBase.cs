@@ -594,6 +594,12 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     [Button("Take Damage (Test)")]
     public virtual void TakeDamage(DamageInfo damageInfo)
     {
+        if (characterHealth.CurrentHealth <= 0)
+        {
+            Die();
+            return;
+        }
+
         if (!CanBeAttacked) // Nếu nhân vật không thể bị tấn công, bỏ qua
             return;
 

@@ -40,13 +40,24 @@ public class EnemyDetection : MonoBehaviour
     // Kiểm tra mục tiêu có thể bị tấn công hay không (có thể dùng để kiểm tra nếu mục tiêu đã chết hoặc không thể bị tấn công)
     private bool CanEngageTarget(Transform target)
     {
+        if (target == null ||
+            !target.gameObject.activeInHierarchy)
+        {
+            return false;
+        }
+
         CharacterBase characterBase = GetCharacterBase(target);
 
-        if (characterBase == null || characterBase.CharacterHealth == null)
-            return false;
+        if (characterBase != null)
+        {
+            return characterBase.CharacterHealth != null &&
+                   !characterBase.CharacterHealth.IsDead;
+        }
 
-        return characterBase.gameObject.activeInHierarchy &&
-               !characterBase.CharacterHealth.IsDead;
+        EnemyTargetDummy dummy =
+            target.GetComponentInParent<EnemyTargetDummy>();
+
+        return dummy != null && dummy.CanBeEngaged;
     }
 
     // Khi mất mục tiêu, reset lại trạng thái của Enemy về trạng thái mặc định (Idle hoặc Patrol) nếu không đang ở trạng thái Stagger hoặc Dead

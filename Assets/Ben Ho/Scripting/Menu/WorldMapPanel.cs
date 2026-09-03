@@ -82,6 +82,10 @@ public class WorldMapPanel : MonoBehaviour,
     [SerializeField] private bool clampMapInsideView = true;
     [SerializeField] private float dragThreshold = 5f;
 
+    [Header("Safe Zone Visual")]
+    [SerializeField, Range(1f, 1.2f)]
+    private float safeZoneRingVisualScale = 1.08f;
+
     private float currentZoom = 1f;
     private bool draggingMap;
     private bool hasDragged;
@@ -127,7 +131,14 @@ public class WorldMapPanel : MonoBehaviour,
     {
         player = null;
         FindPlayerIfMissing();
-        ApplySceneConfig();
+        ApplySceneConfig(scene);
+
+        if (gameObject.activeInHierarchy)
+        {
+            BuildMarkers();
+            UpdateSafeZoneRing();
+            UpdatePlayerMarker();
+        }
     }
 
     private void Update()
@@ -206,33 +217,75 @@ public class WorldMapPanel : MonoBehaviour,
     /// </summary>
     public void ApplySceneConfig()
     {
-        currentSceneConfig = FindObjectOfType<SceneMapConfig>();
+        ApplySceneConfig(SceneManager.GetActiveScene());
+    }
+
+    private void ApplySceneConfig(Scene targetScene)
+    {
+        currentSceneConfig = FindSceneMapConfig(targetScene);
 
         if (currentSceneConfig != null)
         {
-            // 1. Đổi ảnh map
-            if (mapImage != null && currentSceneConfig.mapSprite != null)
+            if (mapImage != null &&
+                currentSceneConfig.mapSprite != null)
             {
                 mapImage.sprite = currentSceneConfig.mapSprite;
                 mapImage.enabled = true;
-                if (mapRawImage != null) mapRawImage.enabled = false;
+
+                if (mapRawImage != null)
+                    mapRawImage.enabled = false;
             }
-            else if (mapRawImage != null && currentSceneConfig.mapTexture != null)
+            else if (mapRawImage != null &&
+                     currentSceneConfig.mapTexture != null)
             {
-                mapRawImage.texture = currentSceneConfig.mapTexture;
+                mapRawImage.texture =
+                    currentSceneConfig.mapTexture;
+
                 mapRawImage.enabled = true;
-                if (mapImage != null) mapImage.enabled = false;
+
+                if (mapImage != null)
+                    mapImage.enabled = false;
             }
 
-            // 2. Lấy tọa độ Bounds của scene này
-            currentSceneConfig.GetBounds(out worldMinXZ, out worldMaxXZ);
-            Debug.Log($"🗺️ [WorldMapPanel] Đã nạp Map Config của Scene: Min={worldMinXZ}, Max={worldMaxXZ}");
+            currentSceneConfig.GetBounds(
+                out worldMinXZ,
+                out worldMaxXZ
+            );
+
+            Debug.Log(
+                $"[WorldMapPanel] Scene={targetScene.name}, " +
+                $"Config={currentSceneConfig.gameObject.scene.name}, " +
+                $"Sprite={currentSceneConfig.mapSprite?.name}, " +
+                $"Texture={currentSceneConfig.mapTexture?.name}"
+            );
+
+            return;
         }
-        else
+
+        Debug.LogWarning(
+            $"[WorldMapPanel] Scene {targetScene.name} " +
+            "không có SceneMapConfig."
+        );
+
+        if (boundsSource != BoundsSource.Manual)
+            AutoFitWorldBounds();
+    }
+
+    private SceneMapConfig FindSceneMapConfig(Scene targetScene)
+    {
+        SceneMapConfig[] configs =
+            FindObjectsOfType<SceneMapConfig>(true);
+
+        foreach (SceneMapConfig config in configs)
         {
-            if (boundsSource != BoundsSource.Manual)
-                AutoFitWorldBounds();
+            if (config != null &&
+                config.gameObject.scene == targetScene)
+            {
+                return config;
+            }
         }
+
+        return null;
     }
 
     public void AutoFitWorldBounds()
@@ -521,10 +574,12 @@ public class WorldMapPanel : MonoBehaviour,
             safeZoneRing.gameObject.SetActive(true);
             safeZoneRing.anchoredPosition = centerOnMap;
 
-            safeZoneRing.sizeDelta = new Vector2(
+            Vector2 exactZoneSize = new Vector2(
                 radii.x * 2f / worldWidth * mapRect.width,
                 radii.y * 2f / worldHeight * mapRect.height
             );
+
+            safeZoneRing.sizeDelta = exactZoneSize * safeZoneRingVisualScale;
 
             safeZoneRing.SetSiblingIndex(1);
         }
