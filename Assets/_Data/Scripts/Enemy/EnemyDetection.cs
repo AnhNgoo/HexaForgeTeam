@@ -41,11 +41,12 @@ public class EnemyDetection : MonoBehaviour
     private bool CanEngageTarget(Transform target)
     {
         CharacterBase characterBase = GetCharacterBase(target);
-        if (characterBase == null) return true;
 
-        if (characterBase.CharacterHealth == null) return false;
+        if (characterBase == null || characterBase.CharacterHealth == null)
+            return false;
 
-        return characterBase.CanBeAttacked && !characterBase.CharacterHealth.IsDead;
+        return characterBase.gameObject.activeInHierarchy &&
+               !characterBase.CharacterHealth.IsDead;
     }
 
     // Khi mất mục tiêu, reset lại trạng thái của Enemy về trạng thái mặc định (Idle hoặc Patrol) nếu không đang ở trạng thái Stagger hoặc Dead
