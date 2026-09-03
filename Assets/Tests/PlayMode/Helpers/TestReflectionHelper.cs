@@ -26,7 +26,7 @@ namespace DuskBlade.Tests
                     }
 
                     Type type = component.GetType();
-                    if (type.Name == className || type.FullName == className)
+                    if (type.Name == className || type.FullName == className || IsAssignableToNamedType(type, className))
                     {
                         return component;
                     }
@@ -35,6 +35,32 @@ namespace DuskBlade.Tests
             catch (Exception exception)
             {
                 Debug.LogWarning($"TestReflectionHelper.FindComponentByClassName failed: {exception.Message}");
+            }
+
+            return null;
+        }
+
+        private static bool IsAssignableToNamedType(Type componentType, string className)
+        {
+            Type expectedType = FindTypeByName(className);
+            return expectedType != null && expectedType.IsAssignableFrom(componentType);
+        }
+
+        private static Type FindTypeByName(string typeName)
+        {
+            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type type = assembly.GetType(typeName);
+                if (type != null) return type;
+
+                Type[] types;
+                try { types = assembly.GetTypes(); }
+                catch (ReflectionTypeLoadException exception) { types = exception.Types; }
+
+                foreach (Type candidate in types)
+                {
+                    if (candidate != null && candidate.Name == typeName) return candidate;
+                }
             }
 
             return null;

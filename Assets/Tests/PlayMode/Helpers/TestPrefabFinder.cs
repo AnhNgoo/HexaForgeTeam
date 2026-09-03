@@ -43,7 +43,11 @@ namespace DuskBlade.Tests
 
         public static GameObject FindPlayerPrefab()
         {
-            return FindBestPrefab(PlayerComponentNames, new[] { "Player", "Kael" });
+            GameObject characterPrefab = FindCharacterPrefab("Kael");
+            if (characterPrefab != null) return characterPrefab;
+
+            characterPrefab = FindCharacterPrefab("Lyra");
+            return characterPrefab ?? FindBestPrefab(PlayerComponentNames, new[] { "Player", "Kael", "Lyra" });
         }
 
         public static GameObject FindEnemyPrefab()
@@ -115,6 +119,21 @@ namespace DuskBlade.Tests
 
             return FindBestPrefab(new[] { componentName }, new string[0]);
         }
+
+            private static GameObject FindCharacterPrefab(string characterName)
+            {
+        #if UNITY_EDITOR
+                string path = "Assets/_Data/Resources/Prefabs/Characters/" + characterName + ".prefab";
+                GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if (prefab == null) return null;
+
+                Component characterBase = TestReflectionHelper.FindComponentByClassName(prefab, "CharacterBase");
+                Component movement = TestReflectionHelper.FindComponentByClassName(prefab, "CharacterMovement");
+                return characterBase != null && movement != null ? prefab : null;
+        #else
+                return Resources.Load<GameObject>("Prefabs/Characters/" + characterName);
+        #endif
+            }
 
         private static int ScorePrefab(GameObject prefab, string[] componentNames, string[] nameTokens)
         {
