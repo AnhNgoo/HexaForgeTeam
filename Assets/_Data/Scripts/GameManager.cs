@@ -138,6 +138,7 @@ public class GameManager : Singleton<GameManager>
 
         PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
         PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = true;
+        EventManager.Notify(GameEvent.OnHidePickUpItemPanel);
     }
 
     private void HandlePlayerSpawned(object data)
