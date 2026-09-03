@@ -31,7 +31,8 @@ namespace DuskBlade.Tests
             }
             catch (Exception exception)
             {
-                Record(id, title, expected, (ctx.Actual + " Not applicable in the current project configuration - " + ShortException(exception)).Trim(), "Pass", "");
+                Record(id, title, expected, (ctx.Actual + " Không đạt - " + ShortException(exception)).Trim(), "Fail", severity);
+                throw;
             }
         }
 

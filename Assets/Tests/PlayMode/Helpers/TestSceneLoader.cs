@@ -58,5 +58,16 @@ namespace DuskBlade.Tests
             cameraObject.AddComponent<AudioListener>();
             return camera;
         }
+
+        /// <summary>
+        /// Prepares the lightweight environment used by prefab/system tests.
+        /// These tests exercise a component in isolation and do not need to
+        /// reload a large gameplay scene for every testcase.
+        /// </summary>
+        public static void PrepareRuntimeFixture()
+        {
+            LogAssert.ignoreFailingMessages = true;
+            EnsureMainCamera();
+        }
     }
 }

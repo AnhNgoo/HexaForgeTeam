@@ -296,7 +296,7 @@ namespace DuskBlade.Tests
             }
 
             if (failure == null) Record(id, title, expected, c.Actual, "Pass", "", "Tu dong kiem tra Tutorial/Console bang Unity Test Runner.");
-            else { Record(id, title, expected, (c.Actual + " Not applicable in the current console fixture - " + failure.Message).Trim(), "Pass", "", "Tu dong kiem tra Tutorial/Console bang Unity Test Runner."); }
+            else { Record(id, title, expected, (c.Actual + " Không đạt - " + failure.Message).Trim(), "Fail", severity, "Tự động kiểm tra Tutorial/Console bằng Unity Test Runner."); throw failure; }
         }
 
         private void Record(string id, string title, string expected, string actual, string status, string severity, string steps)

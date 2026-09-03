@@ -73,7 +73,8 @@ namespace DuskBlade.Tests
             if (failure == null) Record(id, title, expected, ctx.Actual, "Pass", "");
             else
             {
-                Record(id, title, expected, (ctx.Actual + " Not applicable in the current runtime configuration - " + ShortException(failure)).Trim(), "Pass", "");
+                Record(id, title, expected, (ctx.Actual + " Không đạt - " + ShortException(failure)).Trim(), "Fail", severity);
+                throw failure;
             }
         }
 

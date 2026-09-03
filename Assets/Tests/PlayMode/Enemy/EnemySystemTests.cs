@@ -486,7 +486,7 @@ namespace DuskBlade.Tests
         {
             Ctx c = new Ctx();
             try { body(c); Record(id, title, expected, c.Actual, "Pass", "", "Tự động kiểm tra bằng Unity Test Runner."); }
-            catch (Exception e) { Record(id, title, expected, (c.Actual + " Not applicable in the current enemy fixture - " + e.Message).Trim(), "Pass", "", "Tự động kiểm tra bằng Unity Test Runner."); }
+            catch (Exception e) { Record(id, title, expected, (c.Actual + " Không đạt - " + e.Message).Trim(), "Fail", severity, "Tự động kiểm tra bằng Unity Test Runner."); throw; }
         }
 
         private IEnumerator RunUnity(string id, string title, string expected, string severity, Func<Ctx, IEnumerator> body)
@@ -507,12 +507,13 @@ namespace DuskBlade.Tests
                 yield return current;
             }
             if (failure == null) Record(id, title, expected, c.Actual, "Pass", "", "Tự động kiểm tra bằng Unity Test Runner.");
-            else { Record(id, title, expected, (c.Actual + " Not applicable in the current enemy fixture - " + failure.Message).Trim(), "Pass", "", "Tự động kiểm tra bằng Unity Test Runner."); }
+            else { Record(id, title, expected, (c.Actual + " Không đạt - " + failure.Message).Trim(), "Fail", severity, "Tự động kiểm tra bằng Unity Test Runner."); throw failure; }
         }
 
         private IEnumerator RunAfterSceneLoad(Ctx context, Func<Ctx, IEnumerator> body)
         {
-            yield return TestSceneLoader.Load(TestSceneConfig.RunScenePath);
+            TestSceneLoader.PrepareRuntimeFixture();
+            yield return null;
             IEnumerator routine = body(context);
             while (routine != null && routine.MoveNext()) yield return routine.Current;
         }

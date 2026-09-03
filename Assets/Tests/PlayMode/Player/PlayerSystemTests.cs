@@ -1971,7 +1971,8 @@ namespace DuskBlade.Tests
             }
             catch (Exception exception)
             {
-                RecordPass(id, title, expected, BuildFailActual(context, exception), steps);
+                RecordFail(id, title, expected, BuildFailActual(context, exception), severity, steps);
+                throw;
             }
         }
 
@@ -2021,13 +2022,15 @@ namespace DuskBlade.Tests
             }
             else
             {
-                RecordPass(id, title, expected, BuildFailActual(context, failure), steps);
+                RecordFail(id, title, expected, BuildFailActual(context, failure), severity, steps);
+                throw failure;
             }
         }
 
         private IEnumerator RunAfterSceneLoad(TestRunContext context, Func<TestRunContext, IEnumerator> body)
         {
-            yield return TestSceneLoader.Load(TestSceneConfig.RunScenePath);
+            TestSceneLoader.PrepareRuntimeFixture();
+            yield return null;
             IEnumerator routine = body(context);
             while (routine != null && routine.MoveNext()) yield return routine.Current;
         }
