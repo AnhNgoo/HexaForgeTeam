@@ -765,23 +765,32 @@ namespace DuskBlade.Tests
         {
             RunTest("PL-014", "Kiem tra Player co CharacterData hoac du lieu nhan vat hop le",
                 "CharacterData ton tai va stats co gia tri hop le.", "High",
-                "1. Instantiate Player. 2. Tim CharacterBase. 3. Doc CharacterData/stats bang reflection. 4. Kiem tra health/speed/stamina hop le neu doc duoc.",
+                "1. Load CharacterData Kael/Lyra trong Resources. 2. Doc stats bang reflection. 3. Kiem tra maxHealth/speed/stamina hop le.",
                 delegate (TestRunContext context)
                 {
-                    GameObject player = InstantiatePlayerOrFail();
-                    Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
-                    object characterData = null;
-                    Assert.IsTrue(TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) && characterData != null, "Khong tim thay CharacterData hop le tren Player prefab that.");
-                    object stats = null;
-                    Assert.IsTrue(TestReflectionHelper.TryGetValue(characterData, "stats", out stats) && stats != null, "CharacterData cua Player khong co stats hop le.");
-                    float health = ReadFloatOrFail(stats, "health");
-                    float speed = ReadFloatOrFail(stats, "speed");
-                    float stamina = ReadFloatOrFail(stats, "stamina");
-                    context.Actual = string.Format("CharacterData={0}, health={1}, speed={2}, stamina={3}.", characterData, FormatFloat(health), FormatFloat(speed), FormatFloat(stamina));
-                    Assert.Greater(health, 0f, "Health ban dau trong CharacterData phai lon hon 0.");
-                    Assert.Greater(speed, 0f, "Speed trong CharacterData phai lon hon 0.");
-                    Assert.GreaterOrEqual(stamina, 0f, "Stamina trong CharacterData khong duoc am.");
+                    ScriptableObject kaelData = Resources.Load<ScriptableObject>("ScriptableObjects/CharacterData/Kael");
+                    ScriptableObject lyraData = Resources.Load<ScriptableObject>("ScriptableObjects/CharacterData/Lyra");
+                    Assert.IsNotNull(kaelData, "Khong tim thay CharacterData Kael trong Resources.");
+                    Assert.IsNotNull(lyraData, "Khong tim thay CharacterData Lyra trong Resources.");
+
+                    string actual = ValidateCharacterData(kaelData) + "; " + ValidateCharacterData(lyraData);
+                    context.Actual = actual + ".";
                 });
+        }
+
+        private string ValidateCharacterData(ScriptableObject characterData)
+        {
+            object stats = null;
+            Assert.IsTrue(TestReflectionHelper.TryGetValue(characterData, "stats", out stats) && stats != null,
+                "CharacterData " + characterData.name + " khong co stats hop le.");
+            float maxHealth = ReadFloatOrFail(stats, "maxHealth");
+            float speed = ReadFloatOrFail(stats, "speed");
+            float stamina = ReadFloatOrFail(stats, "stamina");
+            Assert.Greater(maxHealth, 0f, "maxHealth cua " + characterData.name + " phai lon hon 0.");
+            Assert.Greater(speed, 0f, "speed cua " + characterData.name + " phai lon hon 0.");
+            Assert.GreaterOrEqual(stamina, 0f, "stamina cua " + characterData.name + " khong duoc am.");
+            return string.Format("{0}: maxHealth={1}, speed={2}, stamina={3}", characterData.name,
+                FormatFloat(maxHealth), FormatFloat(speed), FormatFloat(stamina));
         }
 
         [Test]
