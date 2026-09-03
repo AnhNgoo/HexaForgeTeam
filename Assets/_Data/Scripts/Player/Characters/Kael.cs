@@ -129,6 +129,7 @@ public class Kael : CharacterMelee
         characterStat.ResetStatsAfterSkill(); // Khôi phục chỉ số về giá trị mặc định
         characterRecovery.AllowRecovery = true; // Cho phép hồi phục khi trở về hình dạng bình thường
         characterInput.IsChangingWeapon = false; // Reset trạng thái thay đổi vũ khí khi trở về hình dạng bình thường
+        CanBeAttacked = true; // Cho phép bị tấn công khi trở về hình dạng bình thường
     }
 
     public override void TakeDamage(DamageInfo damageInfo)
