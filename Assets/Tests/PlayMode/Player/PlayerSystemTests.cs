@@ -51,7 +51,7 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player va object con khong bi Missing Script.")]
@@ -83,7 +83,7 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player khong bi vo hinh.")]
@@ -110,7 +110,7 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player khong bi loi material.")]
@@ -153,34 +153,34 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterBase.")]
-        public void PL_005_Player_CoCharacterBase()
+        public IEnumerator PL_005_Player_CoCharacterBase()
         {
-            RunComponentPresenceTest("PL-005", "Kiem tra Player co CharacterBase", "CharacterBase", "Player co component CharacterBase.", "High");
+            yield return RunComponentPresenceTest("PL-005", "Kiem tra Player co CharacterBase", "CharacterBase", "Player co component CharacterBase.", "High");
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterMovement.")]
-        public void PL_006_Player_CoCharacterMovement()
+        public IEnumerator PL_006_Player_CoCharacterMovement()
         {
-            RunComponentPresenceTest("PL-006", "Kiem tra Player co CharacterMovement", "CharacterMovement", "Player co component CharacterMovement de xu ly di chuyen.", "High");
+            yield return RunComponentPresenceTest("PL-006", "Kiem tra Player co CharacterMovement", "CharacterMovement", "Player co component CharacterMovement de xu ly di chuyen.", "High");
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterRotate.")]
-        public void PL_007_Player_CoCharacterRotate()
+        public IEnumerator PL_007_Player_CoCharacterRotate()
         {
-            RunComponentPresenceTest("PL-007", "Kiem tra Player co CharacterRotate", "CharacterRotate", "Player co component CharacterRotate de xoay huong nhan vat.", "Medium");
+            yield return RunComponentPresenceTest("PL-007", "Kiem tra Player co CharacterRotate", "CharacterRotate", "Player co component CharacterRotate de xoay huong nhan vat.", "Medium");
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co Collider hoac CharacterController.")]
@@ -349,25 +349,25 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterCombat.")]
-        public void PL_ACT_001_Player_CoCharacterCombat()
+        public IEnumerator PL_ACT_001_Player_CoCharacterCombat()
         {
-            RunComponentPresenceTest("PL-ACT-001", "Kiem tra Player co CharacterCombat", "CharacterCombat", "Player co component CharacterCombat de xu ly chien dau.", "High");
+            yield return RunComponentPresenceTest("PL-ACT-001", "Kiem tra Player co CharacterCombat", "CharacterCombat", "Player co component CharacterCombat de xu ly chien dau.", "High");
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterMelee.")]
-        public void PL_ACT_002_Player_CoCharacterMelee()
+        public IEnumerator PL_ACT_002_Player_CoCharacterMelee()
         {
-            RunComponentPresenceTest("PL-ACT-002", "Kiem tra Player co CharacterMelee", "CharacterMelee", "Player co component CharacterMelee de xu ly danh can chien.", "High");
+            yield return RunComponentPresenceTest("PL-ACT-002", "Kiem tra Player co CharacterMelee", "CharacterMelee", "Player co component CharacterMelee de xu ly danh can chien.", "High");
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterWeapon.")]
@@ -435,13 +435,13 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterSkill.")]
-        public void PL_SKILL_001_Player_CoCharacterSkill()
+        public IEnumerator PL_SKILL_001_Player_CoCharacterSkill()
         {
-            RunComponentPresenceTest("PL-SKILL-001", "Kiem tra Player co CharacterSkill", "CharacterSkill", "Player co component CharacterSkill de xu ly skill nhan vat.", "High");
+            yield return RunComponentPresenceTest("PL-SKILL-001", "Kiem tra Player co CharacterSkill", "CharacterSkill", "Player co component CharacterSkill de xu ly skill nhan vat.", "High");
         }
 
         [UnityTest]
@@ -529,13 +529,13 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterLockTarget.")]
-        public void PL_LOCK_001_Player_CoCharacterLockTarget()
+        public IEnumerator PL_LOCK_001_Player_CoCharacterLockTarget()
         {
-            RunComponentPresenceTest("PL-LOCK-001", "Kiem tra Player co CharacterLockTarget", "CharacterLockTarget", "Player co component CharacterLockTarget de xu ly khoa muc tieu.", "Medium");
+            yield return RunComponentPresenceTest("PL-LOCK-001", "Kiem tra Player co CharacterLockTarget", "CharacterLockTarget", "Player co component CharacterLockTarget de xu ly khoa muc tieu.", "Medium");
         }
 
         [UnityTest]
@@ -761,21 +761,33 @@ namespace DuskBlade.Tests
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterData hoac du lieu nhan vat hop le.")]
-        public void PL_014_Player_CoCharacterDataHopLe()
+        public IEnumerator PL_014_Player_CoCharacterDataHopLe()
         {
-            RunTest("PL-014", "Kiem tra Player co CharacterData hoac du lieu nhan vat hop le",
+            yield return RunUnityTest("PL-014", "Kiem tra Player co CharacterData hoac du lieu nhan vat hop le",
                 "CharacterData ton tai va stats co gia tri hop le.", "High",
-                "1. Load CharacterData Kael/Lyra trong Resources. 2. Doc stats bang reflection. 3. Kiem tra maxHealth/speed/stamina hop le.",
-                delegate (TestRunContext context)
-                {
-                    ScriptableObject kaelData = Resources.Load<ScriptableObject>("ScriptableObjects/CharacterData/Kael");
-                    ScriptableObject lyraData = Resources.Load<ScriptableObject>("ScriptableObjects/CharacterData/Lyra");
-                    Assert.IsNotNull(kaelData, "Khong tim thay CharacterData Kael trong Resources.");
-                    Assert.IsNotNull(lyraData, "Khong tim thay CharacterData Lyra trong Resources.");
+                "1. Load RunGame. 2. Cho Player runtime spawn. 3. Tim CharacterBase trong hierarchy. 4. Doc CharacterData/stats.",
+                delegate (TestRunContext context) { return CharacterDataRoutine(context); });
+        }
 
-                    string actual = ValidateCharacterData(kaelData) + "; " + ValidateCharacterData(lyraData);
-                    context.Actual = actual + ".";
-                });
+        private IEnumerator CharacterDataRoutine(TestRunContext context)
+        {
+            GameObject player = null;
+            yield return WaitForRuntimePlayer(playerObject => player = playerObject);
+            Component characterBase = FindRequiredComponent(player, "CharacterBase", true);
+            object characterData = null;
+            object stats = null;
+            Assert.IsTrue(TestReflectionHelper.TryGetValue(characterBase, "CharacterData", out characterData) && characterData != null,
+                "Player runtime khong co CharacterData hop le.");
+            Assert.IsTrue(TestReflectionHelper.TryGetValue(characterData, "stats", out stats) && stats != null,
+                "CharacterData runtime cua Player khong co stats hop le.");
+            float maxHealth = ReadFloatOrFail(stats, "maxHealth");
+            float speed = ReadFloatOrFail(stats, "speed");
+            float stamina = ReadFloatOrFail(stats, "stamina");
+            context.Actual = string.Format("Player={0}, CharacterData={1}, maxHealth={2}, speed={3}, stamina={4}.",
+                player.name, characterData, FormatFloat(maxHealth), FormatFloat(speed), FormatFloat(stamina));
+            Assert.Greater(maxHealth, 0f, "maxHealth cua Player phai lon hon 0.");
+            Assert.Greater(speed, 0f, "speed cua Player phai lon hon 0.");
+            Assert.GreaterOrEqual(stamina, 0f, "stamina cua Player khong duoc am.");
         }
 
         private string ValidateCharacterData(ScriptableObject characterData)
@@ -866,13 +878,13 @@ namespace DuskBlade.Tests
                 });
         }
 
-        [Test]
+        [UnityTest]
         [Category("Player")]
         [Category("Tự động")]
         [Description("Kiem tra Player co CharacterAnimation.")]
-        public void PL_019_Player_CoCharacterAnimation()
+        public IEnumerator PL_019_Player_CoCharacterAnimation()
         {
-            RunComponentPresenceTest("PL-019", "Kiem tra Player co CharacterAnimation", "CharacterAnimation", "Player co component CharacterAnimation de dieu khien animation.", "Medium");
+            yield return RunComponentPresenceTest("PL-019", "Kiem tra Player co CharacterAnimation", "CharacterAnimation", "Player co component CharacterAnimation de dieu khien animation.", "Medium");
         }
 
         [Test]
@@ -1871,19 +1883,55 @@ namespace DuskBlade.Tests
                 });
         }
 
-        private void RunComponentPresenceTest(string id, string title, string componentName, string expected, string severity)
+        private IEnumerator RunComponentPresenceTest(string id, string title, string componentName, string expected, string severity)
         {
-            RunTest(id, title, expected, severity,
-                "1. Instantiate Player. 2. Tim component " + componentName + ". 3. Kiem tra component khac null.",
-                delegate (TestRunContext context)
+            yield return RunUnityTest(id, title, expected, severity,
+                "1. Load RunGame. 2. Cho Player runtime spawn. 3. Tim component " + componentName + " trong hierarchy. 4. Kiem tra component khac null.",
+                delegate (TestRunContext context) { return ComponentPresenceRoutine(context, componentName); });
+        }
+
+        private IEnumerator ComponentPresenceRoutine(TestRunContext context, string componentName)
+        {
+            GameObject player = null;
+            yield return WaitForRuntimePlayer(playerObject => player = playerObject);
+            Component component = FindRequiredComponent(player, componentName, false);
+            context.Actual = component != null
+                ? "DAT - Tim thay component " + component.GetType().Name + " tren Player runtime."
+                : "KHONG DAT - Khong tim thay component " + componentName + " tren Player runtime.";
+            Assert.IsNotNull(component, "Khong tim thay component " + componentName + " tren Player runtime.");
+        }
+
+        private IEnumerator WaitForRuntimePlayer(Action<GameObject> assignPlayer)
+        {
+            const int maxFrames = 180;
+            for (int frame = 0; frame < maxFrames; frame++)
+            {
+                GameObject player = FindRuntimePlayer();
+                if (player != null)
                 {
-                    GameObject player = InstantiatePlayerOrFail();
-                    Component component = FindRequiredComponent(player, componentName, false);
-                    context.Actual = component != null
-                        ? "DAT - Tim thay component " + component.GetType().Name + " tren Player prefab that."
-                        : "KHONG DAT - Khong tim thay component " + componentName + " tren Player prefab that.";
-                    Assert.IsNotNull(component, "Khong tim thay component " + componentName + " tren Player prefab that.");
-                });
+                    assignPlayer(player);
+                    yield break;
+                }
+
+                yield return null;
+            }
+
+            Assert.Fail("Khong tim thay Player runtime sau khi cho scene spawn day du.");
+        }
+
+        private GameObject FindRuntimePlayer()
+        {
+            Component[] components = UnityEngine.Object.FindObjectsOfType<Component>(true);
+            foreach (Component component in components)
+            {
+                if (component == null) continue;
+                if (TestReflectionHelper.FindComponentByClassName(component.gameObject, "CharacterBase") != null)
+                {
+                    return component.transform.root.gameObject;
+                }
+            }
+
+            return null;
         }
 
         private void RunTest(string id, string title, string expected, string severity, string steps, Action<TestRunContext> body)
