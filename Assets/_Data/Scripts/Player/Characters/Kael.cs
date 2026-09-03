@@ -111,6 +111,8 @@ public class Kael : CharacterMelee
         kaelGiantVisual.SetActive(true);
         characterVisual.SetActive(false);
         characterStat.SetStatsForSkill(characterSkill.Skill2Data); // Cập nhật chỉ số cho hình dạng khổng lồ
+        characterRecovery.AllowRecovery = false; // Không cho phép hồi phục khi ở hình dạng khổng lồ
+        characterInput.IsChangingWeapon = true; // Reset trạng thái thay đổi vũ khí khi biến hình
     }
 
     public virtual void NormalForm()
@@ -125,6 +127,9 @@ public class Kael : CharacterMelee
         kaelGiantVisual.SetActive(false);
         characterVisual.SetActive(true);
         characterStat.ResetStatsAfterSkill(); // Khôi phục chỉ số về giá trị mặc định
+        characterRecovery.AllowRecovery = true; // Cho phép hồi phục khi trở về hình dạng bình thường
+        characterInput.IsChangingWeapon = false; // Reset trạng thái thay đổi vũ khí khi trở về hình dạng bình thường
+        CanBeAttacked = true; // Cho phép bị tấn công khi trở về hình dạng bình thường
     }
 
     public override void TakeDamage(DamageInfo damageInfo)
