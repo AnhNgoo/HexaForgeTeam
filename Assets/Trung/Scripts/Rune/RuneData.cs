@@ -21,46 +21,34 @@ public enum RuneStatType
 {
     HP,
     HPPercent,
-
     MP,
     MPPercent,
-
+    MPRegen,
     Stamina,
     StaminaPercent,
-
+    StaminaRegen,
     ATK,
     ATKPercent,
-
-
     DEF,
     DEFPercent,
-
-    CritChance,
-    CritDamage,
-    ArmorPenetration,
-    StaminaRegen,
+    Speed,
+    PoisonDamage,
     AllStats
-
 }
 
 [Serializable]
 public class RuneAffixData
 {
     public RuneStatType statType;
-
     public float value;
 
     public RuneAffixData()
     {
-
     }
 
-    public RuneAffixData(
-        RuneStatType statType,
-        float value)
+    public RuneAffixData(RuneStatType statType, float value)
     {
         this.statType = statType;
-
         this.value = value;
     }
 }
@@ -69,39 +57,21 @@ public class RuneAffixData
 public class RuneData
 {
     public string runeID;
-
     public RuneColor runeColor;
-
     public RuneRarity runeRarity;
     public string runeName;
-
-public string runeLore;
-
-    // public bool isEquipped;
-
-    // public int equippedSlotIndex = -1;
+    public string runeLore;
     public bool ignoreHardCap = false;
-
-    public List<RuneAffixData> affixes =
-        new List<RuneAffixData>();
+    public List<RuneAffixData> affixes = new List<RuneAffixData>();
 
     public RuneData()
     {
-
     }
 
-    public RuneData(
-        RuneColor runeColor,
-        RuneRarity runeRarity)
+    public RuneData(RuneColor runeColor, RuneRarity runeRarity)
     {
-        runeID =
-            Guid.NewGuid()
-            .ToString();
-
-        this.runeColor =
-            runeColor;
-
-        this.runeRarity =
-            runeRarity;
+        runeID = Guid.NewGuid().ToString();
+        this.runeColor = runeColor;
+        this.runeRarity = runeRarity;
     }
 }

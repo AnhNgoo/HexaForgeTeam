@@ -192,7 +192,7 @@ public class QuestManager : MonoBehaviour
         }
     }
 
-    public void ClaimQuest(string questID)
+    public void ClaimQuest(string questID, bool showNotification = true)
     {
         QuestData quest = GetQuest(questID);
         if (quest == null || quest.state != QuestState.CanClaim) return;
@@ -233,7 +233,7 @@ public class QuestManager : MonoBehaviour
             }
         }
 
-        if (LobbyNotifyManager.Instance != null)
+        if (showNotification && LobbyNotifyManager.Instance != null)
         {
             string title = questSO != null ? questSO.questTitle : quest.title;
             LobbyNotifyManager.Instance.ShowNotify($"Reward Claimed for [{title}]!", Color.green);
@@ -241,6 +241,62 @@ public class QuestManager : MonoBehaviour
 
         SaveQuests();
         OnQuestUpdated?.Invoke();
+    }
+
+    public void ExecuteGambleBet(int betAmount)
+    {
+        if (GemManager.Instance == null) return;
+
+        int currentGems = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
+            ? SaveLoadManager.Instance.SaveData.gem
+            : 0;
+
+        if (currentGems < betAmount)
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"Not enough Gems to bet {betAmount}!", Color.red);
+            }
+            return;
+        }
+
+        GemManager.Instance.SpendGem(betAmount);
+
+        int roll = UnityEngine.Random.Range(1, 101);
+
+        if (roll <= gambleTripleChance)
+        {
+            int wonAmount = betAmount * 3;
+            GemManager.Instance.AddGem(wonAmount);
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"JACKPOT! You won +{wonAmount} Gems! (x3 Multiplier)", Color.yellow);
+            }
+        }
+        else if (roll <= gambleTripleChance + gambleDoubleChance)
+        {
+            int wonAmount = betAmount * 2;
+            GemManager.Instance.AddGem(wonAmount);
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"LUCKY! You won +{wonAmount} Gems! (x2 Multiplier)", Color.green);
+            }
+        }
+        else
+        {
+            if (LobbyNotifyManager.Instance != null)
+            {
+                LobbyNotifyManager.Instance.ShowNotify($"LOST! Lost {betAmount} Gems. Better luck next run!", Color.red);
+            }
+        }
+
+        // Hoàn thành quest ngầm và cộng thưởng trợ cấp (showNotification: false để không đè thông báo Win/Lose)
+        QuestData gambleQuest = GetQuest(GAMBLE_QUEST_ID);
+        if (gambleQuest != null)
+        {
+            gambleQuest.state = QuestState.CanClaim;
+            ClaimQuest(GAMBLE_QUEST_ID, showNotification: false);
+        }
     }
 
     private void SyncFromDatabase()
@@ -363,61 +419,7 @@ public class QuestManager : MonoBehaviour
         }
     }
 
-    public void ExecuteGambleBet(int betAmount)
-    {
-        if (GemManager.Instance == null) return;
-
-        int currentGems = (SaveLoadManager.Instance != null && SaveLoadManager.Instance.SaveData != null)
-            ? SaveLoadManager.Instance.SaveData.gem
-            : 0;
-
-        if (currentGems < betAmount)
-        {
-            if (LobbyNotifyManager.Instance != null)
-            {
-                LobbyNotifyManager.Instance.ShowNotify("Not enough Gems to place this wager!", Color.red);
-            }
-            return;
-        }
-
-        GemManager.Instance.SpendGem(betAmount);
-
-        int roll = UnityEngine.Random.Range(1, 101);
-
-        if (roll <= gambleTripleChance)
-        {
-            int wonAmount = betAmount * 3;
-            GemManager.Instance.AddGem(wonAmount);
-            if (LobbyNotifyManager.Instance != null)
-            {
-                LobbyNotifyManager.Instance.ShowNotify($"JACKPOT! You won {wonAmount} Gems! (x3 Multiplier)", Color.yellow);
-            }
-        }
-        else if (roll <= gambleTripleChance + gambleDoubleChance)
-        {
-            int wonAmount = betAmount * 2;
-            GemManager.Instance.AddGem(wonAmount);
-            if (LobbyNotifyManager.Instance != null)
-            {
-                LobbyNotifyManager.Instance.ShowNotify($"LUCKY! You won {wonAmount} Gems! (x2 Multiplier)", Color.green);
-            }
-        }
-        else
-        {
-            if (LobbyNotifyManager.Instance != null)
-            {
-                LobbyNotifyManager.Instance.ShowNotify($"LOST! The Smuggler took all {betAmount} Gems. Try again next run!", Color.red);
-            }
-        }
-
-        QuestData gambleQuest = GetQuest(GAMBLE_QUEST_ID);
-        if (gambleQuest != null)
-        {
-            gambleQuest.state = QuestState.Completed;
-            SaveQuests();
-            OnQuestUpdated?.Invoke();
-        }
-    }
+    
 
     public void SkipAllQuests()
     {

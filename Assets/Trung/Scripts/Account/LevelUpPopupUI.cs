@@ -20,6 +20,10 @@ public class LevelUpPopupUI : LoadComponents
     [Header("Reward Display")]
     [SerializeField] private CostDisplayUI rewardDisplayUI;
 
+    [Header("Audio SFX")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip levelUpSFX;
+
     [Header("Auto Hide Settings")]
     [SerializeField] private float autoHideDelay = 2.5f;
 
@@ -32,6 +36,16 @@ public class LevelUpPopupUI : LoadComponents
         {
             levelUpPanel.SetActive(false);
         }
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
+            if (audioSource == null)
+            {
+                audioSource = gameObject.AddComponent<AudioSource>();
+            }
+        }
+        audioSource.playOnAwake = false;
     }
 
     public void Show(string title, int oldLevel, int newLevel, List<CostData> rewards, string bonusText)
@@ -51,14 +65,19 @@ public class LevelUpPopupUI : LoadComponents
 
         levelUpPanel.SetActive(true);
 
+        // Phát âm thanh thăng cấp
+        PlaySFX(levelUpSFX);
+
         if (bgOverlayCanvasGroup != null)
         {
+            bgOverlayCanvasGroup.DOKill();
             bgOverlayCanvasGroup.alpha = 0f;
             bgOverlayCanvasGroup.DOFade(1f, 0.25f).SetUpdate(true);
         }
 
         if (popupContainer != null)
         {
+            popupContainer.DOKill();
             popupContainer.transform.localScale = Vector3.one * 0.7f;
             popupContainer.transform.DOScale(Vector3.one, 0.35f)
                 .SetEase(Ease.OutBack)
@@ -83,6 +102,8 @@ public class LevelUpPopupUI : LoadComponents
 
         if (levelUpPanel != null) levelUpPanel.SetActive(true);
 
+        PlaySFX(levelUpSFX);
+
         Invoke(nameof(Hide), autoHideDelay);
     }
 
@@ -94,11 +115,13 @@ public class LevelUpPopupUI : LoadComponents
 
         if (bgOverlayCanvasGroup != null)
         {
+            bgOverlayCanvasGroup.DOKill();
             bgOverlayCanvasGroup.DOFade(0f, 0.2f).SetUpdate(true);
         }
 
         if (popupContainer != null)
         {
+            popupContainer.DOKill();
             popupContainer.transform.DOScale(Vector3.zero, 0.2f)
                 .SetEase(Ease.InBack)
                 .SetUpdate(true)
@@ -110,6 +133,14 @@ public class LevelUpPopupUI : LoadComponents
         else
         {
             levelUpPanel.SetActive(false);
+        }
+    }
+
+    private void PlaySFX(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
         }
     }
 
@@ -133,6 +164,11 @@ public class LevelUpPopupUI : LoadComponents
         if (rewardDisplayUI == null)
         {
             rewardDisplayUI = GetComponentInChildren<CostDisplayUI>();
+        }
+
+        if (audioSource == null)
+        {
+            audioSource = GetComponent<AudioSource>();
         }
     }
 

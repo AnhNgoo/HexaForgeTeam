@@ -475,9 +475,11 @@ public class RuneEquipUI : MonoBehaviour
     {
         switch (statType)
         {
-            case RuneStatType.HPPercent: case RuneStatType.MPPercent: case RuneStatType.StaminaPercent:
-            case RuneStatType.ATKPercent: case RuneStatType.DEFPercent: case RuneStatType.CritChance:
-            case RuneStatType.CritDamage: case RuneStatType.ArmorPenetration: case RuneStatType.StaminaRegen:
+            case RuneStatType.HPPercent:
+            case RuneStatType.MPPercent:
+            case RuneStatType.StaminaPercent:
+            case RuneStatType.ATKPercent:
+            case RuneStatType.DEFPercent:
                 return true;
         }
         return false;
@@ -491,16 +493,16 @@ public class RuneEquipUI : MonoBehaviour
             case RuneStatType.HPPercent: return "HP";
             case RuneStatType.MP: return "MP";
             case RuneStatType.MPPercent: return "MP";
+            case RuneStatType.MPRegen: return "MP Regen";
             case RuneStatType.Stamina: return "Stamina";
             case RuneStatType.StaminaPercent: return "Stamina";
+            case RuneStatType.StaminaRegen: return "Stamina Regen";
             case RuneStatType.ATK: return "ATK";
             case RuneStatType.ATKPercent: return "ATK";
             case RuneStatType.DEF: return "DEF";
             case RuneStatType.DEFPercent: return "DEF";
-            case RuneStatType.CritChance: return "Crit Chance";
-            case RuneStatType.CritDamage: return "Crit Damage";
-            case RuneStatType.ArmorPenetration: return "Armor Penetration";
-            case RuneStatType.StaminaRegen: return "Stamina Regen";
+            case RuneStatType.Speed: return "Speed";
+            case RuneStatType.PoisonDamage: return "Poison DMG";
             case RuneStatType.AllStats: return "All Stats";
         }
         return "Unknown";

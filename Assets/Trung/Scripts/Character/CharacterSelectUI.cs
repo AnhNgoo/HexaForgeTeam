@@ -303,7 +303,8 @@ public class CharacterSelectUI : LoadComponents
             {
                 string atkLabel = (realData.characterTypes == CharacterTypes.Magical) ? "MATK" : "ATK";
 
-float bonusHP = 0, bonusATK = 0, bonusDEF = 0, bonusMP = 0, bonusStamina = 0, bonusCrit = 0;
+                float bonusHP = 0, bonusATK = 0, bonusDEF = 0, bonusMP = 0, bonusStamina = 0;
+                float bonusSpeed = 0, bonusStaminaRegen = 0, bonusMPRegen = 0, bonusPoison = 0;
                 
                 if (CharacterManager.Instance != null && RuneInventoryManager.Instance != null)
                 {
@@ -331,13 +332,20 @@ float bonusHP = 0, bonusATK = 0, bonusDEF = 0, bonusMP = 0, bonusStamina = 0, bo
                                         case RuneStatType.DEFPercent: bonusDEF += realData.stats.defense * (aff.value / 100f); break;
                                         case RuneStatType.MP: bonusMP += aff.value; break;
                                         case RuneStatType.MPPercent: bonusMP += realData.stats.mp * (aff.value / 100f); break;
+                                        case RuneStatType.MPRegen: bonusMPRegen += aff.value; break;
                                         case RuneStatType.Stamina: bonusStamina += aff.value; break;
                                         case RuneStatType.StaminaPercent: bonusStamina += realData.stats.stamina * (aff.value / 100f); break;
-                                        case RuneStatType.CritChance: bonusCrit += aff.value; break;
+                                        case RuneStatType.StaminaRegen: bonusStaminaRegen += aff.value; break;
+                                        case RuneStatType.Speed: bonusSpeed += aff.value; break;
+                                        case RuneStatType.PoisonDamage: bonusPoison += aff.value; break;
                                         case RuneStatType.AllStats:
                                             bonusHP += realData.stats.maxHealth * (aff.value / 100f);
                                             bonusATK += realData.stats.damage * (aff.value / 100f);
                                             bonusDEF += realData.stats.defense * (aff.value / 100f);
+                                            bonusMP += realData.stats.mp * (aff.value / 100f);
+                                            bonusStamina += realData.stats.stamina * (aff.value / 100f);
+                                            bonusSpeed += aff.value;
+                                            bonusPoison += aff.value;
                                             break;
                                     }
                                 }
@@ -346,10 +354,9 @@ float bonusHP = 0, bonusATK = 0, bonusDEF = 0, bonusMP = 0, bonusStamina = 0, bo
                     }
                 }
 
-                // Helper định dạng màu mè đẹp mắt: Base + (+Bonus)
                 string FormatStatLine(string labelColor, string label, float baseVal, float bonusVal)
                 {
-                    if (bonusVal > 0.1f)
+                    if (bonusVal > 0.05f)
                     {
                         float totalVal = baseVal + bonusVal;
                         return $"<color={labelColor}><b>{label}:</b></color> {baseVal:F0} <color=#00FFCC><b>(+{bonusVal:F0})</b></color> <color=#FFFFFF>→</color> <b><color=#FFD700>{totalVal:F0}</color></b>";
@@ -357,14 +364,24 @@ float bonusHP = 0, bonusATK = 0, bonusDEF = 0, bonusMP = 0, bonusStamina = 0, bo
                     return $"<color={labelColor}><b>{label}:</b></color> <b>{baseVal:F0}</b>";
                 }
 
+                string FormatSpeedLine(float baseVal, float bonusVal)
+                {
+                    if (bonusVal > 0.05f)
+                    {
+                        float totalVal = baseVal + bonusVal;
+                        return $"<color=#55FF55><b>SPD:</b></color> {baseVal:F1} <color=#00FFCC><b>(+{bonusVal:F1})</b></color> <color=#FFFFFF>→</color> <b><color=#FFD700>{totalVal:F1}</color></b>";
+                    }
+                    return $"<color=#55FF55><b>SPD:</b></color> <b>{baseVal:F1}</b>";
+                }
+
                 StatText.SetTextSafe(
                     $"{FormatStatLine("#FF5555", "HP", realData.stats.maxHealth, bonusHP)}\n" +
                     $"{FormatStatLine("#55AAFF", "MP", realData.stats.mp, bonusMP)}\n" +
                     $"{FormatStatLine("#FFAA33", atkLabel, realData.stats.damage, bonusATK)}\n" +
                     $"{FormatStatLine("#33FFBB", "DEF", realData.stats.defense, bonusDEF)}\n" +
-                    $"<color=#55FF55><b>SPD:</b></color> <b>{realData.stats.speed:F1}</b>\n" +
+                    $"{FormatSpeedLine(realData.stats.speed, bonusSpeed)}\n" +
                     $"{FormatStatLine("#FFFF66", "Stamina", realData.stats.stamina, bonusStamina)}" +
-                    (bonusCrit > 0.1f ? $"\n<color=#CC66FF><b>Crit Chance:</b></color> <color=#00FFCC><b>+{bonusCrit:F1}%</b></color>" : "")
+                    (realData.stats.poisonDamage > 0 || bonusPoison > 0.05f ? $"\n{FormatStatLine("#00FF99", "Poison DMG", realData.stats.poisonDamage, bonusPoison)}" : "")
                 );
             }
 
