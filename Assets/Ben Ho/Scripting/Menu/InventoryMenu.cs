@@ -153,6 +153,8 @@ public class InventoryMenu : MenuBase
         if (btn_Discard != null)
         {
             btn_Discard.gameObject.SetActive(false);
+            btn_Discard.onClick.RemoveListener(DiscardWeapon);
+            btn_Discard.onClick.AddListener(DiscardWeapon);
         }
 
         foreach (InventorySlotUI slot in slots)
@@ -182,6 +184,9 @@ public class InventoryMenu : MenuBase
 
         if (btn_Use != null)
             btn_Use.onClick.RemoveListener(OnUseClicked);
+
+        if (btn_Discard != null)
+            btn_Discard.onClick.RemoveListener(DiscardWeapon);
 
         foreach (InventorySlotUI slot in slots)
         {
@@ -388,6 +393,18 @@ public class InventoryMenu : MenuBase
         }
     }
 
+    private void DiscardWeapon()
+    {
+        if (WeaponInventorySystem.Instance.IndexWeaponSelectedInInventory != -1)
+        {
+            WeaponInventorySystem.Instance.DiscardWeapon(WeaponInventorySystem.Instance.IndexWeaponSelectedInInventory);
+            WeaponInventorySystem.Instance.IndexWeaponSelectedInInventory = -1;
+        }
+        else
+        {
+            Debug.LogWarning("No weapon selected to discard.");
+        }
+    }
     private void DisableSelectedImages()
     {
         if (EventSystem.current != null && EventSystem.current.currentSelectedGameObject != null)

@@ -36,6 +36,15 @@ jobs:
           lfs: true
 
       # ------------------------------------------------------------
+      # 1.5. Install Blender (Sửa lỗi Blender missing khi import .blend)
+      # ------------------------------------------------------------
+      - name: Install Blender
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y blender
+
+      # ------------------------------------------------------------
       # 2. Free disk space
       # ------------------------------------------------------------
       - name: Free disk space
@@ -313,12 +322,6 @@ jobs:
 
       # ------------------------------------------------------------
       # 14. Create GitHub prerelease
-      #
-      # Push to main:
-      #   -> prerelease is created automatically.
-      #
-      # Manual workflow_dispatch:
-      #   -> prerelease is created only when publish_release=true.
       # ------------------------------------------------------------
       - name: Create GitHub prerelease
         if: >

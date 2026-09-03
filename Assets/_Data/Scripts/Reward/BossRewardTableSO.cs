@@ -53,11 +53,35 @@ public class BossRewardTableSO : ScriptableObject
         if (slot?.candidates == null)
             return null;
 
+        // Lưu các candidate weapon sai hệ để những lần roll sau không chọn lại chúng.
+        HashSet<BossRewardCandidate> rejectedCandidates = new();
+
+        while (true)
+        {
+            BossRewardCandidate candidate = RollCandidate(slot.candidates, usedKeys, rejectedCandidates);
+            if (candidate == null)
+                return null;
+
+            // Reward không phải weapon hoặc weapon đúng hệ thì nhận ngay.
+            if (IsCompatibleWeapon(candidate.reward))
+                return candidate.reward;
+
+            // Chỉ weapon sai hệ mới bị loại và phải roll lại.
+            rejectedCandidates.Add(candidate);
+        }
+    }
+
+    private static BossRewardCandidate RollCandidate(
+        List<BossRewardCandidate> candidates,
+        HashSet<string> usedKeys,
+        HashSet<BossRewardCandidate> rejectedCandidates)
+    {
         int totalWeight = 0;
 
-        foreach (BossRewardCandidate candidate in slot.candidates)
+        // Tính tổng trọng số của các candidate hợp lệ và chưa bị loại tạm thời.
+        foreach (BossRewardCandidate candidate in candidates)
         {
-            if (IsValid(candidate, usedKeys))
+            if (IsValid(candidate, usedKeys) && !rejectedCandidates.Contains(candidate))
                 totalWeight += Mathf.Max(1, candidate.weight);
         }
 
@@ -66,16 +90,39 @@ public class BossRewardTableSO : ScriptableObject
 
         int roll = UnityEngine.Random.Range(0, totalWeight);
 
-        foreach (BossRewardCandidate candidate in slot.candidates)
+        // Dùng số roll để chọn candidate theo tỷ lệ weight.
+        foreach (BossRewardCandidate candidate in candidates)
         {
-            if (!IsValid(candidate, usedKeys))
+            if (!IsValid(candidate, usedKeys) || rejectedCandidates.Contains(candidate))
                 continue;
 
             roll -= Mathf.Max(1, candidate.weight);
-            if (roll < 0) return candidate.reward;
+            if (roll < 0)
+                return candidate;
         }
 
         return null;
+    }
+
+    private static bool IsCompatibleWeapon(BossRewardDataSO reward)
+    {
+        // Reward chỉ tăng chỉ số thì không liên quan đến loại nhân vật.
+        if (reward?.RewardType != BossRewardType.Weapon)
+            return true;
+
+        CharacterTypes characterType =
+            PlayerManager.Instance?.CurrentCharacterBase?.CharacterData?.characterTypes ?? CharacterTypes.None;
+
+        // Nhân vật cận chiến không được nhận MagicWand.
+        if (characterType == CharacterTypes.PhysicalMelee)
+            return reward.Weapon.weaponType != WeaponType.MagicWand;
+
+        // Nhân vật phép thuật không được nhận vũ khí Melee.
+        if (characterType == CharacterTypes.Magical)
+            return reward.Weapon.weaponType != WeaponType.Melee;
+
+        // Không xác định được hệ nhân vật thì không chặn reward.
+        return true;
     }
 
     private static bool IsValid(BossRewardCandidate candidate, HashSet<string> usedKeys)

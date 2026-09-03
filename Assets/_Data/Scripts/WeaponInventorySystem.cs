@@ -13,7 +13,7 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
     [SerializeField] private int maxWeaponSlots = 3;
     [SerializeField] private int currentWeaponIndex = -1; // Index của vũ khí đang được trang bị, -1 nếu không có vũ khí nào được trang bị
     public int CurrentWeaponIndex => currentWeaponIndex;
-    [SerializeField] private int indexWeaponSelectedInInventory; // Vũ khí đang được chọn trong menu Inventory, có thể khác với vũ khí đang được trang bị
+    public int IndexWeaponSelectedInInventory; // Vũ khí đang được chọn trong menu Inventory, có thể khác với vũ khí đang được trang bị
     [SerializeField] private Vector2 forceDropItem = new Vector2(1f, 2f);
     private bool isSelectingRewardReplacement;
 
@@ -43,10 +43,10 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
 
         if (InputManager.InputActions.Keyboard.Discard.triggered && (UIManager.Instance.CurrentMenuType == MenuType.InventoryMenu || UIManager.Instance.CurrentMenuType == MenuType.GameSystemMenu))
         {
-            if (indexWeaponSelectedInInventory != -1)
+            if (IndexWeaponSelectedInInventory != -1)
             {
-                DiscardWeapon(indexWeaponSelectedInInventory);
-                indexWeaponSelectedInInventory = -1;
+                DiscardWeapon(IndexWeaponSelectedInInventory);
+                IndexWeaponSelectedInInventory = -1;
             }
         }
     }
@@ -54,7 +54,7 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
     public void SetRewardReplacementMode(bool active)
     {
         isSelectingRewardReplacement = active;
-        indexWeaponSelectedInInventory = -1;
+        IndexWeaponSelectedInInventory = -1;
     }
 
     [Button("Add Weapon")]
@@ -257,13 +257,13 @@ public class WeaponInventorySystem : Singleton<WeaponInventorySystem>
         {
             return;
         }
-        indexWeaponSelectedInInventory = index;
+        IndexWeaponSelectedInInventory = index;
     }
 
     // Bỏ đặt vũ khí được chọn trong menu Inventory
     private void UnsetWeaponSelectedInInventory(object obj)
     {
-        indexWeaponSelectedInInventory = -1;
+        IndexWeaponSelectedInInventory = -1;
     }
 
     // Đổi vũ khí theo index
