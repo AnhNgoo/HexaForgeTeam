@@ -23,7 +23,7 @@ jobs:
   build:
     name: Build DuskBlade Windows x64
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 360
 
     steps:
       # ------------------------------------------------------------
@@ -200,6 +200,7 @@ jobs:
       # ------------------------------------------------------------
       - name: Build Addressables and Windows x64 player
         id: unity-build
+        timeout-minutes: 330
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -212,8 +213,6 @@ jobs:
           buildsPath: build
           buildName: DuskBlade
           buildMethod: DuskBlade.Editor.CI.CIBuilder.BuildWindows
-          collectUnityLogs: true
-          streamUnityLogs: true
 
       # ------------------------------------------------------------
       # 9. Verify build output
