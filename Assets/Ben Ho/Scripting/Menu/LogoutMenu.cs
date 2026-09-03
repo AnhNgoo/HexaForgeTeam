@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using System.Collections;
+using System;
 
 public class LogoutMenu : MonoBehaviour
 {
@@ -51,11 +52,96 @@ public class LogoutMenu : MonoBehaviour
         }
     }
 
+    private bool IsInTutorialScene()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.MapType == MapType.Tutorial)
+        {
+            return true;
+        }
+
+        GameSceneData sceneData = GameSceneData.Instance;
+        string tutorialSceneName = sceneData != null
+            ? sceneData.GetSceneName(SceneType.Tutorial)
+            : "Tutorial Scene";
+
+        string activeScene = SceneManager.GetActiveScene().name;
+        if (activeScene.Equals(tutorialSceneName, StringComparison.OrdinalIgnoreCase) ||
+            activeScene.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return true;
+        }
+
+        for (int i = 0; i < SceneManager.sceneCount; i++)
+        {
+            Scene s = SceneManager.GetSceneAt(i);
+            if (s.isLoaded && (s.name.Equals(tutorialSceneName, StringComparison.OrdinalIgnoreCase) ||
+                               s.name.IndexOf("Tutorial", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CheckIsInLobby()
+    {
+        if (IsInTutorialScene())
+        {
+            return true;
+        }
+
+        if (RunManager.Instance != null && RunManager.Instance.IsRunActive)
+        {
+            return false;
+        }
+
+        if (GameManager.Instance != null && GameManager.Instance.MapType != MapType.None)
+        {
+            return GameManager.Instance.MapType == MapType.Lobby;
+        }
+
+        GameSceneData sceneData = GameSceneData.Instance;
+        if (sceneData != null)
+        {
+            string bossName = sceneData.GetSceneName(SceneType.FinalBoss);
+            string run1Name = sceneData.GetSceneName(SceneType.RunGameplay);
+            string run2Name = sceneData.GetSceneName(SceneType.RunGameplay2);
+
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene s = SceneManager.GetSceneAt(i);
+                if (s.isLoaded)
+                {
+                    if (s.name.Equals(bossName, StringComparison.OrdinalIgnoreCase) ||
+                        s.name.Equals(run1Name, StringComparison.OrdinalIgnoreCase) ||
+                        (!string.IsNullOrEmpty(run2Name) && s.name.Equals(run2Name, StringComparison.OrdinalIgnoreCase)) ||
+                        s.name.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                        s.name.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        string activeScene = SceneManager.GetActiveScene().name;
+        if (activeScene.IndexOf("Boss", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            activeScene.IndexOf("Arena", StringComparison.OrdinalIgnoreCase) >= 0 ||
+            activeScene.IndexOf("Run", StringComparison.OrdinalIgnoreCase) >= 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
     private void CheckContextState()
     {
+        isInLobby = CheckIsInLobby();
+
         if (btnLogoutText != null)
         {
-            // Nút bấm xác nhận luôn hiển thị là Xác nhận
             btnLogoutText.text = "Confirm";
         }
     }
@@ -93,8 +179,7 @@ public class LogoutMenu : MonoBehaviour
         CheckContextState();
         if (descriptionText != null)
         {
-            // Luôn hiện câu hỏi xác nhận đăng xuất
-            descriptionText.text = logoutConfirmationMessage;
+            descriptionText.text = isInLobby ? logoutConfirmationMessage : returnLobbyConfirmationMessage;
         }
         if (confirmationRoot != null)
             confirmationRoot.SetActive(true);
@@ -110,6 +195,8 @@ public class LogoutMenu : MonoBehaviour
 
     public void OnConfirmAction()
     {
+        CheckContextState();
+
         if (isInLobby)
         {
             ExecuteLogout();
@@ -183,7 +270,7 @@ public class LogoutMenu : MonoBehaviour
         AsyncOperation loadLogin = SceneManager.LoadSceneAsync(loginSceneName, LoadSceneMode.Single);
         loadLogin.allowSceneActivation = false;
 
-        float duration = Random.Range(5.0f, 7.0f);
+        float duration = UnityEngine.Random.Range(5.0f, 7.0f);
         if (LoadingUIManager.Instance != null)
         {
             yield return StartCoroutine(LoadingUIManager.Instance.TrackProgressRoutine(loadLogin, false, duration));
