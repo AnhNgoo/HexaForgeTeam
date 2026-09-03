@@ -41,14 +41,12 @@ jobs:
       # CACHE
       # ========================================
       - name: Cache Unity Library
-        uses: actions/cache@v4
-        with:
-          path: Library
-          key: >-
-            Library-${{ runner.os }}-${{
-            hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: |
-            Library-${{ runner.os }}-
+      uses: actions/cache@v4
+      with:
+        path: Library
+        key: Library-${{ runner.os }}-${{ github.ref_name }}
+        restore-keys: |
+          Library-${{ runner.os }}-
 
       # ========================================
       # FREE DISK SPACE
