@@ -128,9 +128,23 @@ public class ItemSlot : LoadComponents, IPointerEnterHandler, IPointerExitHandle
         {
             UITooltipPanel.Instance.ShowTooltip(customTooltipTitle, customTooltipDetails, customTooltipIcon);
         }
-        else if (itemData != null)
+        else if (itemData != null) //  Vũ khí
         {
-            UITooltipPanel.Instance.ShowTooltip(itemData.itemName, itemData.itemDescription, itemData.itemIcon);
+            string rarity = $"<color={GetRarityHexColor(itemData.rarity)}>{itemData.rarity}</color>";
+            string title = rarity + " - " + itemData.itemName;
+            UITooltipPanel.Instance.ShowTooltip(title, itemData.itemDescription, itemData.itemIcon);
+        }
+    }
+
+    private string GetRarityHexColor(ItemRarity rarity)
+    {
+        switch (rarity)
+        {
+            case ItemRarity.Common: return "#FFFFFF";
+            case ItemRarity.Uncommon: return "#dec714";
+            case ItemRarity.Rare: return "#ff5555";
+            case ItemRarity.Legendary: return "#bf00ff";
+            default: return "#FFFFFF";
         }
     }
 

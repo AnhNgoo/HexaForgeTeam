@@ -52,6 +52,14 @@ public class GameManager : Singleton<GameManager>
     {
         PlayerManager.Instance.CurrentCharacterBase.CharacterInput.LockInput = true;
     }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            Debug.LogError("Bấm dừng");
+        }
+    }
     private void OpenMenuAfterLoadingComplete()
     {
         if (UIManager.Instance == null) return;
@@ -138,6 +146,7 @@ public class GameManager : Singleton<GameManager>
 
         PlayerManager.Instance?.CurrentCharacterBase?.CharacterSkill?.LockUseSkill(lockSkill1: false, lockSkill2: false);
         PlayerManager.Instance.CurrentCharacterBase.CharacterRecovery.AllowRecovery = true;
+        PlayerManager.Instance.CurrentCharacterBase.CharacterHealth.SetCurrentHealth(PlayerManager.Instance.CurrentCharacterBase.CharacterHealth.MaxHealth);
         EventManager.Notify(GameEvent.OnHidePickUpItemPanel);
     }
 

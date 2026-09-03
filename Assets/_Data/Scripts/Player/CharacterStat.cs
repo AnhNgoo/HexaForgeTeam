@@ -149,7 +149,7 @@ public class CharacterStat : MonoBehaviour
         finalStats.mp += skillData.skillStats.characterStatsBonus.mp;
         finalStats.mpRegen += skillData.skillStats.characterStatsBonus.mpRegen;
 
-        cachedCurrentHealth = characterBase.CharacterHealth.CurrentHealth; // Lưu lại máu hiện tại trước khi dùng skill
+        cachedCurrentHealth = characterBase.CharacterHealth.CurrentHealth > 0 ? characterBase.CharacterHealth.CurrentHealth : 1; // Lưu lại máu hiện tại trước khi dùng skill, nếu máu <= 0 thì set thành 1 để tránh lỗi
         characterBase.CharacterHealth.SetMaxHealth(finalStats.maxHealth);
         characterBase.CharacterStamina.SetMaxStamina(finalStats.stamina);
         characterBase.CharacterMP.SetMaxMP(finalStats.mp);
