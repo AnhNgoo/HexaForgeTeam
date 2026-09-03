@@ -64,15 +64,15 @@ public class EnemyDetection : MonoBehaviour
 
     public void SetPlayerReference(Transform playerTransform)
     {
-        if (Player == playerTransform)
-            return;
+        bool targetChanged = Player != playerTransform;
 
         Player = playerTransform;
+
         _cachedCharacterBaseTarget = null;
         _cachedCharacterBase = null;
 
-        // Không cho enemy tiếp tục giữ mục tiêu thuộc Player cũ.
-        currentTarget = null;
+        if (targetChanged)
+            currentTarget = null;
     }
 
     public bool IsPlayerInLeashRange()
