@@ -11,6 +11,7 @@ public class SafeZoneManager : Singleton<SafeZoneManager>
 {
     [Header("Scene Mode")]
     [SerializeField] private bool isTutorialMode;
+    public bool IsTutorialMode => isTutorialMode;
     [SerializeField] private PoolType normalSafeZonePool = PoolType.SafeZone;
     [SerializeField] private PoolType tutorialSafeZonePool = PoolType.TutorialSafeZone;
     private PoolType activeSafeZonePool;
