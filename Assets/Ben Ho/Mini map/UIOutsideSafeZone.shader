@@ -28,6 +28,7 @@ Shader "UI/Outside Safe Zone"
             #pragma vertex vert
             #pragma fragment frag
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
+            #include "UnityUI.cginc"
             #include "UnityCG.cginc"
 
             struct appdata
@@ -49,6 +50,7 @@ Shader "UI/Outside Safe Zone"
             float4 _ZoneCenter;
             float4 _ZoneRadii;
             float _EdgeSoftness;
+            float4 _ClipRect;   
 
             v2f vert(appdata input)
             {
@@ -71,8 +73,6 @@ Shader "UI/Outside Safe Zone"
                     1.0,
                     distanceFromCenter
                 );
-
-                float4 _ClipRect;
 
                 fixed4 color = tex2D(_MainTex, input.uv) * input.color;
                 color.a *= outsideAlpha;
