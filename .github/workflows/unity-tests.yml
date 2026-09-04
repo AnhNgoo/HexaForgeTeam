@@ -43,12 +43,22 @@ jobs:
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
-          path: Library
+          # The full Library is about 12 GB and exceeds GitHub Actions' cache
+          # limit. Cache only Unity's import database and generated artifacts.
+          # PackageCache is deliberately omitted so the cache remains uploadable.
+          path: |
+            Library/Artifacts
+            Library/ArtifactDB
+            Library/SourceAssetDB
+            Library/ScriptAssemblies
+            Library/Bee
+            Library/ShaderCache
+            Library/PackageManager
           key: >-
-            Library-${{ runner.os }}-${{
-            hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+            Library-v2-${{ runner.os }}-2022.3.62f3-${{
+            hashFiles('Packages/manifest.json', 'Packages/packages-lock.json', 'ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
-            Library-${{ runner.os }}-
+            Library-v2-${{ runner.os }}-2022.3.62f3-
 
       # ========================================
       # FREE DISK SPACE
