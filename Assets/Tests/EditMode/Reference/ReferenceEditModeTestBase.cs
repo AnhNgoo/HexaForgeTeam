@@ -31,7 +31,7 @@ namespace DuskBlade.Tests
             }
             catch (Exception exception)
             {
-                Record(id, title, expected, (ctx.Actual + " Fail - " + ShortException(exception)).Trim(), "Fail", severity);
+                Record(id, title, expected, (ctx.Actual + " Không đạt - " + ShortException(exception)).Trim(), "Fail", severity);
                 throw;
             }
         }

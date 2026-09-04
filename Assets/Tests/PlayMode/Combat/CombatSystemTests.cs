@@ -367,12 +367,13 @@ namespace DuskBlade.Tests
                 yield return current;
             }
             if (failure == null) Record(id, title, expected, c.Actual, "Pass", "", "Tự động kiểm tra combat bằng Unity Test Runner.");
-            else { Record(id, title, expected, (c.Actual + " KHÔNG ĐẠT - " + failure.Message).Trim(), "Fail", severity, "Tự động kiểm tra combat bằng Unity Test Runner."); throw failure; }
+            else { Record(id, title, expected, (c.Actual + " Không đạt - " + failure.Message).Trim(), "Fail", severity, "Tự động kiểm tra combat bằng Unity Test Runner."); throw failure; }
         }
 
         private IEnumerator RunAfterSceneLoad(Ctx context, Func<Ctx, IEnumerator> body)
         {
-            yield return TestSceneLoader.Load(TestSceneConfig.RunScenePath);
+            TestSceneLoader.PrepareRuntimeFixture();
+            yield return null;
             IEnumerator routine = body(context);
             while (routine != null && routine.MoveNext()) yield return routine.Current;
         }

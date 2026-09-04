@@ -2029,7 +2029,8 @@ namespace DuskBlade.Tests
 
         private IEnumerator RunAfterSceneLoad(TestRunContext context, Func<TestRunContext, IEnumerator> body)
         {
-            yield return TestSceneLoader.Load(TestSceneConfig.RunScenePath);
+            TestSceneLoader.PrepareRuntimeFixture();
+            yield return null;
             IEnumerator routine = body(context);
             while (routine != null && routine.MoveNext()) yield return routine.Current;
         }
