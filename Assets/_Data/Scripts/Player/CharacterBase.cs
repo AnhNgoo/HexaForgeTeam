@@ -315,6 +315,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
         CanBeAttacked = true;
         IsHitStateActive = false;
         characterLockTarget?.ForceUnlockTarget();
+        characterInput.LockInput = false;
         GoldManager.Instance?.ResetGold();
         DissolveEffect?.ResetDefaultMaterial();
         InteractionManager.Instance?.ClearInteractableObjects();
@@ -598,11 +599,21 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
             return;
 
         if (characterHealth.CurrentHealth <= 0)
+        {
+            Die();
             return;
+        }
 
         float finalDamage = damageInfo.damageAmount - characterStat.finalStats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
         finalDamage = Mathf.Max(finalDamage, minTakeDamage); // Đảm bảo sát thương không bị âm
         characterHealth.SubtractHealth(finalDamage);
+
+        if (characterHealth.CurrentHealth <= 0)
+        {
+            Die();
+            characterCombat.ResetCombo();
+            return;
+        }
 
         if (!damageInfo.isFromSafeZoneEffect) // Nếu không ở ngoài vùng an toàn
         {
@@ -617,11 +628,6 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
                 stateController.ChangeState(new HitState(this));
         }
 
-        if (characterHealth.CurrentHealth <= 0)
-        {
-            Die();
-        }
-
         characterCombat.ResetCombo();
     }
 
@@ -630,6 +636,7 @@ public abstract class CharacterBase : LoadComponents, ITakeDamage, IPoolable
     protected virtual void Die()
     {
         CanBeAttacked = false;
+        characterInput.LockInput = true;
         stateController.ChangeState(new DeathState(this));
     }
 

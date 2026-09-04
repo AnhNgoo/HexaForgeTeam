@@ -138,7 +138,11 @@ public class Kael : CharacterMelee
             return;
 
         if (characterHealth.CurrentHealth <= 0)
+        {
+            if (!characterSkill.IsUsingSkill2)
+                Die();
             return;
+        }
 
         float finalDamage = damageInfo.damageAmount - characterStat.finalStats.defense; // Giảm sát thương dựa trên chỉ số phòng thủ
         finalDamage = Mathf.Max(finalDamage, minTakeDamage); // Đảm bảo sát thương không bị âm
